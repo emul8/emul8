@@ -1,0 +1,13 @@
+:Name: Versatile
+:Icon: ARM
+:HasFlash: true
+:HasPendrive: true
+
+#
+# versatile board
+#
+
+include @platforms/cpus/versatile
+
+machine LoadPeripherals @platforms/boards/versatile-externals.json
+

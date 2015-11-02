@@ -1,0 +1,8 @@
+#
+# efm32 board
+#
+
+include @platforms/cpus/efm32gg
+machine LoadPeripherals @platforms/boards/efm32gg_dk3750.json
+machine LoadPeripherals @platforms/boards/efm32gg_dk3750_ethernet.json
+

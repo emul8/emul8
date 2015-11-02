@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <ProjectInfo Type="Extension"/>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{66400796-0C5B-4386-A859-50A2AC3F3DB5}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Emul8</RootNamespace>
+    <AssemblyName>Peripherals-TranslationCPU</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>..\..\output\Debug</OutputPath>
+    <DefineConstants>DEBUG;</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <ConsolePause>false</ConsolePause>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>none</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>..\..\output\Release</OutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <ConsolePause>false</ConsolePause>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="Mono.Posix" />
+    <Reference Include="Microsoft.CSharp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="AssemblyInfo.cs" />
+    <Compile Include="Peripherals\CPU\TranslationCPU.cs" />
+    <Compile Include="Peripherals\CPU\Disassembler\IDisassembler.cs" />
+    <Compile Include="Peripherals\CPU\Disassembler\LLVMDisasWrapper.cs" />
+    <Compile Include="Peripherals\CPU\Disassembler\DisassemblerType.cs" />
+    <Compile Include="Peripherals\CPU\Disassembler\TCPUDisassembler.cs" />
+    <Compile Include="Peripherals\CPU\Disassembler\LLVMDisassembler.cs" />
+    <Compile Include="Peripherals\CPU\Disassembler\IDisassemblable.cs" />
+    <Compile Include="Peripherals\CPU\Disassembler\DisassemblerManager.cs" />
+    <Compile Include="Peripherals\CPU\Disassembler\DisassemblyEngine.cs" />
+    <Compile Include="Peripherals\CPU\Disassembler\CortexMAddressTranslator.cs" />
+    <Compile Include="Peripherals\CPU\Registers\IRegisters.cs" />
+    <Compile Include="Peripherals\CPU\CpuAbortException.cs" />
+    <Compile Include="Peripherals\CPU\Registers\RegistersGroup.cs" />
+    <Compile Include="Peripherals\CPU\Registers\RegisterEnumParser.cs">
+      <DependentUpon>RegisterEnumParser.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Peripherals\UART\SemihostingUart.cs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <ItemGroup>
+    <Folder Include="Peripherals\" />
+    <Folder Include="Peripherals\CPU\" />
+    <Folder Include="Peripherals\UART\" />
+    <Folder Include="Peripherals\CPU\Disassembler\" />
+    <Folder Include="Peripherals\CPU\Registers\" />
+  </ItemGroup>
+  <ProjectExtensions>
+    <MonoDevelop>
+      <Properties>
+        <Policies>
+          <TextStylePolicy FileWidth="120" NoTabsAfterNonTabs="True" EolMarker="Unix" inheritsSet="VisualStudio" inheritsScope="text/plain" scope="text/x-csharp" />
+          <TextStylePolicy FileWidth="120" NoTabsAfterNonTabs="True" EolMarker="Unix" inheritsSet="VisualStudio" inheritsScope="text/plain" scope="text/plain" />
+          <DotNetNamingPolicy DirectoryNamespaceAssociation="PrefixedHierarchical" ResourceNamePolicy="FileName" />
+          <CSharpFormattingPolicy AnonymousMethodBraceStyle="NextLine" PropertyBraceStyle="NextLine" PropertyGetBraceStyle="NextLine" PropertySetBraceStyle="NextLine" EventBraceStyle="NextLine" EventAddBraceStyle="NextLine" StatementBraceStyle="NextLine" ElseNewLinePlacement="NewLine" CatchNewLinePlacement="NewLine" FinallyNewLinePlacement="NewLine" WhileNewLinePlacement="NewLine" BeforeMethodDeclarationParentheses="False" BeforeMethodCallParentheses="False" BeforeConstructorDeclarationParentheses="False" BeforeIndexerDeclarationBracket="False" BeforeDelegateDeclarationParentheses="False" AfterDelegateDeclarationParameterComma="True" NewParentheses="False" IfParentheses="False" WhileParentheses="False" ForParentheses="False" ForeachParentheses="False" CatchParentheses="False" SwitchParentheses="False" LockParentheses="False" UsingParentheses="False" SpacesBeforeBrackets="False" inheritsSet="Mono" inheritsScope="text/x-csharp" scope="text/x-csharp" />
+          <StandardHeader Text="//&#xA;// Copyright (c) Antmicro&#xA;// Copyright (c) Realtime Embedded&#xA;//&#xA;// This file is part of the Emul8 project.&#xA;// Full license details are defined in the 'LICENSE' file.&#xA;//" IncludeInNewFiles="True" />
+        </Policies>
+      </Properties>
+    </MonoDevelop>
+  </ProjectExtensions>
+  <ItemGroup>
+    <ProjectReference Include="..\Main\Emulator.csproj">
+      <Project>{2901AECB-A54F-4FD8-9AC1-033D86DC7257}</Project>
+      <Name>Emulator</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\External\Migrant\Migrant\Migrant.csproj">
+      <Project>{5F87C357-09FB-4F53-BE37-41FE5BD88957}</Project>
+      <Name>Migrant</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Peripherals\CPU\Registers\RegisterTemplate.tt" />
+    <None Include="Peripherals\CPU\Registers\RegisterTemplateDefinitions.tt" />
+    <None Include="Peripherals\CPU\Registers\RegisterEnumParserContent.tt">
+    </None>
+    <None Include="Peripherals\CPU\Registers\RegisterEnumParser.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>RegisterEnumParser.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+</Project>
