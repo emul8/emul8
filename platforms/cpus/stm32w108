@@ -1,0 +1,8 @@
+#
+# script for  stm32w
+#
+
+machine LoadPeripherals @platforms/cpus/stm32w108.json
+
+sysbus ApplySVD @scripts/svd/STM32W108.svd
+

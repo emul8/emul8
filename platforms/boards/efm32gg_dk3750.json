@@ -1,0 +1,16 @@
+{
+  "EBI":
+  {
+    "_type":"Memory.MappedMemory",
+    "_connection":
+    {
+      "sysbus":
+        [
+        {
+          "address":0x88000000,
+        },
+        ]
+    },
+    "size":0x400000
+  }
+}

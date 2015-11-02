@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
+    <UsingTask AssemblyFile="$(MSBuildProjectDirectory)/../../../External/cctask/CCTask/bin/Release/CCTask.dll" TaskName="EnvironmentTask" />
+
+    <PropertyGroup>
+        <ProjectInfo Type="Extension"/>
+        <AssemblyName>llvm-disas</AssemblyName>
+        <ProjectGuid>{12A9F08D-6C63-4C20-910F-0F0E851D3A22}</ProjectGuid>
+        <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+        <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+        <OutputPath>..\..\..\output\Debug</OutputPath>
+        <WarningLevel>4</WarningLevel>
+        <Optimize>false</Optimize>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+        <OutputPath>..\..\..\output\Release</OutputPath>
+    </PropertyGroup>
+
+    <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+
+    <Target Name="CustomPrepareProperties" BeforeTargets="PrepareForBuild">
+        <EnvironmentTask>
+            <Output TaskParameter="WordSize" PropertyName="HostWordSize" />
+        </EnvironmentTask>
+        <PropertyGroup>
+            <LibraryPath>$(HostWordSize)_libLLVM-3.4.so</LibraryPath>
+        </PropertyGroup>
+
+        <ItemGroup>
+            <None Include="$(LibraryPath)">
+                <Link>libLLVM.so</Link>
+                <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+            </None>
+        </ItemGroup>
+    </Target>
+
+    <!-- We left `CoreCompile` empty, as there is really nothing to build -->
+    <Target Name="CoreCompile" />
+
+    <Target Name="GetForcedOutput" Outputs="$(MSBuildProjectDirectory)/$(OutputPath)libLLVM.so" />
+</Project>

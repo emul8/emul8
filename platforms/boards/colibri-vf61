@@ -1,0 +1,2 @@
+include @platforms/cpus/vybrid
+machine LoadPeripherals @platforms/boards/colibri-vf61.json

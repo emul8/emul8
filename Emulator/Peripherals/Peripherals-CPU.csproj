@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <ProjectInfo Type="Extension" />
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{66400796-0C5B-4386-A859-50A2AC3F3DB4}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Emul8</RootNamespace>
+    <AssemblyName>Peripherals-CPU</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>..\..\output\Debug</OutputPath>
+    <DefineConstants>DEBUG;</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <ConsolePause>false</ConsolePause>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>none</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>..\..\output\Release</OutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <ConsolePause>false</ConsolePause>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="AssemblyInfo.cs" />
+    <Compile Include="Peripherals\IRQControllers\PL190.cs" />
+    <Compile Include="Peripherals\IRQControllers\SIC.cs" />
+    <Compile Include="Peripherals\CPU\CortexM.cs" />
+    <Compile Include="Peripherals\IRQControllers\NVIC.cs" />
+    <Compile Include="Peripherals\Miscellaneous\SnoopControlUnit.cs" />
+    <Compile Include="Peripherals\IRQControllers\GIC.cs" />
+    <Compile Include="Peripherals\Cache\PL310.cs" />
+    <Compile Include="Peripherals\IRQControllers\EXTI.cs" />
+    <Compile Include="Peripherals\Timers\CortexAGlobalTimer.cs" />
+    <Compile Include="Peripherals\Timers\CortexAPrivateTimer.cs" />
+    <Compile Include="Debug\CPUTracer.cs" />
+    <Compile Include="Peripherals\DMA\STM32DMA.cs" />
+    <Compile Include="Peripherals\DMA\UDMA.cs" />
+    <Compile Include="Peripherals\DMA\STM32LDMA.cs" />
+    <Compile Include="Debug\FunctionCallParameter.cs" />
+    <Compile Include="Debug\FunctionCallParameterType.cs" />
+    <Compile Include="Peripherals\CPU\CortexA7.cs" />
+    <Compile Include="Peripherals\CPU\Registers\CortexMRegisters.cs">
+      <DependentUpon>CortexMRegisters.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Peripherals\Timers\CortexAGenericTimer.cs" />
+    <Compile Include="Peripherals\CPU\Arm.cs" />
+    <Compile Include="Peripherals\CPU\Registers\ArmRegisters.cs">
+      <DependentUpon>ArmRegisters.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Peripherals\CPU\PowerPc.cs" />
+    <Compile Include="Peripherals\CPU\Registers\PowerPcRegisters.cs">
+      <DependentUpon>PowerPcRegisters.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Peripherals\Miscellaneous\ArmSysCtl.cs" />
+    <Compile Include="Peripherals\DMA\OmapDma.cs" />
+    <Compile Include="Peripherals\EfmSystemDevice.cs" />
+    <Compile Include="Peripherals\CPU\Registers\X86Registers.cs">
+      <DependentUpon>X86Registers.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Peripherals\CPU\X86.cs" />
+  </ItemGroup>
+  <!-- We have to split it into two ItemGroups and not use variable due to monodevelop limitations -->
+  <ItemGroup Condition=" '$(Configuration)' == 'Debug' ">
+    <EmbeddedResource Include="..\Cores\zip\Debug\translate-arm.zip">
+      <Link>translate-arm.zip</Link>
+    </EmbeddedResource>
+    <EmbeddedResource Include="..\Cores\zip\Debug\translate-arm-m.zip">
+      <Link>translate-arm-m.zip</Link>
+    </EmbeddedResource>
+    <EmbeddedResource Include="..\Cores\zip\Debug\translate-ppc.zip">
+      <Link>translate-ppc.zip</Link>
+    </EmbeddedResource>
+    <EmbeddedResource Include="..\Cores\zip\Debug\translate-i386.zip">
+      <Link>translate-i386.zip</Link>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup Condition=" '$(Configuration)' == 'Release' ">
+    <EmbeddedResource Include="..\Cores\zip\Release\translate-arm.zip">
+      <Link>translate-arm.zip</Link>
+    </EmbeddedResource>
+    <EmbeddedResource Include="..\Cores\zip\Release\translate-arm-m.zip">
+      <Link>translate-arm-m.zip</Link>
+    </EmbeddedResource>
+    <EmbeddedResource Include="..\Cores\zip\Release\translate-ppc.zip">
+      <Link>translate-ppc.zip</Link>
+    </EmbeddedResource>
+    <EmbeddedResource Include="..\Cores\zip\Release\translate-i386.zip">
+      <Link>translate-i386.zip</Link>
+    </EmbeddedResource>
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <ItemGroup>
+    <Folder Include="Peripherals\" />
+    <Folder Include="Peripherals\UART\" />
+    <Folder Include="Peripherals\CPU\" />
+    <Folder Include="Peripherals\MemoryCard\" />
+    <Folder Include="Peripherals\DMA\" />
+    <Folder Include="Peripherals\Miscellaneous\" />
+    <Folder Include="Peripherals\I2C\" />
+    <Folder Include="Peripherals\Cache\" />
+    <Folder Include="Peripherals\Bus\" />
+    <Folder Include="Peripherals\MemoryControllers\" />
+    <Folder Include="Peripherals\CAN\" />
+    <Folder Include="Peripherals\Input\" />
+    <Folder Include="Debug\" />
+    <Folder Include="Peripherals\CPU\Registers\" />
+    <Folder Include="Timers\" />
+  </ItemGroup>
+  <ProjectExtensions>
+    <MonoDevelop>
+      <Properties>
+        <Policies>
+          <TextStylePolicy FileWidth="120" NoTabsAfterNonTabs="True" EolMarker="Unix" inheritsSet="VisualStudio" inheritsScope="text/plain" scope="text/x-csharp" />
+          <TextStylePolicy FileWidth="120" NoTabsAfterNonTabs="True" EolMarker="Unix" inheritsSet="VisualStudio" inheritsScope="text/plain" scope="text/plain" />
+          <DotNetNamingPolicy DirectoryNamespaceAssociation="PrefixedHierarchical" ResourceNamePolicy="FileName" />
+          <CSharpFormattingPolicy AnonymousMethodBraceStyle="NextLine" PropertyBraceStyle="NextLine" PropertyGetBraceStyle="NextLine" PropertySetBraceStyle="NextLine" EventBraceStyle="NextLine" EventAddBraceStyle="NextLine" StatementBraceStyle="NextLine" ElseNewLinePlacement="NewLine" CatchNewLinePlacement="NewLine" FinallyNewLinePlacement="NewLine" WhileNewLinePlacement="NewLine" BeforeMethodDeclarationParentheses="False" BeforeMethodCallParentheses="False" BeforeConstructorDeclarationParentheses="False" BeforeIndexerDeclarationBracket="False" BeforeDelegateDeclarationParentheses="False" AfterDelegateDeclarationParameterComma="True" NewParentheses="False" IfParentheses="False" WhileParentheses="False" ForParentheses="False" ForeachParentheses="False" CatchParentheses="False" SwitchParentheses="False" LockParentheses="False" UsingParentheses="False" SpacesBeforeBrackets="False" inheritsSet="Mono" inheritsScope="text/x-csharp" scope="text/x-csharp" />
+          <StandardHeader Text="//&#xA;// Copyright (c) Antmicro&#xA;// Copyright (c) Realtime Embedded&#xA;//&#xA;// This file is part of the Emul8 project.&#xA;// Full license details are defined in the 'LICENSE' file.&#xA;//" IncludeInNewFiles="True" />
+        </Policies>
+      </Properties>
+    </MonoDevelop>
+  </ProjectExtensions>
+  <ItemGroup>
+    <ProjectReference Include="..\Main\Emulator.csproj">
+      <Project>{2901AECB-A54F-4FD8-9AC1-033D86DC7257}</Project>
+      <Name>Emulator</Name>
+    </ProjectReference>
+    <ProjectReference Include="Peripherals-TranslationCPU.csproj">
+      <Project>{66400796-0C5B-4386-A859-50A2AC3F3DB5}</Project>
+      <Name>Peripherals-TranslationCPU</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\External\Migrant\Migrant\Migrant.csproj">
+      <Project>{5F87C357-09FB-4F53-BE37-41FE5BD88957}</Project>
+      <Name>Migrant</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Cores\cores-arm.csproj">
+      <Name>cores-arm</Name>
+      <Project>{13222124-707C-5EFD-8289-2728351FB7E9}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\Cores\cores-arm-m.csproj">
+      <Project>{43222114-707C-4EFD-8289-2728351FB7E9}</Project>
+      <Name>cores-arm-m</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Cores\cores-i386.csproj">
+      <Project>{53222114-707C-4EFD-8289-2728351FB7E9}</Project>
+      <Name>cores-i386</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Cores\cores-ppc.csproj">
+      <Project>{23222114-707C-4EFD-8289-2728351FB7E9}</Project>
+      <Name>cores-ppc</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Peripherals\CPU\Registers\ArmRegisters.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>ArmRegisters.cs</LastGenOutput>
+    </None>
+    <None Include="Peripherals\CPU\Registers\CortexMRegisters.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>CortexMRegisters.cs</LastGenOutput>
+    </None>
+    <None Include="Peripherals\CPU\Registers\X86Registers.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>X86Registers.cs</LastGenOutput>
+    </None>
+    <None Include="Peripherals\CPU\Registers\PowerPcRegisters.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PowerPcRegisters.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+</Project>

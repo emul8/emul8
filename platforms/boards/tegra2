@@ -1,0 +1,6 @@
+#
+# tegra 2
+#
+
+include @platforms/cpus/tegra2
+machine LoadPeripherals @platforms/boards/tegra_externals.json

@@ -1,0 +1,118 @@
+{
+  "phy":
+  {
+    "_type":"Network.EthernetPhysicalLayer",
+    "id1" : 0x0141,
+    "id2" : 0x0e40,
+    "autoNegotiationAdvertisement" : 0x1e1,
+    "autoNegotiationLinkPartnerAbility" : 0x1e1,
+    "gigabitControl" : 0x300,
+    "gigabitStatus" : 0x3000,
+
+    "_connection":
+    {
+      "sysbus.gem0":
+      {
+        "id":0
+      }
+    },
+  },
+  "flash":
+  {
+    "_type":"MTD.DummySPIFlash",
+    "_connection":
+    {
+      "sysbus.QSPI":
+      {
+      },
+    },
+  },
+  "led0":
+  {
+    "_type": "Miscellaneous.LED",
+    "_connection":
+    {
+    	"sysbus.GPIO":
+        	{
+                	"address":61
+                }
+    }
+ },
+  "led1":
+  {
+    "_type": "Miscellaneous.LED",
+    "_connection":
+    {
+    	"sysbus.GPIO":
+        	{
+                	"address":62
+                }
+    }
+ },
+  "led2":
+  {
+    "_type": "Miscellaneous.LED",
+    "_connection":
+    {
+    	"sysbus.GPIO":
+        	{
+                	"address":63
+                }
+    }
+ },
+  "led3":
+  {
+    "_type": "Miscellaneous.LED",
+    "_connection":
+    {
+    	"sysbus.GPIO":
+        	{
+                	"address":64
+                }
+    }
+ },
+  "led4":
+  {
+    "_type": "Miscellaneous.LED",
+    "_connection":
+    {
+    	"sysbus.GPIO":
+        	{
+                	"address":65
+                }
+    }
+ },
+  "led5":
+  {
+    "_type": "Miscellaneous.LED",
+    "_connection":
+    {
+    	"sysbus.GPIO":
+        	{
+                	"address":66
+                }
+    }
+ },
+  "led6":
+  {
+    "_type": "Miscellaneous.LED",
+    "_connection":
+    {
+    	"sysbus.GPIO":
+        	{
+                	"address":67
+                }
+    }
+ },
+  "led7":
+  {
+    "_type": "Miscellaneous.LED",
+    "_connection":
+    {
+    	"sysbus.GPIO":
+        	{
+                	"address":68
+                }
+    }
+ }
+}

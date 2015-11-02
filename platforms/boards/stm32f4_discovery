@@ -1,0 +1,10 @@
+:Name: STM32F4_Discovery
+:Icon: STM32
+
+#
+# stm32f4-discovery board
+#
+
+include @platforms/cpus/stm32f4
+
+machine LoadPeripherals @platforms/boards/stm32f4_discovery.json

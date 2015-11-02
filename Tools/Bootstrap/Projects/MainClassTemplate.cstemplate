@@ -1,0 +1,16 @@
+﻿using System.Reflection;
+
+[assembly: AssemblyTitle("Emul8-EntryProject")]
+[assembly: AssemblyCompany("{2}")]
+[assembly: AssemblyCopyright("{3}")]
+
+namespace Emul8
+{{
+    class {0}
+    {{
+        public static void Main(string[] args)
+        {{
+            {1}.Main(args);
+        }}
+    }}
+}}
