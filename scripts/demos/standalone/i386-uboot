@@ -1,5 +1,5 @@
 mach create
 i @platforms/cpus/i386
-sysbus LoadELF @https://emul8.org/emul8_files/binaries/emul8/u-boot-x86-minimal-s_925199-6543506df8e9f59fb57adb2e378838e8f028f40f
+sysbus LoadELF @http://emul8.org/emul8_files/binaries/u-boot-x86-minimal-s_925199-6543506df8e9f59fb57adb2e378838e8f028f40f
 sysbus.cpu PC 0xFFFFF800
 showAnalyzer sysbus.uart

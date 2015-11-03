@@ -39,10 +39,10 @@ macro reset
     
     ### load binaries ###
     
-    sysbus LoadELF @https://emul8.org/emul8_files/binaries/emul8/demos/zedboard-console--vmlinux-zedboard--f85b95c95b7c8c2e34db859d255d9632fd15a8c9
-    sysbus LoadBinary @https://emul8.org/emul8_files/binaries/emul8/demos/zedboard-console--devicetree-zedboard.dtb--7f202b8521d5c0e1b2120e07e677591b8917c788 0x100
+    sysbus LoadELF @http://emul8.org/emul8_files/binaries/zedboard-console--vmlinux-zedboard--f85b95c95b7c8c2e34db859d255d9632fd15a8c9
+    sysbus LoadBinary @http://emul8.org/emul8_files/binaries/zedboard-console--devicetree-zedboard.dtb--7f202b8521d5c0e1b2120e07e677591b8917c788 0x100
     sysbus ZeroRange 0x1f645000 0x800000
-    sysbus LoadBinary @https://emul8.org/emul8_files/binaries/emul8/demos/zedboard-console--ramdisk8M.image--f449af8d06ca81358a5e83d5066418b2fae30fe2 0x1f645000
+    sysbus LoadBinary @http://emul8.org/emul8_files/binaries/zedboard-console--ramdisk8M.image--f449af8d06ca81358a5e83d5066418b2fae30fe2 0x1f645000
 """
 
 runMacro $reset

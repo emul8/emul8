@@ -10,11 +10,11 @@ sysbus Redirect 0xC0000000 0x80000000 0x40000000
 showAnalyzer sysbus.uart0
 showAnalyzer sysbus.uart0 "LoggingAnalyzer"
 
-machine PendriveFromFile @https://emul8.org/emul8_files/binaries/emul8/tegra_pendrive.img-s_36700160-cadcf9fa3e7306301858a9d949b4cd7d579ba88e "pendrive" sysbus.usbehci2.usbhub 3 false
+machine PendriveFromFile @http://emul8.org/emul8_files/binaries/tegra_pendrive.img-s_36700160-cadcf9fa3e7306301858a9d949b4cd7d579ba88e "pendrive" sysbus.usbehci2.usbhub 3 false
 
 macro reset
 """
-    sysbus LoadELF @https://emul8.org/emul8_files/binaries/emul8/vmlinux-tegra3-nowy-s_100633360-e6280cbc8b535fbc34c1cf16695deb4bedcaf982
+    sysbus LoadELF @http://emul8.org/emul8_files/binaries/vmlinux-tegra3-nowy-s_100633360-e6280cbc8b535fbc34c1cf16695deb4bedcaf982
 
     cpu SetRegisterUnsafe 0 0x0
     cpu SetRegisterUnsafe 2 0x80000100     # atags

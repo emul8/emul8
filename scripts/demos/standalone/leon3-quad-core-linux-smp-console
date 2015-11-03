@@ -45,7 +45,7 @@ cpu3 SetRegisterUnsafe 14 0x47FFFF00
 timer0 WriteDoubleWord 0x0 0x4F
 timer0 WriteDoubleWord 0x4 0x4F
 
-sysbus LoadELF @https://emul8.org/emul8_files/binaries/emul8/leon3-linux-3.10.20-smp.elf-s_7899366-4408d53980963b478a1220e493feb6a0eb777b22
+sysbus LoadELF @http://emul8.org/emul8_files/binaries/leon3-linux-3.10.20-smp.elf-s_7899366-4408d53980963b478a1220e493feb6a0eb777b22
 """
 
 runMacro $reset

@@ -23,10 +23,10 @@ macro reset
     
     ### load binaries ###
     
-    sysbus LoadELF @https://emul8.org/emul8_files/binaries/emul8/demos/vexpress--vmlinux-vexpress--c2e36631a7ac4fced04258b63e5d80d25e0a18cc
+    sysbus LoadELF @http://emul8.org/emul8_files/binaries/vexpress--vmlinux-vexpress--c2e36631a7ac4fced04258b63e5d80d25e0a18cc
 
     sysbus ZeroRange 0x80800000 0x800000
-    sysbus LoadBinary @https://emul8.org/emul8_files/binaries/emul8/demos/cortex-a9--rootfs-minimal.cpio--abd8ed48b3dd3b0fec98f5ffb50fdd881fde40af 0x80800000
+    sysbus LoadBinary @http://emul8.org/emul8_files/binaries/cortex-a9--rootfs-minimal.cpio--abd8ed48b3dd3b0fec98f5ffb50fdd881fde40af 0x80800000
     
     sysbus LoadAtags "console=ttyAMA0,115200 root=/dev/ram initrd=0x80800000,8M mem=512M vmalloc=256M earlyprintk" 0x20000000 0x80000100
     
