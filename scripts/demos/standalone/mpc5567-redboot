@@ -13,7 +13,7 @@ showAnalyzer sysbus.uart
 
 macro reset
 """
-    sysbus LoadELF @https://emul8.org/emul8_files/binaries/emul8/redboot.elf-s_881357-5e10ad9d866f42a5d7e80ba0555ed0be2adfd591
+    sysbus LoadELF @http://emul8.org/emul8_files/binaries/redboot.elf-s_881357-5e10ad9d866f42a5d7e80ba0555ed0be2adfd591
 """
 
 runMacro $reset
