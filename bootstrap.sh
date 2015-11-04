@@ -48,8 +48,13 @@ fi
 
 git submodule update --init --recursive
 
+if [ -z "$ROOT_PATH" ]; then
+    # this is to support running emul8 from external directory
+    ROOT_PATH="`dirname \`readlink -f $0\``"
+fi
+
 # Create Sandbox project
-pushd Misc/Sandbox > /dev/null
+pushd $ROOT_PATH/Misc/Sandbox > /dev/null
 if [ ! -e Sandbox.csproj ]
 then
   echo " >> Creating Sandbox.csproj..."
@@ -58,10 +63,10 @@ then
 fi
 popd > /dev/null
 
-BOOTSTRAPER_DIR=./Tools/Bootstrap
+BOOTSTRAPER_DIR=$ROOT_PATH/Tools/Bootstrap
 BOOTSTRAPER_BIN=$BOOTSTRAPER_DIR/bin/Release/Bootstrap.exe
 
-CCTASK_DIR=./External/cctask
+CCTASK_DIR=$ROOT_PATH/External/cctask
 CCTASK_BIN=$CCTASK_DIR/CCTask/bin/Release/CCTask.dll
 
 # We build bootstrap/cctask every time in order to have the newest versions at every bootstrapping.
