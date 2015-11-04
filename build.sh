@@ -8,6 +8,11 @@
 
 set -e
 
+if [ -z "$ROOT_PATH" ]; then
+    # this is to support running emul8 from external directory
+    ROOT_PATH="`dirname \`readlink -f $0\``"
+fi
+
 TARGET="./target/Emul8.sln"
 
 export CLEAN=false
@@ -42,13 +47,13 @@ fi
 
 if ! $CLEAN
 then
-  pushd Tools/scripts > /dev/null
+  pushd $ROOT_PATH/Tools/scripts > /dev/null
   ./check_weak_implementations.sh
   popd > /dev/null
 fi
 
 # Build CCTask in Release configuration
-xbuild /p:Configuration=Release External/cctask/CCTask.sln > /dev/null
+xbuild /p:Configuration=Release $ROOT_PATH/External/cctask/CCTask.sln > /dev/null
 
 if $CLEAN
 then
@@ -85,7 +90,7 @@ if $INSTALL
 then
     INSTALLATION_PATH="/usr/local/bin/emul8"
     echo "Installing Emul8 in: $INSTALLATION_PATH"
-    sudo ln -sf $PWD/run.sh $INSTALLATION_PATH
+    sudo ln -sf $ROOT_PATH/run.sh $INSTALLATION_PATH
 fi
 
 exit $result_code
