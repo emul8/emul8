@@ -54,6 +54,7 @@ if $CLEAN
 then
     xbuild /t:Clean /p:Configuration=Debug $TARGET
     xbuild /t:Clean /p:Configuration=Release $TARGET
+    rm -fr $ROOT_PATH/output
     exit 0
 fi
 
@@ -79,11 +80,6 @@ do
     set -e
     retries=$((retries-1))
 done
-
-if $CLEAN
-then
-    rm -fr output
-fi
 
 if $INSTALL
 then
