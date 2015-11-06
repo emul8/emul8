@@ -24,12 +24,12 @@ namespace Emul8.Bootstrap
             {
                 return 1;
             }
-            
+
             if(options.Interactive)
             {
                 return HandleInteractive(options.Directories.ToList());
             }
-            
+
             switch(options.Action)
             {
             case Operation.GenerateAll:
@@ -45,25 +45,25 @@ namespace Emul8.Bootstrap
                 HandleScan(options.Type, options.Directories);
                 break;
             }
-            
+
             return 0;
         }
-        
+
         private static Solution HandleCustomSolution(IEnumerable<string> directories)
         {
             var stepManager = new StepManager();
             var pathHelper = new PathHelper(directories.Select(Path.GetFullPath));
-            
+
             stepManager.AddStep(new UiStep(pathHelper));
             stepManager.AddStep(new ProjectsListStep<ExtensionProject>("Choose extensions libraries:", pathHelper));
             stepManager.AddStep(new PluginStep("Choose plugins:", pathHelper));
             stepManager.AddStep(new ProjectsListStep<TestsProject>("Choose tests:", pathHelper));
             stepManager.AddStep(new ProjectsListStep<UnknownProject>("Choose other projects:", pathHelper));
-            
+
             stepManager.Run();
             return stepManager.IsCancelled ? null 
                     : SolutionGenerator.Generate(stepManager.GetStep<UiStep>().UIProject,
-                        stepManager.GetSteps<ProjectsListStep>().SelectMany(x => x.AdditionalProjects).Union(stepManager.GetStep<UiStep>().UIProject.GetAllReferences()));
+                stepManager.GetSteps<ProjectsListStep>().SelectMany(x => x.AdditionalProjects).Union(stepManager.GetStep<UiStep>().UIProject.GetAllReferences()));
         }
 
         private static void HandleGenerateSolution(string mainProjectPath, IEnumerable<string> additionalProjectsPaths, string output)
@@ -74,7 +74,7 @@ namespace Emul8.Bootstrap
                 Console.Error.WriteLine("Could not load main project");
                 return;
             }
-            
+
             var additionalProjects = new List<Project>();
             foreach(var additionalProjectPath in additionalProjectsPaths)
             {
@@ -86,7 +86,7 @@ namespace Emul8.Bootstrap
                 }
                 additionalProjects.Add(additionalProject);
             }
-            
+
             var solution = SolutionGenerator.Generate(mainProject, additionalProjects);
             if(output == null)
             {
@@ -97,7 +97,7 @@ namespace Emul8.Bootstrap
                 solution.Save(output);
             }
         }
-        
+
         private static bool TryFind(string command)
         {
             var verifyProc = new Process();
@@ -113,7 +113,7 @@ namespace Emul8.Bootstrap
 
             verifyProc.WaitForExit();
             return verifyProc.ExitCode == 0;
-        } 
+        }
 
         private static int HandleInteractive(List<string> directories)
         {
@@ -123,7 +123,7 @@ namespace Emul8.Bootstrap
                 Console.Error.WriteLine("The 'dialog' application is necessary to run in interactive mode");
                 return ErrorResultCode;
             }
-            
+
             if(directories == null || directories.All(x => string.IsNullOrEmpty(x)))
             {
                 var directoryDialog = new InputboxDialog(Title, "Provide directories to scan (colon-separated):", ".");
@@ -133,25 +133,25 @@ namespace Emul8.Bootstrap
                 }
                 directories = directoryDialog.Value.Split(new [] { ':' }, StringSplitOptions.RemoveEmptyEntries).ToList();
             }
-            
+
             if(!directories.Any())
             {
                 new MessageDialog("Error", "No directories to scan provided! Exiting.").Show();
                 return ErrorResultCode;
             }
-            
+
             Solution solution = null;
             var infobox = new Infobox("Scanning directories...");
             infobox.Show();
-            
+
             Scanner.Instance.ScanDirectories(directories);
-            
+
             var actions = new List<Tuple<string, string>> {
-                Tuple.Create("All",    "Generate solution file with all projects"),
+                Tuple.Create("All", "Generate solution file with all projects"),
                 Tuple.Create("Custom", "Generate custom solution file"),
-                Tuple.Create("Clean",  "Remove generated configuration")
+                Tuple.Create("Clean", "Remove generated configuration")
             };
-            
+
             foreach(var uiType in Scanner.Instance.Projects.OfType<UiProject>().Select(x => x.UiType).Distinct().OrderByDescending(x => x))
             {
                 actions.Insert(1, Tuple.Create(uiType, string.Format("Generate solution file for {0} with references", uiType)));
@@ -162,8 +162,8 @@ namespace Emul8.Bootstrap
             {
                 return CancelResultCode;
             }
-            
-            try 
+
+            try
             {
                 var key = actionDialog.SelectedKeys.First();
                 switch(key)
@@ -187,15 +187,14 @@ namespace Emul8.Bootstrap
                     }
                     solution = SolutionGenerator.GenerateWithAllReferences(mainProject);
                     break;
-                    
                 }
             }
-            catch (DirectoryNotFoundException e)
+            catch(DirectoryNotFoundException e)
             {
                 new MessageDialog("Error", e.Message).Show();
                 return ErrorResultCode;
             }
-            
+
             if(solution == null)
             {
                 new MessageDialog("Bootstrap failure", "Couldn't generate the solution file: no project file found in the directories provided. Exiting").Show();
@@ -228,12 +227,12 @@ namespace Emul8.Bootstrap
                 Console.WriteLine("{0} {1}", p.Name, p.Path);
             }
         }
-        
+
         private static Solution GenerateAllProjects(IEnumerable<string> paths)
         {
             var fullPaths = paths.Select(Path.GetFullPath).ToArray();
             Scanner.Instance.ScanDirectories(fullPaths);
-            
+
             var mainProject = Scanner.Instance.Projects.OfType<UiProject>().FirstOrDefault();
             if(mainProject == null)
             {
@@ -242,11 +241,11 @@ namespace Emul8.Bootstrap
             }
             return SolutionGenerator.GenerateWithAllReferences(mainProject, Scanner.Instance.Projects.Where(x => !(x is UnknownProject)));
         }
-        
+
         private const int CancelResultCode = 1;
         private const int ErrorResultCode = 2;
         private const int CleanedResultCode = 3;
-        
+
         public const string Title = "Emul8 bootstrap";
         private const string solutionName = "target/Emul8.sln";
     }
