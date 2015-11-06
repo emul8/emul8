@@ -62,7 +62,7 @@ namespace Emul8.UserInterface.Commands
             monitor.TryExecuteScript(platform.ScriptPath);
         }
 
-        public CreatePlatformCommand(Monitor monitor, Action<Machine> changeCurrentMachine) : base(monitor, "createPlatform", "creates platform.", "c")
+        public CreatePlatformCommand(Monitor monitor, Action<Machine> changeCurrentMachine) : base(monitor, "createPlatform", "creates a platform.", "c")
         {
             this.changeCurrentMachine = changeCurrentMachine;
         }

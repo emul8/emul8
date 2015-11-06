@@ -65,7 +65,7 @@ namespace Emul8.UserInterface.Commands
             Run(writer, null, peripheral, viewId);
         }
 
-        public ShowBackendAnalyzerCommand(Monitor monitor) : base(monitor, "showAnalyzer", "opens peripheral backend analyzer", "sa")
+        public ShowBackendAnalyzerCommand(Monitor monitor) : base(monitor, "showAnalyzer", "opens a peripheral backend analyzer.", "sa")
         {
         }
 

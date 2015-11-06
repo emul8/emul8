@@ -93,7 +93,7 @@ namespace Emul8.UserInterface.Commands
         private readonly String noun;
 
         public SetCommand(Monitor monitor, String name, string noun, Action<string, Token> setVariable, Action<string, int> enableStringEater, Action disableStringEater, Func<int> getStringEaterMode, 
-            Func<string, string> getVariableName) : base(monitor, name, "sets a {0}".FormatWith(noun))
+            Func<string, string> getVariableName) : base(monitor, name, "sets a {0}.".FormatWith(noun))
         {
             EnableStringEater = enableStringEater;
             DisableStringEater = disableStringEater;
