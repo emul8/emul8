@@ -4,8 +4,8 @@
 # Emul8 bootstrapping script
 # ==========================
 #
-# This script is used to create <<Emul8.sln>> file
-# with references to selected modules:
+# This script is used to create the <<Emul8.sln>> file
+# with references to the selected modules:
 #
 # * UI module
 # * extension libraries with peripherals
@@ -29,9 +29,10 @@ do
             echo "Emul8 bootstrapping script"
             echo "=========================="
             echo "Usage: $0 [-a] [-d directory] [-h]"
-            echo '  -a          batch mode, generates `All projects` solution without interaction with user'
-            echo "  -d value    location of base directory"
-            echo "  -h          prints this help"
+            echo "  -a            batch mode, generates the 'All projects' solution without"
+            echo "                any interaction with the user"
+            echo "  -d directory  location of the base directory"
+            echo "  -h            prints this help"
             exit 0
     esac
 done
@@ -77,9 +78,9 @@ else
     set -e
     clear
     case $result in
-        0) echo "Solution generated in target/Emul8.sln. Now you can run ./build.sh" ;;
-        1) echo "Solution generation cancelled." ;;
-        2) echo "There was an error while generating solution." ;;
+        0) echo "Solution file generated in target/Emul8.sln. Now you can run ./build.sh" ;;
+        1) echo "Solution file generation cancelled." ;;
+        2) echo "There was an error while generating the solution file." ;;
         3) echo "Bootstrap setup cleaned." ;;
     esac
     exit $result
