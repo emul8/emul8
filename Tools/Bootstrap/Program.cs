@@ -120,7 +120,7 @@ namespace Emul8.Bootstrap
             // check if "dialog" application is available
             if(!TryFind("dialog"))
             {
-                Console.Error.WriteLine("'dialog' application is necessary to run interactive mode");
+                Console.Error.WriteLine("The 'dialog' application is necessary to run in interactive mode");
                 return ErrorResultCode;
             }
             
@@ -147,17 +147,17 @@ namespace Emul8.Bootstrap
             Scanner.Instance.ScanDirectories(directories);
             
             var actions = new List<Tuple<string, string>> {
-                Tuple.Create("All",    "Generate solution with all projects"),
-                Tuple.Create("Custom", "Generate custom solution"),
+                Tuple.Create("All",    "Generate solution file with all projects"),
+                Tuple.Create("Custom", "Generate custom solution file"),
                 Tuple.Create("Clean",  "Remove generated configuration")
             };
             
             foreach(var uiType in Scanner.Instance.Projects.OfType<UiProject>().Select(x => x.UiType).Distinct().OrderByDescending(x => x))
             {
-                actions.Insert(1, Tuple.Create(uiType, string.Format("Generate solution for {0} with references", uiType)));
+                actions.Insert(1, Tuple.Create(uiType, string.Format("Generate solution file for {0} with references", uiType)));
             }
-            
-            var actionDialog = new MenuDialog(Title, "Welcome to Emul8 bootstrap configuration.\nUse this script to generate your own Emul8.sln file.\n\nChoose action:", actions);
+
+            var actionDialog = new MenuDialog(Title, "Welcome to the Emul8 bootstrap configuration.\nUse this script to generate your own Emul8.sln file.\n\nChoose action:", actions);
             if(actionDialog.Show() != DialogResult.Ok)
             {
                 return CancelResultCode;
@@ -198,11 +198,11 @@ namespace Emul8.Bootstrap
             
             if(solution == null)
             {
-                new MessageDialog("Bootstrap failure", "Couldn't generate solution file: no project file found in provided directories. Exiting").Show();
+                new MessageDialog("Bootstrap failure", "Couldn't generate the solution file: no project file found in the directories provided. Exiting").Show();
                 return ErrorResultCode;
             }
-            
-            var confirmDialog = new YesNoDialog(Title, "Are you sure you want to create solution file?");
+
+            var confirmDialog = new YesNoDialog(Title, "Are you sure you want to create the solution file?");
             if(confirmDialog.Show() != DialogResult.Ok)
             {
                 return CancelResultCode;
