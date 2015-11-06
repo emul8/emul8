@@ -16,6 +16,7 @@ bin
 lib
 output/
 target/
+build/
 obj
 Emulator/*/Lib
 

@@ -78,7 +78,7 @@ namespace Emul8.UserInterface.Commands
             writer.WriteLine(def ?? "No default analyzer found.");
         }
 
-        public AnalyzersCommand(Monitor monitor) : base(monitor, "analyzers", "shows available analyzers for peripheral")
+        public AnalyzersCommand(Monitor monitor) : base(monitor, "analyzers", "shows available analyzers for peripheral.")
         {
         }
     }
