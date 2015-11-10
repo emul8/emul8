@@ -632,13 +632,13 @@ namespace Emul8.Core
             }
         }
 
-        public void ExecuteIn(Action what, TimeSpan when)
+        public void ExecuteIn(Action what, TimeSpan when = default(TimeSpan))
         {
             if(clockSourceWrapper.CurrentClockSource is HostTimeClockSource)
             {
                 throw new InvalidOperationException("This function can only be used with virtual timers.");
             }
-            delayedTasks.Add(new DelayedTask(what, timeSpanBySyncSoFar));
+            delayedTasks.Add(new DelayedTask(what, timeSpanBySyncSoFar + when));
         }
 
         public void AttachGPIO(IPeripheral source, int sourceNumber, IGPIOReceiver destination, int destinationNumber, int? localReceiverNumber = null)

@@ -254,7 +254,7 @@ namespace Emul8.Peripherals.DMA
                         parent.streamFinished[streamNo] = true;
                         if(interruptOnComplete)
                         {
-                            parent.machine.ExecuteIn(IRQ.Set, TimeSpan.FromMilliseconds(50));
+                            parent.machine.ExecuteIn(IRQ.Set);
                         }
                     }
                 }
