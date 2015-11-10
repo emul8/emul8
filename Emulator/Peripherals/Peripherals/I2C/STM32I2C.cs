@@ -148,7 +148,7 @@ namespace Emul8.Peripherals.I2C
 
         private void InterruptEnableChange(bool oldValue, bool newValue)
         {
-            machine.ExecuteIn(Update, TimeSpan.Zero);
+            machine.ExecuteIn(Update);
         }
 
         private void Update()
@@ -217,7 +217,7 @@ namespace Emul8.Peripherals.I2C
                     state = State.Idle;
                     acknowledgeFailed.Value = true;
                 }
-                machine.ExecuteIn(Update, TimeSpan.FromMilliseconds(10));
+                machine.ExecuteIn(Update);
                 break;
             case State.AwaitingData:
                 dataToTransfer.Add((byte)newValue);
@@ -227,7 +227,7 @@ namespace Emul8.Peripherals.I2C
                     byteTransferFinished.Value = true;
                     state = State.AwaitingRestartOrStop;
                     Update();
-                }, TimeSpan.FromMilliseconds(1));
+                });
                 Update();
                 break;
             default:

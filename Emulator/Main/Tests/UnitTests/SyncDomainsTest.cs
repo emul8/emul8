@@ -365,7 +365,7 @@ namespace Emul8.UnitTests
             machines[0].SyncDomain = syncDomain;
             machines[0].SyncUnit = 10;
 
-            machines[0].ExecuteIn(() => machines[0].ExecuteIn(() => i++, TimeSpan.Zero), 
+            machines[0].ExecuteIn(() => machines[0].ExecuteIn(() => i++), 
                 TimeSpan.FromTicks(10 * Emul8.Time.Consts.TimeQuantum.Ticks));
             Assert.AreEqual(0, i);
             clockSources[0].Advance(10);
