@@ -7,7 +7,7 @@
 //
 ﻿using Antmicro.OptionsParser;
 
-namespace Emul8Launcher
+namespace Emul8.Launcher
 {
     public class Options : IValidatedOptions
     {
