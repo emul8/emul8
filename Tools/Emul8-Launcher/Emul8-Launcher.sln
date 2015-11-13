@@ -5,6 +5,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Emul8-Launcher", "Emul8-Lau
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OptionsParser", "..\..\External\options-parser\OptionsParser.csproj", "{C56AABEF-C01E-493F-A65F-09A572FE9B2E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LaunchAttributes", "LaunchAttributes\LaunchAttributes.csproj", "{CC6D2193-B747-42F0-8F80-6569ED04338D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x86 = Debug|x86
@@ -19,5 +21,9 @@ Global
 		{C56AABEF-C01E-493F-A65F-09A572FE9B2E}.Debug|x86.Build.0 = Debug|Any CPU
 		{C56AABEF-C01E-493F-A65F-09A572FE9B2E}.Release|x86.ActiveCfg = Release|Any CPU
 		{C56AABEF-C01E-493F-A65F-09A572FE9B2E}.Release|x86.Build.0 = Release|Any CPU
+		{CC6D2193-B747-42F0-8F80-6569ED04338D}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{CC6D2193-B747-42F0-8F80-6569ED04338D}.Debug|x86.Build.0 = Debug|Any CPU
+		{CC6D2193-B747-42F0-8F80-6569ED04338D}.Release|x86.ActiveCfg = Release|Any CPU
+		{CC6D2193-B747-42F0-8F80-6569ED04338D}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
