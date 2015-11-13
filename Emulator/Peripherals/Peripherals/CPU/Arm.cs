@@ -17,6 +17,7 @@ using Emul8.Peripherals.UART;
 using Emul8.Core.Structure;
 using Emul8.Exceptions;
 using Emul8.Utilities;
+using Emul8.Peripherals.Miscellaneous;
 
 namespace Emul8.Peripherals.CPU
 {
@@ -170,15 +171,17 @@ namespace Emul8.Peripherals.CPU
             if((op1 == 4) && (op2 == 0) && (crm == 0))
             {
                 // scu
-                var scu = machine.GetRegisteredPeripherals().FirstOrDefault(x => x.Type.Name.Contains("SnoopControlUnit"));
-                if(scu != null)
+                var scus = machine.GetPeripheralsOfType<SnoopControlUnit>().ToArray();
+                switch(scus.Length)
                 {
-                    return (uint)(((BusRangeRegistration)scu.RegistrationPoint).Range.StartAddress);
-                }
-                else
-                {       
-                    this.Log(LogLevel.Warning, "Read for SCU address, but SCU not found - returning 0x0");
+                case 0:
+                    this.Log(LogLevel.Warning, "Trying to read SCU address, but SCU was not found - returning 0x0.");
                     return 0;
+                case 1:
+                    return (uint)((BusRangeRegistration)(machine.GetPeripheralRegistrationPoints(machine.SystemBus, scus[0]).Single())).Range.StartAddress;
+                default:
+                    this.Log(LogLevel.Error, "Trying to read SCU address, but more than one instance was found. Aborting.");
+                    throw new CpuAbortException();
                 }
             }
             this.Log(LogLevel.Warning, "Unknown CP15 32-bit read - op1={0}, op2={1}, crm={2}, crn={3} - returning 0x0", op1, op2, crm, crn);
