@@ -10,7 +10,7 @@ using System.IO;
 using System.Diagnostics;
 using Antmicro.OptionsParser;
 
-namespace Emul8Launcher
+namespace Emul8.Launcher
 {
     class Launcher
     {
