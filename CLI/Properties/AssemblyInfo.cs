@@ -31,3 +31,9 @@ using System.Runtime.CompilerServices;
 //[assembly: AssemblyDelaySign(false)]
 //[assembly: AssemblyKeyFile("")]
 
+[assembly: Emul8.LaunchAttributes.Name("CLI")]
+[assembly: Emul8.LaunchAttributes.Description("Console mode")]
+[assembly: Emul8.LaunchAttributes.Priority(0)]
+[assembly: Emul8.LaunchAttributes.Switch("cli", 'c')]
+[assembly: Emul8.LaunchAttributes.ProvidesHelp]
+

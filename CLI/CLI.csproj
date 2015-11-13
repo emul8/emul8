@@ -80,5 +80,9 @@
       <Project>{C56AABEF-C01E-493F-A65F-09A572FE9B2E}</Project>
       <Name>OptionsParser</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Tools\Emul8-Launcher\LaunchAttributes\LaunchAttributes.csproj">
+      <Project>{CC6D2193-B747-42F0-8F80-6569ED04338D}</Project>
+      <Name>LaunchAttributes</Name>
+    </ProjectReference>
   </ItemGroup>
 </Project>
