@@ -7,9 +7,15 @@
 //
 ﻿using Antmicro.OptionsParser;
 
-namespace Emul8Launcher
+namespace Emul8.Launcher
 {
-    public class Options : IValidatedOptions
+    public class BasicOptions
+    {
+        [Name("root-path"), Description("Search for binaries in this directory."), DefaultValue(".")]
+        public string RootPath { get; set; }
+    }
+
+    public class Options : BasicOptions, IValidatedOptions
     {
         [Name('d', "debug"), Description("Use non-optimized, debugabble version.")]
         public bool Debug { get; set; }
@@ -19,13 +25,7 @@ namespace Emul8Launcher
         
         [Name('p', "port"), Description("Listen for external debugger."), DefaultValue(-1)]
         public int DebuggerSocketPort { get; set; }
-        
-        [Name("help-cli"), Description("Show help for CLI.")]
-        public bool HelpCLI { get; set; }
-        
-        [Name("root-path"), Description("Search for binaries in this directory."), DefaultValue(".")]
-        public string RootPath { get; set; }
-        
+
         public bool Validate(out string error)
         {
             if(!Debug && DebuggerSocketPort != -1)

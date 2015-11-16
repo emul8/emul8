@@ -1,4 +1,4 @@
-//
+﻿//
 // Copyright (c) Antmicro
 // Copyright (c) Realtime Embedded
 //
@@ -8,7 +8,10 @@
 using System.Reflection;
 using System.Runtime.CompilerServices;
 
-[assembly: AssemblyTitle("Emul8 CLI")]
+// Information about this assembly is defined by the following attributes.
+// Change them to the values specific to your project.
+
+[assembly: AssemblyTitle("Emul8 launch attributes")]
 #if (DEBUG)
 [assembly: AssemblyConfiguration("Debug")]
 #else
@@ -23,17 +26,10 @@ using System.Runtime.CompilerServices;
 // The form "{Major}.{Minor}.*" will automatically update the build and revision,
 // and "{Major}.{Minor}.{Build}.*" will update just the revision.
 
-[assembly: AssemblyVersion("1.0.0.*")]
+[assembly: AssemblyVersion("1.0.*")]
 
 // The following attributes are used to specify the signing key for the assembly,
 // if desired. See the Mono documentation for more information about signing.
 
 //[assembly: AssemblyDelaySign(false)]
 //[assembly: AssemblyKeyFile("")]
-
-[assembly: Emul8.LaunchAttributes.Name("CLI")]
-[assembly: Emul8.LaunchAttributes.Description("Console mode")]
-[assembly: Emul8.LaunchAttributes.Priority(0)]
-[assembly: Emul8.LaunchAttributes.Switch("cli", 'c')]
-[assembly: Emul8.LaunchAttributes.ProvidesHelp]
-
