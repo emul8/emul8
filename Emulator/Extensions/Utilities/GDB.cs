@@ -18,9 +18,9 @@ namespace Emul8.Utilities
 {
     public class GDB : IDisposable
     {
-        private static readonly Dictionary<ICPU, GDB> gdbs = new Dictionary<ICPU, GDB>();
+        private static readonly Dictionary<IControllableCPU, GDB> gdbs = new Dictionary<IControllableCPU, GDB>();
 
-        public static void CreateAndListenOnPort(int port, ICPU cpu, Machine machine)
+        public static void CreateAndListenOnPort(int port, IControllableCPU cpu, Machine machine)
         {
             if(gdbs.ContainsKey(cpu))
             {
@@ -29,7 +29,7 @@ namespace Emul8.Utilities
 
             try 
             {
-                gdbs.Add(cpu, new GDB(port, cpu as IControllableCPU, machine));
+                gdbs.Add(cpu, new GDB(port, cpu, machine));
             }
             catch (SocketException e)
             {
