@@ -16,6 +16,14 @@ using System.Text;
 
 namespace Emul8.Utilities
 {
+    public static class GDBExtensions
+    {
+        public static void StartGDBServer(this IControllableCPU cpu, [AutoParameter] Machine machine, int port)
+        {
+            GDB.CreateAndListenOnPort(port, cpu, machine);
+        }
+    }
+
     public class GDB : IDisposable
     {
         private static readonly Dictionary<IControllableCPU, GDB> gdbs = new Dictionary<IControllableCPU, GDB>();
