@@ -26,6 +26,11 @@ namespace Emul8.Bootstrap
             File.WriteAllText(path, ToString());
         }
 
+        public void SaveTestsFile(string path)
+        {
+            File.WriteAllLines(path, projects.OfType<TestsProject>().Select(x => x.Path));
+        }
+
         public override string ToString()
         {
             var builder = new StringBuilder();

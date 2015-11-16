@@ -33,7 +33,9 @@ namespace Emul8.Bootstrap
             switch(options.Action)
             {
             case Operation.GenerateAll:
-                GenerateAllProjects(options.Directories).Save(solutionName);
+                var solution = GenerateAllProjects(options.Directories);
+                solution.Save(solutionName);
+                solution.SaveTestsFile(testsFileName);
                 break;
             case Operation.Clean:
                 Cleaner.Clean(options.MainProject);
@@ -208,6 +210,7 @@ namespace Emul8.Bootstrap
             }
 
             solution.Save(solutionName);
+            solution.SaveTestsFile(testsFileName);
 
             new MessageDialog(Title, "Solution file created successfully!").Show();
             return 0;
@@ -248,5 +251,6 @@ namespace Emul8.Bootstrap
 
         public const string Title = "Emul8 bootstrap";
         private const string solutionName = "target/Emul8.sln";
+        private const string testsFileName = "target/tests.txt";
     }
 }
