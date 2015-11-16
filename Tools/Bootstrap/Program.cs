@@ -5,7 +5,7 @@
 // This file is part of the Emul8 project.
 // Full license details are defined in the 'LICENSE' file.
 //
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.IO;
@@ -63,7 +63,7 @@ namespace Emul8.Bootstrap
             stepManager.AddStep(new ProjectsListStep<UnknownProject>("Choose other projects:", pathHelper));
 
             stepManager.Run();
-            return stepManager.IsCancelled ? null 
+            return stepManager.IsCancelled ? null
                     : SolutionGenerator.Generate(stepManager.GetStep<UiStep>().UIProject,
                 stepManager.GetSteps<ProjectsListStep>().SelectMany(x => x.AdditionalProjects).Union(stepManager.GetStep<UiStep>().UIProject.GetAllReferences()));
         }
@@ -107,8 +107,8 @@ namespace Emul8.Bootstrap
             verifyProc.StartInfo.RedirectStandardError = true;
             verifyProc.StartInfo.RedirectStandardInput = true;
             verifyProc.StartInfo.RedirectStandardOutput = true;
-            verifyProc.EnableRaisingEvents = false; 
-            verifyProc.StartInfo.FileName = "which";    
+            verifyProc.EnableRaisingEvents = false;
+            verifyProc.StartInfo.FileName = "which";
             verifyProc.StartInfo.Arguments = command;
 
             verifyProc.Start();
