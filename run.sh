@@ -1,7 +1,8 @@
 #!/bin/bash
 set -e
+set -u
 
-if [ -z "$ROOT_PATH" ]; then
+if [ -z "${ROOT_PATH:-}" ]; then
     # this is to support running emul8 from external directory
     ROOT_PATH="`dirname \`readlink -f $0\``"
 fi
