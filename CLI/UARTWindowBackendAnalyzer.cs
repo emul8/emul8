@@ -17,7 +17,6 @@ using System.Diagnostics;
 using Emul8.Exceptions;
 using System.ComponentModel;
 using AntShell.Terminal;
-using Emul8.Backends.Terminals;
 using System.Threading;
 
 namespace Emul8.CLI
@@ -43,24 +42,17 @@ namespace Emul8.CLI
 
         public void Show()
         {
-            // check if we can find busybox or socat
-            string commandString = null;
-            if(TryFind("./External/bin/busybox-i686"))
+            // check if we can find busybox
+            string emul8Dir = null;
+            if(!Misc.TryGetEmul8Directory(out emul8Dir))
             {
-                var path = Path.Combine(Directory.GetCurrentDirectory(), "External", "bin", "busybox-i686");
-                commandString = string.Format("{0} microcom {1}", path, Name);
+                throw new RecoverableException("Could not find emul8 root directory.");
             }
-            else if(TryFind("socat"))
+
+            var path = Path.Combine(emul8Dir, "External", "bin", "busybox-i686");
+            if(!File.Exists(path))
             {
-                commandString = string.Format("socat -,raw,echo=0 {0},raw,echo=0", Name);
-            }
-            else if(TryFind("busybox"))
-            {
-                commandString = string.Format("busybox microcom {0}", Name);
-            }
-            else
-            {
-                var msg = string.Format("busybox and socat not found! Please install one of them and make sure it's in PATH to run Emul8.");
+                var msg = string.Format("busybox not found! Please check your External/bin folder.");
                 Logger.LogAs(this, LogLevel.Error, msg);
                 throw new InvalidOperationException(msg);
             }
@@ -75,6 +67,7 @@ namespace Emul8.CLI
                 {TerminalTypes.GnomeTerminal, CreateGnomeTerminalWindow}
             };
 
+            var commandString = string.Format("{0} microcom {1}", path, Name);
             //Try preferred terminal first, than any other. If all fail, throw.
             if (!windowCreators.OrderByDescending(x => x.Key == preferredTerminal).Any(x => x.Value(commandString, out process)))
             {
@@ -292,25 +285,6 @@ namespace Emul8.CLI
         {
             info.EnvironmentVariables["PATH"] = string.Format("{0}:{1}",
                 Path.Combine(Directory.GetCurrentDirectory(), "External", "bin"), Environment.GetEnvironmentVariable("PATH"));
-        }
-
-        private bool TryFind(string command)
-        {
-            Process verifyProc = new Process();
-            verifyProc.StartInfo.UseShellExecute = false;
-            verifyProc.StartInfo.RedirectStandardError = true;
-            verifyProc.StartInfo.RedirectStandardInput = true;
-            verifyProc.StartInfo.RedirectStandardOutput = true;
-            verifyProc.EnableRaisingEvents = false; 
-            verifyProc.StartInfo.FileName = "which";    
-            verifyProc.StartInfo.Arguments = command;
-
-            EnsurePath(verifyProc.StartInfo);
-
-            verifyProc.Start();
-
-            verifyProc.WaitForExit();
-            return verifyProc.ExitCode == 0;
         }
 
         private delegate bool CreateWindowDelegate(string command, out Process process);
