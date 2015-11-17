@@ -71,7 +71,7 @@ CCTASK_BIN=$CCTASK_DIR/CCTask/bin/Release/CCTask.dll
 
 # We build bootstrap/cctask every time in order to have the newest versions at every bootstrapping.
 xbuild $BOOTSTRAPER_DIR/Bootstrap.csproj /p:Configuration=Release /nologo /verbosity:quiet || (echo "There was an error during Bootstrap compilation!" && exit 1)
-xbuild $CCTASK_DIR/CCTask.sln /p:Configuration=Release /nologo /verbosity:quiet            || (echo "There was an error during CCTask compilation!"       && exit 1)
+xbuild $CCTASK_DIR/CCTask.sln /p:Configuration=Release /nologo /verbosity:quiet            || (echo "There was an error during CCTask compilation!"    && exit 1)
 
 if [ $BATCH_MODE -eq 1 ]
 then
