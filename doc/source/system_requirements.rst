@@ -23,6 +23,7 @@ Before you start the build procedure make sure that the following components are
 * *gksudo* (``gksu``)
 * *libgtk* (``libgtk2.0-dev``)
 * *tun* kernel module for guest-host networking
+* *xterm* or *gnome-terminal* or *putty* for window-based terminal analyzers
 
 Instead of *gksudo* you may have *beesu* or *kdesudo*.
 
