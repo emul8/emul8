@@ -16,7 +16,10 @@
 set -e
 
 BATCH_MODE=0
-while getopts "ad:h" opt
+OUTPUT_DIRECTORY="target"
+BINARIES_DIRECTORY="bin"
+
+while getopts "ad:o:b:h" opt
 do
     case "$opt" in
         a)
@@ -25,13 +28,21 @@ do
         d)
             DIRECTORY="$OPTARG"
             ;;
+        o)
+            OUTPUT_DIRECTORY="$OPTARG"
+            ;;
+        b)
+            BINARIES_DIRECTORY="$OPTARG"
+            ;;
         h)
             echo "Emul8 bootstrapping script"
             echo "=========================="
             echo "Usage: $0 [-a] [-d directory] [-h]"
             echo "  -a            batch mode, generates the 'All projects' solution without"
             echo "                any interaction with the user"
-            echo "  -d directory  location of the base directory"
+            echo "  -d directory  location of the base directory to scan"
+            echo "  -b directory  location for binaries created from generated project"
+            echo "  -o directory  location of generated project files"
             echo "  -h            prints this help"
             exit 0
     esac
@@ -75,15 +86,15 @@ xbuild $CCTASK_DIR/CCTask.sln /p:Configuration=Release /nologo /verbosity:quiet 
 
 if [ $BATCH_MODE -eq 1 ]
 then
-    mono $BOOTSTRAPER_BIN GenerateAll --directories "${DIRECTORY:-.}"
+    mono $BOOTSTRAPER_BIN GenerateAll --directories "${DIRECTORY:-.}" --output-directory "$OUTPUT_DIRECTORY" --binaries-directory "$BINARIES_DIRECTORY"
 else
     set +e
-    mono $BOOTSTRAPER_BIN --interactive --directories "$DIRECTORY"
+    mono $BOOTSTRAPER_BIN --interactive --directories "$DIRECTORY" --output-directory "$OUTPUT_DIRECTORY" --binaries-directory "$BINARIES_DIRECTORY"
     result=$?
     set -e
     clear
     case $result in
-        0) echo "Solution file generated in target/Emul8.sln. Now you can run ./build.sh" ;;
+        0) echo "Solution file generated in $OUTPUT_DIRECTORY/Emul8.sln. Now you can run ./build.sh" ;;
         1) echo "Solution file generation cancelled." ;;
         2) echo "There was an error while generating the solution file." ;;
         3) echo "Bootstrap setup cleaned." ;;
