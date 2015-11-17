@@ -23,7 +23,7 @@ namespace Emul8.Launcher
         [Description("Do not output errors on console.")]
         public bool Quiet { get; set; }
         
-        [Name('p', "port"), Description("Listen for external debugger."), DefaultValue(-1)]
+        [Name("external-debugger-port"), Description("Listen for external debugger."), DefaultValue(-1)]
         public int DebuggerSocketPort { get; set; }
 
         public bool Validate(out string error)
