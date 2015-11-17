@@ -65,6 +65,7 @@ parser.add_argument("-p", "--project", dest="projects", nargs="*", help="Use onl
 parser.add_argument("-d", "--debug", dest="debug_mode", action="store_true", default=False, help="Debug mode")
 parser.add_argument("-o", "--output", dest="output", action="store", default=None, help="Output file, default STDOUT.")
 parser.add_argument("-b", "--buildbot", dest="buildbot", action="store_true", default=False, help="Buildbot mode. Before running tests prepare environment, i.e., create tap69 interface.")
+parser.add_argument("-t", "--tests", dest="tests", action="store", default=None, help="Path to a file with a list of assemblies with tests to run.")
 options  = parser.parse_args()
 
 if options.buildbot:
@@ -83,6 +84,8 @@ if 'FIXTURE' in os.environ:
     options.fixture = os.environ['FIXTURE']
 if options.fixture:
     print("Testing fixture: " + options.fixture)
+if options.tests != None:
+   test_projects = [line.rstrip() for line in open(options.tests)]
 if options.projects != None:
     #tries to convert passed arguments to project paths
     failed = False
