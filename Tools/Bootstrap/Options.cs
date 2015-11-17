@@ -28,6 +28,9 @@ namespace Emul8.Bootstrap
         
         [Description("Name of the generated solution file.")]
         public string Output { get; set; }
+
+        [Name("output-directory"), Description("Path to the directory where generated files should be stored"), DefaultValue(".")]
+        public string OutputDirectory { get; set; }
         
         [PositionalArgument(0), DefaultValue(Operation.None)]
         public Operation Action { get; set; }

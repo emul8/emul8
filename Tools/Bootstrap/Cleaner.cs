@@ -13,7 +13,7 @@ namespace Emul8.Bootstrap
     {
         public static void Clean(string directory)
         {
-            Directory.Delete(Path.Combine(directory, Project.GeneratedProjectLocation), true);
+            Directory.Delete(directory, true);
         }
     }
 }
