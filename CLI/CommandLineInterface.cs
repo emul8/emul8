@@ -18,6 +18,7 @@ using Emul8.Utilities;
 using Emul8.Peripherals.UART;
 using System.Linq;
 using Antmicro.OptionsParser;
+using System.IO;
 
 namespace Emul8.CLI
 {
@@ -128,7 +129,7 @@ namespace Emul8.CLI
                     }
                     else if(!string.IsNullOrEmpty(options.ScriptPath))
                     {
-                        shell.Started += s => s.InjectInput(string.Format("i $CWD/{0}\n", options.ScriptPath));
+                        shell.Started += s => s.InjectInput(string.Format("i {0}{1}\n", Path.IsPathRooted(options.ScriptPath) ? "@" : "$CWD/", options.ScriptPath));
                     }
 
                     new Thread(x => shell.Start(true)) { IsBackground = true, Name = "Shell thread" }.Start();
