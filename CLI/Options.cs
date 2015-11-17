@@ -7,7 +7,7 @@
 //
 using Antmicro.OptionsParser;
 
-namespace Emul8.CLI 
+namespace Emul8.CLI
 {
 	internal class Options
 	{
