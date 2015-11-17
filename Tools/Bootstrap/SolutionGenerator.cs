@@ -18,7 +18,6 @@ namespace Emul8.Bootstrap
                 mainProject.GetAllReferences()
                 .Union(additionalProjects.SelectMany(x => x.GetAllReferences()))
                 .Union(additionalProjects);
-                    
             var motherProject = Project.CreateEntryProject(mainProject, projects);
 
             return new Solution(new [] { motherProject, mainProject }.Union(projects));
