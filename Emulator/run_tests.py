@@ -8,6 +8,8 @@ import subprocess
 import signal
 
 nunit_path = os.path.join(os.path.dirname(__file__), os.path.abspath('./../External/Tools/nunit-console.exe'))
+bin_directory = os.path.abspath(os.path.join(os.path.dirname(__file__), 'tests'))
+
 test_projects = map(os.path.abspath, [
         "Main/Tests/UnitTests/UnitTests.csproj",
         "Peripherals/Test/PeripheralsTests/PeripheralsTests.csproj",
@@ -41,7 +43,7 @@ Tries to build a project at given path. Because of a bug in xbuild which sometim
 """
     print("\t Building {0}".format(path))
     for i in range(5):
-        ret_code = subprocess.call(['xbuild', '/nologo', '/verbosity:quiet', '/p:Configuration={0}'.format('Debug' if options.debug_mode else 'Release'), path])
+        ret_code = subprocess.call(['xbuild', '/p:OutputPath={0}'.format(bin_directory), '/nologo', '/verbosity:quiet', '/p:OutputDir=tests_output', '/p:Configuration={0}'.format('Debug' if options.debug_mode else 'Release'), path])
         if ret_code == 0:
             return
         elif ret_code != 134:
@@ -129,10 +131,9 @@ while options.repeat_count == 0 or counter < options.repeat_count:
     counter += 1
 
     for project in used_projects:
-        directory, filename = os.path.split(project)
-        bin_directory = directory + "/bin/" + ("Debug/" if options.debug_mode else "Release/")
+        filename = os.path.split(project)[1]
         subprocess.call(['bash', '-c', 'cp -r ' + os.path.dirname(nunit_path) + '/* ' + bin_directory + ''])
-        copied_nunit_path = bin_directory + "nunit-console.exe"
+        copied_nunit_path = bin_directory + "/nunit-console.exe"
         args = ['mono', copied_nunit_path, '-noshadow', '-nologo', '-labels', '-domain:None', filename.replace("csproj", "dll")]
         if options.fixture:
             args.append('-run:' + options.fixture)
