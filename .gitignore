@@ -36,3 +36,5 @@ Emulator/Main/AssemblyVersionInfo.cs
 #nuget
 packages
 
+#tests
+Emulator/tests
