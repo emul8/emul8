@@ -27,18 +27,18 @@ namespace Emul8.Bootstrap
 
             if(options.Interactive)
             {
-                return HandleInteractive(options.Directories.ToList());
+                return HandleInteractive(options.Directories.ToList(), options.OutputDirectory);
             }
 
             switch(options.Action)
             {
             case Operation.GenerateAll:
                 var solution = GenerateAllProjects(options.Directories);
-                solution.Save(solutionName);
-                solution.SaveTestsFile(testsFileName);
+                solution.Save(options.OutputDirectory);
+                solution.SaveTestsFile(Path.Combine(options.OutputDirectory, testsFileName));
                 break;
             case Operation.Clean:
-                Cleaner.Clean(options.MainProject);
+                Cleaner.Clean(options.OutputDirectory);
                 break;
             case Operation.GenerateSolution:
                 HandleGenerateSolution(options.MainProject, options.AdditionalProjects, options.Output);
@@ -117,7 +117,7 @@ namespace Emul8.Bootstrap
             return verifyProc.ExitCode == 0;
         }
 
-        private static int HandleInteractive(List<string> directories)
+        private static int HandleInteractive(List<string> directories, string outputDirectory)
         {
             // check if "dialog" application is available
             if(!TryFind("dialog"))
@@ -177,7 +177,7 @@ namespace Emul8.Bootstrap
                     solution = HandleCustomSolution(directories);
                     break;
                 case "Clean":
-                    Cleaner.Clean(directories.First());
+                    Cleaner.Clean(outputDirectory);
                     new MessageDialog(Title, "Solution cleaned.").Show();
                     return CleanedResultCode;
                 default:
@@ -209,8 +209,8 @@ namespace Emul8.Bootstrap
                 return CancelResultCode;
             }
 
-            solution.Save(solutionName);
-            solution.SaveTestsFile(testsFileName);
+            solution.Save(outputDirectory);
+            solution.SaveTestsFile(Path.Combine(outputDirectory, testsFileName));
 
             new MessageDialog(Title, "Solution file created successfully!").Show();
             return 0;
@@ -250,7 +250,6 @@ namespace Emul8.Bootstrap
         private const int CleanedResultCode = 3;
 
         public const string Title = "Emul8 bootstrap";
-        private const string solutionName = "target/Emul8.sln";
-        private const string testsFileName = "target/tests.txt";
+        private const string testsFileName = "tests.txt";
     }
 }
