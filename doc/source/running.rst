@@ -21,7 +21,7 @@ To run Emul8, use the :program:`run.sh` script, with the optional ``file`` param
 
 .. program:: run.sh
 
-.. option:: -c
+.. option:: --console
 
    Do not open a separate terminal for the CLI but use the one from which it is run.
 

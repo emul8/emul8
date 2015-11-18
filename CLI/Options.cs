@@ -7,11 +7,11 @@
 //
 using Antmicro.OptionsParser;
 
-namespace Emul8.CLI 
+namespace Emul8.CLI
 {
 	internal class Options
 	{
-        [Name('c', "console"), DefaultValue(false), Description("Set the output for console window instead of many terminals.")]
+        [Name("console"), DefaultValue(false), Description("Set the output for console window instead of many terminals.")]
         public bool ConsoleMode { get; set; }
 
         [Name('s', "stdinout"), DefaultValue(false), Description("Read input from standard input and write to standard output - for use in pipes (this option is exclusive with -e and startup script passed as an argument).")]

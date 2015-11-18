@@ -5,7 +5,7 @@
 // This file is part of the Emul8 project.
 // Full license details are defined in the 'LICENSE' file.
 //
-﻿using Antmicro.OptionsParser;
+using Antmicro.OptionsParser;
 
 namespace Emul8.Launcher
 {
@@ -19,11 +19,11 @@ namespace Emul8.Launcher
     {
         [Name('d', "debug"), Description("Use non-optimized, debugabble version.")]
         public bool Debug { get; set; }
-        
+
         [Description("Do not output errors on console.")]
         public bool Quiet { get; set; }
-        
-        [Name('p', "port"), Description("Listen for external debugger."), DefaultValue(-1)]
+
+        [Name("external-debugger-port"), Description("Listen for external debugger."), DefaultValue(-1)]
         public int DebuggerSocketPort { get; set; }
 
         public bool Validate(out string error)
@@ -33,7 +33,7 @@ namespace Emul8.Launcher
                 error = "Debugger is not available in 'Release' mode";
                 return false;
             }
-            
+
             error = null;
             return true;
         }
