@@ -7,7 +7,7 @@ import argparse
 import subprocess
 import signal
 
-nunit_path = os.path.join(os.path.dirname(__file__), os.path.abspath('./../External/Tools/nunit-console.exe'))
+nunit_path = os.path.abspath(os.path.join(os.path.dirname(__file__), './../External/Tools/nunit-console.exe'))
 bin_directory = os.path.abspath(os.path.join(os.path.dirname(__file__), 'tests'))
 
 test_projects = map(os.path.abspath, [
