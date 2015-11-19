@@ -93,7 +93,7 @@ Below we present a minimal template file for a fake CPU architecture:
     <#@ include file="RegisterTemplateDefinitions.tt" #>
     <#
         CLASS_NAME = "FakeCPU";
-        HEADER_FILE = "Emulator/Cores/translate/arch/fake/cpu_registers.h";
+        HEADER_FILE = "Emulator/Cores/tlib/arch/fake/cpu_registers.h";
     #>
     <#@ include file="RegisterTemplate.tt" #>
 
