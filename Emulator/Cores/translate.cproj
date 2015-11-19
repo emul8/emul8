@@ -91,7 +91,7 @@
 
           <LinkFlags Include="-Wl,--wrap=memcpy" Condition=" $(HostWordSize) == '64' " />
           <LinkFlags Include="-L$(MSBuildProjectDirectory)/bin/$(Configuration)" />
-          <LinkFlags Include="-ltcg_$(HostArchitecture)-$(HostWordSize)_$(TargetEndianess)" />
+          <LinkFlags Include="-ltcg_$(HostArchitecture)-$(HostWordSize)-$(TargetWordSize)_$(TargetEndianess)" />
           <LinkFlags Include="-fomit-frame-pointer" />
           <LinkFlags Include="-lpthread" />
           <LinkFlags Include="-lm" />
@@ -110,8 +110,11 @@
   </Target>
 
   <Target Name="CompileTcg" DependsOnTargets="GenerateFlags">
-    <Message Text="Calling CompileTCG" />
-    <MSBuild Projects="tcg.cproj" Targets="_VerifyProperties;Compile;Build" Properties="Configuration=$(Configuration);WordSize=$(HostWordSize);Endianess=$(TargetEndianess)" />
+    <Message Text="Compiling tcg" />
+    <MSBuild
+        Projects="tcg.cproj"
+        Targets="_VerifyProperties;Compile;Build"
+        Properties="Configuration=$(Configuration);HostWordSize=$(HostWordSize);TargetWordSize=$(TargetWordSize);Endianess=$(TargetEndianess)" />
   </Target>
 
   <Target Name="Compile" DependsOnTargets="_PrepareInputsAndOutputsForCompilation;GenerateFlags;CompileTcg" Inputs="@(InputFiles)" Outputs="@(ObjectFiles)" >
