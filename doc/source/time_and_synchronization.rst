@@ -184,13 +184,13 @@ Such a file can later be used to replay events for a given machine - for the fil
 Recording can be done in two *modes*.
 
 In the default mode called *DomainExternal*, only events *external* to the domain the recorded machine is in are saved.
-For example, user input via UART or mouse will be recorded, but the network packet tramsmitted via switch which is in the same synchronization domain - won't.
+For example, user input via UART or mouse will be recorded, but the network packet transmitted via switch which is in the same synchronization domain - won't.
 Thanks to that, you can record events for each machine in the synchronization domain and then replay all machines - communication within such a domain will also be repeated due to determinism so recording only external events is enough.
 
 On the other hand, sometimes you may want to record only a single machine located in the broader synchronization domain and then replay all events, even those coming from within the domain, since other machines will not be replayed at all.
 
 This is what the second mode - *All* - is for (all events are recorded in this mode).
-This way you can record in a multimachine environment and then replay (with all communication etc) only one machine - only one machine is then to be emulated which gives the user better performance.
+This way you can record in a multimachine environment and then replay (with all communication etc.) only one machine - only one machine is then to be emulated which gives the user better performance.
 
 To record events on a given machine issue:
 
@@ -204,7 +204,7 @@ To record events on a given machine issue:
 
     (machine-0) machine RecordTo @file.dat All
 
-``file.dat`` is naturally the name of the file containing the recordinf.
+``file.dat`` is naturally the name of the file containing the recording.
 The first command records only events external to the domain the machine is in, the second one - all of them.
 
 The file can be later used to replay events.

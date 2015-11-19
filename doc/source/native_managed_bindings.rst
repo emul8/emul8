@@ -84,7 +84,7 @@ Both macros actually create a global variable that holds the necessary function 
 Although the function pointer could be called directly (without an additional function), it would not be possible to link it directly as a function symbol.
 This is the reason for such a function to exist.
 
-Methods intented for export to a native library have to be marked with the ``Export`` attribute.
+Methods intended for export to a native library have to be marked with the ``Export`` attribute.
 Methods marked with such an attribute which are not exported generate a warning log entry.
 
 Here are some sample definitions and calls:
@@ -141,7 +141,7 @@ An exception is thrown if the delegate's type is not compatible with the typedef
 A complete example
 ------------------
 
-The ``TranslationCPU`` class with ``translate-arch-endianess.so`` (where ``arch`` is the target architecture and ``endianess`` is either ``le`` or ``be``) form complete example of the described functionality, so it is a good idea to examine them to see a practical implementation.
+The ``TranslationCPU`` class with ``translate-arch-endianness.so`` (where ``arch`` is the target architecture and ``endianness`` is either ``le`` or ``be``) form complete example of the described functionality, so it is a good idea to examine them to see a practical implementation.
 
 Customizing the framework
 -------------------------
@@ -153,7 +153,7 @@ These can be edited in the sources of the script and should be self descriptive.
 
 When speaking about types, it is necessary to provide the name of the C type and the corresponding C# one.
 Corresponding means that it is one of the `blittable types`_ or it is the convertible non-blittable type.
-In other wordsm standard marshalling rules are followed here.
+In other words, standard marshalling rules are followed here.
 
 .. _blittable types: http://msdn.microsoft.com/en-us/library/75dwhxf7.aspx
 

@@ -2,7 +2,7 @@ Introduction
 ============
 
 This document is intended as a user manual for `Emul8 <http://emul8.org>`_, the extensible open source embedded systems emulation framework.
-Using Emul8, you can write, debug and test sofware for embedded boards (or whole systems, like a set of sensor nodes connected to a data gateway) and run it in a virtual environment on your PC, without the need to touch the physical hardware. Indeed, the hardware you are programming for may not even exist yet.
+Using Emul8, you can write, debug and test software for embedded boards (or whole systems, like a set of sensor nodes connected to a data gateway) and run it in a virtual environment on your PC, without the need to touch the physical hardware. Indeed, the hardware you are programming for may not even exist yet.
 
 This first several chapters of this manual describe the framework from a typical user's perspective, but several more chapters follow that will helpful to developers and power users.
 
@@ -23,7 +23,7 @@ Section :doc:`build_procedure` describes in detail the process of compiling Emul
 
 :doc:`workflow` shows how to start an emulation, describing one of our demo scripts.
 
-:doc:`time_and_synchronization` presents a more advanced topic of execution determinsm.
+:doc:`time_and_synchronization` presents a more advanced topic of execution determinism.
 
 :doc:`peripherals` starts the part focused on model development, describing the process of peripheral implementation.
 
@@ -51,7 +51,7 @@ Basic terms
       the Emul8 CLI (command line interface)
 
    emulation
-      the entire virtual world created by emul8 which may include one or more :term:`machines <machine>` as well as helper emulation objects
+      the entire virtual world created by Emul8 which may include one or more :term:`machines <machine>` as well as helper emulation objects
 
    machine
       an instance of a :term:`platform`, a virtual representation of a physical embedded board
@@ -60,4 +60,4 @@ Basic terms
       any block constituting part of a :term:`machine`, like a UART controller or memory chip
 
    platform
-      a real-world embedded board, whose virtual copy in emul8 is called :term:`machine`
+      a real-world embedded board, whose virtual copy in Emul8 is called :term:`machine`

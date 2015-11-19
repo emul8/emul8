@@ -14,7 +14,7 @@ Using the framework - including assembling new platforms - does not, however, re
 
 .. _running-emul8:
 
-Running emul8
+Running Emul8
 -------------
 
 To run Emul8, use the :program:`run.sh` script, with the optional ``file`` parameter and following options:

@@ -67,7 +67,7 @@ Most cases can be handled using callbacks.
 
 .. note::
 
-    ``EnumRegisterField<T>`` does not perform any verification regarding the underlying enumeration completness.
+    ``EnumRegisterField<T>`` does not perform any verification regarding the underlying enumeration completeness.
     It is possible to pass a value that is not reflected in the enumeration type.
     However, if the value exceeds the field's width, an ``ArgumentException`` is thrown.
 
@@ -136,7 +136,7 @@ For ``valueProviderCallback`` the ``currentValue`` is the field's original value
 
 .. note::
 
-    Callbacks are called sequentialy for each field defined in a register.
+    Callbacks are called sequentially for each field defined in a register.
     The order in which they are called (apart from ``valueProviderCallback``) is not defined.
     It is important to keep in mind that ``newValue`` for ``readCallback`` and ``changeCallback`` may be influenced by previously executed handlers, if they change the value of other fields.
 
