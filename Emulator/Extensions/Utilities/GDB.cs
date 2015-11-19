@@ -186,6 +186,10 @@ namespace Emul8.Utilities
                 {
                     send_command(string.Format("PacketSize={0:x4}", 4096));
                 }
+                else if(query_cmd == "Attached")
+                {
+                    send_command("0");
+                }
                 else if(query_cmd == "Rcmd")
                 {
                     if(this.OnMonitor == null)
@@ -212,6 +216,10 @@ namespace Emul8.Utilities
                         send_command("OK");
                     }
                 }
+                else if(query_cmd == "C")
+                {
+                    send_command("QC0");
+                }
                 else
                 {
                     send_command(""); // empty
@@ -219,7 +227,14 @@ namespace Emul8.Utilities
             }
             else if(cmd == "?")
             {
-                machine.Pause();
+                if(machine.IsPaused)
+                {
+                    send_command("S05");
+                }
+                else
+                {
+                    send_command("OK");
+                }
             }
             else if(cmd[0] == 'H')
             {
