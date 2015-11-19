@@ -39,7 +39,7 @@ Reserved keywords have the "_" character as a suffix. Currently existing keyword
 * ``"_type"`` - Peripheral class name
 * ``"_connection"`` - Connections to other peripheral objects
 * ``"_irq"`` or ``"_gpio"`` - GPIO outgoing connections
-* ``"_irqFrom"`` or ``"_gpioFrom"`` - GPIO incomming connections
+* ``"_irqFrom"`` or ``"_gpioFrom"`` - GPIO incoming connections
 
 A configuration file consists of a list of nodes. The root node is called ``sysbus`` and is always present and does not have to be described in the configuration file.
 Under the root node are first level nodes that describe peripheral objects.

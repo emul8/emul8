@@ -86,8 +86,8 @@ Every core architecture listed below has its own project file located in the ``E
 * ppc,
 * sparc.
 
-Each project file defines **endianess** supported by a translation library and the target's **architecture**.
-Additionaly it contains a group of properties required by *Monodevelop* in order to display the project properly in the solution tree.
+Each project file defines **endianness** supported by a translation library and the target's **architecture**.
+Additionally it contains a group of properties required by *Monodevelop* in order to display the project properly in the solution tree.
 
 .. note::
 
@@ -110,7 +110,7 @@ Host architecture detection
 +++++++++++++++++++++++++++
 
 The build scripts detect the word size of the host machine automatically using ``EnvironmentTask`` provided by *CCTask*.
-The host architecture (and endianess) are hardcoded to **i386** and **little endian**, as *Emul8* can be run only on a PC right now.
+The host architecture (and endianness) are hardcoded to **i386** and **little endian**, as *Emul8* can be run only on a PC right now.
 
 Bootstrapping
 +++++++++++++

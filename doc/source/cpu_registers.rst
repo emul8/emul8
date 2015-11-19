@@ -176,4 +176,4 @@ The *C#* code generated as a result of running this template is as follows:
 
     The *tt* files are analysed and executed when saved.
     To recreate the underlying *cs* file, you have to save the file in your IDE.
-    When introducting changes in *RegisterTemplateDefinitions.tt* or *RegisterTemplate.tt* it is necessary to recreate **all** templates that include them.
+    When introducing changes in *RegisterTemplateDefinitions.tt* or *RegisterTemplate.tt* it is necessary to recreate **all** templates that include them.

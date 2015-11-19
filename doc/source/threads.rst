@@ -27,7 +27,7 @@ First of all, managed thread can either be *synchronized* or *unsynchronized*.
 The first option only makes sense if deterministic timers are used.
 
 A synchronized managed thread will be executed on the clock source thread in the same place where intermachine synchronization takes place.
-An unsynchronized thread is executed on a totally indepedent thread created exactly for that purpose.
+An unsynchronized thread is executed on a totally independent thread created exactly for that purpose.
 
 The frequency of the execution can be limited so that the thread will be executed no more often that ordered.
 The actual frequency depends on general load of the host machine (if the thread is unsynchronized) or the size of the synchronization unit (if the thread is synchronized).

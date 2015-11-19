@@ -12,7 +12,7 @@ Executing a demo script in Emul8 is typically done with the :term:`start` comman
 
    (monitor) start @scripts/demos/standalone/versatile-console
 
-This is a shorthand for using both the :term:`include` and :term:`start` commands one after anonther.
+This is a shorthand for using both the :term:`include` and :term:`start` commands one after another.
 
 Simplifying peripheral access
 +++++++++++++++++++++++++++++
@@ -64,7 +64,7 @@ At this moment, after ``createPlatform``, the board is ready to be configured fo
 
 In this scenario we want to boot Linux directly from an ELF file, without any additional bootloader.
 To allow this, some preparations have to be done.
-The inux kernel expects a bootloader to provide ID of the board and a memory address where boot arguments are to be found.
+The Linux kernel expects a bootloader to provide ID of the board and a memory address where boot arguments are to be found.
 This information has to be provided via CPU registers.
 We will do this with the following commands:
 
@@ -147,7 +147,7 @@ Binaries
 
 The last part of the script load the binaries which will be executed in the emulation environment.
 
-Binaries can be loaded from the user's local filesystem or can be downloaded via the HTTP protocol.
+Binaries can be loaded from the user's local file system or can be downloaded via the HTTP protocol.
 The Versatile demo requires two files - the Linux kernel and RootFS on flash memory, both downloaded from the Internet:
 
 .. code-block:: bash
@@ -227,6 +227,6 @@ This can be followed by loading of binaries, setting up the network, etc.
 
 Please note that all of the paths used in the scripts can be either absolute or relative to the Emul8 root directory.
 
-If you want to use paths relative to the directory where emul8 is run, use the $ORIGIN variable instead.
+If you want to use paths relative to the directory where Emul8 is ran, use the $ORIGIN variable instead.
 
 Additionally, HTTP URLs can be used to download files over the network - in that case the files will be locally cached.
