@@ -4,8 +4,8 @@
 
   <PropertyGroup>
     <Architecture Condition=" $(Architecture) == '' ">i386</Architecture>
-    <OutputDirectory>bin/$(Configuration)</OutputDirectory>
     <TcgDirectory>tlib/tcg</TcgDirectory>
+    <OutputDirectory>$(TcgDirectory)/bin/$(Configuration)</OutputDirectory>
   </PropertyGroup>
 
   <ItemGroup>
@@ -33,7 +33,7 @@
     <Error Text="Wrong endianess value: provide 'le' or 'be'" Condition=" $(Endianess) != 'le' and $(Endianess) != 'be' "/>
     <PropertyGroup>
       <Output>$(OutputDirectory)/libtcg_$(Architecture)-$(HostWordSize)-$(TargetWordSize)_$(Endianess).a</Output>
-      <ObjectFilesDirectory>obj/$(Configuration)/obj-$(HostWordSize)-$(TargetWordSize)_$(Endianess)</ObjectFilesDirectory>
+      <ObjectFilesDirectory>$(TcgDirectory)/obj/$(Configuration)/obj-$(HostWordSize)-$(TargetWordSize)_$(Endianess)</ObjectFilesDirectory>
     </PropertyGroup>
     <ItemGroup>
       <ObjectFiles Include="@(CSources -> '$(ObjectFilesDirectory)/%(relativedir)%(filename).o')" />

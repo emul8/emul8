@@ -90,7 +90,7 @@
           <CompilationFlags Include="$(AdditionalCompilationFlags)" />
 
           <LinkFlags Include="-Wl,--wrap=memcpy" Condition=" $(HostWordSize) == '64' " />
-          <LinkFlags Include="-L$(MSBuildProjectDirectory)/bin/$(Configuration)" />
+          <LinkFlags Include="-L$(MSBuildProjectDirectory)/tlib/tcg/bin/$(Configuration)" />
           <LinkFlags Include="-ltcg_$(HostArchitecture)-$(HostWordSize)-$(TargetWordSize)_$(TargetEndianess)" />
           <LinkFlags Include="-fomit-frame-pointer" />
           <LinkFlags Include="-lpthread" />
