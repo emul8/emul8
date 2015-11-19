@@ -49,7 +49,7 @@ namespace Emul8.Utilities
         {
             this.machine = machine;
             this.cpu = cpu;
-            line_l = new List<byte>();
+            line_l = new StringBuilder();
             this.mode = 0;
             this.terminal = new SocketServerProvider();
             terminal.DataReceived += OnByteWritten;
@@ -74,7 +74,7 @@ namespace Emul8.Utilities
             } 
             if(this.mode >= 1)
             {
-                line_l.Add(b);
+                line_l.Append((char)b);
             }
             if(this.mode >= 2)
             {
@@ -87,7 +87,7 @@ namespace Emul8.Utilities
             if(this.mode == 4)
             { // got CRC after '#'
                 this.mode = 0;
-                interpret(line_l.ToArray());
+                interpret(line_l.ToString());
                 line_l.Clear();
             }
             if((this.mode == 0) && (b == 0x03))
@@ -97,7 +97,7 @@ namespace Emul8.Utilities
             }
         }
 
-        uint count_crc(byte[] data)
+        uint count_crc(string data)
         {
             int i;
             uint crc_c = 0;
@@ -108,14 +108,14 @@ namespace Emul8.Utilities
             return crc_c % 256;
         }
 
-        bool check_crc(byte[] ln)
+        bool check_crc(string ln)
         {
             string crc_s = string.Format("{0:c}{1:c}", (char)(ln[ln.Length - 2]), (char)(ln[ln.Length - 1]));
             uint crc = Convert.ToUInt32(crc_s, 16);
             return (crc == count_crc(ln)); 
         }
 
-        void interpret(byte[] lin)
+        void interpret(string lin)
         {
             this.cpu.DebugLog("Line: {0}, currently at PC=0x{1:X}", lin, cpu.PC);
             if(!check_crc(lin))
@@ -127,7 +127,7 @@ namespace Emul8.Utilities
                 return;
             }
             terminal.SendByte((byte)'+'); // send '+' (ACK)
-            string cmd = System.Text.Encoding.ASCII.GetString(lin).Split('#')[0].Split('$')[1].Split(':')[0]; // TODO: this is shitty, but should work here.
+            string cmd = lin.Split('#')[0].Split('$')[1].Split(':')[0]; // TODO: this is shitty, but should work here.
             if(cmd[0] != 'X')
             {
                 this.cpu.DebugLog("cmd is {0}", cmd);
@@ -158,7 +158,7 @@ namespace Emul8.Utilities
                         }
                         else if(lin[delta + i] != 0x7D)
                         {
-                            buf[written] = lin[delta + i];
+                            buf[written] = (byte)lin[delta + i];
                             //machine.SystemBus.WriteByte(addr + written, lin[delta + i]);
                             written++;
                         }
@@ -197,7 +197,7 @@ namespace Emul8.Utilities
                         // mon
                         string str = cmd_data.Split(',')[1];
                         CharEnumerator charEnum = str.GetEnumerator();
-                        var string_builder = new System.Text.StringBuilder();
+                        var string_builder = new StringBuilder();
                         while(charEnum.MoveNext())
                         {
                             string hex = string.Format("{0}", charEnum.Current);
@@ -369,7 +369,7 @@ namespace Emul8.Utilities
         {
             string cmd = "$" + ln;
             var enc = new UTF8Encoding();
-            uint crc = count_crc(enc.GetBytes(cmd));
+            uint crc = count_crc(cmd);
             cmd = cmd + "#" + string.Format("{0:x2}", crc);
             foreach(var b in enc.GetBytes(cmd))
             {
@@ -380,7 +380,7 @@ namespace Emul8.Utilities
         public int Port { get; private set; }
 
         private readonly IControllableCPU cpu;
-        private List<byte> line_l;
+        private StringBuilder line_l;
         private int mode;
         private readonly SocketServerProvider terminal;
         private readonly Machine machine;
