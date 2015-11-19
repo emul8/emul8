@@ -13,8 +13,6 @@
 
   <ItemGroup>
     <CompilationFlags Include="-DTARGET_WORDS_BIGENDIAN" Condition=" $(Endianess) == 'be'" />
-    <CompilationFlags Include="-DTCG_TARGET_I386" Condition=" $(Architecture) == 'i386'" />
-    <CompilationFlags Include="-DTCG_TARGET_ARM"  Condition=" $(Architecture) == 'arm'" />
     <CompilationFlags Include="-DHOST_BITS_$(WordSize)" />
     <CompilationFlags Include="-I $(TcgDirectory)/$(Architecture)" />
     <CompilationFlags Include="-I $(TcgDirectory) " />
