@@ -4,7 +4,7 @@
     "_type":"UART.PL011",
     "_irq":
     {
-      "sysbus.GIC":[5]
+      "GIC":[5]
     },
     "_connection":
     {
@@ -20,7 +20,7 @@
     "_type":"UART.PL011",
     "_irq":
     {
-      "sysbus.GIC":[6]
+      "GIC":[6]
     },
     "_connection":
     {
@@ -36,7 +36,7 @@
     "_type":"UART.PL011",
     "_irq":
     {
-      "sysbus.GIC":[7]
+      "GIC":[7]
     },
     "_connection":
     {
@@ -52,7 +52,7 @@
     "_type":"UART.PL011",
     "_irq":
     {
-      "sysbus.GIC":[8]
+      "GIC":[8]
     },
     "_connection":
     {
@@ -99,7 +99,7 @@
     "_type":"Timers.SP804",
     "_irq":
     {
-      "sysbus.GIC":[2]
+      "GIC":[2]
     },
     "_connection":
     {
@@ -114,7 +114,7 @@
     "_type":"Timers.SP804",
     "_irq":
     {
-      "sysbus.GIC":[3]
+      "GIC":[3]
     },
     "_connection":
     {
@@ -154,7 +154,7 @@
     "_type":"Timers.PL031",
     "_irq":
     {
-      "sysbus.GIC":[4]
+      "GIC":[4]
     },
     "_connection":
     {
@@ -170,7 +170,7 @@
     "_type":"USB.ISP1761",
     "_irq":
     {
-      "sysbus.GIC":[16]
+      "GIC":[16]
     },
     "_connection":
     {
@@ -186,7 +186,7 @@
     "_type":"Input.PL050",
     "_irq":
     {
-      "sysbus.GIC":[12]
+      "GIC":[12]
     },
     "_connection":
     {
@@ -205,7 +205,7 @@
     "_type":"Input.PL050",
     "_irq":
     {
-      "sysbus.GIC":[13]
+      "GIC":[13]
     },
     "_connection":
     {
@@ -217,6 +217,41 @@
           "size":0x1000,
         }
       }
+    }
+  },
+  "GIC":
+  {
+    "_type":"IRQControllers.GIC",
+    "_connection":
+    {
+      "sysbus":
+      [
+        {
+          "address":0x1e001000,
+          "size":0x1000,
+          "region":"distributor"
+        },
+        {
+          "address":0x1e000100,
+          "size":0x100,
+          "region":"cpuInterface"
+        }
+      ]
+    },
+    "_irq":
+    {
+      "cpu":[0,0]
+    },
+    "itLinesNumber":2,
+    "numberOfCPUs":1
+  },
+  "cpu":
+  {
+    "_type":"CPU.Arm",
+    "cpuType":"cortex-a9",
+    "_connection":
+    {
+    	"sysbus": { }
     }
   }
 }
