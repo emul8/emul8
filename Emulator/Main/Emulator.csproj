@@ -51,9 +51,6 @@
       <HintPath>..\..\External\Lib\Microsoft.Scripting.dll</HintPath>
     </Reference>
     <Reference Include="System.Drawing" />
-    <Reference Include="Ionic.Zip.Reduced">
-      <HintPath>..\..\External\Lib\Ionic.Zip.Reduced.dll</HintPath>
-    </Reference>
     <Reference Include="Mono.Linq.Expressions">
       <HintPath>..\..\External\Lib\Mono.Linq.Expressions.dll</HintPath>
     </Reference>
