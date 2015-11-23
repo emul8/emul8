@@ -39,15 +39,21 @@
       <DependentUpon>SparcRegisters.tt</DependentUpon>
     </Compile>
   </ItemGroup>
-  <ItemGroup>
-    <!-- There is a limitation of monodevelop which does not allow to use $(Configuration) variable in link path -->
-    <EmbeddedResource Include="..\Cores\zip\Debug\translate-sparc.zip" Condition=" '$(Configuration)' == 'Debug' ">
-      <Link>translate-sparc.zip</Link>
-    </EmbeddedResource>
-    <EmbeddedResource Include="..\Cores\zip\Release\translate-sparc.zip" Condition=" '$(Configuration)' == 'Release' ">
-      <Link>translate-sparc.zip</Link>
-    </EmbeddedResource>
-  </ItemGroup>
+  <UsingTask AssemblyFile="$(MSBuildProjectDirectory)/../../External/cctask/CCTask/bin/Release/CCTask.dll" TaskName="EnvironmentTask" />
+  <Target Name="PrepareEmbeddedResources" BeforeTargets="PrepareForBuild">
+    <EnvironmentTask>
+        <Output TaskParameter="WordSize" PropertyName="HostWordSize" />
+    </EnvironmentTask>
+    <Message Text="Detected host word size: $(HostWordSize)" />
+    <ItemGroup>
+        <EmbeddedResource Include="..\Cores\bin\$(Configuration)\lib$(HostWordSize)\translate-sparc-le.so">
+            <LogicalName>Emul8.translate_$(HostWordSize)-sparc-le.so</LogicalName>
+        </EmbeddedResource>
+        <EmbeddedResource Include="..\Cores\bin\$(Configuration)\lib$(HostWordSize)\translate-sparc-be.so">
+            <LogicalName>Emul8.translate_$(HostWordSize)-sparc-be.so</LogicalName>
+        </EmbeddedResource>
+    </ItemGroup>
+  </Target>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
     <Folder Include="Peripherals\" />

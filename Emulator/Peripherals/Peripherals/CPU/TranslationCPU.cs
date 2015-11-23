@@ -1002,10 +1002,8 @@ namespace Emul8.Peripherals.CPU
             }
             onTranslationBlockFetch = OnTranslationBlockFetch;
 
-            var libraryResource = string.Format("Emul8.translate-{0}.zip", Architecture);
-
-            libraryFile = GetType().Assembly.FromResourceToTemporaryFile(libraryResource, string.Format("lib{0}{1}translate-{2}-{3}.so",
-                Marshal.SizeOf(typeof(IntPtr)) * 8, Path.DirectorySeparatorChar, Architecture, Endianness == EndiannessEnum.BigEndian ? "be" : "le"));
+            var libraryResource = string.Format("Emul8.translate_{0}-{1}-{2}.so", IntPtr.Size * 8, Architecture, Endianness == EndiannessEnum.BigEndian ? "be" : "le");
+            libraryFile = GetType().Assembly.FromResourceToTemporaryFile(libraryResource);
 
             binder = new NativeBinder(this, libraryFile);
             TlibSetTranslationCacheSize(checked((IntPtr)translationCacheSize));
