@@ -11,7 +11,7 @@
 <#@ include file="RegisterTemplateDefinitions.tt" #>
 <#
     CLASS_NAME = "PowerPc";
-    HEADER_FILE = "Emulator/Cores/translate/arch/ppc/cpu_registers.h";
+    HEADER_FILE = "Emulator/Cores/tlib/arch/ppc/cpu_registers.h";
 
     PC_REGISTER = "NIP";
 #>
