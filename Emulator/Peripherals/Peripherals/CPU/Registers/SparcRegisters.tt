@@ -11,7 +11,7 @@
 <#@ include file="RegisterTemplateDefinitions.tt" #>
 <#
     CLASS_NAME = "Sparc";
-    HEADER_FILE = "Emulator/Cores/translate/arch/sparc/cpu_registers.h";
+    HEADER_FILE = "Emulator/Cores/tlib/arch/sparc/cpu_registers.h";
 
     DEFINES.Add("TARGET_SPARC");
 

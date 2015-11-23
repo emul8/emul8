@@ -11,7 +11,7 @@
 <#@ include file="RegisterTemplateDefinitions.tt" #>
 <#
     CLASS_NAME = "CortexM";
-    HEADER_FILE = "Emulator/Cores/translate/arch/arm/cpu_registers.h";
+    HEADER_FILE = "Emulator/Cores/tlib/arch/arm/cpu_registers.h";
 
     DEFINES.Add("TARGET_PROTO_ARM_M");
 
