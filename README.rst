@@ -41,7 +41,7 @@ Emul8 requires a specific version of Mono compiled from source::
 
    git clone https://github.com/mono/mono.git
    cd mono
-   git checkout 405f9534df56496068a4af85d05ba12cf0bc157f
+   git checkout 37f2657ac778d3934a1b3245076849816ff9e6f9
    ./autogen.sh --prefix=/usr
    make get-monolite-latest
    make

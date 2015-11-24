@@ -6,7 +6,7 @@ Emul8 runs in the *mono* framework. It was specifically tested on Ubuntu 14.04, 
 In order to run the Emul8 framework, a specific version of *mono* is required.
 As we use a development version from the mainline *mono* git repository, it is necessary to build it from source.
 
-Our current fixed version of *mono* is: **405f9534df56496068a4af85d05ba12cf0bc157f**.
+Our current fixed version of *mono* is: **37f2657ac778d3934a1b3245076849816ff9e6f9**.
 
 Prerequisites
 -------------
@@ -15,7 +15,7 @@ Before you start the build procedure make sure that the following components are
 
 * *autoconf* (``autoconf``)
 * *automake* (``automake``)
-* *mono* (``version 405f9534df56496068a4af85d05ba12cf0bc157f``)
+* *mono* (``version 37f2657ac778d3934a1b3245076849816ff9e6f9``)
 * *llvm* (``llvm``)
 * *libtool* (``libtool``)
 * *g++* (``g++``)
@@ -48,7 +48,7 @@ Guidelines for building *mono*
 
 #. Checkout to our fixed commit using:
 
-   ``git checkout 405f9534df56496068a4af85d05ba12cf0bc157f``
+   ``git checkout 37f2657ac778d3934a1b3245076849816ff9e6f9``
 
 #. Configure sources with your current *mono* installation location, using a prefix value equal to the part of the path before ``/bin/mono``, e.g. if ``whereis mono`` returned ``/usr/bin/mono`` then your prefix location is ``/usr``:
 
