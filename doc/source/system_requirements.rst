@@ -82,14 +82,14 @@ Guidelines for building *mono*
 
    .. code-block:: none
 
-        Mono JIT compiler version 3.99.0 (detached/405f953 [...])
-        Copyright (C) 2002-2014 Novell, Inc, Xamarin Inc and Contributors.
-        www.mono-project.com
-        TLS:           __thread
-        SIGSEGV:       altstack
-        Notifications: epoll
-        Architecture:  amd64
-        Disabled:      none
-        Misc:          softdebug
-        LLVM:          supported, not enabled.
-        GC:            sgen
+	Mono JIT compiler version 4.3.0 (explicit/37f2657 śro, 25 lis 2015, 17:10:07 CET)
+	Copyright (C) 2002-2014 Novell, Inc, Xamarin Inc and Contributors. www.mono-project.com
+		TLS:           __thread
+		SIGSEGV:       altstack
+		Notifications: epoll
+		Architecture:  amd64
+		Disabled:      none
+		Misc:          softdebug 
+		LLVM:          supported, not enabled.
+		GC:            sgen
+
