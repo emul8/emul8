@@ -77,9 +77,9 @@ namespace Emul8.Bootstrap
             return project.TryLoad(doc);
         }
 
-        public static Project CreateEntryProject(Project mainProject, IEnumerable<Project> additionalProjects)
+        public static Project CreateEntryProject(Project mainProject, string outputPath, IEnumerable<Project> additionalProjects)
         {
-            return new CustomProject(mainProject.StartupObject, new [] { mainProject }.Union(additionalProjects));
+            return new CustomProject(mainProject.StartupObject, outputPath, new [] { mainProject }.Union(additionalProjects));
         }
 
         protected static readonly IXmlNamespaceResolver NamespaceManager;
