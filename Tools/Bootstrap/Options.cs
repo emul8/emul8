@@ -31,6 +31,9 @@ namespace Emul8.Bootstrap
 
         [Name("output-directory"), Description("Path to the directory where generated files should be stored"), DefaultValue(".")]
         public string OutputDirectory { get; set; }
+
+        [Name("binaries-directory"), Description("Path to the directory where binaries compiled from generated project should be located"), DefaultValue("bin")]
+        public string BinariesDirectory { get; set; }
         
         [PositionalArgument(0), DefaultValue(Operation.None)]
         public Operation Action { get; set; }

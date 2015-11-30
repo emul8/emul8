@@ -15,12 +15,14 @@ namespace Emul8.Bootstrap
 {
     public class CustomProject : Project
     {
-        public CustomProject(string startupObject, IEnumerable<Project> references) : base(GeneratedProjectName, null)
+        public CustomProject(string startupObject, string outputPath, IEnumerable<Project> references) : base(GeneratedProjectName, null)
         {
             GUID = Guid.NewGuid();
             StartupObject = startupObject;
             References = references;
             Target = "Any CPU";
+
+            this.outputPath = outputPath;
         }
 
         public void Save(string directory)
@@ -89,7 +91,7 @@ namespace Emul8.Bootstrap
                         new XElement(xnamespace + "DebugSymbols", "true"),
                         new XElement(xnamespace + "DebugType", "full"),
                         new XElement(xnamespace + "Optimize", "false"),
-                        new XElement(xnamespace + "OutputPath", @"Debug"),
+                        new XElement(xnamespace + "OutputPath", string.Format("{0}/Debug", outputPath)),
                         new XElement(xnamespace + "DefineConstants", "DEBUG;"),
                         new XElement(xnamespace + "ErrorReport", "prompt"),
                         new XElement(xnamespace + "WarningLevel", "4"),
@@ -97,7 +99,7 @@ namespace Emul8.Bootstrap
                     new XElement(xnamespace + "PropertyGroup",
                         new XAttribute("Condition", " '$(Configuration)|$(Platform)' == 'Release|AnyCPU' "),
                         new XElement(xnamespace + "Optimize", "true"),
-                        new XElement(xnamespace + "OutputPath", @"Release"),
+                        new XElement(xnamespace + "OutputPath", string.Format("{0}/Release", outputPath)),
                         new XElement(xnamespace + "ErrorReport", "prompt"),
                         new XElement(xnamespace + "Externalconsole", "true")),
                     new XElement(xnamespace + "ItemGroup",
@@ -118,6 +120,8 @@ namespace Emul8.Bootstrap
 
             xml.Save(path);
         }
+
+        private readonly string outputPath;
     }
 }
 
