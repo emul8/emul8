@@ -30,6 +30,50 @@
       <Endianess Include="be" />
     </ItemGroup>
   </Target>
+  <Target Name="PrepareEmbeddedResources" BeforeTargets="PrepareForBuild" DependsOnTargets="_PrepareProperties">
+    <ItemGroup>
+      <EmbeddedResource Include="..\Cores\bin\$(Configuration)\lib$(HostWordSize)\translate-arm-le.so">
+        <LogicalName>Emul8.translate_$(HostWordSize)-arm-le.so</LogicalName>
+      </EmbeddedResource>
+      <EmbeddedResource Include="..\Cores\bin\$(Configuration)\lib$(HostWordSize)\translate-arm-be.so">
+        <LogicalName>Emul8.translate_$(HostWordSize)-arm-be.so</LogicalName>
+      </EmbeddedResource>
+    </ItemGroup>
+  </Target>
   <Import Project="./cores.template.csproj" />
-  <Target Name="Build" DependsOnTargets="Compile" />
+  <ItemGroup>
+    <Compile Include="Arm\Arm.cs" />
+    <Compile Include="Arm\ArmRegisters.cs">
+      <DependentUpon>ArmRegisters.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Arm\CortexA7.cs" />
+    <Compile Include="Arm\Timers\CortexAGenericTimer.cs" />
+    <Compile Include="Arm\Timers\CortexAGlobalTimer.cs" />
+    <Compile Include="Arm\Timers\CortexAPrivateTimer.cs" />
+    <Compile Include="Arm\GIC.cs" />
+    <Compile Include="Arm\SnoopControlUnit.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Arm\ArmRegisters.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>ArmRegisters.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Peripherals\Peripherals-TranslationCPU.csproj">
+      <Project>{66400796-0C5B-4386-A859-50A2AC3F3DB5}</Project>
+      <Name>Peripherals-TranslationCPU</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Main\Emulator.csproj">
+      <Project>{2901AECB-A54F-4FD8-9AC1-033D86DC7257}</Project>
+      <Name>Emulator</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\External\Migrant\Migrant\Migrant.csproj">
+      <Project>{5F87C357-09FB-4F53-BE37-41FE5BD88957}</Project>
+      <Name>Migrant</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Arm\Timers\" />
+  </ItemGroup>
 </Project>
