@@ -52,10 +52,6 @@
     <Compile Include="Peripherals\CPU\Registers\CortexMRegisters.cs">
       <DependentUpon>CortexMRegisters.tt</DependentUpon>
     </Compile>
-    <Compile Include="Peripherals\CPU\PowerPc.cs" />
-    <Compile Include="Peripherals\CPU\Registers\PowerPcRegisters.cs">
-      <DependentUpon>PowerPcRegisters.tt</DependentUpon>
-    </Compile>
     <Compile Include="Peripherals\Miscellaneous\ArmSysCtl.cs" />
     <Compile Include="Peripherals\DMA\OmapDma.cs" />
     <Compile Include="Peripherals\EfmSystemDevice.cs" />
@@ -76,12 +72,6 @@
         </EmbeddedResource>
         <EmbeddedResource Include="..\Cores\bin\$(Configuration)\lib$(HostWordSize)\translate-arm-m-be.so">
             <LogicalName>Emul8.translate_$(HostWordSize)-arm-m-be.so</LogicalName>
-        </EmbeddedResource>
-        <EmbeddedResource Include="..\Cores\bin\$(Configuration)\lib$(HostWordSize)\translate-ppc-le.so">
-            <LogicalName>Emul8.translate_$(HostWordSize)-ppc-le.so</LogicalName>
-        </EmbeddedResource>
-        <EmbeddedResource Include="..\Cores\bin\$(Configuration)\lib$(HostWordSize)\translate-ppc-be.so">
-            <LogicalName>Emul8.translate_$(HostWordSize)-ppc-be.so</LogicalName>
         </EmbeddedResource>
         <EmbeddedResource Include="..\Cores\bin\$(Configuration)\lib$(HostWordSize)\translate-i386-le.so">
             <LogicalName>Emul8.translate_$(HostWordSize)-i386-le.so</LogicalName>
@@ -157,10 +147,6 @@
     <None Include="Peripherals\CPU\Registers\X86Registers.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>X86Registers.cs</LastGenOutput>
-    </None>
-    <None Include="Peripherals\CPU\Registers\PowerPcRegisters.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>PowerPcRegisters.cs</LastGenOutput>
     </None>
   </ItemGroup>
 </Project>
