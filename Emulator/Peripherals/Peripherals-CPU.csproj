@@ -41,26 +41,16 @@
     <Compile Include="Peripherals\IRQControllers\SIC.cs" />
     <Compile Include="Peripherals\CPU\CortexM.cs" />
     <Compile Include="Peripherals\IRQControllers\NVIC.cs" />
-    <Compile Include="Peripherals\Miscellaneous\SnoopControlUnit.cs" />
-    <Compile Include="Peripherals\IRQControllers\GIC.cs" />
     <Compile Include="Peripherals\Cache\PL310.cs" />
     <Compile Include="Peripherals\IRQControllers\EXTI.cs" />
-    <Compile Include="Peripherals\Timers\CortexAGlobalTimer.cs" />
-    <Compile Include="Peripherals\Timers\CortexAPrivateTimer.cs" />
     <Compile Include="Debug\CPUTracer.cs" />
     <Compile Include="Peripherals\DMA\STM32DMA.cs" />
     <Compile Include="Peripherals\DMA\UDMA.cs" />
     <Compile Include="Peripherals\DMA\STM32LDMA.cs" />
     <Compile Include="Debug\FunctionCallParameter.cs" />
     <Compile Include="Debug\FunctionCallParameterType.cs" />
-    <Compile Include="Peripherals\CPU\CortexA7.cs" />
     <Compile Include="Peripherals\CPU\Registers\CortexMRegisters.cs">
       <DependentUpon>CortexMRegisters.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Peripherals\Timers\CortexAGenericTimer.cs" />
-    <Compile Include="Peripherals\CPU\Arm.cs" />
-    <Compile Include="Peripherals\CPU\Registers\ArmRegisters.cs">
-      <DependentUpon>ArmRegisters.tt</DependentUpon>
     </Compile>
     <Compile Include="Peripherals\CPU\PowerPc.cs" />
     <Compile Include="Peripherals\CPU\Registers\PowerPcRegisters.cs">
@@ -81,12 +71,6 @@
     </EnvironmentTask>
     <Message Text="Detected host word size: $(HostWordSize)" />
     <ItemGroup>
-        <EmbeddedResource Include="..\Cores\bin\$(Configuration)\lib$(HostWordSize)\translate-arm-le.so">
-            <LogicalName>Emul8.translate_$(HostWordSize)-arm-le.so</LogicalName>
-        </EmbeddedResource>
-        <EmbeddedResource Include="..\Cores\bin\$(Configuration)\lib$(HostWordSize)\translate-arm-be.so">
-            <LogicalName>Emul8.translate_$(HostWordSize)-arm-be.so</LogicalName>
-        </EmbeddedResource>
         <EmbeddedResource Include="..\Cores\bin\$(Configuration)\lib$(HostWordSize)\translate-arm-m-le.so">
             <LogicalName>Emul8.translate_$(HostWordSize)-arm-m-le.so</LogicalName>
         </EmbeddedResource>
@@ -166,10 +150,6 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Peripherals\CPU\Registers\ArmRegisters.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>ArmRegisters.cs</LastGenOutput>
-    </None>
     <None Include="Peripherals\CPU\Registers\CortexMRegisters.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>CortexMRegisters.cs</LastGenOutput>
