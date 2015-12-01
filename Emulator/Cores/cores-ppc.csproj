@@ -31,4 +31,5 @@
     </ItemGroup>
   </Target>
   <Import Project="./cores.template.csproj" />
+  <Target Name="Build" DependsOnTargets="Compile" />
 </Project>
