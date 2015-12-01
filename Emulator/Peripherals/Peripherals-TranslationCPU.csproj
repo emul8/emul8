@@ -52,10 +52,10 @@
     <Compile Include="Peripherals\CPU\Registers\IRegisters.cs" />
     <Compile Include="Peripherals\CPU\CpuAbortException.cs" />
     <Compile Include="Peripherals\CPU\Registers\RegistersGroup.cs" />
-    <Compile Include="Peripherals\CPU\Registers\RegisterEnumParser.cs">
+    <Compile Include="Peripherals\UART\SemihostingUart.cs" />
+    <Compile Include="..\Cores\Common\RegisterEnumParser.cs">
       <DependentUpon>RegisterEnumParser.tt</DependentUpon>
     </Compile>
-    <Compile Include="Peripherals\UART\SemihostingUart.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
@@ -89,11 +89,8 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Peripherals\CPU\Registers\RegisterTemplate.tt" />
-    <None Include="Peripherals\CPU\Registers\RegisterTemplateDefinitions.tt" />
-    <None Include="Peripherals\CPU\Registers\RegisterEnumParserContent.tt">
-    </None>
-    <None Include="Peripherals\CPU\Registers\RegisterEnumParser.tt">
+    <None Include="..\Cores\Common\RegisterEnumParser.tt">
+      <Link>Peripherals\CPU\Registers\RegisterEnumParser.tt</Link>
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>RegisterEnumParser.cs</LastGenOutput>
     </None>
