@@ -39,8 +39,6 @@
     <Compile Include="AssemblyInfo.cs" />
     <Compile Include="Peripherals\IRQControllers\PL190.cs" />
     <Compile Include="Peripherals\IRQControllers\SIC.cs" />
-    <Compile Include="Peripherals\CPU\CortexM.cs" />
-    <Compile Include="Peripherals\IRQControllers\NVIC.cs" />
     <Compile Include="Peripherals\Cache\PL310.cs" />
     <Compile Include="Peripherals\IRQControllers\EXTI.cs" />
     <Compile Include="Debug\CPUTracer.cs" />
@@ -49,28 +47,10 @@
     <Compile Include="Peripherals\DMA\STM32LDMA.cs" />
     <Compile Include="Debug\FunctionCallParameter.cs" />
     <Compile Include="Debug\FunctionCallParameterType.cs" />
-    <Compile Include="Peripherals\CPU\Registers\CortexMRegisters.cs">
-      <DependentUpon>CortexMRegisters.tt</DependentUpon>
-    </Compile>
     <Compile Include="Peripherals\Miscellaneous\ArmSysCtl.cs" />
     <Compile Include="Peripherals\DMA\OmapDma.cs" />
     <Compile Include="Peripherals\EfmSystemDevice.cs" />
   </ItemGroup>
-  <UsingTask AssemblyFile="$(MSBuildProjectDirectory)/../../External/cctask/CCTask/bin/Release/CCTask.dll" TaskName="EnvironmentTask" />
-  <Target Name="PrepareEmbeddedResources" BeforeTargets="PrepareForBuild">
-    <EnvironmentTask>
-        <Output TaskParameter="WordSize" PropertyName="HostWordSize" />
-    </EnvironmentTask>
-    <Message Text="Detected host word size: $(HostWordSize)" />
-    <ItemGroup>
-        <EmbeddedResource Include="..\Cores\bin\$(Configuration)\lib$(HostWordSize)\translate-arm-m-le.so">
-            <LogicalName>Emul8.translate_$(HostWordSize)-arm-m-le.so</LogicalName>
-        </EmbeddedResource>
-        <EmbeddedResource Include="..\Cores\bin\$(Configuration)\lib$(HostWordSize)\translate-arm-m-be.so">
-            <LogicalName>Emul8.translate_$(HostWordSize)-arm-m-be.so</LogicalName>
-        </EmbeddedResource>
-    </ItemGroup>
-  </Target>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
     <Folder Include="Peripherals\" />
@@ -131,11 +111,5 @@
       <Project>{23222114-707C-4EFD-8289-2728351FB7E9}</Project>
       <Name>cores-ppc</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Peripherals\CPU\Registers\CortexMRegisters.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>CortexMRegisters.cs</LastGenOutput>
-    </None>
   </ItemGroup>
 </Project>
