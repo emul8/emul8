@@ -27,7 +27,7 @@
         <EmulatedTarget Condition=" '$(EmulatedTarget)' == '' ">$(TargetArchitecture.ToLower())</EmulatedTarget>
 
         <ConfigName>$(ProtoTarget)-$(TargetWordSize)_$(TargetEndianess)</ConfigName>
-        <OutputPath>bin/$(Configuration)/lib$(HostWordSize)</OutputPath>
+        <SoFileLocation>bin/$(Configuration)/lib$(HostWordSize)</SoFileLocation>
         <LibraryPath>translate-$(ProtoTarget)-$(TargetEndianess).so</LibraryPath>
         <ObjectFilesDirectory>obj/$(Configuration)/obj-$(ConfigName)</ObjectFilesDirectory>
         <TlibDirectory>tlib</TlibDirectory>
@@ -121,9 +121,9 @@
     <CCompilerTask Parallel="false" Sources="@(SourceFiles)" Flags="@(CompilationFlags)" ObjectFilesDirectory="$(ObjectFilesDirectory)" />
   </Target>
 
-  <Target Name="Link" DependsOnTargets="Compile" Inputs="@(ObjectFiles)" Outputs="$(OutputPath)/$(LibraryPath)">
-      <MakeDir Directories="$(OutputPath)" />
-      <CLinkerTask ObjectFiles="@(ObjectFiles)" Flags="@(LinkFlags)" Output="$(OutputPath)/$(LibraryPath)" />
+  <Target Name="Link" DependsOnTargets="Compile" Inputs="@(ObjectFiles)" Outputs="$(SoFileLocation)/$(LibraryPath)">
+      <MakeDir Directories="$(SoFileLocation)" />
+      <CLinkerTask ObjectFiles="@(ObjectFiles)" Flags="@(LinkFlags)" Output="$(SoFileLocation)/$(LibraryPath)" />
   </Target>
 
   <Target Name="Build" DependsOnTargets="Link">
