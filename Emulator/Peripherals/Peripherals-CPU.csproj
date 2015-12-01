@@ -55,10 +55,6 @@
     <Compile Include="Peripherals\Miscellaneous\ArmSysCtl.cs" />
     <Compile Include="Peripherals\DMA\OmapDma.cs" />
     <Compile Include="Peripherals\EfmSystemDevice.cs" />
-    <Compile Include="Peripherals\CPU\Registers\X86Registers.cs">
-      <DependentUpon>X86Registers.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Peripherals\CPU\X86.cs" />
   </ItemGroup>
   <UsingTask AssemblyFile="$(MSBuildProjectDirectory)/../../External/cctask/CCTask/bin/Release/CCTask.dll" TaskName="EnvironmentTask" />
   <Target Name="PrepareEmbeddedResources" BeforeTargets="PrepareForBuild">
@@ -72,9 +68,6 @@
         </EmbeddedResource>
         <EmbeddedResource Include="..\Cores\bin\$(Configuration)\lib$(HostWordSize)\translate-arm-m-be.so">
             <LogicalName>Emul8.translate_$(HostWordSize)-arm-m-be.so</LogicalName>
-        </EmbeddedResource>
-        <EmbeddedResource Include="..\Cores\bin\$(Configuration)\lib$(HostWordSize)\translate-i386-le.so">
-            <LogicalName>Emul8.translate_$(HostWordSize)-i386-le.so</LogicalName>
         </EmbeddedResource>
     </ItemGroup>
   </Target>
@@ -143,10 +136,6 @@
     <None Include="Peripherals\CPU\Registers\CortexMRegisters.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>CortexMRegisters.cs</LastGenOutput>
-    </None>
-    <None Include="Peripherals\CPU\Registers\X86Registers.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>X86Registers.cs</LastGenOutput>
     </None>
   </ItemGroup>
 </Project>
