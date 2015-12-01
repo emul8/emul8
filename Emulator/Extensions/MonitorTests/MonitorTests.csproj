@@ -61,10 +61,6 @@
       <Project>{66400796-0C5B-4386-A859-50A2AC3F3DB7}</Project>
       <Name>Peripherals-generic</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Peripherals\Peripherals-CPU-Sparc.csproj">
-      <Project>{3541A715-B755-47E0-BF03-B089817449B6}</Project>
-      <Name>Peripherals-CPU-Sparc</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\Peripherals\Peripherals-CPU.csproj">
       <Project>{66400796-0C5B-4386-A859-50A2AC3F3DB4}</Project>
       <Name>Peripherals-CPU</Name>

@@ -8,7 +8,7 @@
 //
 #>
 <#@ template language="C#" #>
-<#@ include file="RegisterTemplateDefinitions.tt" #>
+<#@ include file="../Common/RegisterTemplateDefinitions.tt" #>
 <#
     CLASS_NAME = "Sparc";
     HEADER_FILE = "Emulator/Cores/tlib/arch/sparc/cpu_registers.h";
@@ -17,4 +17,4 @@
 
     AFTER_WRITE_HOOKS.Add("PC", "AfterPCSet");
 #>
-<#@ include file="RegisterTemplate.tt" #>
+<#@ include file="../Common/RegisterTemplate.tt" #>
