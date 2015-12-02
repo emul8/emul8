@@ -533,6 +533,66 @@ namespace Emul8.Peripherals.CPU
             }
         }
 
+        [Export]
+        protected uint ReadByteFromBus(uint offset)
+        {
+            if(UpdateContextOnLoadAndStore)
+            {
+                UpdateContext();
+            }
+            return machine.SystemBus.ReadByte(offset);
+        }
+
+        [Export]
+        protected uint ReadWordFromBus(uint offset)
+        {
+            if(UpdateContextOnLoadAndStore)
+            {
+                UpdateContext();
+            }
+            return machine.SystemBus.ReadWord(offset);
+        }
+
+        [Export]
+        protected uint ReadDoubleWordFromBus(uint offset)
+        {
+            if(UpdateContextOnLoadAndStore)
+            {
+                UpdateContext();
+            }
+            return machine.SystemBus.ReadDoubleWord(offset);
+        }
+
+        [Export]
+        protected void WriteByteToBus(uint offset, uint value)
+        {
+            if(UpdateContextOnLoadAndStore)
+            {
+                UpdateContext();
+            }
+            machine.SystemBus.WriteByte(offset, unchecked((byte)value));
+        }
+
+        [Export]
+        protected void WriteWordToBus(uint offset, uint value)
+        {
+            if(UpdateContextOnLoadAndStore)
+            {
+                UpdateContext();
+            }
+            machine.SystemBus.WriteWord(offset, unchecked((ushort)value));
+        }
+
+        [Export]
+        protected void WriteDoubleWordToBus(uint offset, uint value)
+        {
+            if(UpdateContextOnLoadAndStore)
+            {
+                UpdateContext();
+            }
+            machine.SystemBus.WriteDoubleWord(offset, value);
+        }
+
         public abstract void SetRegisterUnsafe(int register, uint value);
 
         public abstract uint GetRegisterUnsafe(int register);
@@ -790,66 +850,6 @@ namespace Emul8.Peripherals.CPU
         {
             var symbol = DoLookupSymbolInner(offset);
             return Mono.Unix.UnixMarshal.StringToHeap(string.Format("0x{0:X} ", offset) + symbol == null ? String.Empty : symbol.Name);
-        }
-
-        [Export]
-        private uint ReadByteFromBus(uint offset)
-        {
-            if(UpdateContextOnLoadAndStore)
-            {
-                UpdateContext();
-            }
-            return machine.SystemBus.ReadByte(offset);
-        }
-
-        [Export]
-        private uint ReadWordFromBus(uint offset)
-        {
-            if(UpdateContextOnLoadAndStore)
-            {
-                UpdateContext();
-            }
-            return machine.SystemBus.ReadWord(offset);
-        }
-
-        [Export]
-        private uint ReadDoubleWordFromBus(uint offset)
-        {
-            if(UpdateContextOnLoadAndStore)
-            {
-                UpdateContext();
-            }
-            return machine.SystemBus.ReadDoubleWord(offset);
-        }
-
-        [Export]
-        private void WriteByteToBus(uint offset, uint value)
-        {
-            if(UpdateContextOnLoadAndStore)
-            {
-                UpdateContext();
-            }
-            machine.SystemBus.WriteByte(offset, unchecked((byte)value));
-        }
-
-        [Export]
-        private void WriteWordToBus(uint offset, uint value)
-        {
-            if(UpdateContextOnLoadAndStore)
-            {
-                UpdateContext();
-            }
-            machine.SystemBus.WriteWord(offset, unchecked((ushort)value));
-        }
-
-        [Export]
-        private void WriteDoubleWordToBus(uint offset, uint value)
-        {
-            if(UpdateContextOnLoadAndStore)
-            {
-                UpdateContext();
-            }
-            machine.SystemBus.WriteDoubleWord(offset, value);
         }
 
         [Export]
