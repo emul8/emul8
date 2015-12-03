@@ -37,4 +37,4 @@ Emulator/Main/AssemblyVersionInfo.cs
 packages
 
 #tests
-Emulator/tests
+Tools/scripts/tests
