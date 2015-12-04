@@ -48,12 +48,18 @@ do
     esac
 done
 
+if ! [ -x "$(command -v mono)" ]
+then
+    echo "Mono not found. Please refer to documentation for installation instructions. Exiting!"
+    exit 1
+fi
+
 # Check mono version
 MONO_VERSION=`mono --version | sed -n -r 's/.* version ([0-9.]+) \(.*/\1/p'`
 MONO_VERSION_MAJOR=`echo $MONO_VERSION | sed -n 's/[^0-9]*\([0-9]*\).*/\1/p'`
 if [ $MONO_VERSION_MAJOR -lt 4 -a $MONO_VERSION != "3.99.0" ]
 then
-    echo "Wrong mono version detected: $MONO_VERSION. Exiting!"
+    echo "Wrong mono version detected: $MONO_VERSION. Please refer to documentation for installation instructions. Exiting!"
     exit 1
 fi
 
