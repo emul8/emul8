@@ -112,7 +112,7 @@ Additionally it contains a group of properties required by *Monodevelop* in orde
    As a result, it is now disabled.
 
 The targets for building and cleaning the project are defined in the common project file *cores.template.csproj*.
-The build action consists of building the *translate.cproj* file for selected endianness and putting the output libraries into a single *zip* archive.
+The build action consists of building the *translate.cproj* file for selected endianness.
 
 Host architecture detection
 +++++++++++++++++++++++++++
