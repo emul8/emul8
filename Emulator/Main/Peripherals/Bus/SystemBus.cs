@@ -630,7 +630,7 @@ namespace Emul8.Peripherals.Bus
             var parentRangeAfterSplitSizeRight = parentRange.EndAddress - range.EndAddress;
             if(parentRangeAfterSplitSizeRight > 0)
             {
-                Tag(new Range(range.EndAddress, parentRangeAfterSplitSizeRight), parentName, parentDefaultValue, parentPausing);
+                Tag(new Range(range.EndAddress + 1, parentRangeAfterSplitSizeRight), parentName, parentDefaultValue, parentPausing);
             }
             Tag(range, string.Format("{0}/{1}", parentName, tag), defaultValue, pausing);
         }
@@ -944,7 +944,7 @@ namespace Emul8.Peripherals.Bus
                 {
                     methods.SetAbsoluteAddress = absoluteAddressAware.SetAbsoluteAddress;
                 }
-                peripherals.Add(registrationPoint.Range.StartAddress, registrationPoint.Range.EndAddress, registeredPeripheral, methods);
+                peripherals.Add(registrationPoint.Range.StartAddress, registrationPoint.Range.EndAddress + 1, registeredPeripheral, methods);
                 // let's add new mappings
                 var mappedPeripheral = peripheral as IMapped;
                 if(mappedPeripheral != null)
@@ -985,7 +985,7 @@ namespace Emul8.Peripherals.Bus
                     this.Log(LogLevel.Warning, "Tried to access bytes at non-existing peripheral in range {0}.", new Range(holeStart, holeSize));
                     continue;
                 }
-                var toWrite = Math.Min(count - written, what.RegistrationPoint.Range.EndAddress - currentPosition);
+                var toWrite = Math.Min(count - written, what.RegistrationPoint.Range.EndAddress - currentPosition + 1);
                 var singleResult = new PeripheralLookupResult();
                 singleResult.What = what;
                 singleResult.SourceIndex = written;
