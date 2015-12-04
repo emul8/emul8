@@ -20,10 +20,15 @@ namespace Emul8.Bootstrap
             this.projects = projects;
         }
 
-        public void Save(string path)
+        public void Save(string directory)
         {
-            Directory.CreateDirectory(Path.GetDirectoryName(path));
-            File.WriteAllText(path, ToString());
+            Directory.CreateDirectory(directory);
+            var mainProject = projects.OfType<CustomProject>().SingleOrDefault();
+            if(mainProject != null)
+            {
+                mainProject.Save(directory);
+            }
+            File.WriteAllText(Path.Combine(directory, solutionName), ToString());
         }
 
         public void SaveTestsFile(string path)
@@ -141,6 +146,7 @@ namespace Emul8.Bootstrap
         }
 
         private readonly IEnumerable<Project> projects;
+        private const string solutionName = "Emul8.sln";
     }
 }
 

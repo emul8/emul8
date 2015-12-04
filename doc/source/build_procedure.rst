@@ -34,6 +34,14 @@ The script supports the following options:
 
     Location of base directories (';'-separated).
 
+.. option:: -b value
+
+    Location for binaries compiled from generated project.
+
+.. option:: -o value
+
+    Location of generated files.
+
 .. option:: -h
 
     Prints help information.
