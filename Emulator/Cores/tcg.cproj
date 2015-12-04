@@ -3,23 +3,19 @@
   <UsingTask AssemblyFile="$(MSBuildProjectDirectory)/../../External/cctask/CCTask/bin/Release/CCTask.dll" TaskName="CCompilerTask"/>
 
   <PropertyGroup>
-      <Architecture Condition=" $(Architecture) == '' ">i386</Architecture>
-      <WordSize Condition=" $(WordSize) == '' ">32</WordSize>
-      <OutputDirectory>bin/$(Configuration)</OutputDirectory>
-      <TcgDirectory>tlib/tcg</TcgDirectory>
-      <Output>$(OutputDirectory)/libtcg_$(Architecture)-$(WordSize)_$(Endianess).a</Output>
-      <ObjectFilesDirectory>obj/$(Configuration)/obj-$(WordSize)_$(Endianess)</ObjectFilesDirectory>
+    <Architecture Condition=" $(Architecture) == '' ">i386</Architecture>
+    <TcgDirectory>tlib/tcg</TcgDirectory>
+    <OutputDirectory>$(TcgDirectory)/bin/$(Configuration)</OutputDirectory>
   </PropertyGroup>
 
   <ItemGroup>
     <CompilationFlags Include="-DTARGET_WORDS_BIGENDIAN" Condition=" $(Endianess) == 'be'" />
-    <CompilationFlags Include="-DTCG_TARGET_I386" Condition=" $(Architecture) == 'i386'" />
-    <CompilationFlags Include="-DTCG_TARGET_ARM"  Condition=" $(Architecture) == 'arm'" />
-    <CompilationFlags Include="-DHOST_BITS_$(WordSize)" />
+    <CompilationFlags Include="-DHOST_LONG_BITS=$(HostWordSize)" />
+    <CompilationFlags Include="-DTARGET_LONG_BITS=$(TargetWordSize)" />
     <CompilationFlags Include="-I $(TcgDirectory)/$(Architecture)" />
     <CompilationFlags Include="-I $(TcgDirectory) " />
     <CompilationFlags Include="-fomit-frame-pointer" />
-    <CompilationFlags Include="-fPIC " Condition=" $(WordSize) == '64'" />
+    <CompilationFlags Include="-fPIC " Condition=" $(HostWordSize) == '64'" />
     <CompilationFlags Include="-g3 " Condition=" $(Configuration) == 'Debug'" />
 
     <CSources Include="$(TcgDirectory)/tcg.c" />
@@ -27,34 +23,41 @@
     <CSources Include="$(TcgDirectory)/additional.c" />
 
     <InputFiles Include="$(TcgDirectory)/**" Exclude="$(TcgDirectory)/bin/**;$(TcgDirectory)/obj/**;$(TcgDirectory)/**/.*;$(TcgDirectory)/*.a" />
-    <ObjectFiles Include="@(CSources -> '$(ObjectFilesDirectory)/%(relativedir)%(filename).o')" />
   </ItemGroup>
 
   <Target Name="_VerifyProperties">
-      <Error Text="No configuration provided" Condition=" $(Configuration) == '' " />
-      <Error Text="Endianess not provided" Condition=" $(Endianess) == '' " />
-      <Error Text="Wrong endianess value: provide 'le' or 'be'" Condition=" $(Endianess) != 'le' and $(Endianess) != 'be' " />
+    <Error Text="Host word size not provided" Condition=" $(HostWordSize) == '' " />
+    <Error Text="Target word size not provided" Condition=" $(TargetWordSize) == '' " />
+    <Error Text="No configuration provided" Condition=" $(Configuration) == '' "/>
+    <Error Text="Endianess not provided" Condition=" $(Endianess) == '' "/>
+    <Error Text="Wrong endianess value: provide 'le' or 'be'" Condition=" $(Endianess) != 'le' and $(Endianess) != 'be' "/>
+    <PropertyGroup>
+      <Output>$(OutputDirectory)/libtcg_$(Architecture)-$(HostWordSize)-$(TargetWordSize)_$(Endianess).a</Output>
+      <ObjectFilesDirectory>$(TcgDirectory)/obj/$(Configuration)/obj-$(HostWordSize)-$(TargetWordSize)_$(Endianess)</ObjectFilesDirectory>
+    </PropertyGroup>
+    <ItemGroup>
+      <ObjectFiles Include="@(CSources -> '$(ObjectFilesDirectory)/%(relativedir)%(filename).o')" />
+    </ItemGroup>
   </Target>
 
   <Target Name="Compile" Inputs="@(InputFiles)" Outputs="@(ObjectFiles)" DependsOnTargets="_VerifyProperties">
-      <CCompilerTask Parallel="false" Sources="@(CSources)" Flags="@(CompilationFlags)" ObjectFilesDirectory="$(ObjectFilesDirectory)" />
+    <CCompilerTask Parallel="false" Sources="@(CSources)" Flags="@(CompilationFlags)" ObjectFilesDirectory="$(ObjectFilesDirectory)"/>
   </Target>
 
   <Target Name="Build" Inputs="@(ObjectFiles)" Outputs="$(Output)" DependsOnTargets="Compile">
-      <Message Text="Calling ar" />
-      <PropertyGroup>
-          <ObjectFilesString>@(ObjectFiles->'%(Identity)', ' ')</ObjectFilesString>
-      </PropertyGroup>
-
-      <MakeDir Directories="$(OutputDirectory)" />
-      <Exec Command="ar rcs $(Output) $(ObjectFilesString)" Condition=" !Exists('$(Output)') Or '$(ObjectFilesString)' != '' " />
+    <Message Text="Calling ar"/>
+    <PropertyGroup>
+      <ObjectFilesString>@(ObjectFiles->'%(Identity)', ' ')</ObjectFilesString>
+    </PropertyGroup>
+    <MakeDir Directories="$(OutputDirectory)"/>
+    <Exec Command="ar rcs $(Output) $(ObjectFilesString)" Condition=" !Exists('$(Output)') Or '$(ObjectFilesString)' != '' "/>
   </Target>
 
   <Target Name="Clean">
-      <ItemGroup>
-        <FilesToDelete Include="$(TcgDirectory)/*.a" />
-      </ItemGroup>
-      <Delete Files="@(FilesToDelete)" />
-      <RemoveDir Directories="$(TcgDirectory)/obj;$(TcgDirectory)/bin" />
+    <ItemGroup>
+      <FilesToDelete Include="$(TcgDirectory)/*.a"/>
+    </ItemGroup>
+    <Delete Files="@(FilesToDelete)"/>
+    <RemoveDir Directories="$(TcgDirectory)/obj;$(TcgDirectory)/bin"/>
   </Target>
 </Project>
