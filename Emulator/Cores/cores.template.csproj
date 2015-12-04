@@ -9,16 +9,6 @@
             <Output TaskParameter="WordSize" PropertyName="HostWordSize" />
         </EnvironmentTask>
         <Message Text="Detected host word size: $(HostWordSize)" />
-
-        <PropertyGroup>
-            <ZipBaseDirectory>zip</ZipBaseDirectory>
-            <ZipDirectory>$(ZipBaseDirectory)/$(Configuration)</ZipDirectory>
-            <ZipFile>translate-$(Architecture).zip</ZipFile>
-        </PropertyGroup>
-
-        <CreateItem Include="@(Endianess->'bin/$(Configuration)/lib$(HostWordSize)/translate-$(Architecture)-%(Identity).so')" >
-            <Output TaskParameter="Include" ItemName="SoFiles" />
-        </CreateItem>
     </Target>
 
     <Target Name="Compile" DependsOnTargets="_PrepareProperties">
@@ -30,21 +20,12 @@
         <MSBuild Projects="./translate.cproj" Targets="VerifyProperties;GenerateFlags;Compile;Link;Build" Properties="AdditionalCompilationFlags=$(AdditionalCompilationFlags);HostArchitecture=i386;HostEndianess=le;HostWordSize=$(HostWordSize);TargetEndianess=%(Endianess.Identity);TargetArchitecture=$(Architecture);EmulatedTarget=$(EmulatedTarget);Configuration=$(Configuration);TargetWordSize=$(TargetWordSize)" />
     </Target>
 
-    <Target Name="CreateZIP" DependsOnTargets="Compile" Inputs="@(SoFiles -> '%(Identity)')" Outputs="$(ZipDirectory)/$(ZipFile)">
-        <MakeDir Directories="$(ZipDirectory)" />
-        <Exec Command="cd bin/$(Configuration); rm -f ../../$(ZipDirectory)/$(ZipFile); zip ../../$(ZipDirectory)/$(ZipFile) @(SoFiles -> 'lib$(HostWordSize)/%(filename)%(extension)', ' ')" />
-        <ItemGroup>
-            <BuildProjectOutput Include="translate-$(Architecture).zip" />
-        </ItemGroup>
-    </Target>
-
-    <Target Name="Build" DependsOnTargets="CreateZIP" />
-
     <Target Name="ActualClean" DependsOnTargets="_PrepareProperties">
-        <Delete Files="$(ZipDirectory)/$(ZipFile)" />
-        <Exec Command="rmdir $(ZipDirectory) -p --ignore-fail-on-non-empty" Condition="Exists('$(ZipDirectory)')"/>
         <MSBuild Projects="translate.cproj" Targets="Clean" />
     </Target>
+
+    <!-- Make this target empty not to create any dll -->
+    <Target Name="Build" DependsOnTargets="Compile" />
 
     <!-- It is intended to have 'Clean' and 'ActualClean' targets separated.
          Thanks to this multiple calling of 'Clean' from MSBuild task will not cause

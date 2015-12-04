@@ -18,8 +18,6 @@ using System.Text;
 using System.Runtime.InteropServices;
 using System.Linq.Expressions;
 using System.Drawing;
-using Ionic.BZip2;
-using Ionic.Zip;
 using Emul8.Network;
 using Mono.Unix.Native;
 using System.Diagnostics;
@@ -402,7 +400,7 @@ namespace Emul8.Utilities
             return (byte)(value & 0xFF);
         }
 
-        public static string FromResourceToTemporaryFile(this Assembly assembly, string resourceName, string pathInArchive = null)
+        public static string FromResourceToTemporaryFile(this Assembly assembly, string resourceName)
         {
             Stream libraryStream = assembly.GetManifestResourceStream(resourceName);
             if(libraryStream == null)
@@ -416,20 +414,7 @@ namespace Emul8.Utilities
                     throw new ArgumentException(string.Format("Cannot find library {0}", resourceName));
                 }
             }
-            var unpackedResource = CopyToFileAndUnbzipIfNeeded(libraryStream);
-            if(pathInArchive == null)
-            {
-                return unpackedResource;
-            }
-            // zip case
-            using(var zipFile = new ZipFile(unpackedResource))
-            {
-                var entry = zipFile.Entries.First(x => x.FileName == pathInArchive);
-                var fileStream = new FileStream(TemporaryFilesManager.Instance.GetTemporaryFile(), FileMode.Truncate);
-                entry.Extract(fileStream);
-                fileStream.Seek(0, SeekOrigin.Begin);
-                return CopyToFileAndUnbzipIfNeeded(fileStream);
-            }
+            return CopyToFile(libraryStream);
         }
 
         public static void Copy(this Stream from, Stream to)
@@ -521,19 +506,11 @@ namespace Emul8.Utilities
             return path;
         }
 
-        private static string CopyToFileAndUnbzipIfNeeded(Stream libraryStream)
+        private static string CopyToFile(Stream libraryStream)
         {
             try
             {
                 var libraryFile = TemporaryFilesManager.Instance.GetTemporaryFile();
-                // check whether it is compressed
-                var header1 = libraryStream.ReadByte();
-                var header2 = libraryStream.ReadByte();
-                libraryStream.Seek(0, SeekOrigin.Begin);
-                if(header1 == 0x42 && header2 == 0x5A)
-                {
-                    libraryStream = new BZip2InputStream(libraryStream, false);
-                }
                 using(var destination = new FileStream(libraryFile, FileMode.Open, FileAccess.Write, FileShare.None))
                 {
                     libraryStream.Copy(destination);
