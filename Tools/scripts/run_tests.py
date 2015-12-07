@@ -11,9 +11,9 @@ nunit_path = os.path.abspath(os.path.join(os.path.dirname(__file__), './../../Ex
 bin_directory = os.path.abspath(os.path.join(os.path.dirname(__file__), 'tests'))
 
 test_projects = map(os.path.abspath, [
-        "./../../Main/Tests/UnitTests/UnitTests.csproj",
-        "./../../Peripherals/Test/PeripheralsTests/PeripheralsTests.csproj",
-        "./../../Extensions/MonitorTests/MonitorTests.csproj",
+        "./../../Emulator/Main/Tests/UnitTests/UnitTests.csproj",
+        "./../../Emulator/Peripherals/Test/PeripheralsTests/PeripheralsTests.csproj",
+        "./../../Emulator/Extensions/MonitorTests/MonitorTests.csproj",
 ])
 
 def get_project(project_id):
