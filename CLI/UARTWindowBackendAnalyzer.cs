@@ -166,7 +166,7 @@ namespace Emul8.CLI
                     }
                 };
                 p.Start();
-                Logger.LogAs(this, LogLevel.Info, "terminal shown");
+                Logger.LogAs(this, LogLevel.Info, "Terminal shown");
                 return true;
             }
             catch(Win32Exception)
@@ -266,7 +266,7 @@ namespace Emul8.CLI
                     }
                 };
                 p.Start();
-                Logger.LogAs(this, LogLevel.Info, "terminal shown");
+                Logger.LogAs(this, LogLevel.Info, "Terminal shown");
                 return true;
             }
             catch(Win32Exception)
