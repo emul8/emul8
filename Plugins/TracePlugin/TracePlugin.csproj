@@ -70,6 +70,10 @@
       <Project>{66400796-0C5B-4386-A859-50A2AC3F3DB5}</Project>
       <Name>Peripherals-TranslationCPU</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\Emulator\Cores\cores-arm.csproj">
+      <Project>{13222124-707C-5EFD-8289-2728351FB7E9}</Project>
+      <Name>cores-arm</Name>
+    </ProjectReference>
   </ItemGroup>
   <ProjectExtensions>
     <MonoDevelop>

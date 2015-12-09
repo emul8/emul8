@@ -57,6 +57,7 @@ namespace Emul8.Bootstrap
             var pathHelper = new PathHelper(directories.Select(Path.GetFullPath));
 
             stepManager.AddStep(new UiStep(pathHelper));
+            stepManager.AddStep(new ProjectsListStep<CpuCoreProject>("Choose supported architectures:", pathHelper));
             stepManager.AddStep(new ProjectsListStep<ExtensionProject>("Choose extensions libraries:", pathHelper));
             stepManager.AddStep(new PluginStep("Choose plugins:", pathHelper));
             stepManager.AddStep(new ProjectsListStep<TestsProject>("Choose tests:", pathHelper));

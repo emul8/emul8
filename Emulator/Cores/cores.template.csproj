@@ -11,7 +11,7 @@
         <Message Text="Detected host word size: $(HostWordSize)" />
     </Target>
 
-    <Target Name="Compile" DependsOnTargets="_PrepareProperties">
+    <Target Name="Compile" DependsOnTargets="_PrepareProperties" BeforeTargets="CopyNonResxEmbeddedResources">
         <!-- Due to a bug in some versions of xbuild we set default value of $(TargetWordSize) before passing it to 'translate.cproj' as it is impossible to
              overwrite it later. -->
         <PropertyGroup>
@@ -23,9 +23,6 @@
     <Target Name="ActualClean" DependsOnTargets="_PrepareProperties">
         <MSBuild Projects="translate.cproj" Targets="Clean" />
     </Target>
-
-    <!-- Make this target empty not to create any dll -->
-    <Target Name="Build" DependsOnTargets="Compile" />
 
     <!-- It is intended to have 'Clean' and 'ActualClean' targets separated.
          Thanks to this multiple calling of 'Clean' from MSBuild task will not cause

@@ -33,5 +33,49 @@
       <AdditionalCompilationFlags>-DTARGET_PROTO_ARM_M=1</AdditionalCompilationFlags>
     </PropertyGroup>
   </Target>
+  <Target Name="PrepareEmbeddedResources" BeforeTargets="PrepareForBuild" DependsOnTargets="_PrepareProperties">
+    <ItemGroup>
+        <EmbeddedResource Include="..\Cores\bin\$(Configuration)\lib$(HostWordSize)\translate-arm-m-le.so">
+            <LogicalName>Emul8.translate_$(HostWordSize)-arm-m-le.so</LogicalName>
+        </EmbeddedResource>
+        <EmbeddedResource Include="..\Cores\bin\$(Configuration)\lib$(HostWordSize)\translate-arm-m-be.so">
+            <LogicalName>Emul8.translate_$(HostWordSize)-arm-m-be.so</LogicalName>
+        </EmbeddedResource>
+    </ItemGroup>
+  </Target>
   <Import Project="./cores.template.csproj" />
+  <ItemGroup>
+    <Compile Include="Arm-M\CortexM.cs" />
+    <Compile Include="Arm-M\CortexMRegisters.cs">
+      <DependentUpon>CortexMRegisters.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Arm-M\NVIC.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Arm-M\CortexMRegisters.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>CortexMRegisters.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Main\Emulator.csproj">
+      <Project>{2901AECB-A54F-4FD8-9AC1-033D86DC7257}</Project>
+      <Name>Emulator</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\External\Migrant\Migrant\Migrant.csproj">
+      <Project>{5F87C357-09FB-4F53-BE37-41FE5BD88957}</Project>
+      <Name>Migrant</Name>
+    </ProjectReference>
+    <ProjectReference Include="cores-arm.csproj">
+      <Project>{13222124-707C-5EFD-8289-2728351FB7E9}</Project>
+      <Name>cores-arm</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Peripherals\Peripherals-TranslationCPU.csproj">
+      <Project>{66400796-0C5B-4386-A859-50A2AC3F3DB5}</Project>
+      <Name>Peripherals-TranslationCPU</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+  </ItemGroup>
 </Project>
