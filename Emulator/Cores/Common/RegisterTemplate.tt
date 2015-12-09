@@ -25,7 +25,7 @@
     }
 
     RegistersEnumParser parser;
-    var baseDirectoryPath = Directory.GetParent(Path.GetDirectoryName(((ITextTemplatingEngineHost)this.Host).TemplateFile)).Parent.Parent.Parent.Parent.FullName;
+    var baseDirectoryPath = Directory.GetParent(Path.GetDirectoryName(((ITextTemplatingEngineHost)this.Host).TemplateFile)).Parent.Parent.FullName;
     var fullPath = Path.Combine(baseDirectoryPath, HEADER_FILE);
     using(var stream = File.OpenRead(fullPath))
     {

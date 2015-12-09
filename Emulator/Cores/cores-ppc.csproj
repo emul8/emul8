@@ -30,5 +30,41 @@
       <Endianess Include="be" />
     </ItemGroup>
   </Target>
+  <Target Name="PrepareEmbeddedResources" BeforeTargets="PrepareForBuild" DependsOnTargets="_PrepareProperties">
+    <ItemGroup>
+        <EmbeddedResource Include="..\Cores\bin\$(Configuration)\lib$(HostWordSize)\translate-ppc-le.so">
+            <LogicalName>Emul8.translate_$(HostWordSize)-ppc-le.so</LogicalName>
+        </EmbeddedResource>
+        <EmbeddedResource Include="..\Cores\bin\$(Configuration)\lib$(HostWordSize)\translate-ppc-be.so">
+            <LogicalName>Emul8.translate_$(HostWordSize)-ppc-be.so</LogicalName>
+        </EmbeddedResource>
+    </ItemGroup>
+  </Target>
   <Import Project="./cores.template.csproj" />
+  <ItemGroup>
+    <Compile Include="PowerPC\PowerPc.cs" />
+    <Compile Include="PowerPC\PowerPcRegisters.cs">
+      <DependentUpon>PowerPcRegisters.tt</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="PowerPC\PowerPcRegisters.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PowerPcRegisters.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Peripherals\Peripherals-TranslationCPU.csproj">
+      <Project>{66400796-0C5B-4386-A859-50A2AC3F3DB5}</Project>
+      <Name>Peripherals-TranslationCPU</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Main\Emulator.csproj">
+      <Project>{2901AECB-A54F-4FD8-9AC1-033D86DC7257}</Project>
+      <Name>Emulator</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\External\Migrant\Migrant\Migrant.csproj">
+      <Project>{5F87C357-09FB-4F53-BE37-41FE5BD88957}</Project>
+      <Name>Migrant</Name>
+    </ProjectReference>
+  </ItemGroup>
 </Project>
