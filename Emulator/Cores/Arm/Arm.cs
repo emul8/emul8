@@ -21,7 +21,7 @@ using Emul8.Peripherals.Miscellaneous;
 
 namespace Emul8.Peripherals.CPU
 {
-    public partial class Arm : TranslationCPU, IClockSource, ICPUWithBlockBeginHook, IPeripheralRegister<SemihostingUart, NullRegistrationPoint>
+    public partial class Arm : TranslationCPU, ICPUWithBlockBeginHook, IPeripheralRegister<SemihostingUart, NullRegistrationPoint>
     {
         public Arm(string cpuType, Machine machine, EndiannessEnum endianness = EndiannessEnum.LittleEndian): base(cpuType, machine, endianness)
         {
@@ -44,60 +44,6 @@ namespace Emul8.Peripherals.CPU
         }
 
         public override string Architecture { get { return "arm"; } }
-
-        void IClockSource.ExecuteInLock(Action action)
-        {
-            ClockSource.ExecuteInLock(action);
-        }
-
-        void IClockSource.AddClockEntry(ClockEntry entry)
-        {
-            ClockSource.AddClockEntry(entry);
-        }
-
-        void IClockSource.ExchangeClockEntryWith(Action handler, Func<ClockEntry, ClockEntry> visitor,
-            Func<ClockEntry> factorIfNonExistant)
-        {
-            ClockSource.ExchangeClockEntryWith(handler, visitor, factorIfNonExistant);
-        }
-
-        ClockEntry IClockSource.GetClockEntry(Action handler)
-        {
-            return ClockSource.GetClockEntry(handler);
-        }
-
-        void IClockSource.GetClockEntryInLockContext(Action handler, Action<ClockEntry> visitor)
-        {
-            ClockSource.GetClockEntryInLockContext(handler, visitor);
-        }
-
-        IEnumerable<ClockEntry> IClockSource.GetAllClockEntries()
-        {
-            return ClockSource.GetAllClockEntries();
-        }
-
-        bool IClockSource.RemoveClockEntry(Action handler)
-        {
-            return ClockSource.RemoveClockEntry(handler);
-        }
-
-        long IClockSource.CurrentValue
-        {
-            get
-            {
-                return ClockSource.CurrentValue;
-            }
-        }
-
-        IEnumerable<ClockEntry> IClockSource.EjectClockEntries()
-        {
-            return ClockSource.EjectClockEntries();
-        }
-
-        void IClockSource.AddClockEntries(IEnumerable<ClockEntry> entries)
-        {
-            ClockSource.AddClockEntries(entries);
-        }
 
         public uint ID
         {
