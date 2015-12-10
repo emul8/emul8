@@ -14,67 +14,13 @@ using Emul8.Time;
 
 namespace Emul8.Peripherals.CPU
 {
-    public partial class PowerPc : TranslationCPU, IClockSource, ICPUWithBlockBeginHook
+    public partial class PowerPc : TranslationCPU, ICPUWithBlockBeginHook
     {
         public PowerPc(string cpuType, Machine machine, EndiannessEnum endianness = EndiannessEnum.BigEndian): base(cpuType, machine, endianness)
         {
             irqSync = new object();
             machine.ObtainClockSource().AddClockEntry(
                 new ClockEntry(long.MaxValue/2, ClockEntry.FrequencyToRatio(this, 128000000), DecrementerHandler, false, Direction.Descending));
-        }
-
-        void IClockSource.ExecuteInLock(Action action)
-        {
-            ClockSource.ExecuteInLock(action);
-        }
-
-        void IClockSource.AddClockEntry(ClockEntry entry)
-        {
-            ClockSource.AddClockEntry(entry);
-        }
-
-        void IClockSource.ExchangeClockEntryWith(Action handler, Func<ClockEntry, ClockEntry> visitor,
-            Func<ClockEntry> factorIfNonExistant)
-        {
-            ClockSource.ExchangeClockEntryWith(handler, visitor, factorIfNonExistant);
-        }
-
-        ClockEntry IClockSource.GetClockEntry(Action handler)
-        {
-            return ClockSource.GetClockEntry(handler);
-        }
-
-        void IClockSource.GetClockEntryInLockContext(Action handler, Action<ClockEntry> visitor)
-        {
-            ClockSource.GetClockEntryInLockContext(handler, visitor);
-        }
-
-        IEnumerable<ClockEntry> IClockSource.GetAllClockEntries()
-        {
-            return ClockSource.GetAllClockEntries();
-        }
-
-        bool IClockSource.RemoveClockEntry(Action handler)
-        {
-            return ClockSource.RemoveClockEntry(handler);
-        }
-
-        long IClockSource.CurrentValue
-        {
-            get
-            {
-                return ClockSource.CurrentValue;
-            }
-        }
-
-        IEnumerable<ClockEntry> IClockSource.EjectClockEntries()
-        {
-            return ClockSource.EjectClockEntries();
-        }
-
-        void IClockSource.AddClockEntries(IEnumerable<ClockEntry> entries)
-        {
-            ClockSource.AddClockEntries(entries);
         }
 
         public override void OnGPIO(int number, bool value)
