@@ -88,8 +88,8 @@ namespace Emul8.Extensions.Analyzers.Video.Events
             { 0x11, KeyScanCode.Number8 },  
             { 0x12, KeyScanCode.Number9 },
             { 0x13, KeyScanCode.Number0 }, 
-            { 0x14, KeyScanCode.KeypadMinus },  
-            { 0x15, KeyScanCode.KeypadPlus },
+            { 0x14, KeyScanCode.OemMinus },  
+            { 0x15, KeyScanCode.OemPlus },
             { 0x33, KeyScanCode.OemPipe },
             { 0x16, KeyScanCode.BackSpace }, 
 
