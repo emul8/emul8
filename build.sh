@@ -63,24 +63,25 @@ then
     exit 0
 fi
 
-CONFIGURATION=""
 if $DEBUG
 then
-    CONFIGURATION=" /p:Configuration=Debug"
+    CONFIGURATION="Debug"
 else
-    CONFIGURATION=" /p:Configuration=Release"
+    CONFIGURATION="Release"
 fi
+
+PARAMS=" /p:Configuration=$CONFIGURATION"
 
 if $VERBOSE
 then
-    CONFIGURATION="$CONFIGURATION /verbosity:detailed"
+    PARAMS="$PARAMS /verbosity:detailed"
 fi
 
 retries=5
 while [ \( ${result_code:-134} -eq 134 \) -a \( $retries -ne 0 \) ]
 do
     set +e
-    xbuild $CONFIGURATION $TARGET
+    xbuild /p:OutputPath=$PWD/output/$CONFIGURATION $PARAMS $TARGET
     result_code=$?
     set -e
     retries=$((retries-1))
