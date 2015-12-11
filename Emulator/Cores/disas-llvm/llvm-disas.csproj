@@ -11,35 +11,23 @@
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-        <OutputPath>..\..\..\output\Debug</OutputPath>
-        <WarningLevel>4</WarningLevel>
-        <Optimize>false</Optimize>
+        <OutputPath>bin\Debug</OutputPath>
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-        <OutputPath>..\..\..\output\Release</OutputPath>
+        <OutputPath>bin\Release</OutputPath>
     </PropertyGroup>
 
     <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 
-    <Target Name="CustomPrepareProperties" BeforeTargets="PrepareForBuild">
+    <!-- We do not build here anything, just copying -->
+    <Target Name="Build">
         <EnvironmentTask>
             <Output TaskParameter="WordSize" PropertyName="HostWordSize" />
         </EnvironmentTask>
         <PropertyGroup>
             <LibraryPath>$(HostWordSize)_libLLVM-3.4.so</LibraryPath>
         </PropertyGroup>
-
-        <ItemGroup>
-            <None Include="$(LibraryPath)">
-                <Link>libLLVM.so</Link>
-                <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-            </None>
-        </ItemGroup>
+        <Copy SourceFiles="$(LibraryPath)" DestinationFiles="$(OutputPath)\libLLVM.so" />
     </Target>
-
-    <!-- We left `CoreCompile` empty, as there is really nothing to build -->
-    <Target Name="CoreCompile" />
-
-    <Target Name="GetForcedOutput" Outputs="$(MSBuildProjectDirectory)/$(OutputPath)libLLVM.so" />
 </Project>
