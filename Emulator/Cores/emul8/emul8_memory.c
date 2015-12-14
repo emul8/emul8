@@ -47,8 +47,7 @@ try_find_block:
   goto try_find_block;
 }
 
-// non-failing host ptr to offset variant
-uint32_t tlib_host_ptr_to_guest_offset_nofail(void *ptr)
+uint32_t tlib_host_ptr_to_guest_offset(void *ptr)
 {
   int i, index, count_cached;
   host_memory_block_t *host_blocks_cached;
@@ -60,13 +59,6 @@ uint32_t tlib_host_ptr_to_guest_offset_nofail(void *ptr)
       return host_blocks_cached[index].start + (ptr - host_blocks_cached[index].host_pointer);
     }
   }
-  return 0xFFFFFFFF;
-}
-
-uint32_t tlib_host_ptr_to_guest_offset(void *ptr)
-{
-  uint32_t result = tlib_host_ptr_to_guest_offset_nofail(ptr);
-  if (result != 0xFFFFFFFF) return result;
   tlib_abort("Trying to translate pointer that was not alocated by us.");
   return 0;
 }
