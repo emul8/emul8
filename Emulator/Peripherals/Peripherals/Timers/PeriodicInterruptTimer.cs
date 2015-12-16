@@ -62,10 +62,11 @@ namespace Emul8.Peripherals.Timers
             timers = new InnerTimer[8];
             for(var i = 0; i < timers.Length; i++)
             {
+                var j = i;
                 timers[i].CoreTimer = new LimitTimer(machine, TimerFrequency) { AutoUpdate = true };
                 timers[i].Control = InnerTimer.ControlRegister.InterruptEnable;
                 timers[i].CoreTimer.Limit = 0xFFFFFFFF;
-                timers[i].CoreTimer.LimitReached += () => UpdateInterrupt(i, true);
+                timers[i].CoreTimer.LimitReached += () => UpdateInterrupt(j, true);
             }
         }
 
