@@ -31,6 +31,8 @@
         <LibraryPath>translate-$(ProtoTarget)-$(TargetEndianess).so</LibraryPath>
         <ObjectFilesDirectory>obj/$(Configuration)/obj-$(ConfigName)</ObjectFilesDirectory>
         <TlibDirectory>tlib</TlibDirectory>
+        <TcgLibraryDirectory>$(MSBuildProjectDirectory)/tlib/tcg/bin/$(Configuration)</TcgLibraryDirectory>
+        <TcgLibraryFilename>libtcg_$(HostArchitecture)-$(HostWordSize)-$(TargetWordSize)_$(TargetEndianess).a</TcgLibraryFilename>
     </PropertyGroup>
 
     <Message Text="Configuring translation library" />
@@ -89,9 +91,9 @@
 
           <CompilationFlags Include="$(AdditionalCompilationFlags)" />
 
+          <!-- This define is a little hack: It is necessary for CLinkerTask to create separate entry in hashes cache -->
+          <LinkFlags Include="-DFAKE_$(EmulatedTargetUpper)_$(TargetEndianess)_$(TargetWordSize)" />
           <LinkFlags Include="-Wl,--wrap=memcpy" Condition=" $(HostWordSize) == '64' " />
-          <LinkFlags Include="-L$(MSBuildProjectDirectory)/tlib/tcg/bin/$(Configuration)" />
-          <LinkFlags Include="-ltcg_$(HostArchitecture)-$(HostWordSize)-$(TargetWordSize)_$(TargetEndianess)" />
           <LinkFlags Include="-fomit-frame-pointer" />
           <LinkFlags Include="-lpthread" />
           <LinkFlags Include="-lm" />
@@ -99,6 +101,8 @@
           <LinkFlags Include="-shared" />
           <LinkFlags Include="-z defs" />
           <LinkFlags Include="$(AdditionalLinkFlags)" />
+
+          <Libraries Include="$(TcgLibraryDirectory)/$(TcgLibraryFilename)" />
       </ItemGroup>
   </Target>
 
@@ -121,9 +125,9 @@
     <CCompilerTask Parallel="false" Sources="@(SourceFiles)" Flags="@(CompilationFlags)" ObjectFilesDirectory="$(ObjectFilesDirectory)" />
   </Target>
 
-  <Target Name="Link" DependsOnTargets="Compile" Inputs="@(ObjectFiles)" Outputs="$(SoFileLocation)/$(LibraryPath)">
+  <Target Name="Link" DependsOnTargets="Compile" Inputs="@(ObjectFiles);@(Libraries)" Outputs="$(SoFileLocation)/$(LibraryPath)">
       <MakeDir Directories="$(SoFileLocation)" />
-      <CLinkerTask ObjectFiles="@(ObjectFiles)" Flags="@(LinkFlags)" Output="$(SoFileLocation)/$(LibraryPath)" />
+      <CLinkerTask ObjectFiles="@(ObjectFiles)" Flags="@(LinkFlags)" Output="$(SoFileLocation)/$(LibraryPath)" Libraries="@(Libraries)" />
   </Target>
 
   <Target Name="Build" DependsOnTargets="Link">
