@@ -18,12 +18,8 @@ namespace Emul8.Logging
         {
             var stream = File.Open(filePath, FileMode.Create, FileAccess.Write, FileShare.ReadWrite);
             output = new StreamWriter(stream);
-            timer = new Timer(delegate
-            {
-                Flush();
-            }, null, 0, 5000);
             sync = new object();
-
+            timer = new Timer(x => Flush(), null, 0, 5000);
         }
 
         public override void Log(LogEntry entry)
