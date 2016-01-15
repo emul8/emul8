@@ -70,6 +70,7 @@
     <Compile Include="MemoryTests.cs" />
     <Compile Include="RegisterEnumParserTests.cs" />
     <Compile Include="ComparingTimerTests.cs" />
+    <Compile Include="RangeTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System" />
