@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
   <PropertyGroup>
-    <ProjectInfo Type="CpuCore"/>
+    <ProjectInfo Type="CpuCore" />
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{23222114-707C-4EFD-8289-2728351FB7E9}</ProjectGuid>
@@ -18,6 +18,8 @@
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <OutputPath>bin\Release</OutputPath>
+    <WarningLevel>4</WarningLevel>
+    <Optimize>false</Optimize>
   </PropertyGroup>
   <Target Name="SetEndianess" BeforeTargets="Build">
     <!-- Endianess cannot be set directly in Project tag, as it would be visible in Monodevelop then -->
@@ -32,12 +34,12 @@
   </Target>
   <Target Name="PrepareEmbeddedResources" BeforeTargets="PrepareForBuild" DependsOnTargets="_PrepareProperties">
     <ItemGroup>
-        <EmbeddedResource Include="..\Cores\bin\$(Configuration)\lib$(HostWordSize)\translate-ppc-le.so">
-            <LogicalName>Emul8.translate_$(HostWordSize)-ppc-le.so</LogicalName>
-        </EmbeddedResource>
-        <EmbeddedResource Include="..\Cores\bin\$(Configuration)\lib$(HostWordSize)\translate-ppc-be.so">
-            <LogicalName>Emul8.translate_$(HostWordSize)-ppc-be.so</LogicalName>
-        </EmbeddedResource>
+      <EmbeddedResource Include="..\Cores\bin\$(Configuration)\lib$(HostWordSize)\translate-ppc-le.so">
+        <LogicalName>Emul8.translate_$(HostWordSize)-ppc-le.so</LogicalName>
+      </EmbeddedResource>
+      <EmbeddedResource Include="..\Cores\bin\$(Configuration)\lib$(HostWordSize)\translate-ppc-be.so">
+        <LogicalName>Emul8.translate_$(HostWordSize)-ppc-be.so</LogicalName>
+      </EmbeddedResource>
     </ItemGroup>
   </Target>
   <Import Project="./cores.template.csproj" />
@@ -66,5 +68,22 @@
       <Project>{5F87C357-09FB-4F53-BE37-41FE5BD88957}</Project>
       <Name>Migrant</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\External\ELFSharp\ELFSharp\ELFSharp.csproj">
+      <Project>{CF944E09-7C14-433C-A185-161848E989B3}</Project>
+      <Name>ELFSharp</Name>
+    </ProjectReference>
   </ItemGroup>
+  <ProjectExtensions>
+    <MonoDevelop>
+      <Properties>
+        <Policies>
+          <DotNetNamingPolicy DirectoryNamespaceAssociation="PrefixedHierarchical" ResourceNamePolicy="FileName" />
+          <TextStylePolicy FileWidth="120" NoTabsAfterNonTabs="True" EolMarker="Unix" inheritsSet="VisualStudio" inheritsScope="text/plain" scope="text/x-csharp" />
+          <CSharpFormattingPolicy AnonymousMethodBraceStyle="NextLine" PropertyBraceStyle="NextLine" PropertyGetBraceStyle="NextLine" PropertySetBraceStyle="NextLine" EventBraceStyle="NextLine" EventAddBraceStyle="NextLine" StatementBraceStyle="NextLine" ElseNewLinePlacement="NewLine" CatchNewLinePlacement="NewLine" FinallyNewLinePlacement="NewLine" WhileNewLinePlacement="NewLine" BeforeMethodDeclarationParentheses="False" BeforeMethodCallParentheses="False" BeforeConstructorDeclarationParentheses="False" BeforeIndexerDeclarationBracket="False" BeforeDelegateDeclarationParentheses="False" AfterDelegateDeclarationParameterComma="True" NewParentheses="False" IfParentheses="False" WhileParentheses="False" ForParentheses="False" ForeachParentheses="False" CatchParentheses="False" SwitchParentheses="False" LockParentheses="False" UsingParentheses="False" SpacesBeforeBrackets="False" inheritsSet="Mono" inheritsScope="text/x-csharp" scope="text/x-csharp" />
+          <TextStylePolicy FileWidth="120" NoTabsAfterNonTabs="True" EolMarker="Unix" inheritsSet="VisualStudio" inheritsScope="text/plain" scope="text/plain" />
+          <TextStylePolicy FileWidth="120" NoTabsAfterNonTabs="True" EolMarker="Unix" inheritsSet="VisualStudio" inheritsScope="text/plain" scope="application/t4-template" />
+        </Policies>
+      </Properties>
+    </MonoDevelop>
+  </ProjectExtensions>
 </Project>
