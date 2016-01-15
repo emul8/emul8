@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
   <PropertyGroup>
-    <ProjectInfo Type="CpuCore"/>
+    <ProjectInfo Type="CpuCore" />
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{43222114-707C-4EFD-8289-2728351FB7E9}</ProjectGuid>
@@ -73,6 +73,10 @@
     <ProjectReference Include="..\Peripherals\Peripherals-TranslationCPU.csproj">
       <Project>{66400796-0C5B-4386-A859-50A2AC3F3DB5}</Project>
       <Name>Peripherals-TranslationCPU</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\External\ELFSharp\ELFSharp\ELFSharp.csproj">
+      <Project>{CF944E09-7C14-433C-A185-161848E989B3}</Project>
+      <Name>ELFSharp</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
