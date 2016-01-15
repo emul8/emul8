@@ -102,3 +102,11 @@ void emul_set_host_blocks(host_memory_block_packed_t *blocks, int count)
     tlib_free(old_mappings);
   }
 }
+
+void emul_free_host_blocks()
+{
+  if(host_blocks)
+  {
+    tlib_free(host_blocks);
+  }
+}
