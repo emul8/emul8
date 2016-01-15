@@ -13,6 +13,9 @@ using Emul8.Utilities.Binding;
 using Emul8.Logging;
 using Antmicro.Migrant.Hooks;
 using Emul8.Exceptions;
+using ELFSharp.ELF;
+using ELFSharp.UImage;
+using Machine = Emul8.Core.Machine;
 
 namespace Emul8.Peripherals.CPU
 {
@@ -84,7 +87,12 @@ namespace Emul8.Peripherals.CPU
             }
         }
 
-        void IControllableCPU.InitWithEntryPoint(uint value)
+        void IControllableCPU.InitFromElf(ELF<uint> elf)
+        {
+            // do nothing
+        }
+
+        void IControllableCPU.InitFromUImage(UImage uImage)
         {
             // do nothing
         }
