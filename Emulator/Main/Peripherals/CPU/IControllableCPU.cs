@@ -5,8 +5,9 @@
 // This file is part of the Emul8 project.
 // Full license details are defined in the 'LICENSE' file.
 //
-using System.Collections.Generic;
 using System;
+using ELFSharp.ELF;
+using ELFSharp.UImage;
 
 namespace Emul8.Peripherals.CPU
 {
@@ -30,7 +31,9 @@ namespace Emul8.Peripherals.CPU
 
         void RemoveBreakpoint(uint addr);
 
-        void InitWithEntryPoint(uint value);
+        void InitFromElf(ELF<uint> elf);
+
+        void InitFromUImage(UImage uImage);
 
         event Action<HaltReason> Halted;
     }
