@@ -19,7 +19,7 @@ namespace Emul8.Core
                 return false;
             }
             range.StartAddress = startAddress;
-            range.EndAddress = startAddress + size;
+            range.EndAddress = startAddress + size - 1;
             return true;
         }
 
@@ -33,7 +33,7 @@ namespace Emul8.Core
      
         public bool Contains(long address)
         {
-            return address >= StartAddress && address < EndAddress;
+            return address >= StartAddress && address <= EndAddress;
         }
     
         public bool Contains(Range range)
@@ -45,11 +45,11 @@ namespace Emul8.Core
         {
             var startAddress = Math.Max(StartAddress, range.StartAddress);
             var endAddress = Math.Min(EndAddress, range.EndAddress);
-            if(startAddress >= endAddress)
+            if(startAddress > endAddress)
             {
                 return Range.Empty;
             }
-            return new Range(startAddress, endAddress - startAddress);
+            return new Range(startAddress, endAddress - startAddress + 1);
         }
 
         public bool Intersects(Range range)
@@ -73,7 +73,7 @@ namespace Emul8.Core
         {
             get
             {
-                return EndAddress - StartAddress;
+                return EndAddress - StartAddress + 1;
             }
         }
 
@@ -89,7 +89,7 @@ namespace Emul8.Core
      
         public override string ToString()
         {
-            return string.Format("<0x{0:X8}, 0x{1:X8}>", StartAddress, EndAddress - 1);
+            return string.Format("<0x{0:X8}, 0x{1:X8}>", StartAddress, EndAddress);
         }
      
         public override bool Equals(object obj)

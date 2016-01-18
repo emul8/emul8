@@ -30,6 +30,8 @@ using Emul8.Core.Extensions;
 using System.Reflection;
 using Emul8.UserInterface;
 using Emul8.Peripherals.Memory;
+using ELFSharp.ELF.Sections;
+using MiscUtil.Conversion;
 
 namespace Emul8.Peripherals.Bus
 {
@@ -420,6 +422,14 @@ namespace Emul8.Peripherals.Bus
 
         public void LoadELF(string fileName, bool useVirtualAddress = false, bool allowLoadsOnlyToMemory = true, IControllableCPU cpu = null)
         {
+            if(!Machine.IsPaused)
+            {
+                throw new RecoverableException("Cannot load ELF on an unpaused machine.");
+            }
+            if(cpu == null)
+            {
+                cpu = (IControllableCPU)GetCPUs().FirstOrDefault();
+            }
             var elf = GetELFFromFile(fileName);
             var segmentsToLoad = elf.Segments.Where(x => x.Type == SegmentType.Load);
             foreach(var s in segmentsToLoad)
@@ -435,14 +445,26 @@ namespace Emul8.Peripherals.Bus
                 UpdateLowestLoadedAddress(loadAddress);
                 this.DebugLog("Segment loaded.");
             }
-            Lookup.LoadELF(elf);            
-            InternalInitWithEntryPoint(Lookup.EntryPoint, cpu);
+            Lookup.LoadELF(elf);
+            if(cpu != null)
+            {
+                cpu.InitFromElf(elf);
+            }
             AddFingerprint(fileName);
         }
 
-        public void LoadUImage(string fileName)
+        public void LoadUImage(string fileName, IControllableCPU cpu = null)
         {
+            if(!Machine.IsPaused)
+            {
+                throw new RecoverableException("Cannot load ELF on an unpaused machine.");
+            }
             UImage uImage;
+            if(cpu == null)
+            {
+                cpu = (IControllableCPU)GetCPUs().FirstOrDefault();
+            }
+
             switch(UImageReader.TryLoad(fileName, out uImage))
             {
             case UImageResult.NotUImage:
@@ -461,7 +483,10 @@ namespace Emul8.Peripherals.Bus
                 throw new RecoverableException(string.Format("Unsupported compression format '{0}'.", uImage.Compression));
             }
             WriteBytes(toLoad, uImage.LoadAddress);
-            InternalInitWithEntryPoint(uImage.EntryPoint);
+            if(cpu != null)
+            {
+                cpu.InitFromUImage(uImage);
+            }
             this.Log(LogLevel.Info, string.Format(
                 "Loaded U-Boot image '{0}'\n" +
                 "load address: 0x{1:X}\n" +
@@ -630,7 +655,7 @@ namespace Emul8.Peripherals.Bus
             var parentRangeAfterSplitSizeRight = parentRange.EndAddress - range.EndAddress;
             if(parentRangeAfterSplitSizeRight > 0)
             {
-                Tag(new Range(range.EndAddress, parentRangeAfterSplitSizeRight), parentName, parentDefaultValue, parentPausing);
+                Tag(new Range(range.EndAddress + 1, parentRangeAfterSplitSizeRight), parentName, parentDefaultValue, parentPausing);
             }
             Tag(range, string.Format("{0}/{1}", parentName, tag), defaultValue, pausing);
         }
@@ -944,7 +969,7 @@ namespace Emul8.Peripherals.Bus
                 {
                     methods.SetAbsoluteAddress = absoluteAddressAware.SetAbsoluteAddress;
                 }
-                peripherals.Add(registrationPoint.Range.StartAddress, registrationPoint.Range.EndAddress, registeredPeripheral, methods);
+                peripherals.Add(registrationPoint.Range.StartAddress, registrationPoint.Range.EndAddress + 1, registeredPeripheral, methods);
                 // let's add new mappings
                 var mappedPeripheral = peripheral as IMapped;
                 if(mappedPeripheral != null)
@@ -985,7 +1010,7 @@ namespace Emul8.Peripherals.Bus
                     this.Log(LogLevel.Warning, "Tried to access bytes at non-existing peripheral in range {0}.", new Range(holeStart, holeSize));
                     continue;
                 }
-                var toWrite = Math.Min(count - written, what.RegistrationPoint.Range.EndAddress - currentPosition);
+                var toWrite = Math.Min(count - written, what.RegistrationPoint.Range.EndAddress - currentPosition + 1);
                 var singleResult = new PeripheralLookupResult();
                 singleResult.What = what;
                 singleResult.SourceIndex = written;
@@ -1053,33 +1078,6 @@ namespace Emul8.Peripherals.Bus
                 return;
             }
             LowestLoadedAddress = Math.Min(LowestLoadedAddress.Value, withValue);
-        }
-
-        private void InternalInitWithEntryPoint(uint? entryPoint, IControllableCPU cpu = null)
-        {
-            if(Machine.IsPaused)
-            {
-                if(cpu == null)
-                {
-                    cpu = GetCPUs().FirstOrDefault() as IControllableCPU;
-                }
-                if(cpu != null && entryPoint.HasValue)
-                {
-                    var ePoint = entryPoint.Value;
-                    var what = WhatIsAt((long)ePoint);
-                    if(what != null)
-                    {
-                        if(((what.Peripheral as IMemory) == null) && ((what.Peripheral as Redirector) != null))
-                        {
-                            var redirector = what.Peripheral as Redirector;
-                            var newValue = redirector.TranslateAbsolute(ePoint);
-                            this.Log(LogLevel.Info, "Fixing PC address from 0x{0:X} to 0x{1:X}", ePoint, newValue);
-                            ePoint = (uint)newValue;
-                        } 
-                    }
-                    cpu.InitWithEntryPoint(ePoint);
-                }
-            }
         }
 
         private void AddFingerprint(string fileName)

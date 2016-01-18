@@ -20,7 +20,6 @@ using Antmicro.Migrant;
 using System.Collections.Concurrent;
 using System.Text;
 using System.IO;
-using Mono.Unix.Native;
 using Antmicro.Migrant.Hooks;
 using Emul8.Peripherals.CPU;
 using Emul8.Time;
@@ -28,6 +27,8 @@ using System.Threading.Tasks;
 using Emul8.Peripherals.Bus;
 using Emul8.Peripherals.CPU.Disassembler;
 using Emul8.Peripherals.CPU.Registers;
+using ELFSharp.ELF;
+using ELFSharp.UImage;
 
 namespace Emul8.Peripherals.CPU
 {
@@ -71,10 +72,16 @@ namespace Emul8.Peripherals.CPU
             InitDisas();
         }
 
-        void IControllableCPU.InitWithEntryPoint(uint value)
+        public virtual void InitFromElf(ELF<uint> elf)
         {
-            this.Log(LogLevel.Info, "Setting PC value to 0x{0:X}", value);
-            PC = value;
+            this.Log(LogLevel.Info, "Setting PC value to 0x{0:X}.", elf.EntryPoint);
+            SetPCFromEntryPoint(elf.EntryPoint);
+        }
+
+        public virtual void InitFromUImage(UImage uImage)
+        {
+            this.Log(LogLevel.Info, "Setting PC value to 0x{0:X}.", uImage.EntryPoint);
+            SetPCFromEntryPoint(uImage.EntryPoint);
         }
 
         void IClockSource.ExecuteInLock(Action action)
@@ -683,6 +690,22 @@ namespace Emul8.Peripherals.CPU
             {
                 throw new RecoverableException("Memory size has to be aligned to guest page size.");
             }
+        }
+
+        private void SetPCFromEntryPoint(uint entryPoint)
+        {
+            var what = machine.SystemBus.WhatIsAt((long)entryPoint);
+            if(what != null)
+            {
+                if(((what.Peripheral as IMemory) == null) && ((what.Peripheral as Redirector) != null))
+                {
+                    var redirector = what.Peripheral as Redirector;
+                    var newValue = redirector.TranslateAbsolute(entryPoint);
+                    this.Log(LogLevel.Info, "Fixing PC address from 0x{0:X} to 0x{1:X}", entryPoint, newValue);
+                    entryPoint = (uint)newValue;
+                } 
+            }
+            PC = entryPoint;
         }
 
         private void CpuLoop()
