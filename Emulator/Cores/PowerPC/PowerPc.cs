@@ -50,8 +50,8 @@ namespace Emul8.Peripherals.CPU
                     StartInVle = (bamSectionContents[0] & 0x1) == 1;
                     this.Log(LogLevel.Info, "Will {0}start in VLE mode.", StartInVle ? "" : "not ");
                 }
-                base.InitFromElf(elf);
             }
+            base.InitFromElf(elf);
         }
 
         public override void OnGPIO(int number, bool value)
