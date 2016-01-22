@@ -1035,9 +1035,10 @@ namespace Emul8.Peripherals.CPU
                 this.NoisyLog("Disposing translation library.");
             }
             TlibDispose();
+            EmulFreeHostBlocks();
             binder.Dispose();
             File.Delete(libraryFile);
-            memoryManager.FreeAll();
+            memoryManager.CheckIfAllIsFreed();
         }
 
         [Export]
@@ -1368,19 +1369,12 @@ namespace Emul8.Peripherals.CPU
                 }
             }
 
-            public void FreeAll()
+            public void CheckIfAllIsFreed()
             {
-                foreach(var ptr in ourPointers.Keys)
+                if(!ourPointers.IsEmpty)
                 {
-                    Marshal.FreeHGlobal(ptr);
+                    throw new InvalidOperationException("Some memory allocated by the translation library was not freed.");
                 }
-                ourPointers.Clear();
-                Interlocked.Exchange(ref allocated, 0);
-            }
-
-            ~SimpleMemoryManager()
-            {
-                FreeAll();
             }
 
             private void PrintAllocated()
@@ -1583,6 +1577,9 @@ namespace Emul8.Peripherals.CPU
 
         [Import]
         private ActionIntPtrInt32 EmulSetHostBlocks;
+
+        [Import]
+        private Action EmulFreeHostBlocks;
 
         [Import]
         private ActionInt32 EmulSetCountThreshold;
