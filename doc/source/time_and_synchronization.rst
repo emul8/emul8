@@ -1,6 +1,13 @@
 Time and synchronization
 ========================
 
+Emulation time unit
+-------------------
+
+*Emulation time unit* is a time unit widely used in emulator.
+Its value is 0.000001s, i.e. one microsecond.
+In other words, timer producing clock event every *emulation time unit* has frequency of 1GHz.
+
 Deterministic execution
 -----------------------
 
@@ -233,7 +240,7 @@ In this mode WFI-like instruction are finished immediately and the virtual time 
 Disable this mode by setting the property to ``false`` instead.
 
 
-.. [1] A sync time unit is a synchronization parameter. Its value is given in emulation time units.
+.. [1] A sync time unit is a synchronization parameter. Its value is given in *emulation time units*.
 
 Real time clock
 ===============
