@@ -47,6 +47,14 @@ namespace UnitTests.Mocks
         {
         }
 
+        public void SetPageAccessViaIo(long address)
+        {
+        }
+
+        public void ClearPageAccessViaIo(long address)
+        {
+        }
+
         public virtual void UpdateContext()
         {
         }

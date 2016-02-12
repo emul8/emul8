@@ -32,6 +32,7 @@ using Emul8.UserInterface;
 using Emul8.Peripherals.Memory;
 using ELFSharp.ELF.Sections;
 using MiscUtil.Conversion;
+using System.Collections.Concurrent;
 
 namespace Emul8.Peripherals.Bus
 {
@@ -58,6 +59,8 @@ namespace Emul8.Peripherals.Bus
             binaryFingerprints = new List<BinaryFingerprint>();
             cpuById = new Dictionary<int, ICPU>();
             idByCpu = new Dictionary<ICPU, int>();
+            hooksOnRead = new Dictionary<long, List<BusHookHandler>>();
+            hooksOnWrite = new Dictionary<long, List<BusHookHandler>>();
             InitStructures();
             this.Log(LogLevel.Info, "System bus created.");
         }
@@ -607,6 +610,96 @@ namespace Emul8.Peripherals.Bus
             }
         }
 
+        public void SetPageAccessViaIo(long address)
+        {
+            foreach(var cpu in cpuById.Values)
+            {
+                cpu.SetPageAccessViaIo(address);
+            }
+        }
+
+        public void ClearPageAccessViaIo(long address)
+        {
+            foreach(var cpu in cpuById.Values)
+            {
+                cpu.ClearPageAccessViaIo(address);
+            }
+        }
+
+        public void AddWatchpointHook(long address, Width width, Access access, bool updateContext, Action<long, Width> hook)
+        {
+            if(!Enum.IsDefined(typeof(Access), access))
+            {
+                throw new RecoverableException("Undefined access value.");
+            }
+            if(((((int)width) & 15) != (int)width) || width == 0)
+            {
+                throw new RecoverableException("Undefined width value.");
+            }
+
+            Action updateContextHandler = updateContext ? 
+                () =>
+                {
+                    foreach(var cpu in cpuById.Values)
+                    {
+                        cpu.UpdateContext();
+                    }
+                } :
+                (Action)null;
+            
+            var handler = new BusHookHandler(hook, width, updateContextHandler);
+
+            var dictionariesToUpdate = new List<Dictionary<long, List<BusHookHandler>>>();
+
+            if((access & Access.Read) != 0)
+            {
+                dictionariesToUpdate.Add(hooksOnRead);
+            }
+            if((access & Access.Write) != 0)
+            {
+                dictionariesToUpdate.Add(hooksOnWrite);
+            }
+            foreach(var dictionary in dictionariesToUpdate)
+            {
+                if(dictionary.ContainsKey(address))
+                {
+                    dictionary[address].Add(handler);
+                }
+                else
+                {
+                    dictionary[address] = new List<BusHookHandler> { handler };
+                }
+            }
+            UpdatePageAccesses();
+        }
+
+        public void RemoveWatchpointHook(long address, Action<long, Width> hook)
+        {
+            foreach(var hookDictionary in new [] { hooksOnRead, hooksOnWrite })
+            {
+                List<BusHookHandler> handlers;
+                if(hookDictionary.TryGetValue(address, out handlers))
+                {
+                    handlers.RemoveAll(x => x.ContainsAction(hook));
+                    if(handlers.Count == 0)
+                    {
+                        hookDictionary.Remove(address);
+                    }
+                }
+            }
+
+            ClearPageAccessViaIo(address);
+            UpdatePageAccesses();
+        }
+
+        public void RemoveAllWatchpointHooks(long address)
+        {
+            hooksOnRead.Remove(address);
+            hooksOnWrite.Remove(address);
+            ClearPageAccessViaIo(address);
+            UpdatePageAccesses();
+        }
+
         public IEnumerable<BusRangeRegistration> GetRegistrationPoints(IBusPeripheral peripheral)
         {
             return peripherals.Peripherals.Where(x => x.Peripheral == peripheral).Select(x => x.RegistrationPoint);
@@ -1036,6 +1129,26 @@ namespace Emul8.Peripherals.Bus
             }
         }
 
+        private void UpdatePageAccesses()
+        {
+            foreach(var address in hooksOnRead.Select(x => x.Key).Union(hooksOnWrite.Select(x => x.Key)))
+            {
+                SetPageAccessViaIo(address);
+            }
+        }
+
+        private static void InvokeWatchpointHooks(Dictionary<long, List<BusHookHandler>> dictionary, long address, Width width)
+        {
+            List<BusHookHandler> handlers;
+            if(dictionary.TryGetValue(address, out handlers))
+            {
+                foreach(var handler in handlers)
+                {
+                    handler.Invoke(address, width);
+                }
+            }
+        }
+
         private static ELF<uint> GetELFFromFile(string fileName)
         {
             ELF<uint> elf;
@@ -1089,6 +1202,8 @@ namespace Emul8.Peripherals.Bus
         {
             cpuById.Clear();
             idByCpu.Clear();
+            hooksOnRead.Clear();
+            hooksOnWrite.Clear();
             Lookup = new SymbolLookup();
             cachedCpuId = new ThreadLocal<int>();
             peripherals = new PeripheralCollection(this);
@@ -1277,6 +1392,8 @@ namespace Emul8.Peripherals.Bus
         private Endianess endianess;
         private readonly Dictionary<ICPU, int> idByCpu;
         private readonly Dictionary<int, ICPU> cpuById;
+        private readonly Dictionary<long, List<BusHookHandler>> hooksOnRead;
+        private readonly Dictionary<long, List<BusHookHandler>> hooksOnWrite;
 
         [Constructor]
         private ThreadLocal<int> cachedCpuId;

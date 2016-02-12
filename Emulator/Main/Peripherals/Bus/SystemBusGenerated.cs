@@ -8,8 +8,10 @@
 */
 
 using System;
+using System.Collections.Generic;
 using Emul8.Core;
 using Emul8.Exceptions;
+using Emul8.Peripherals.Bus;
 using Emul8.Peripherals.Bus.Wrappers;
 
 namespace Emul8.Peripherals.Bus
@@ -19,6 +21,9 @@ namespace Emul8.Peripherals.Bus
         public byte ReadByte(long address)
         {
             long startAddress, offset, endAddress;
+
+            InvokeWatchpointHooks(hooksOnRead, address, Width.Byte);
+
             var accessMethods = peripherals.FindAccessMethods(address, out startAddress, out offset, out endAddress);
             if (accessMethods == null)
             {
@@ -46,10 +51,12 @@ namespace Emul8.Peripherals.Bus
         public void WriteByte(long address, byte value)
         {
             long startAddress, offset, endAddress;
+
             var accessMethods = peripherals.FindAccessMethods(address, out startAddress, out offset, out endAddress);
             if (accessMethods == null)
             {
                 ReportNonExistingWrite(address, value, "Byte");
+                InvokeWatchpointHooks(hooksOnWrite, address, Width.Byte);
                 return;
             }
             var lockTaken = false;
@@ -61,6 +68,7 @@ namespace Emul8.Peripherals.Bus
                     accessMethods.SetAbsoluteAddress(address);
                 }
                 accessMethods.WriteByte(address + offset - startAddress, value);
+                InvokeWatchpointHooks(hooksOnWrite, address, Width.Byte);
             }
             finally
             {
@@ -74,6 +82,9 @@ namespace Emul8.Peripherals.Bus
         public ushort ReadWord(long address)
         {
             long startAddress, offset, endAddress;
+
+            InvokeWatchpointHooks(hooksOnRead, address, Width.Word);
+
             var accessMethods = peripherals.FindAccessMethods(address, out startAddress, out offset, out endAddress);
             if (accessMethods == null)
             {
@@ -101,10 +112,12 @@ namespace Emul8.Peripherals.Bus
         public void WriteWord(long address, ushort value)
         {
             long startAddress, offset, endAddress;
+
             var accessMethods = peripherals.FindAccessMethods(address, out startAddress, out offset, out endAddress);
             if (accessMethods == null)
             {
                 ReportNonExistingWrite(address, value, "Word");
+                InvokeWatchpointHooks(hooksOnWrite, address, Width.Word);
                 return;
             }
             var lockTaken = false;
@@ -116,6 +129,7 @@ namespace Emul8.Peripherals.Bus
                     accessMethods.SetAbsoluteAddress(address);
                 }
                 accessMethods.WriteWord(address + offset - startAddress, value);
+                InvokeWatchpointHooks(hooksOnWrite, address, Width.Word);
             }
             finally
             {
@@ -129,6 +143,9 @@ namespace Emul8.Peripherals.Bus
         public uint ReadDoubleWord(long address)
         {
             long startAddress, offset, endAddress;
+
+            InvokeWatchpointHooks(hooksOnRead, address, Width.DoubleWord);
+
             var accessMethods = peripherals.FindAccessMethods(address, out startAddress, out offset, out endAddress);
             if (accessMethods == null)
             {
@@ -156,10 +173,12 @@ namespace Emul8.Peripherals.Bus
         public void WriteDoubleWord(long address, uint value)
         {
             long startAddress, offset, endAddress;
+
             var accessMethods = peripherals.FindAccessMethods(address, out startAddress, out offset, out endAddress);
             if (accessMethods == null)
             {
                 ReportNonExistingWrite(address, value, "DoubleWord");
+                InvokeWatchpointHooks(hooksOnWrite, address, Width.DoubleWord);
                 return;
             }
             var lockTaken = false;
@@ -171,6 +190,7 @@ namespace Emul8.Peripherals.Bus
                     accessMethods.SetAbsoluteAddress(address);
                 }
                 accessMethods.WriteDoubleWord(address + offset - startAddress, value);
+                InvokeWatchpointHooks(hooksOnWrite, address, Width.DoubleWord);
             }
             finally
             {
@@ -181,12 +201,12 @@ namespace Emul8.Peripherals.Bus
             }
         }
 
-        public void ClearHookAfterRead<T>(IBusPeripheral peripheral)
+        public void ClearHookAfterPeripheralRead<T>(IBusPeripheral peripheral)
         {
-            SetHookAfterRead<T>(peripheral, null);
+            SetHookAfterPeripheralRead<T>(peripheral, null);
         }
 
-        public void SetHookAfterRead<T>(IBusPeripheral peripheral, Func<T, long, T> hook, Range? subrange = null)
+        public void SetHookAfterPeripheralRead<T>(IBusPeripheral peripheral, Func<T, long, T> hook, Range? subrange = null)
         {
             if(!machine.IsRegistered(peripheral))
             {
@@ -242,12 +262,12 @@ namespace Emul8.Peripherals.Bus
                 return;
             }
         }
-        public void ClearHookBeforeWrite<T>(IBusPeripheral peripheral)
+        public void ClearHookBeforePeripheralWrite<T>(IBusPeripheral peripheral)
         {
-            SetHookBeforeWrite<T>(peripheral, null);
+            SetHookBeforePeripheralWrite<T>(peripheral, null);
         }
 
-        public void SetHookBeforeWrite<T>(IBusPeripheral peripheral, Func<T, long, T> hook, Range? subrange = null)
+        public void SetHookBeforePeripheralWrite<T>(IBusPeripheral peripheral, Func<T, long, T> hook, Range? subrange = null)
         {
             if(!machine.IsRegistered(peripheral))
             {

@@ -104,10 +104,8 @@
     <Compile Include="UserInterface\Commands\PeripheralsCommand.cs" />
     <Compile Include="UserInterface\Tokenizer\MultilineStringToken.cs" />
     <Compile Include="UserInterface\Tokenizer\MultilineStringTerminatorToken.cs" />
-    <Compile Include="Hooks\BusHooksExtensions.cs" />
     <Compile Include="UserInterface\Commands\CreatePlatformCommand.cs" />
     <Compile Include="UserInterface\Commands\MachCommand.cs" />
-    <Compile Include="Hooks\BusHooksPythonEngine.cs" />
     <Compile Include="UserInterface\MonitorPythonEngine.cs" />
     <Compile Include="UserInterface\Commands\VerboseCommand.cs" />
     <Compile Include="Hooks\BlockBeginExtensions.cs" />
@@ -126,6 +124,9 @@
     <Compile Include="UserInterface\Tokenizer\RelativeRangeToken.cs" />
     <Compile Include="UserInterface\Tokenizer\AbsoluteRangeToken.cs" />
     <Compile Include="Analyzers\LoggingUartAnalyzer.cs" />
+    <Compile Include="Hooks\BusPeripheralsHooksPythonEngine.cs" />
+    <Compile Include="Hooks\SystemBusHooksExtensions.cs" />
+    <Compile Include="Hooks\WatchpointHookPythonEngine.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

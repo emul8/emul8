@@ -15,5 +15,6 @@
    cpu_registers
    threads
    synchronization_management
+   debugging
    plugins
    native_managed_bindings
