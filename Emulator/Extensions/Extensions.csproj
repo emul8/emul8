@@ -60,7 +60,7 @@
     <Compile Include="UserInterface\Tokenizer\TokenizationResult.cs" />
     <Compile Include="UserInterface\Tokenizer\Tokenizer.cs" />
     <Compile Include="UserInterface\Tokenizer\Token.cs" />
-    <Compile Include="UserInterface\Tokenizer\NumericToken.cs" />
+    <Compile Include="UserInterface\Tokenizer\IntegerToken.cs" />
     <Compile Include="UserInterface\Tokenizer\CommentToken.cs" />
     <Compile Include="UserInterface\Tokenizer\EqualToken.cs" />
     <Compile Include="UserInterface\Tokenizer\HexToken.cs" />
