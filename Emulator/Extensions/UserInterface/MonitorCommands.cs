@@ -1061,10 +1061,10 @@ namespace Emul8.UserInterface
         private readonly HashSet<Tuple<Type, Type>> acceptableTokensTypes = new HashSet<Tuple<Type, Type>>() {
             { new Tuple<Type, Type>(typeof(string), typeof(StringToken)) },
             { new Tuple<Type, Type>(typeof(string), typeof(PathToken)) },
-            { new Tuple<Type, Type>(typeof(int), typeof(NumericToken)) },
+            { new Tuple<Type, Type>(typeof(int), typeof(IntegerToken)) },
             { new Tuple<Type, Type>(typeof(bool), typeof(BooleanToken)) },
-            { new Tuple<Type, Type>(typeof(long), typeof(NumericToken)) },
-            { new Tuple<Type, Type>(typeof(short), typeof(NumericToken)) },
+            { new Tuple<Type, Type>(typeof(long), typeof(IntegerToken)) },
+            { new Tuple<Type, Type>(typeof(short), typeof(IntegerToken)) },
         };
 
         private bool TryPrepareParameters(IList<Token> values, IList<ParameterInfo> parameters, out List<object> result)

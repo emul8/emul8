@@ -51,7 +51,7 @@ namespace Emul8.UserInterface.Commands
         }
 
         [Runnable]
-        public void Run(ICommandInteraction writer, [Values("set")] LiteralToken action, NumericToken number)
+        public void Run(ICommandInteraction writer, [Values("set")] LiteralToken action, IntegerToken number)
         {
             var machines = EmulationManager.Instance.CurrentEmulation.Machines.ToArray();
             if(machines.Length > number.Value && number.Value >= 0)
