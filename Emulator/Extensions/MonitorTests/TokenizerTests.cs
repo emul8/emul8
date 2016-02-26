@@ -141,6 +141,13 @@ namespace MonitorTests
         }
 
         [Test]
+        public void DecimalTest()
+        {
+            var result = tokenizer.Tokenize("145.5 -.43 +45.");
+            AssertTokenizationResult(result, typeof(DecimalToken), typeof(DecimalToken), typeof(DecimalToken));
+        }
+
+        [Test]
         public void HexadecimalTest()
         {
             var result = tokenizer.Tokenize("0xabcdef 0x123469 0xABCDEF 0x123AbC");
