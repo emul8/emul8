@@ -60,6 +60,9 @@ namespace Emul8.UserInterface.Tokenizer
             tokenizer.AddToken(new Regex(@"^0x([0-9]|(?i:[a-f]))+"), x => new HexToken(x));
 
             // decimal number
+            tokenizer.AddToken(new Regex(@"^[+-]?((\d+\.(\d*)?)|(\.\d+))"), x => new DecimalToken(x));
+
+            // integer
             tokenizer.AddToken(new Regex(@"^[+-]?\d+"), x => new NumericToken(x));
 
             //boolean ignore case

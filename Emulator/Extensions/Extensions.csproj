@@ -149,6 +149,7 @@
     <Compile Include="Utilities\GDB\Commands\KillCommand.cs" />
     <Compile Include="Utilities\GDB\ArgumentAttribute.cs" />
     <Compile Include="Utilities\GDB\ExecuteAttribute.cs" />
+    <Compile Include="UserInterface\Tokenizer\DecimalToken.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
