@@ -83,11 +83,16 @@ After bootstrapping the configuration (i.e., when an *Emul8.sln* file is created
 
 with optional flags::
 
-   -v        verbose mode
-   -d        debug mode
-   -c        clean instead of building
-   -i        install (create a symbolic link in the */usr/local/bin directory*)
-             so that Emul8 is available system-wide as *emul8*
+   --console   Use the console window for output instead of many terminals
+   -s          Use STDIO - for use in pipes (this is exclusive with -e and startup
+               script passed as an argument)
+   -p          Remove steering codes (e.g., colours) from output
+   -P          Listen on a port for monitor commands instead of opening a window
+   -v          verbose mode
+   -d          debug mode
+   -c          clean instead of building
+   -i          install (create a symbolic link in the */usr/local/bin directory*)
+               so that Emul8 is available system-wide as *emul8*
 
 Running Emul8
 -------------
