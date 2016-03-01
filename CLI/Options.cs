@@ -20,7 +20,7 @@ namespace Emul8.CLI
         [Name('p', "plain"), DefaultValue(false), Description("Remove steering codes (e.g., colours) from output.")]
         public bool Plain { get; set; }
 
-        [Name('P', "port"), DefaultValue(-1), Description("Instead of opening a window listen for monitor commands on port.")]
+        [Name('P', "port"), DefaultValue(-1), Description("Instead of opening a window, listen for monitor commands on the specified port.")]
         public int Port { get; set; }
 
         [Name('e', "execute"), Description("Execute command on startup (this option is exclusive with -s and startup script passed as an argument).")]
