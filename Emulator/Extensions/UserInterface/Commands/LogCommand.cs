@@ -28,7 +28,7 @@ namespace Emul8.UserInterface.Commands
         }
 
         [Runnable]
-        public void Run(ICommandInteraction writer, StringToken message, [Values( -1L, 0L, 1L, 2L, 3L)] IntegerToken level)
+        public void Run(ICommandInteraction writer, StringToken message, [Values( -1L, 0L, 1L, 2L, 3L)] DecimalIntegerToken level)
         {
             InnerLog((LogLevel)(int)level.Value, message.Value);
         }

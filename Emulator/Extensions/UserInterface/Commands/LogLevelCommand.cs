@@ -39,7 +39,7 @@ namespace Emul8.UserInterface.Commands
         }
       
         [Runnable]
-        public void Run([Values(-1L, 0L, 1L, 2L, 3L)] IntegerToken level)
+        public void Run([Values(-1L, 0L, 1L, 2L, 3L)] DecimalIntegerToken level)
         {
             SetLogLevel((LogLevel)level.Value);
         }
@@ -51,7 +51,7 @@ namespace Emul8.UserInterface.Commands
         }
 
         [Runnable]
-        public void Run(ICommandInteraction writer, [Values(-1L, 0L, 1L, 2L, 3L)] IntegerToken level, LiteralToken peripheralOrBackendName)
+        public void Run(ICommandInteraction writer, [Values(-1L, 0L, 1L, 2L, 3L)] DecimalIntegerToken level, LiteralToken peripheralOrBackendName)
         {
             if(!SetLogLevel((LogLevel)level.Value, null, peripheralOrBackendName.Value)
                 && !SetLogLevel((LogLevel)level.Value, peripheralOrBackendName.Value, null))
@@ -72,7 +72,7 @@ namespace Emul8.UserInterface.Commands
         }
 
         [Runnable]
-        public void Run(ICommandInteraction writer, [Values(-1L, 0L, 1L, 2L, 3L)] IntegerToken level, LiteralToken backendName, LiteralToken peripheralName)
+        public void Run(ICommandInteraction writer, [Values(-1L, 0L, 1L, 2L, 3L)] DecimalIntegerToken level, LiteralToken backendName, LiteralToken peripheralName)
         {
             if(!SetLogLevel((LogLevel)level.Value, backendName.Value, peripheralName.Value))
             {
