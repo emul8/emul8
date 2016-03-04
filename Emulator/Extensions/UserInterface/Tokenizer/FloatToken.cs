@@ -7,9 +7,9 @@
 using System;
 namespace Emul8.UserInterface.Tokenizer
 {
-    public class DecimalToken : Token
+    public class FloatToken : Token
     {
-        public DecimalToken(string value):base(value)
+        public FloatToken(string value):base(value)
         {
             Value = float.Parse(value);
         }
