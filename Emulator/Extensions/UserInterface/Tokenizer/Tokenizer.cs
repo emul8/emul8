@@ -63,7 +63,7 @@ namespace Emul8.UserInterface.Tokenizer
             tokenizer.AddToken(new Regex(@"^[+-]?((\d+\.(\d*)?)|(\.\d+))"), x => new DecimalToken(x));
 
             // integer
-            tokenizer.AddToken(new Regex(@"^[+-]?\d+"), x => new IntegerToken(x));
+            tokenizer.AddToken(new Regex(@"^[+-]?\d+"), x => new DecimalIntegerToken(x));
 
             //boolean ignore case
             tokenizer.AddToken(new Regex(@"^(?i)(true|false)"), x => new BooleanToken(x));

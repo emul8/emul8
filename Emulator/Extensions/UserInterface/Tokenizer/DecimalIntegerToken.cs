@@ -9,9 +9,9 @@
 
 namespace Emul8.UserInterface.Tokenizer
 {
-    public class IntegerToken : Token
+    public class DecimalIntegerToken : Token
     {
-        public IntegerToken(string value):base(value)
+        public DecimalIntegerToken(string value):base(value)
         {
             Value = long.Parse(value);
         }

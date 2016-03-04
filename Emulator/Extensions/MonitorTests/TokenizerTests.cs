@@ -52,7 +52,7 @@ namespace MonitorTests
             var result = tokenizer.Tokenize("emu[\"SomeIndex\"]");
             AssertTokenizationResult(result, typeof(LiteralToken), typeof(LeftBraceToken), typeof(StringToken), typeof(RightBraceToken));
             result = tokenizer.Tokenize("emu[15]");
-            AssertTokenizationResult(result, typeof(LiteralToken), typeof(LeftBraceToken), typeof(IntegerToken), typeof(RightBraceToken));
+            AssertTokenizationResult(result, typeof(LiteralToken), typeof(LeftBraceToken), typeof(DecimalIntegerToken), typeof(RightBraceToken));
         }
 
         [Test]
@@ -137,7 +137,7 @@ namespace MonitorTests
         public void IntegerTest()
         {
             var result = tokenizer.Tokenize("123465 -213245 +132432");
-            AssertTokenizationResult(result, typeof(IntegerToken), typeof(IntegerToken), typeof(IntegerToken));
+            AssertTokenizationResult(result, typeof(DecimalIntegerToken), typeof(DecimalIntegerToken), typeof(DecimalIntegerToken));
         }
 
         [Test]
@@ -153,7 +153,7 @@ namespace MonitorTests
             var result = tokenizer.Tokenize("0xabcdef 0x123469 0xABCDEF 0x123AbC");
             AssertTokenizationResult(result, typeof(HexToken), typeof(HexToken), typeof(HexToken), typeof(HexToken));
             result = tokenizer.Tokenize("0xgfd 123bcd");
-            AssertTokenizationResult(result, typeof(IntegerToken), typeof(LiteralToken), typeof(IntegerToken), typeof(LiteralToken));
+            AssertTokenizationResult(result, typeof(DecimalIntegerToken), typeof(LiteralToken), typeof(DecimalIntegerToken), typeof(LiteralToken));
         }
 
         public void LiteralTest()
