@@ -144,7 +144,7 @@ namespace MonitorTests
         public void DecimalTest()
         {
             var result = tokenizer.Tokenize("145.5 -.43 +45.");
-            AssertTokenizationResult(result, typeof(DecimalToken), typeof(DecimalToken), typeof(DecimalToken));
+            AssertTokenizationResult(result, typeof(FloatToken), typeof(FloatToken), typeof(FloatToken));
         }
 
         [Test]
