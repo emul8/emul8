@@ -11,7 +11,7 @@ namespace Emul8.UserInterface.Tokenizer
 {
     public class DecimalIntegerToken : Token
     {
-        public DecimalIntegerToken(string value):base(value)
+        public DecimalIntegerToken(string value) : base(value)
         {
             Value = long.Parse(value);
         }
