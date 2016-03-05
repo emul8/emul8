@@ -201,6 +201,16 @@ namespace MonitorTests
             }
         }
 
+        private static void AssertTokenizationValues(TokenizationResult result, params object[] values)
+        {
+            var tokens = result.Tokens.ToArray();
+            Assert.AreEqual(tokens.Length, values.Length);
+            for(var i = 0; i < values.Length; ++i)
+            {
+                Assert.AreEqual(tokens[i].GetObjectValue(), values[i]);
+            }
+        }
+
         private Tokenizer tokenizer;
 
     }
