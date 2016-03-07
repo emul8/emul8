@@ -31,12 +31,15 @@
     </ItemGroup>
   </Target>
   <Target Name="PrepareEmbeddedResources" BeforeTargets="PrepareForBuild" DependsOnTargets="_PrepareProperties">
+    <PropertyGroup>
+      <ForcedHostWordSize Condition=" $(ForcedHostWordSize) == '' ">$(HostWordSize)</ForcedHostWordSize>
+    </PropertyGroup>
     <ItemGroup>
-      <EmbeddedResource Include="..\Cores\bin\$(Configuration)\lib$(HostWordSize)\translate-arm-le.so">
-        <LogicalName>Emul8.translate_$(HostWordSize)-arm-le.so</LogicalName>
+      <EmbeddedResource Include="..\Cores\bin\$(Configuration)\lib$(ForcedHostWordSize)\translate-arm-le.so">
+        <LogicalName>Emul8.translate_$(ForcedHostWordSize)-arm-le.so</LogicalName>
       </EmbeddedResource>
-      <EmbeddedResource Include="..\Cores\bin\$(Configuration)\lib$(HostWordSize)\translate-arm-be.so">
-        <LogicalName>Emul8.translate_$(HostWordSize)-arm-be.so</LogicalName>
+      <EmbeddedResource Include="..\Cores\bin\$(Configuration)\lib$(ForcedHostWordSize)\translate-arm-be.so">
+        <LogicalName>Emul8.translate_$(ForcedHostWordSize)-arm-be.so</LogicalName>
       </EmbeddedResource>
     </ItemGroup>
   </Target>
