@@ -8,23 +8,6 @@
     <OutputDirectory>$(TcgDirectory)/bin/$(Configuration)</OutputDirectory>
   </PropertyGroup>
 
-  <ItemGroup>
-    <CompilationFlags Include="-DTARGET_WORDS_BIGENDIAN" Condition=" $(Endianess) == 'be'" />
-    <CompilationFlags Include="-DHOST_LONG_BITS=$(HostWordSize)" />
-    <CompilationFlags Include="-DTARGET_LONG_BITS=$(TargetWordSize)" />
-    <CompilationFlags Include="-I $(TcgDirectory)/$(Architecture)" />
-    <CompilationFlags Include="-I $(TcgDirectory) " />
-    <CompilationFlags Include="-fomit-frame-pointer" />
-    <CompilationFlags Include="-fPIC " Condition=" $(HostWordSize) == '64'" />
-    <CompilationFlags Include="-g3 " Condition=" $(Configuration) == 'Debug'" />
-
-    <CSources Include="$(TcgDirectory)/tcg.c" />
-    <CSources Include="$(TcgDirectory)/optimize.c" />
-    <CSources Include="$(TcgDirectory)/additional.c" />
-
-    <InputFiles Include="$(TcgDirectory)/**" Exclude="$(TcgDirectory)/bin/**;$(TcgDirectory)/obj/**;$(TcgDirectory)/**/.*;$(TcgDirectory)/*.a" />
-  </ItemGroup>
-
   <Target Name="_VerifyProperties">
     <Error Text="Host word size not provided" Condition=" $(HostWordSize) == '' " />
     <Error Text="Target word size not provided" Condition=" $(TargetWordSize) == '' " />
@@ -32,16 +15,38 @@
     <Error Text="Endianess not provided" Condition=" $(Endianess) == '' "/>
     <Error Text="Wrong endianess value: provide 'le' or 'be'" Condition=" $(Endianess) != 'le' and $(Endianess) != 'be' "/>
     <PropertyGroup>
-      <Output>$(OutputDirectory)/libtcg_$(Architecture)-$(HostWordSize)-$(TargetWordSize)_$(Endianess).a</Output>
-      <ObjectFilesDirectory>$(TcgDirectory)/obj/$(Configuration)/obj-$(HostWordSize)-$(TargetWordSize)_$(Endianess)</ObjectFilesDirectory>
+      <ForcedHostWordSize Condition= " $(ForcedHostWordSize) == '' ">$(HostWordSize)</ForcedHostWordSize>
     </PropertyGroup>
+    <PropertyGroup>
+      <Output>$(OutputDirectory)/libtcg_$(Architecture)-$(ForcedHostWordSize)-$(TargetWordSize)_$(Endianess).a</Output>
+      <ObjectFilesDirectory>$(TcgDirectory)/obj/$(Configuration)/obj-$(ForcedHostWordSize)-$(TargetWordSize)_$(Endianess)</ObjectFilesDirectory>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <CompilationFlags Include="-DTARGET_WORDS_BIGENDIAN" Condition=" $(Endianess) == 'be'" />
+      <CompilationFlags Include="-DHOST_LONG_BITS=$(ForcedHostWordSize)" />
+      <CompilationFlags Include="-DTARGET_LONG_BITS=$(TargetWordSize)" />
+      <CompilationFlags Include="-I $(TcgDirectory)/$(Architecture)" />
+      <CompilationFlags Include="-I $(TcgDirectory) " />
+      <CompilationFlags Include="-fomit-frame-pointer" />
+      <CompilationFlags Include="-fPIC " Condition=" $(ForcedHostWordSize) == '64'" />
+      <CompilationFlags Include="-g3 " Condition=" $(Configuration) == 'Debug'" />
+      <CompilationFlags Include="-m32 " Condition=" $(HostWordSize) == '64' and $(ForcedHostWordSize) == '32'" />
+
+      <CSources Include="$(TcgDirectory)/tcg.c" />
+      <CSources Include="$(TcgDirectory)/optimize.c" />
+      <CSources Include="$(TcgDirectory)/additional.c" />
+
+      <InputFiles Include="$(TcgDirectory)/**" Exclude="$(TcgDirectory)/bin/**;$(TcgDirectory)/obj/**;$(TcgDirectory)/**/.*;$(TcgDirectory)/*.a" />
+    </ItemGroup>
+
     <ItemGroup>
       <ObjectFiles Include="@(CSources -> '$(ObjectFilesDirectory)/%(relativedir)%(filename).o')" />
     </ItemGroup>
   </Target>
 
   <Target Name="Compile" Inputs="@(InputFiles)" Outputs="@(ObjectFiles)" DependsOnTargets="_VerifyProperties">
-    <CCompilerTask Parallel="false" Sources="@(CSources)" Flags="@(CompilationFlags)" ObjectFilesDirectory="$(ObjectFilesDirectory)"/>
+        <CCompilerTask Parallel="false" Sources="@(CSources)" Flags="@(CompilationFlags)" ObjectFilesDirectory="$(ObjectFilesDirectory)"/>
   </Target>
 
   <Target Name="Build" Inputs="@(ObjectFiles)" Outputs="$(Output)" DependsOnTargets="Compile">
