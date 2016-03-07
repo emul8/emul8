@@ -29,13 +29,6 @@
       <Endianess Include="le" />
     </ItemGroup>
   </Target>
-  <Target Name="PrepareEmbeddedResources" DependsOnTargets="_PrepareProperties" BeforeTargets="PrepareForBuild">
-    <ItemGroup>
-      <EmbeddedResource Include="..\Cores\bin\$(Configuration)\lib$(HostWordSize)\translate-i386-le.so">
-        <LogicalName>Emul8.translate_$(HostWordSize)-i386-le.so</LogicalName>
-      </EmbeddedResource>
-    </ItemGroup>
-  </Target>
   <Import Project="./cores.template.csproj" />
   <ItemGroup>
     <Compile Include="X86\X86.cs" />

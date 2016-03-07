@@ -30,16 +30,6 @@
       <Endianess Include="be" />
     </ItemGroup>
   </Target>
-  <Target Name="PrepareEmbeddedResources" DependsOnTargets="_PrepareProperties" BeforeTargets="PrepareForBuild">
-    <ItemGroup>
-        <EmbeddedResource Include="..\Cores\bin\$(Configuration)\lib$(HostWordSize)\translate-sparc-le.so">
-            <LogicalName>Emul8.translate_$(HostWordSize)-sparc-le.so</LogicalName>
-        </EmbeddedResource>
-        <EmbeddedResource Include="..\Cores\bin\$(Configuration)\lib$(HostWordSize)\translate-sparc-be.so">
-            <LogicalName>Emul8.translate_$(HostWordSize)-sparc-be.so</LogicalName>
-        </EmbeddedResource>
-    </ItemGroup>
-  </Target>
   <Import Project="./cores.template.csproj" />
   <ItemGroup>
     <Compile Include="Sparc\Sparc.cs" />
