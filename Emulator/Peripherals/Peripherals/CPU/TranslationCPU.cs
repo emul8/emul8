@@ -178,9 +178,14 @@ namespace Emul8.Peripherals.CPU
             }
             set
             {
-                TlibSetMaximumBlockSize(checked((uint)value));
-                ClearTranslationCache();
+                SetMaximumBlockSize(checked((uint)value));
             }
+        }
+
+        private void SetMaximumBlockSize(uint value, bool skipSync = false)
+        {
+            TlibSetMaximumBlockSize(value);
+            ClearTranslationCache(skipSync);
         }
 
         public bool LogTranslationBlockFetch
@@ -214,11 +219,18 @@ namespace Emul8.Peripherals.CPU
         public int Slot { get{if(!slot.HasValue) slot = machine.SystemBus.GetCPUId(this); return slot.Value;} private set {slot = value;} }
         private int? slot;
 
-        public void ClearTranslationCache()
+        public void ClearTranslationCache(bool skipSync = false)
         {
-            using(machine.ObtainPausedState())
+            if(skipSync)
             {
                 TlibInvalidateTranslationCache();
+            }
+            else
+            {
+                using(machine.ObtainPausedState())
+                {
+                    TlibInvalidateTranslationCache();
+                }
             }
         }
 
