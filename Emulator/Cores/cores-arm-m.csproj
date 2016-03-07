@@ -33,16 +33,6 @@
       <AdditionalCompilationFlags>-DTARGET_PROTO_ARM_M=1</AdditionalCompilationFlags>
     </PropertyGroup>
   </Target>
-  <Target Name="PrepareEmbeddedResources" BeforeTargets="PrepareForBuild" DependsOnTargets="_PrepareProperties">
-    <ItemGroup>
-        <EmbeddedResource Include="..\Cores\bin\$(Configuration)\lib$(HostWordSize)\translate-arm-m-le.so">
-            <LogicalName>Emul8.translate_$(HostWordSize)-arm-m-le.so</LogicalName>
-        </EmbeddedResource>
-        <EmbeddedResource Include="..\Cores\bin\$(Configuration)\lib$(HostWordSize)\translate-arm-m-be.so">
-            <LogicalName>Emul8.translate_$(HostWordSize)-arm-m-be.so</LogicalName>
-        </EmbeddedResource>
-    </ItemGroup>
-  </Target>
   <Import Project="./cores.template.csproj" />
   <ItemGroup>
     <Compile Include="Arm-M\CortexM.cs" />

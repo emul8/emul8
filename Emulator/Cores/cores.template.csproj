@@ -11,6 +11,20 @@
         <Message Text="Detected host word size: $(HostWordSize)" />
     </Target>
 
+    <Target Name="PrepareEmbeddedResources" BeforeTargets="PrepareForBuild" DependsOnTargets="_PrepareProperties">
+        <PropertyGroup>
+            <ForcedHostWordSize Condition=" $(ForcedHostWordSize) == '' ">$(HostWordSize)</ForcedHostWordSize>
+        </PropertyGroup>
+        <ItemGroup>
+            <EmbeddedResource Include="..\Cores\bin\$(Configuration)\lib$(ForcedHostWordSize)\translate-$(Architecture)-le.so" Condition=" '%(Endianess.Identity)' == 'le' ">
+                <LogicalName>Emul8.translate_$(ForcedHostWordSize)-$(Architecture)-le.so</LogicalName>
+            </EmbeddedResource>
+            <EmbeddedResource Include="..\Cores\bin\$(Configuration)\lib$(ForcedHostWordSize)\translate-$(Architecture)-be.so" Condition=" '%(Endianess.Identity)' == 'be' ">
+                <LogicalName>Emul8.translate_$(ForcedHostWordSize)-$(Architecture)-be.so</LogicalName>
+            </EmbeddedResource>
+        </ItemGroup>
+    </Target>
+
     <Target Name="Compile" DependsOnTargets="_PrepareProperties" BeforeTargets="CopyNonResxEmbeddedResources">
         <!-- Due to a bug in some versions of xbuild we set default value of $(TargetWordSize) before passing it to 'translate.cproj' as it is impossible to
              overwrite it later. -->
