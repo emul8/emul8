@@ -29,6 +29,7 @@ using Emul8.Peripherals.CPU.Disassembler;
 using Emul8.Peripherals.CPU.Registers;
 using ELFSharp.ELF;
 using ELFSharp.UImage;
+using System.Diagnostics;
 
 namespace Emul8.Peripherals.CPU
 {
@@ -43,6 +44,8 @@ namespace Emul8.Peripherals.CPU
             {
                 throw new RecoverableException(new ArgumentNullException("cpuType"));
             }
+
+            oldMaximumBlockSize = -1;
 
             Endianness = endianness;
             PerformanceInMips = 100;
@@ -390,15 +393,46 @@ namespace Emul8.Peripherals.CPU
             FreeState();
         }
 
-        public virtual void SetSingleStepMode(bool on)
+        public void SetSingleStepMode(bool on)
         {
-            // TODO: some handling if cpu is not paused
-            if(!on && stepMode)
+            if(on == stepMode)
             {
-                SingleStep();
-            } // out of singlestep, move the cpu on, TODO: rework this
+                return;
+            }
+
             stepMode = on;
-            TlibSetSingleStep(on ? 1 : 0);
+            stepEvent.Reset();
+            blockSizeNeedsAdjustment = true;
+        }
+
+        private bool blockSizeNeedsAdjustment;
+
+        private void AdjustBlockSize()
+        {
+            if(!blockSizeNeedsAdjustment)
+            {
+                return;
+            }
+
+            blockSizeNeedsAdjustment = false;
+
+            // to avoid locking, step mode must be checked just once
+            if(stepMode)
+            {
+                if(oldMaximumBlockSize == -1) 
+                {
+                    oldMaximumBlockSize = MaximumBlockSize;
+                    SetMaximumBlockSize(1, true);
+                }
+            }
+            else
+            {
+                if(oldMaximumBlockSize != -1)
+                {
+                    SetMaximumBlockSize((uint)oldMaximumBlockSize, true);
+                    oldMaximumBlockSize = -1;
+                }
+            }
         }
 
         public bool OnPossessedThread
@@ -447,20 +481,24 @@ namespace Emul8.Peripherals.CPU
                 return;
             }
 
-            PauseEvent.Set();
-            TlibSetPaused();
+            lock(pauseLock)
+            {
+                PauseEvent.Set();
+                stepEvent.Set();
+                TlibSetPaused();
 
-            if(Thread.CurrentThread.ManagedThreadId != cpuThread.ManagedThreadId)
-            {
-                this.NoisyLog("Waiting for thread to pause.");
-                cpuThread.Join();
-                this.NoisyLog("Paused.");
-                cpuThread = null;
-                TlibClearPaused();
-            }
-            else
-            {
-                pauseGuard.OrderPause();
+                if(Thread.CurrentThread.ManagedThreadId != cpuThread.ManagedThreadId)
+                {
+                    this.NoisyLog("Waiting for thread to pause.");
+                    cpuThread.Join();
+                    this.NoisyLog("Paused.");
+                    cpuThread = null;
+                    TlibClearPaused();
+                }
+                else
+                {
+                    pauseGuard.OrderPause();
+                }
             }
 
             InvokeHalted(haltArgs);
@@ -769,6 +807,17 @@ namespace Emul8.Peripherals.CPU
             PC = entryPoint;
         }
 
+        private bool CheckIfPaused()
+        {
+            if(PauseEvent.WaitOne(0))
+            {
+                this.NoisyLog("Pause set, exiting loop.");
+                pauseFinishedEvent.Set();
+                return true;
+            }
+            return false;
+        }
+
         private void CpuLoop()
         {
             if(ClockSource.HasEntries && advanceShouldBeRestarted)
@@ -786,6 +835,8 @@ namespace Emul8.Peripherals.CPU
 
             while(true)
             {
+                AdjustBlockSize();
+
                 string info = string.Empty;
 
                 if(LogTranslationBlockFetch)
@@ -815,13 +866,17 @@ namespace Emul8.Peripherals.CPU
                     if(doIteration)
                     {
                         TlibExecute();
+                        if(CheckIfPaused())
+                        {
+                            break;
+                        }
                     }
                 }
                 catch(CpuAbortException)
                 {
                     this.NoisyLog("CPU abort detected, halting.");
                     machine.Pause();
-                    InvokeHalted(HaltReason.Abort);
+                    InvokeHalted(new HaltArguments(HaltReason.Abort));
                     break;
                 }
                 catch(OperationCanceledException)
@@ -830,41 +885,26 @@ namespace Emul8.Peripherals.CPU
                     break;
                 }
 
-                // hook handling
-                if(hooks.ContainsKey(this.PC)) {
+                // hooks handling
+                if(hooks.ContainsKey(PC)) 
+                {
                     this.DebugLog("Hook @ PC=0x{0:X8}", PC);
                     hooks[PC](PC);
-                    if (!breakpoints.Contains(PC)) {
+                    if (!breakpoints.Contains(PC)) 
+                    {
                         // temporarily remove this hook
                         TlibRemoveBreakpoint(PC);
                         inactiveHooks.Add(PC);
                     }
                 }
 
-                if(breakpoints.Contains(this.PC))
+                HandleHooksAndBreakpoints();
+
+                if(CheckIfPaused())
                 {
-                    this.DebugLog("Breakpoint at PC=0x{0:X8}, pausing", PC);
-                    PauseEvent.Set();
-                    ThreadPool.QueueUserWorkItem(x => machine.Pause());
-                    stepDoneEvent.Set();// TODO
-                    InvokeHalted(HaltReason.Breakpoint);
                     break;
                 }
-                if(stepMode)
-                {
-                    stepDoneEvent.Set();
-                    this.NoisyLog("Waiting for another step (PC=0x{0:X8}).", PC);
-                    stepEvent.WaitOne();
-                    InvokeHalted(HaltReason.StepMode);
-                    continue;
-                }
-                if(PauseEvent.WaitOne(0))
-                {
-                    this.NoisyLog("Pause set, exiting loop.");
-                    pauseFinishedEvent.Set();
-                    InvokeHalted(HaltReason.Pause);
-                    break;
-                }
+
                 if(CheckHalted())
                 {
                     if(ClockSource.HasEntries)
@@ -898,6 +938,37 @@ namespace Emul8.Peripherals.CPU
                     }
                 }
             }
+
+            if(setSingleStepAndResume)
+            {
+                setSingleStepAndResume = false;
+                SetSingleStepMode(true);
+                Resume();
+                Monitor.Exit(pauseLock);
+            }
+        }
+
+        private void HandleHooksAndBreakpoints()
+        {
+            // breakpoints handling
+            if(breakpoints.Contains(PC))
+            {
+                this.DebugLog("Breakpoint at PC=0x{0:X8}, pausing", PC);
+                stepDoneEvent.Set();// TODO
+                InvokeHalted(new HaltArguments(HaltReason.Breakpoint));
+                stepEvent.WaitOne();
+
+                // todo: should we pause machine here? this is a quite problematic matter:
+                // if the breakpoint is set by the user in monitor, perhaps we should (maybe even whole emulation),
+                // but when it is issued by GDB than what?
+            } 
+            else if(stepMode) 
+            {
+                stepDoneEvent.Set();
+                this.NoisyLog("Waiting for another step (PC=0x{0:X8}).", PC);
+                InvokeHalted(new HaltArguments(HaltReason.StepMode));
+                stepEvent.WaitOne();
+            }
         }
 
         // TODO
@@ -919,6 +990,11 @@ namespace Emul8.Peripherals.CPU
         [Export]
         private void OnBlockBegin(uint address, uint size)
         {
+            // handle single-stepping mode
+            if(stepMode)
+            {
+                HandleHooksAndBreakpoints();
+            }
             // add missing hooks
             foreach(var hook in inactiveHooks)
             {
@@ -954,8 +1030,6 @@ namespace Emul8.Peripherals.CPU
             }
             return null;
         }
-
-
 
         private string GetSymbolName(uint offset) 
         {
@@ -1056,6 +1130,30 @@ namespace Emul8.Peripherals.CPU
             }
         }
 
+        private bool setSingleStepAndResume = false;
+
+        [Conditional("DEBUG")]
+        private void CheckCpuThreadId()
+        {
+            if(Thread.CurrentThread != cpuThread)
+            {
+                throw new ArgumentException(
+                    string.Format("Method called from a wrong thread. Expected {0}, but got {1}",
+                                  cpuThread.ManagedThreadId, Thread.CurrentThread.ManagedThreadId));
+            }
+        }
+
+        public void HaltOnWatchpoint(HaltArguments args)
+        {
+            // this method should only be called from CPU thread,
+            // but we should check it anyway
+            CheckCpuThreadId();
+
+            Monitor.Enter(pauseLock);
+            InnerPause(args);
+            setSingleStepAndResume = true;
+        }
+
         private readonly object pauseLock = new object();
 
         public void WaitForStepDone()
@@ -1088,7 +1186,7 @@ namespace Emul8.Peripherals.CPU
                 {
                     this.NoisyLog("Halting CPU.");
                 }
-                Pause();
+                InnerPause(new HaltArguments(HaltReason.Abort));
             }
             started = false;
             if(!silent)
@@ -1220,12 +1318,13 @@ namespace Emul8.Peripherals.CPU
         [Export]
         private uint IsBlockBeginEventEnabled()
         {
-            return (blockBeginHook != null || inactiveHooks.Count > 0) ? 1u : 0u;
+            return (blockBeginHook != null || stepMode || inactiveHooks.Count > 0) ? 1u : 0u;
         }
       
         private List<uint>breakpoints;
         private Dictionary<uint, Action<uint>>hooks;
         private List<uint>inactiveHooks;
+        private int oldMaximumBlockSize;
 
         [Transient]
         private ActionUInt32 onTranslationBlockFetch;
@@ -1666,6 +1765,10 @@ namespace Emul8.Peripherals.CPU
                         isHaltedChanged(value);
                     }
                     isHalted = value;
+                    if(isHalted) 
+                    {
+                        InvokeHalted(new HaltArguments(HaltReason.Pause));
+                    }
                     if(!value)
                     {
                         haltedFinishedEvent.Set();
