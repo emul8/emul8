@@ -17,6 +17,8 @@ namespace Emul8.Peripherals.CPU
 
         uint GetRegisterUnsafe(int register);
 
+        int[] GetRegisters();
+
         string[,] GetRegistersValues();
 
         void SetSingleStepMode(bool on);

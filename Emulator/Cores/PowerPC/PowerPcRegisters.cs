@@ -24,6 +24,13 @@ namespace Emul8.Peripherals.CPU
         {
             return GetRegisterValue32(register);
         }
+        
+        public override int[] GetRegisters()
+        {
+            return new int[] {
+                0,
+            };
+        }
 
         [Register]
         public UInt32 NIP

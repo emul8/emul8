@@ -689,6 +689,8 @@ namespace Emul8.Peripherals.CPU
 
         public abstract uint GetRegisterUnsafe(int register);
 
+        public abstract int[] GetRegisters();
+
         private void CheckIfOnSynchronizedThread()
         {
             if(Thread.CurrentThread.ManagedThreadId != cpuThread.ManagedThreadId
