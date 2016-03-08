@@ -235,6 +235,13 @@ namespace Emul8.Peripherals.Timers
                 }
             }
 
+            // THIS IS A WORKAROUND FOR A BUG IN MONO
+            // https://bugzilla.xamarin.com/show_bug.cgi?id=39444
+            protected override void OnLimitReached()
+            {
+                base.OnLimitReached();
+            }
+
             private void OnClockSourceChange(ClockSource oldValue, ClockSource newValue)
             {
                 switch(newValue)
