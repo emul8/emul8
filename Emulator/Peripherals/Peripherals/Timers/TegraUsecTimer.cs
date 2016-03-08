@@ -20,10 +20,15 @@ namespace Emul8.Peripherals.Timers
             Reset ();
         }
 
+        // THIS IS A WORKAROUND FOR A BUG IN MONO
+        // https://bugzilla.xamarin.com/show_bug.cgi?id=39444
+        protected override void OnLimitReached()
+        {
+            base.OnLimitReached();
+        }
+
         public uint ReadDoubleWord (long offset)
         {
-
-
             switch ((Registers)offset) 
             {
             case Registers.Value:
