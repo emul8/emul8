@@ -42,18 +42,20 @@ namespace Emul8.Launcher
             var addHelpSwitch = false;
             var possibleLaunchees = new List<LaunchDescriptorsGroup>();
             var selectedLaunchees = new List<LaunchDescriptorsGroup>();
-            foreach(var launchDescriptor in Scanner.ScanForInterestingBinaries(basicOptions.RootPath))
+
+            var interestingBinaries = Scanner.ScanForInterestingBinaries(basicOptions.RootPath).OrderBy(x => x.Priority).ThenBy(x => x.Name).ToArray();
+            for(var i = 0; i < interestingBinaries.Length; i++) 
             {
-                possibleLaunchees.Add(launchDescriptor);
-                launchDescriptor.GenerateSwitches(optionsParser);
-                launchDescriptor.SwitchOption.Parsed += (option, value) =>
+                possibleLaunchees.Add(interestingBinaries[i]);
+                interestingBinaries[i].GenerateSwitches(optionsParser, i == 0);
+                interestingBinaries[i].SwitchOption.Parsed += (option, value) =>
                 {
-                    selectedLaunchees.Add(launchDescriptor);
+                    selectedLaunchees.Add(interestingBinaries[i]);
                 };
 
-                if(launchDescriptor.HelpOption != null)
+                if(interestingBinaries[i].HelpOption != null)
                 {
-                    launchDescriptor.HelpOption.Parsed += (option, value) =>
+                    interestingBinaries[i].HelpOption.Parsed += (option, value) =>
                     {
                         addHelpSwitch = true;
                     };
