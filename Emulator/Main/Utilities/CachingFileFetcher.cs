@@ -243,19 +243,15 @@ namespace Emul8.Utilities
 
         private bool Verify(string fileName, BinaryEntry entry)
         {
+            if(!File.Exists(fileName))
+            {
+                Logger.LogAs(this, LogLevel.Warning, "Binary {0} found in index but is missing in cache.", fileName);
+                return false;
+            }
+
             if(entry.Checksum != null)
             {
-                long actualSize = -1;
-                try
-                {
-                    actualSize = new FileInfo(fileName).Length;
-                }
-                catch (FileNotFoundException)
-                {
-                    Logger.LogAs(this, LogLevel.Warning, "File {0} not found in cached binaries folder.", fileName);
-                    return false;
-                }
-
+                var actualSize = new FileInfo(fileName).Length;
                 if(actualSize != entry.Size)
                 {
                     Logger.LogAs(this, LogLevel.Warning, "Size of the file differs: is {0}B, should be {1}B.", actualSize, entry.Size);
@@ -276,6 +272,7 @@ namespace Emul8.Utilities
                     }
                 }
             }
+
             return true;
         }
 
