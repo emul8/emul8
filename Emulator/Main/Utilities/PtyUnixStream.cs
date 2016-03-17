@@ -40,8 +40,6 @@ namespace Emul8.Utilities
             {
                 Name = OpenPty();
             }
-
-            stream = new UnixStream(master, true);
         }
 
         private string name;
@@ -83,41 +81,41 @@ namespace Emul8.Utilities
 
         public override void Flush()
         {
-            stream.Flush();
+            Stream.Flush();
         }
 
         public override int Read(byte[] buffer, int offset, int count)
         {
-            return stream.Read(buffer, offset, count);
+            return Stream.Read(buffer, offset, count);
         }
 
         public override long Seek(long offset, SeekOrigin origin)
         {
-            return stream.Seek(offset, origin);
+            return Stream.Seek(offset, origin);
         }
 
         public override void SetLength(long value)
         {
-            stream.SetLength(value);
+            Stream.SetLength(value);
         }
 
         public override void Write(byte[] buffer, int offset, int count)
         {
-            stream.Write(buffer, offset, count);
+            Stream.Write(buffer, offset, count);
         }
 
-        public override bool CanRead { get { return stream.CanRead; } }
+        public override bool CanRead { get { return Stream.CanRead; } }
 
-        public override bool CanSeek { get { return stream.CanSeek; } }
+        public override bool CanSeek { get { return Stream.CanSeek; } }
 
-        public override bool CanWrite { get { return stream.CanWrite; } }
+        public override bool CanWrite { get { return Stream.CanWrite; } }
 
-        public override long Length { get { return stream.Length; } }
+        public override long Length { get { return Stream.Length; } }
 
         public override long Position 
         {
-            get { return stream.Position; }
-            set { stream.Position = value; }
+            get { return Stream.Position; }
+            set { Stream.Position = value; }
         }
 
         public override bool CanTimeout { get { return true; } }
@@ -205,6 +203,18 @@ namespace Emul8.Utilities
 
         [DllImport("libc", EntryPoint = "tcsetattr")]
         private extern static void Tcsetattr(int fd, int attr, IntPtr termios);
+
+        private UnixStream Stream 
+        {
+            get 
+            {
+                if(stream == null) 
+                {
+                    stream = new UnixStream(master, true);
+                }
+                return stream;
+            }
+        }
 
         [Transient]
         private UnixStream stream;
