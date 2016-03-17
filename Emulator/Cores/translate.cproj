@@ -38,7 +38,6 @@
     <Message Text="Configuring translation library" />
     <Message Text="Host : $(HostArchitecture), $(HostWordSize)-bit, $(HostEndianess)" />
     <Message Text="Target : $(TargetArchitecture), $(TargetWordSize)-bit, $(TargetEndianess)" />
-    <Message Text="Host word size forced to: $(ForcedHostWordSize) bits" Condition=" $(ForcedHostWordSize) != '' and $(ForcedHostWordSize) != $(HostWordSize) "/>
   </Target>
 
   <Target Name="GenerateFlags" DependsOnTargets="VerifyProperties">
