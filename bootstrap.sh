@@ -55,8 +55,8 @@ then
 fi
 
 # Check mono version
-MONO_VERSION=`mono --version | sed -n -r 's/.* version ([0-9.]+) \(.*/\1/p'`
-MONO_VERSION_MAJOR=`echo $MONO_VERSION | sed -n 's/[^0-9]*\([0-9]*\).*/\1/p'`
+MONO_VERSION=`mono --version | head -n1 | cut -d' ' -f5`
+MONO_VERSION_MAJOR=`echo $MONO_VERSION | cut -d'.' -f1`
 if [ $MONO_VERSION_MAJOR -lt 4 -a $MONO_VERSION != "3.99.0" ]
 then
     echo "Wrong mono version detected: $MONO_VERSION. Please refer to documentation for installation instructions. Exiting!"
