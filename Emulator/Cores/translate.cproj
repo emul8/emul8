@@ -98,7 +98,6 @@
           <LinkFlags Include="-fomit-frame-pointer" />
           <LinkFlags Include="-lpthread" />
           <LinkFlags Include="-lm" />
-          <LinkFlags Include="-lrt" />
           <LinkFlags Include="-shared" />
           <LinkFlags Include="-z defs" />
           <LinkFlags Include="-m32 " Condition="$(HostWordSize) == '32'" />
