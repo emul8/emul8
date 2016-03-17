@@ -12,6 +12,7 @@ using System;
 using Emul8.Utilities;
 using System.Runtime.InteropServices;
 using Antmicro.Migrant;
+using Emul8.Logging;
 
 namespace Emul8.Core
 {
@@ -33,7 +34,11 @@ namespace Emul8.Core
             if(!SharedLibraries.TryLoadLibrary(LibStdCppHelper.LibStdCppName, out library))
             {
                 var libstdPath = LibStdCppHelper.GetLibStdCppPath();
-                library = SharedLibraries.LoadLibrary(libstdPath);
+                if(!SharedLibraries.TryLoadLibrary(libstdPath, out library))
+                {
+                    Logger.Log(LogLevel.Warning, "Could not load demangling library. Symbols will not be demangled.");
+                    return;
+                }
             }
             var address = SharedLibraries.GetSymbolAddress(library, "__cxa_demangle");
             var delegateType = typeof(LibStdCppHelper.CxaDemangleDelegate);
@@ -226,6 +231,10 @@ namespace Emul8.Core
         /// <returns>Demangled symbol name.</returns>
         private static string DemangleSymbol(string symbolName)
         {
+            if(CxaDemangle == null)
+            {
+                return symbolName;
+            }
             const int globalSymbolPrefixLength = 21;
             if(string.IsNullOrEmpty(symbolName) || symbolName.Length < 2)
             {

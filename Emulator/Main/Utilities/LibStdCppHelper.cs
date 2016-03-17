@@ -24,7 +24,7 @@ namespace Emul8.Utilities
                     return result;
                 }
             }
-            throw new FileNotFoundException("Cannot load libstdc++.so");
+            return null;
         }
 
         public static string LibStdCppName
@@ -75,7 +75,7 @@ namespace Emul8.Utilities
             return false;
         }
 
-        private static readonly string[] gccPaths = {"/usr/lib/", "/usr/lib/gcc","/usr/lib64/gcc", "/usr/lib32/gcc"};
+        private static readonly string[] gccPaths = {"/usr/lib/", "/usr/lib/gcc","/usr/lib64/gcc", "/usr/lib32/gcc", "/usr/local/lib/gcc"};
         private const string x64Prefix = "x86_64";
 
         public delegate string CxaDemangleDelegate(String symbol, IntPtr p1, IntPtr p2, out int result);
