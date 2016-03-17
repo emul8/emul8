@@ -2,12 +2,12 @@
 set -e
 set -u
 
-if [ -z "${ROOT_PATH:-}" ]; then
+if [ -z "${ROOT_PATH:-}" -a -x "$(command -v realpath)" ]; then
     # this is to support running emul8 from external directory
-    ROOT_PATH="`dirname \`readlink -f $0\``"
+    ROOT_PATH="`dirname \`realpath $0\``"
 fi
 
-LAUNCHER_PATH=$ROOT_PATH/Tools/Emul8-Launcher
+LAUNCHER_PATH=${ROOT_PATH:=.}/Tools/Emul8-Launcher
 LAUNCHER_BIN_PATH=$LAUNCHER_PATH/Emul8-Launcher/bin/Release/Emul8-Launcher.exe
 
 # build launcher tool ...

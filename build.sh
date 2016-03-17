@@ -8,9 +8,9 @@
 
 set -e
 
-if [ -z "$ROOT_PATH" ]; then
+if [ -z "$ROOT_PATH" -a -x "$(command -v realpath)" ]; then
     # this is to support running emul8 from external directory
-    ROOT_PATH="`dirname \`readlink -f $0\``"
+    ROOT_PATH="`dirname \`realpath $0\``"
 fi
 
 TARGET="./target/Emul8.sln"
@@ -47,7 +47,7 @@ fi
 
 if ! $CLEAN
 then
-  pushd $ROOT_PATH/Tools/scripts > /dev/null
+  pushd ${ROOT_PATH:=.}/Tools/scripts > /dev/null
   ./check_weak_implementations.sh
   popd > /dev/null
 fi
