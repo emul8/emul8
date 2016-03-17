@@ -65,13 +65,13 @@ fi
 
 git submodule update --init --recursive
 
-if [ -z "$ROOT_PATH" ]; then
+if [ -z "$ROOT_PATH" -a -x "$(command -v realpath)" ]; then
     # this is to support running emul8 from external directory
-    ROOT_PATH="`dirname \`readlink -f $0\``"
+    ROOT_PATH="`dirname \`realpath $0\``"
 fi
 
 # Create Sandbox project
-pushd $ROOT_PATH/Misc/Sandbox > /dev/null
+pushd ${ROOT_PATH:=.}/Misc/Sandbox > /dev/null
 if [ ! -e Sandbox.csproj ]
 then
   echo " >> Creating Sandbox.csproj..."
