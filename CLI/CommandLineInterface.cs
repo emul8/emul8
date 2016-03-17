@@ -73,7 +73,7 @@ namespace Emul8.CLI
                     {
                         preferredUARTAnalyzer = typeof(UARTMultiplexedBackendAnalyzer);
 
-                        var stream = new PtyUnixStream("/proc/self/fd/1");
+                        var stream = new PtyUnixStream("/dev/fd/1");
                         var world = new StreamIOSource(stream, stream.Name);
 
                         Logger.AddBackend(new FileBackend("logger.log"), "file");
