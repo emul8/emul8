@@ -21,19 +21,18 @@
 
     <PropertyGroup>
         <TargetWordSize Condition=" $(TargetWordSize) == '' ">32</TargetWordSize>
-        <ForcedHostWordSize Condition=" $(ForcedHostWordSize) == '' ">$(HostWordSize)</ForcedHostWordSize>
 
         <ProtoTarget>$(TargetArchitecture.ToLower())</ProtoTarget>
         <HostUpper>$(HostArchitecture.ToUpper())</HostUpper>
         <EmulatedTarget Condition=" '$(EmulatedTarget)' == '' ">$(TargetArchitecture.ToLower())</EmulatedTarget>
 
         <ConfigName>$(ProtoTarget)-$(TargetWordSize)_$(TargetEndianess)</ConfigName>
-        <SoFileLocation>bin/$(Configuration)/lib$(ForcedHostWordSize)</SoFileLocation>
+        <SoFileLocation>bin/$(Configuration)/lib$(HostWordSize)</SoFileLocation>
         <LibraryPath>translate-$(ProtoTarget)-$(TargetEndianess).so</LibraryPath>
         <ObjectFilesDirectory>obj/$(Configuration)/obj-$(ConfigName)</ObjectFilesDirectory>
         <TlibDirectory>tlib</TlibDirectory>
         <TcgLibraryDirectory>$(MSBuildProjectDirectory)/tlib/tcg/bin/$(Configuration)</TcgLibraryDirectory>
-        <TcgLibraryFilename>libtcg_$(HostArchitecture)-$(ForcedHostWordSize)-$(TargetWordSize)_$(TargetEndianess).a</TcgLibraryFilename>
+        <TcgLibraryFilename>libtcg_$(HostArchitecture)-$(HostWordSize)-$(TargetWordSize)_$(TargetEndianess).a</TcgLibraryFilename>
     </PropertyGroup>
 
     <Message Text="Configuring translation library" />
@@ -58,8 +57,8 @@
       <ItemGroup>
           <CompilationFlags Include="-fomit-frame-pointer" />
           <CompilationFlags Include="-shared" />
-          <CompilationFlags Include="-m32" Condition=" $(HostWordSize) == '64' and $(ForcedHostWordSize) == '32' " />
-          <CompilationFlags Include="-fPIC" Condition=" $(ForcedHostWordSize) == '64'" />
+          <CompilationFlags Include="-m32 " Condition="$(HostWordSize) == '32'" />
+          <CompilationFlags Include="-fPIC" Condition=" $(HostWordSize) == '64'" />
           <CompilationFlags Include="-g3" Condition=" $(Configuration) == 'Debug'" />
           <CompilationFlags Include="-O2" Condition=" $(Configuration) == 'Release' or $(Configuration) == ''" />
           <CompilationFlags Include="-Wall" />
@@ -69,7 +68,7 @@
           <CompilationFlags Include="-Werror" />
           <CompilationFlags Include="-DCONFIG_NEED_MMU" />
           <CompilationFlags Include="-DTCG_TARGET_$(HostUpper)" />
-          <CompilationFlags Include="-DHOST_BITS_$(ForcedHostWordSize)" />
+          <CompilationFlags Include="-DHOST_BITS_$(HostWordSize)" />
           <CompilationFlags Include="-I $(TlibDirectory)/arch/$(EmulatedTarget)" />
           <CompilationFlags Include="-I $(TlibDirectory)/tcg/$(HostArchitecture)" />
           <CompilationFlags Include="-I $(TlibDirectory)/include" />
@@ -83,7 +82,7 @@
           <CompilationFlags Include="-DTARGET_LLONG_ALIGNMENT=4" />
 
           <CompilationFlags Include="-DHOST_$(HostUpper)=1" />
-          <CompilationFlags Include="-DHOST_LONG_BITS=$(ForcedHostWordSize)" />
+          <CompilationFlags Include="-DHOST_LONG_BITS=$(HostWordSize)" />
 
           <CompilationFlags Include="-DTARGET_ARCH=&quot;$(EmulatedTarget)&quot;" />
           <CompilationFlags Include="-DTARGET_$(EmulatedTargetUpper)=1" />
@@ -96,17 +95,15 @@
 
           <!-- This define is a little hack: It is necessary for CLinkerTask to create separate entry in hashes cache -->
           <LinkFlags Include="-DFAKE_$(EmulatedTargetUpper)_$(TargetEndianess)_$(TargetWordSize)" />
-          <LinkFlags Include="-Wl,--wrap=memcpy" Condition=" $(ForcedHostWordSize) == '64' " />
+          <LinkFlags Include="-Wl,--wrap=memcpy" Condition=" $(HostWordSize) == '64' " />
           <LinkFlags Include="-fomit-frame-pointer" />
           <LinkFlags Include="-lpthread" />
           <LinkFlags Include="-lm" />
           <LinkFlags Include="-lrt" />
           <LinkFlags Include="-shared" />
           <LinkFlags Include="-z defs" />
-          <LinkFlags Include="-m32" Condition=" $(HostWordSize) == '64' and $(ForcedHostWordSize) == '32' " />
+          <LinkFlags Include="-m32 " Condition="$(HostWordSize) == '32'" />
           <LinkFlags Include="$(AdditionalLinkFlags)" />
-
-          <Libraries Include="$(TcgLibraryDirectory)/$(TcgLibraryFilename)" />
       </ItemGroup>
   </Target>
 
@@ -114,6 +111,7 @@
       <ItemGroup>
           <InputFiles Include="**" Exclude="config/**;tcg/**;bin/**;obj/**;lib64/**;**/.*" />
           <ObjectFiles Include="@(SourceFiles->'$(ObjectFilesDirectory)/%(relativedir)%(filename).o')" />
+          <ObjectFiles Include="$(TcgLibraryDirectory)/$(TcgLibraryFilename)" />
       </ItemGroup>
   </Target>
 
@@ -122,16 +120,16 @@
     <MSBuild
         Projects="tcg.cproj"
         Targets="_VerifyProperties;Compile;Build"
-        Properties="Configuration=$(Configuration);HostWordSize=$(HostWordSize);ForcedWordSize=$(ForcedWordSize);TargetWordSize=$(TargetWordSize);Endianess=$(TargetEndianess)" />
+        Properties="Configuration=$(Configuration);HostWordSize=$(HostWordSize);TargetWordSize=$(TargetWordSize);Endianess=$(TargetEndianess)" />
   </Target>
 
   <Target Name="Compile" DependsOnTargets="_PrepareInputsAndOutputsForCompilation;GenerateFlags;CompileTcg" Inputs="@(InputFiles)" Outputs="@(ObjectFiles)" >
     <CCompilerTask Parallel="false" Sources="@(SourceFiles)" Flags="@(CompilationFlags)" ObjectFilesDirectory="$(ObjectFilesDirectory)" />
   </Target>
 
-  <Target Name="Link" DependsOnTargets="Compile" Inputs="@(ObjectFiles);@(Libraries)" Outputs="$(SoFileLocation)/$(LibraryPath)">
+  <Target Name="Link" DependsOnTargets="Compile" Inputs="@(ObjectFiles)" Outputs="$(SoFileLocation)/$(LibraryPath)">
       <MakeDir Directories="$(SoFileLocation)" />
-      <CLinkerTask ObjectFiles="@(ObjectFiles)" Flags="@(LinkFlags)" Output="$(SoFileLocation)/$(LibraryPath)" Libraries="@(Libraries)" />
+      <CLinkerTask ObjectFiles="@(ObjectFiles)" Flags="@(LinkFlags)" Output="$(SoFileLocation)/$(LibraryPath)" />
   </Target>
 
   <Target Name="Build" DependsOnTargets="Link">

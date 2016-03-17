@@ -12,9 +12,6 @@
     </Target>
 
     <Target Name="PrepareEmbeddedResources" BeforeTargets="PrepareForBuild" DependsOnTargets="_PrepareProperties">
-        <PropertyGroup>
-            <ForcedHostWordSize Condition=" $(ForcedHostWordSize) == '' ">$(HostWordSize)</ForcedHostWordSize>
-        </PropertyGroup>
         <ItemGroup>
             <EmbeddedResource Include="..\Cores\bin\$(Configuration)\lib$(ForcedHostWordSize)\translate-$(Architecture)-le.so" Condition=" '%(Endianess.Identity)' == 'le' ">
                 <LogicalName>Emul8.translate_$(ForcedHostWordSize)-$(Architecture)-le.so</LogicalName>

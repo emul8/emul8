@@ -67,7 +67,7 @@ namespace Emul8.CLI
                 {TerminalTypes.GnomeTerminal, CreateGnomeTerminalWindow}
             };
 
-            var commandString = string.Format("{0} microcom {1}", path, Name);
+            var commandString = string.Format("screen {1}", path, Name);
             //Try preferred terminal first, than any other. If all fail, throw.
             if (!windowCreators.OrderByDescending(x => x.Key == preferredTerminal).Any(x => x.Value(commandString, out process)))
             {
