@@ -78,6 +78,12 @@ namespace Emul8.Utilities
         /// </remarks>
         public static IEnumerable<string> GetAllSymbols(string path)
         {
+            ELFSharp.MachO.MachO machO;
+            if(ELFSharp.MachO.MachOReader.TryLoad(path, out machO) == ELFSharp.MachO.MachOResult.OK)
+            {
+                var machoSymtab = machO.GetCommandsOfType<ELFSharp.MachO.SymbolTable>().Single();
+                return machoSymtab.Symbols.Select(x => x.Name.TrimStart('_'));
+            }
             var elf = ELFReader.Load(path);
             var symtab = (ISymbolTable)elf.GetSection(".symtab");
             return symtab.Entries.Select(x => x.Name);
