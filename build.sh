@@ -77,11 +77,19 @@ then
     PARAMS="$PARAMS /verbosity:detailed"
 fi
 
+ADDITIONAL_PARAM=""
+OS_NAME=`uname`
+
+if [ "$OS_NAME" == "Darwin" ]
+then
+  ADDITIONAL_PARAM="/p:HostWordSize=32"
+fi
+
 retries=5
 while [ \( ${result_code:-134} -eq 134 \) -a \( $retries -ne 0 \) ]
 do
     set +e
-    xbuild /p:OutputPath=$PWD/output/$CONFIGURATION $PARAMS $TARGET
+    xbuild /p:OutputPath=$PWD/output/$CONFIGURATION $PARAMS $TARGET $ADDITIONAL_PARAM
     result_code=$?
     set -e
     retries=$((retries-1))
