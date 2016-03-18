@@ -42,21 +42,6 @@ namespace Emul8.CLI
 
         public void Show()
         {
-            // check if we can find busybox
-            string emul8Dir = null;
-            if(!Misc.TryGetEmul8Directory(out emul8Dir))
-            {
-                throw new RecoverableException("Could not find emul8 root directory.");
-            }
-
-            var path = Path.Combine(emul8Dir, "External", "bin", "busybox-i686");
-            if(!File.Exists(path))
-            {
-                var msg = string.Format("busybox not found! Please check your External/bin folder.");
-                Logger.LogAs(this, LogLevel.Error, msg);
-                throw new InvalidOperationException(msg);
-            }
-
             var conf = ConfigurationManager.Instance;
 
             var preferredTerminal = conf.Get("general", "terminal", TerminalTypes.XTerm);
@@ -67,7 +52,7 @@ namespace Emul8.CLI
                 {TerminalTypes.GnomeTerminal, CreateGnomeTerminalWindow}
             };
 
-            var commandString = string.Format("screen {1}", path, Name);
+            var commandString = string.Format("screen {0}", Name);
             //Try preferred terminal first, than any other. If all fail, throw.
             if (!windowCreators.OrderByDescending(x => x.Key == preferredTerminal).Any(x => x.Value(commandString, out process)))
             {
