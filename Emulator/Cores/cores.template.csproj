@@ -28,7 +28,10 @@
         <PropertyGroup>
             <TargetWordSize Condition=" $(TargetWordSize) == '' ">32</TargetWordSize>
         </PropertyGroup>
-        <MSBuild Projects="./translate.cproj" Targets="VerifyProperties;GenerateFlags;Compile;Link;Build" Properties="AdditionalCompilationFlags=$(AdditionalCompilationFlags);HostArchitecture=i386;HostEndianess=le;HostWordSize=$(HostWordSize);TargetEndianess=%(Endianess.Identity);TargetArchitecture=$(Architecture);EmulatedTarget=$(EmulatedTarget);Configuration=$(Configuration);TargetWordSize=$(TargetWordSize)" />
+        <MSBuild
+            Projects="./translate.cproj"
+            Targets="VerifyProperties;GenerateFlags;Compile;Link;Build"
+            Properties="AdditionalCompilationFlags=$(AdditionalCompilationFlags);HostArchitecture=i386;HostEndianess=le;HostWordSize=$(HostWordSize);TargetEndianess=%(Endianess.Identity);TargetArchitecture=$(Architecture);EmulatedTarget=$(EmulatedTarget);Configuration=$(Configuration);TargetWordSize=$(TargetWordSize);CompilerPath=$(CompilerPath);LinkerPath=$(LinkerPath)" />
     </Target>
 
     <Target Name="ActualClean" DependsOnTargets="_PrepareProperties">

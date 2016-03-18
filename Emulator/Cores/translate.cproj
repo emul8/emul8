@@ -118,16 +118,16 @@
     <MSBuild
         Projects="tcg.cproj"
         Targets="_VerifyProperties;Compile;Build"
-        Properties="Configuration=$(Configuration);HostWordSize=$(HostWordSize);TargetWordSize=$(TargetWordSize);Endianess=$(TargetEndianess)" />
+        Properties="Configuration=$(Configuration);HostWordSize=$(HostWordSize);TargetWordSize=$(TargetWordSize);Endianess=$(TargetEndianess);CompilerPath=$(CompilerPath)" />
   </Target>
 
   <Target Name="Compile" DependsOnTargets="_PrepareInputsAndOutputsForCompilation;GenerateFlags;CompileTcg" Inputs="@(InputFiles)" Outputs="@(ObjectFiles)" >
-    <CCompilerTask Parallel="false" Sources="@(SourceFiles)" Flags="@(CompilationFlags)" ObjectFilesDirectory="$(ObjectFilesDirectory)" />
+    <CCompilerTask CompilerPath="$(CompilerPath)" Parallel="false" Sources="@(SourceFiles)" Flags="@(CompilationFlags)" ObjectFilesDirectory="$(ObjectFilesDirectory)" />
   </Target>
 
   <Target Name="Link" DependsOnTargets="Compile" Inputs="@(ObjectFiles)" Outputs="$(SoFileLocation)/$(LibraryPath)">
       <MakeDir Directories="$(SoFileLocation)" />
-      <CLinkerTask ObjectFiles="@(ObjectFiles)" Flags="@(LinkFlags)" Output="$(SoFileLocation)/$(LibraryPath)" />
+      <CLinkerTask LinkerPath="$(LinkerPath)" ObjectFiles="@(ObjectFiles)" Flags="@(LinkFlags)" Output="$(SoFileLocation)/$(LibraryPath)" />
   </Target>
 
   <Target Name="Build" DependsOnTargets="Link">
