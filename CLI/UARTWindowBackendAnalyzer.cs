@@ -18,6 +18,7 @@ using Emul8.Exceptions;
 using System.ComponentModel;
 using AntShell.Terminal;
 using System.Threading;
+using Mono.Unix.Native;
 
 namespace Emul8.CLI
 {
@@ -49,7 +50,8 @@ namespace Emul8.CLI
             { 
                 {TerminalTypes.XTerm, CreateXtermWindow},
                 {TerminalTypes.Putty, CreatePuttyWindow},
-                {TerminalTypes.GnomeTerminal, CreateGnomeTerminalWindow}
+                {TerminalTypes.GnomeTerminal, CreateGnomeTerminalWindow},
+                {TerminalTypes.TerminalApp, CreateTerminalAppWindow}
             };
 
             var commandString = string.Format("screen {0}", Name);
@@ -261,6 +263,47 @@ namespace Emul8.CLI
             return false;
         }
 
+        private bool CreateTerminalAppWindow(string arg, out Process p)
+        {
+            var script = TemporaryFilesManager.Instance.GetTemporaryFile();
+            File.WriteAllLines(script, new [] {
+                "#!/bin/bash",
+                string.Format("/usr/bin/screen {0}", Name),
+                "osascript -e 'tell application \"Terminal\" to close first window' & exit"
+            });
+
+            try
+            {
+                p = new Process();
+                p.EnableRaisingEvents = true;
+                Syscall.chmod(script, FilePermissions.S_IXUSR | FilePermissions.S_IRUSR | FilePermissions.S_IWUSR);
+
+                var arguments = string.Format("{0} {1}", "-a /Applications/Utilities/Terminal.app", script);
+                p.StartInfo = new ProcessStartInfo("open", arguments) 
+                {
+                    UseShellExecute = false,
+                    RedirectStandardError = true,
+                    RedirectStandardOutput = true,
+                    RedirectStandardInput = true
+                };
+                p.Exited += (sender, e) => 
+                {
+                    var proc = sender as Process;
+                    if (proc.ExitCode != 0)
+                    {
+                        LogError("Terminal.app", arguments, proc.ExitCode);
+                    }
+                };
+                p.Start();
+                return true;
+            }
+            catch(Win32Exception)
+            {
+            }
+            p = null;
+            return false;
+        }
+
         private void LogError(string source, string arguments, int exitCode)
         {
             Logger.LogAs(this, LogLevel.Error, "There was an error while starting {2} with arguments: {0}. It exited with code: {1}. In order to use different terminal change preferences in configuration file.", arguments, exitCode, source);
@@ -284,7 +327,8 @@ namespace Emul8.CLI
         {
             Putty,
             XTerm,
-            GnomeTerminal
+            GnomeTerminal,
+            TerminalApp
         }
     }
 }
