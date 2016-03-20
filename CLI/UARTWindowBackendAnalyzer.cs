@@ -268,8 +268,7 @@ namespace Emul8.CLI
             var script = TemporaryFilesManager.Instance.GetTemporaryFile();
             File.WriteAllLines(script, new [] {
                 "#!/bin/bash",
-                string.Format("/usr/bin/screen {0}", Name),
-                "osascript -e 'tell application \"Terminal\" to close first window' & exit"
+                string.Format("/usr/bin/screen {0}", Name)
             });
 
             try
