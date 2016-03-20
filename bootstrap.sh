@@ -90,6 +90,13 @@ CCTASK_BIN=$CCTASK_DIR/CCTask/bin/Release/CCTask.dll
 xbuild $BOOTSTRAPER_DIR/Bootstrap.csproj /p:Configuration=Release /nologo /verbosity:quiet || (echo "There was an error during Bootstrap compilation!" && exit 1)
 xbuild $CCTASK_DIR/CCTask.sln /p:Configuration=Release /nologo /verbosity:quiet            || (echo "There was an error during CCTask compilation!"    && exit 1)
 
+OS_NAME=`uname`
+
+if [ "$OS_NAME" == "Darwin" ]
+then
+  cp $ROOT_PATH/Emulator/Cores/osx-properties.csproj  $OUTPUT_DIRECTORY/properties.csproj
+fi
+
 if [ $BATCH_MODE -eq 1 ]
 then
     mono $BOOTSTRAPER_BIN GenerateAll --directories "${DIRECTORY:-.}" --output-directory "$OUTPUT_DIRECTORY" --binaries-directory "$BINARIES_DIRECTORY"
@@ -107,3 +114,4 @@ else
     esac
     exit $result
 fi
+
