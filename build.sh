@@ -82,7 +82,7 @@ OS_NAME=`uname`
 
 if [ "$OS_NAME" == "Darwin" ]
 then
-  ADDITIONAL_PARAM="/p:HostWordSize=32"
+  ADDITIONAL_PARAM="/p:HostWordSize=32 /p:CompilerPath=gcc-4.9 /p:LinkerPath=gcc-4.9"
 fi
 
 retries=5
