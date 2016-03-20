@@ -77,14 +77,6 @@ then
     PARAMS="$PARAMS /verbosity:detailed"
 fi
 
-ADDITIONAL_PARAM=""
-OS_NAME=`uname`
-
-if [ "$OS_NAME" == "Darwin" ]
-then
-  ADDITIONAL_PARAM="/p:HostWordSize=32 /p:CompilerPath=gcc-4.9 /p:LinkerPath=gcc-4.9"
-fi
-
 retries=5
 while [ \( ${result_code:-134} -eq 134 \) -a \( $retries -ne 0 \) ]
 do
