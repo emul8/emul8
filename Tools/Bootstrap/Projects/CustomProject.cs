@@ -27,8 +27,8 @@ namespace Emul8.Bootstrap
 
         public void Save(string directory)
         {
-            Path = string.Format("{0}.csproj", GeneratedProjectName);
-            SaveCsproj(System.IO.Path.Combine(directory, Path));
+            Path = System.IO.Path.GetFullPath(System.IO.Path.Combine(directory, string.Format("{0}.csproj", GeneratedProjectName)));
+            SaveCsproj(Path);
             SaveCs(System.IO.Path.Combine(directory, string.Format("{0}.cs", GeneratedProjectMainClassName)));
         }
 

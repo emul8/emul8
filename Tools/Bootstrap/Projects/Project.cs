@@ -135,7 +135,7 @@ namespace Emul8.Bootstrap
 
         protected Project(string name, string path)
         {
-            Path = path;
+            Path = path == null ? null : System.IO.Path.GetFullPath(path);
             Name = name;
         }
 
