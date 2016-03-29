@@ -79,7 +79,7 @@ namespace Emul8.Bootstrap
             }
 
             var additionalProjects = new List<Project>();
-            foreach(var additionalProjectPath in additionalProjectsPaths)
+            foreach(var additionalProjectPath in additionalProjectsPaths ?? Enumerable.Empty<string>())
             {
                 Project additionalProject;
                 if(!Project.TryLoadFromFile(additionalProjectPath, out additionalProject))
