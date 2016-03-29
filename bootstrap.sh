@@ -99,10 +99,10 @@ fi
 
 if [ $BATCH_MODE -eq 1 ]
 then
-    mono $BOOTSTRAPER_BIN GenerateAll --directories "${DIRECTORY:-.}" --output-directory "$OUTPUT_DIRECTORY" --binaries-directory "$BINARIES_DIRECTORY"
+    mono $BOOTSTRAPER_BIN GenerateAll --generate-entry-project --directories "${DIRECTORY:-.}" --output-directory "$OUTPUT_DIRECTORY" --binaries-directory "$BINARIES_DIRECTORY"
 else
     set +e
-    mono $BOOTSTRAPER_BIN --interactive --directories "$DIRECTORY" --output-directory "$OUTPUT_DIRECTORY" --binaries-directory "$BINARIES_DIRECTORY"
+    mono $BOOTSTRAPER_BIN --interactive --generate-entry-project --directories "$DIRECTORY" --output-directory "$OUTPUT_DIRECTORY" --binaries-directory "$BINARIES_DIRECTORY"
     result=$?
     set -e
     clear
