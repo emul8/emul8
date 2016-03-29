@@ -39,7 +39,12 @@ namespace Emul8.Bootstrap
             {
                 doc = XDocument.Load(path);
             }
-            catch (DirectoryNotFoundException)
+            catch(DirectoryNotFoundException)
+            {
+                project = null;
+                return false;
+            }
+            catch(FileNotFoundException)
             {
                 project = null;
                 return false;
