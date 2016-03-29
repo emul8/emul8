@@ -25,15 +25,15 @@ namespace Emul8.Bootstrap
         
         [Name("main-project"), Description("Name of the main project for generated solution.")]
         public string MainProject { get; set; }
-        
-        [Description("Name of the generated solution file.")]
-        public string Output { get; set; }
 
         [Name("output-directory"), Description("Path to the directory where generated files should be stored"), DefaultValue(".")]
         public string OutputDirectory { get; set; }
 
         [Name("binaries-directory"), Description("Path to the directory where binaries compiled from generated project should be located"), DefaultValue("bin")]
         public string BinariesDirectory { get; set; }
+
+        [Name("generate-entry-project"), Description("Generates entry project. Cannot be used without setting `output` solution file."), DefaultValue(false)]
+        public bool GenerateEntryProject { get; set; }
         
         [PositionalArgument(0), DefaultValue(Operation.None)]
         public Operation Action { get; set; }
@@ -45,16 +45,16 @@ namespace Emul8.Bootstrap
                 error = "Action is required in batch mode.";
                 return false;
             }
-            
-            if(Output != null && Action != Operation.GenerateSolution && Action != Operation.GenerateAll)
-            {
-                error = "'Output' option is available only for 'GenerateSolution'/'GenerateAll' actions";
-                return false;
-            }
-            
+
             if(Type != ProjectType.Unknown && Action != Operation.Scan)
             {
                 error = "'Type' option is available only for 'Scan' action";
+                return false;
+            }
+
+            if(GenerateEntryProject && OutputDirectory == null)
+            {
+                error = "Cannot generate entry project when output is not saved to a solution file";
                 return false;
             }
             

@@ -12,18 +12,24 @@ namespace Emul8.Bootstrap
 {
     public static class SolutionGenerator
     {
-        public static Solution Generate(Project mainProject, string outputPath, IEnumerable<Project> additionalProjects)
+        public static Solution Generate(Project mainProject, bool generateEntryProject, string outputPath, IEnumerable<Project> additionalProjects)
         {
             var projects = 
+                new[] { mainProject }.Union(
                 mainProject.GetAllReferences()
                 .Union(additionalProjects.SelectMany(x => x.GetAllReferences()))
-                .Union(additionalProjects);
-            var motherProject = Project.CreateEntryProject(mainProject, outputPath, projects);
+                .Union(additionalProjects)).ToList();
 
-            return new Solution(new [] { motherProject, mainProject }.Union(projects));
+            if(generateEntryProject)
+            {
+                var motherProject = Project.CreateEntryProject(mainProject, outputPath, projects.Skip(1));
+                projects.Insert(0, motherProject);
+            }
+
+            return new Solution(projects);
         }   
         
-        public static Solution GenerateWithAllReferences(UiProject mainProject, string binariesPath, IEnumerable<Project> extraProjects = null)
+        public static Solution GenerateWithAllReferences(UiProject mainProject, bool generateEntryProject, string binariesPath, IEnumerable<Project> extraProjects = null)
         {
             if(extraProjects == null)
             {
@@ -40,7 +46,7 @@ namespace Emul8.Bootstrap
                 .Union(pluginProjects)
                 .Union(pluginProjects.SelectMany(x => x.GetAllReferences())).ToList();
                     
-            return SolutionGenerator.Generate(mainProject, binariesPath, projects);
+            return SolutionGenerator.Generate(mainProject, generateEntryProject, binariesPath, projects);
         }
     }
 }
