@@ -19,11 +19,14 @@ BATCH_MODE=0
 OUTPUT_DIRECTORY="target"
 BINARIES_DIRECTORY="bin"
 
-while getopts "ad:o:b:h" opt
+while getopts "ad:o:b:s:h" opt
 do
     case "$opt" in
         a)
             BATCH_MODE=1
+            ;;
+        s)
+            SELECTED_PROJECT="$OPTARG"
             ;;
         d)
             DIRECTORY="$OPTARG"
@@ -37,13 +40,14 @@ do
         h)
             echo "Emul8 bootstrapping script"
             echo "=========================="
-            echo "Usage: $0 [-a] [-d directory] [-h]"
-            echo "  -a            batch mode, generates the 'All projects' solution without"
-            echo "                any interaction with the user"
-            echo "  -d directory  location of the base directory to scan"
-            echo "  -b directory  location for binaries created from generated project"
-            echo "  -o directory  location of generated project files"
-            echo "  -h            prints this help"
+            echo "Usage: $0 [-a] [-d directory] [-b directory] [-o directory] [-s csproj_file] [-h]"
+            echo "  -a              batch mode, generates the 'All projects' solution without"
+            echo "                  any interaction with the user"
+            echo "  -d directory    location of the base directory to scan"
+            echo "  -b directory    location for binaries created from generated project"
+            echo "  -o directory    location of generated project files"
+            echo "  -s csproj_file  location of the project file"
+            echo "  -h              prints this help"
             exit 0
     esac
 done
@@ -100,9 +104,12 @@ fi
 if [ $BATCH_MODE -eq 1 ]
 then
     mono $BOOTSTRAPER_BIN GenerateAll --generate-entry-project --directories "${DIRECTORY:-.}" --output-directory "$OUTPUT_DIRECTORY" --binaries-directory "$BINARIES_DIRECTORY"
+elif [ -n "$SELECTED_PROJECT" ]
+then
+    mono $BOOTSTRAPER_BIN GenerateSolution --directories "${DIRECTORY:-.}" --output-directory "$OUTPUT_DIRECTORY" --binaries-directory "$BINARIES_DIRECTORY" --main-project="$SELECTED_PROJECT"
 else
     set +e
-    mono $BOOTSTRAPER_BIN --interactive --generate-entry-project --directories "$DIRECTORY" --output-directory "$OUTPUT_DIRECTORY" --binaries-directory "$BINARIES_DIRECTORY"
+    mono $BOOTSTRAPER_BIN --interactive --generate-entry-project --directories "${DIRECTORY:-.}" --output-directory "$OUTPUT_DIRECTORY" --binaries-directory "$BINARIES_DIRECTORY"
     result=$?
     set -e
     clear
