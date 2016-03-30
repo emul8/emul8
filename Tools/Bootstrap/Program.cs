@@ -98,6 +98,7 @@ namespace Emul8.Bootstrap
             else
             {
                 solution.Save(output);
+                solution.SaveTestsFile(Path.Combine(output, testsFileName));
             }
         }
 
