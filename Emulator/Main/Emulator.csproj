@@ -65,7 +65,9 @@
     <Reference Include="Nini">
       <HintPath>..\..\External\Lib\Nini.dll</HintPath>
     </Reference>
-    <Reference Include="gdk-sharp, Version=2.12.0.0, Culture=neutral, PublicKeyToken=35e10195dab3c99f" />
+    <Reference Include="gdk-sharp, Version=2.12.0.0, Culture=neutral, PublicKeyToken=35e10195dab3c99f">
+      <Package>gdk-sharp-2.0</Package>
+    </Reference>
     <Reference Include="glib-sharp, Version=2.12.0.0, Culture=neutral, PublicKeyToken=35e10195dab3c99f">
       <Package>glib-sharp-2.0</Package>
     </Reference>
@@ -360,6 +362,9 @@
     <Compile Include="Peripherals\Input\IPS2Controller.cs" />
     <Compile Include="Peripherals\Network\EthernetPhysicalLayer.cs" />
     <Compile Include="Peripherals\DMA\DmaEngine.cs" />
+    <Compile Include="Peripherals\Bus\Width.cs" />
+    <Compile Include="Peripherals\Bus\Access.cs" />
+    <Compile Include="Peripherals\Bus\BusHookHandler.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup />
@@ -372,7 +377,7 @@
           <CSharpFormattingPolicy AnonymousMethodBraceStyle="NextLine" PropertyBraceStyle="NextLine" PropertyGetBraceStyle="NextLine" PropertySetBraceStyle="NextLine" EventBraceStyle="NextLine" EventAddBraceStyle="NextLine" StatementBraceStyle="NextLine" ElseNewLinePlacement="NewLine" CatchNewLinePlacement="NewLine" FinallyNewLinePlacement="NewLine" WhileNewLinePlacement="NewLine" BeforeMethodDeclarationParentheses="False" BeforeMethodCallParentheses="False" BeforeConstructorDeclarationParentheses="False" BeforeIndexerDeclarationBracket="False" BeforeDelegateDeclarationParentheses="False" AfterDelegateDeclarationParameterComma="True" NewParentheses="False" IfParentheses="False" WhileParentheses="False" ForParentheses="False" ForeachParentheses="False" CatchParentheses="False" SwitchParentheses="False" LockParentheses="False" UsingParentheses="False" SpacesBeforeBrackets="False" inheritsSet="Mono" inheritsScope="text/x-csharp" scope="text/x-csharp" />
           <TextStylePolicy FileWidth="120" NoTabsAfterNonTabs="True" EolMarker="Unix" inheritsSet="VisualStudio" inheritsScope="text/plain" scope="text/plain" />
           <TextStylePolicy FileWidth="120" NoTabsAfterNonTabs="True" EolMarker="Unix" inheritsSet="VisualStudio" inheritsScope="text/plain" scope="application/t4-template" />
-          <StandardHeader Text="//&#xA;// Copyright (c) Antmicro&#xA;// Copyright (c) Realtime Embedded&#xA;//&#xA;// This file is part of the Emul8 project.&#xA;// Full license details are defined in the 'LICENSE' file.&#xA;//" IncludeInNewFiles="True" />
+          <StandardHeader Text="&#xA;Copyright (c) Antmicro&#xA;Copyright (c) Realtime Embedded&#xA;&#xA;This file is part of the Emul8 project.&#xA;Full license details are defined in the 'LICENSE' file.&#xA;" IncludeInNewFiles="True" />
         </Policies>
       </Properties>
     </MonoDevelop>

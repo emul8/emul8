@@ -12,11 +12,11 @@ using Antmicro.Migrant.Hooks;
 using Emul8.Peripherals.Bus;
 using Emul8.Core;
 
-namespace Emul8.Extensions.Hooks
+namespace Emul8.Hooks
 {
-    public class BusHooksPythonEngine : PythonEngine
+    public class BusPeripheralsHooksPythonEngine : PythonEngine
     {
-        public BusHooksPythonEngine(SystemBus sysbus, IBusPeripheral peripheral, string readScript = null, string writeScript = null)
+        public BusPeripheralsHooksPythonEngine(SystemBus sysbus, IBusPeripheral peripheral, string readScript = null, string writeScript = null)
         {       
             Peripheral = peripheral;
             Sysbus = sysbus;

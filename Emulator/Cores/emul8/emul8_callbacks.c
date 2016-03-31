@@ -36,6 +36,8 @@ EXTERNAL_AS(action_uint32_uint32, WriteByteToBus, tlib_write_byte)
 EXTERNAL_AS(action_uint32_uint32, WriteWordToBus, tlib_write_word)
 EXTERNAL_AS(action_uint32_uint32, WriteDoubleWordToBus, tlib_write_double_word)
 
+EXTERNAL_AS(func_int32_uint32, IsIoAccessed, tlib_is_io_accessed)
+
 EXTERNAL_AS(action_uint32_uint32, OnBlockBegin, tlib_on_block_begin)
 EXTERNAL_AS(func_uint32, IsBlockBeginEventEnabled, tlib_is_block_begin_event_enabled)
 
