@@ -25,8 +25,10 @@
 */
 
 using System;
+using System.Collections.Generic;
 using Emul8.Core;
 using Emul8.Exceptions;
+using Emul8.Peripherals.Bus;
 using Emul8.Peripherals.Bus.Wrappers;
 
 namespace Emul8.Peripherals.Bus
@@ -34,7 +36,6 @@ namespace Emul8.Peripherals.Bus
     public partial class SystemBus
     {
 <#
-
     foreach(var entry in types)
     {
         var type = entry.Key;
@@ -43,6 +44,9 @@ namespace Emul8.Peripherals.Bus
         public <#= type #> Read<#= name #>(long address)
         {
             long startAddress, offset, endAddress;
+
+            InvokeWatchpointHooks(hooksOnRead, address, Width.<#=name#>);
+
             var accessMethods = peripherals.FindAccessMethods(address, out startAddress, out offset, out endAddress);
             if (accessMethods == null)
             {
@@ -70,10 +74,12 @@ namespace Emul8.Peripherals.Bus
         public void Write<#=name#>(long address, <#=type#> value)
         {
             long startAddress, offset, endAddress;
+
             var accessMethods = peripherals.FindAccessMethods(address, out startAddress, out offset, out endAddress);
             if (accessMethods == null)
             {
                 ReportNonExistingWrite(address, value, "<#=name#>");
+                InvokeWatchpointHooks(hooksOnWrite, address, Width.<#=name#>);
                 return;
             }
             var lockTaken = false;
@@ -85,6 +91,7 @@ namespace Emul8.Peripherals.Bus
                     accessMethods.SetAbsoluteAddress(address);
                 }
                 accessMethods.Write<#=name#>(address + offset - startAddress, value);
+                InvokeWatchpointHooks(hooksOnWrite, address, Width.<#=name#>);
             }
             finally
             {
@@ -103,12 +110,12 @@ namespace Emul8.Peripherals.Bus
         var when = operation == "Read" ? "After" : "Before";
         var actionOrFunc = operation == "Read" ? "Func" : "Action";
 #>
-        public void ClearHook<#=when#><#=operation#><T>(IBusPeripheral peripheral)
+        public void ClearHook<#=when#>Peripheral<#=operation#><T>(IBusPeripheral peripheral)
         {
-            SetHook<#=when#><#=operation#><T>(peripheral, null);
+            SetHook<#=when#>Peripheral<#=operation#><T>(peripheral, null);
         }
 
-        public void SetHook<#=when#><#=operation#><T>(IBusPeripheral peripheral, Func<T, long, T> hook, Range? subrange = null)
+        public void SetHook<#=when#>Peripheral<#=operation#><T>(IBusPeripheral peripheral, Func<T, long, T> hook, Range? subrange = null)
         {
             if(!machine.IsRegistered(peripheral))
             {

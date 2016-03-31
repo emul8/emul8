@@ -16,6 +16,8 @@ namespace Emul8.Peripherals.CPU
     {       
         void MapMemory(IMappedSegment segment);
         void UnmapMemory(Range range);
+        void SetPageAccessViaIo(long address);
+        void ClearPageAccessViaIo(long address);
         string Model{ get; }
         uint PC { get; set; }
         bool IsHalted { get; set; }

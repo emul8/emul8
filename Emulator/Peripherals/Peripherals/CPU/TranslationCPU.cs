@@ -66,6 +66,7 @@ namespace Emul8.Peripherals.CPU
             isHalted = false;
             translationCacheSync = new object();
             pumpingModeSync = new object();
+            pagesAccessedByIo = new HashSet<long>();
             InitializeRegisters();
             InitInterruptEvents();
             Init();
@@ -539,6 +540,16 @@ namespace Emul8.Peripherals.CPU
                 currentMappings = currentMappings.
                     Where(x => TlibIsRangeMapped((uint)x.Segment.StartingOffset, (uint)(x.Segment.StartingOffset + x.Segment.Size)) == 1).ToList();
             }
+        }
+
+        public void SetPageAccessViaIo(long address)
+        {
+            pagesAccessedByIo.Add(address & TlibGetPageSize());   
+        }
+
+        public void ClearPageAccessViaIo(long address)
+        {
+            pagesAccessedByIo.Remove(address & TlibGetPageSize());
         }
 
         public int PerformanceInMips { get; set; }
@@ -1046,6 +1057,12 @@ namespace Emul8.Peripherals.CPU
         {
             this.Log(LogLevel.Error, "CPU abort [PC=0x{0:X}]: {1}.", PC, message);
             throw new CpuAbortException(message);
+        }
+
+        [Export]
+        private int IsIoAccessed(uint address)
+        {
+            return pagesAccessedByIo.Contains(address & TlibGetPageSize()) ? 1 : 0;
         }
 
         public abstract string Architecture { get; }
@@ -1623,6 +1640,7 @@ namespace Emul8.Peripherals.CPU
         [Import]
         private FuncInt32 TlibGetStateSize;
 
+        private readonly HashSet<long> pagesAccessedByIo;
 
         protected const int DefaultTranslationCacheSize = 32 * 1024 * 1024;
 
