@@ -9,9 +9,9 @@ using System;
 
 namespace Emul8.UserInterface.Tokenizer
 {
-    public class EqualToken : Token
+    public class EqualityToken : Token
     {
-        public EqualToken(string value):base(value)
+        public EqualityToken(string value) : base(value)
         {
             Value = value;
         }
