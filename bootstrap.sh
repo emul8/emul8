@@ -98,6 +98,7 @@ OS_NAME=`uname`
 
 if [ "$OS_NAME" == "Darwin" ]
 then
+  mkdir -p $OUTPUT_DIRECTORY
   cp $ROOT_PATH/Emulator/Cores/osx-properties.csproj  $OUTPUT_DIRECTORY/properties.csproj
 fi
 
