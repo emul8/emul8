@@ -682,7 +682,7 @@ namespace Emul8.UserInterface
             }
 
             //variable definition
-            if(com.Length == 3 && com[0] is VariableToken && com[1] is EqualToken)
+            if(com.Length == 3 && com[0] is VariableToken && com[1] is EqualityToken)
             {
                 Token dummy;
                 var variableToExpand = com[0] as VariableToken;

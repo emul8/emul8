@@ -50,7 +50,7 @@ namespace MonitorTests
             AssertTokenizationValues(result, "name", "_name", "NaMe", ".name", "123name123");
 
             result = tokenizer.Tokenize("$variable=\"value\"");
-            AssertTokenizationTypes(result, typeof(VariableToken), typeof(EqualToken), typeof(StringToken));
+            AssertTokenizationTypes(result, typeof(VariableToken), typeof(EqualityToken), typeof(StringToken));
             AssertTokenizationValues(result, "variable", "=", "value");
 
             result = tokenizer.Tokenize("$variable?=\"value\"");
@@ -96,12 +96,12 @@ namespace MonitorTests
             var result = tokenizer.Tokenize("<-5,+5>");
             var expectedValue = new Range(-5, 11);
             AssertTokenizationTypes(result, typeof(AbsoluteRangeToken));
-            AssertTokenizationValues (result, expectedValue);
+            AssertTokenizationValues(result, expectedValue);
 
             result = tokenizer.Tokenize("<    \t0x123abDE  \t, \t\t  0xabcdef0 \t\t   >");
-            expectedValue = new Range(0x123abde, 0xabcdef0-0x123abde+1);
+            expectedValue = new Range(0x123abde, 0xabcdef0 - 0x123abde + 1);
             AssertTokenizationTypes(result, typeof(AbsoluteRangeToken));
-            AssertTokenizationValues (result, expectedValue);
+            AssertTokenizationValues(result, expectedValue);
 
             result = tokenizer.Tokenize("<0xdefg, 0xefgh>");
             AssertTokenizationResult(result, 16);
@@ -116,12 +116,12 @@ namespace MonitorTests
             var result = tokenizer.Tokenize("<-5,+5>");
             var expectedValue = new Range(-5, 11);
             AssertTokenizationTypes(result, typeof(AbsoluteRangeToken));
-            AssertTokenizationValues (result, expectedValue);
+            AssertTokenizationValues(result, expectedValue);
 
             result = tokenizer.Tokenize("<0x6 0x2>");
             expectedValue = new Range(0x6, 0x2);
             AssertTokenizationTypes(result, typeof(RelativeRangeToken));
-            AssertTokenizationValues (result, expectedValue);
+            AssertTokenizationValues(result, expectedValue);
         }
 
         [Test]
@@ -189,9 +189,9 @@ namespace MonitorTests
         }
 
         [Test]
-        public void DecimalTest()
+        public void FloatTest()
         {
-            var result = tokenizer.Tokenize("145.5 -.43 +45.");
+            var result = tokenizer.Tokenize("145.5 -0.43 +45.");
             AssertTokenizationTypes(result, typeof(FloatToken), typeof(FloatToken), typeof(FloatToken));
             AssertTokenizationValues(result, 145.5f, -0.43f, 45.0f);
         }
@@ -258,14 +258,10 @@ namespace MonitorTests
         {
             var tokens = result.Tokens.ToArray();
             Assert.AreEqual(tokens.Length, values.Length);
-            for(var i = 0; i < values.Length; ++i)
-            {
-                Assert.AreEqual(tokens[i].GetObjectValue(), values[i]);
-            }
+            CollectionAssert.AreEqual(values, tokens.Select(x => x.GetObjectValue()));
         }
 
         private Tokenizer tokenizer;
-
     }
 }
 

@@ -62,7 +62,7 @@
     <Compile Include="UserInterface\Tokenizer\Token.cs" />
     <Compile Include="UserInterface\Tokenizer\DecimalIntegerToken.cs" />
     <Compile Include="UserInterface\Tokenizer\CommentToken.cs" />
-    <Compile Include="UserInterface\Tokenizer\EqualToken.cs" />
+    <Compile Include="UserInterface\Tokenizer\EqualityToken.cs" />
     <Compile Include="UserInterface\Tokenizer\HexToken.cs" />
     <Compile Include="UserInterface\Tokenizer\PathToken.cs" />
     <Compile Include="UserInterface\Tokenizer\VariableToken.cs" />
