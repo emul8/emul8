@@ -43,7 +43,7 @@
   </Target>
 
   <Target Name="Compile" Inputs="@(InputFiles)" Outputs="@(ObjectFiles)" DependsOnTargets="_VerifyProperties">
-        <CCompilerTask CompilerPath="$(CompilerPath)" Parallel="false" Sources="@(CSources)" Flags="@(CompilationFlags)" ObjectFilesDirectory="$(ObjectFilesDirectory)"/>
+    <CCompilerTask CompilerPath="$(CompilerPath)" Parallel="false" Sources="@(CSources)" Flags="@(CompilationFlags)" ObjectFilesDirectory="$(ObjectFilesDirectory)"/>
   </Target>
 
   <Target Name="Build" Inputs="@(ObjectFiles)" Outputs="$(Output)" DependsOnTargets="Compile">

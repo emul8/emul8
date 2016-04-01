@@ -41,7 +41,7 @@ namespace Emul8.Bootstrap
                 Cleaner.Clean(options.OutputDirectory);
                 break;
             case Operation.GenerateSolution:
-                    HandleGenerateSolution(options.MainProject, options.BinariesDirectory, options.AdditionalProjects, options.OutputDirectory, options.GenerateEntryProject);
+                HandleGenerateSolution(options.MainProject, options.BinariesDirectory, options.AdditionalProjects, options.OutputDirectory, options.GenerateEntryProject);
                 break;
             case Operation.Scan:
                 HandleScan(options.Type, options.Directories);

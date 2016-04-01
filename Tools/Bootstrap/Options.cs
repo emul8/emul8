@@ -32,7 +32,7 @@ namespace Emul8.Bootstrap
         [Name("binaries-directory"), Description("Path to the directory where binaries compiled from generated project should be located"), DefaultValue("bin")]
         public string BinariesDirectory { get; set; }
 
-        [Name("generate-entry-project"), Description("Generates entry project. Cannot be used without setting `output` solution file."), DefaultValue(false)]
+        [Name("generate-entry-project"), Description("Generates entry project. Cannot be used without setting `output-directory`."), DefaultValue(false)]
         public bool GenerateEntryProject { get; set; }
         
         [PositionalArgument(0), DefaultValue(Operation.None)]
