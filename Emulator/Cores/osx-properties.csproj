@@ -4,5 +4,6 @@
   <HostWordSize>32</HostWordSize>
   <CompilerPath>/usr/local/bin/gcc-4.9</CompilerPath>
   <LinkerPath>/usr/local/bin/gcc-4.9</LinkerPath>
+  <CurrentPlatform>OSX</CurrentPlatform>
 </PropertyGroup>
 </Project>
