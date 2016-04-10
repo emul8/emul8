@@ -1007,7 +1007,6 @@ namespace Emul8.Peripherals.CPU
             }
         }
 
-
         public void WaitForStepDone()
         {
             stepDoneEvent.WaitOne();
@@ -1045,6 +1044,7 @@ namespace Emul8.Peripherals.CPU
             {
                 this.NoisyLog("Disposing translation library.");
             }
+            RemoveAllBreakpoints();
             TlibDispose();
             EmulFreeHostBlocks();
             binder.Dispose();
@@ -1283,6 +1283,16 @@ namespace Emul8.Peripherals.CPU
             {
                 cpu.TlibInvalidateTranslationBlocks(start, end);
             }
+        }
+
+        private void RemoveAllBreakpoints()
+        {
+            foreach(var breakpoint in breakpoints.Union(hooks.Select(x => x.Key)))
+            {
+                TlibRemoveBreakpoint(breakpoint);
+            }
+            breakpoints.Clear();
+            hooks.Clear();
         }
 
         #region Memory trampolines
