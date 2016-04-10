@@ -524,7 +524,7 @@ namespace Emul8.Core
                 }
             }
 
-            foreach(var peripheral in GetPeripheralsOfType<IDisposable>())
+            foreach(var peripheral in GetPeripheralsOfType<IDisposable>().OrderBy(x => x is ICPU ? 0 : 1))
             {
                 this.DebugLog("Disposing {0}.", GetAnyNameOrTypeName((IPeripheral)peripheral));
                 peripheral.Dispose();
