@@ -275,7 +275,7 @@ namespace Emul8.Core
                 return false;
             }
 
-            if(TryFindSubnodeByName(registeredPeripherals.GetNode(SystemBus), splitPath[1], out result, string.Empty, out longestMatch))
+            if(TryFindSubnodeByName(registeredPeripherals.GetNode(SystemBus), splitPath[1], out result, SystemBusName, out longestMatch))
             {
                 peripheral = (T)result.Value;
                 return true;
