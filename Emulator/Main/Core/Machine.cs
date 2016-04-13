@@ -25,6 +25,7 @@ using Emul8.Utilities;
 using Emul8.UserInterface;
 using Emul8.EventRecording;
 using System.IO;
+using System.Diagnostics;
 
 namespace Emul8.Core
 {
@@ -37,6 +38,7 @@ namespace Emul8.Core
             disposedSync = new object();
             hostTimeClockSource = new HostTimeClockSource();
             clockSourceWrapper = new ClockSourceWrapper(hostTimeClockSource, this);
+            stopwatch = new Stopwatch();
             localNames = new Dictionary<IPeripheral, string>();
             shelf = new PeripheralsShelf(this);
             PeripheralsGroups = new PeripheralsGroupsManager(this);
@@ -424,6 +426,7 @@ namespace Emul8.Core
                     Resume();
                     return;
                 }
+                stopwatch.Start();
                 machineStartedAt = CustomDateTime.Now;
                 foreach(var ownLife in ownLifes.OrderBy(x => x is ICPU ? 1 : 0))
                 {
@@ -443,6 +446,7 @@ namespace Emul8.Core
 
         public void Pause()
         {
+            stopwatch.Stop();
             lock(pausingSync)
             {
                 switch(state)
@@ -768,6 +772,14 @@ namespace Emul8.Core
             get
             {
                 return TimeSpan.FromMilliseconds(clockSourceWrapper.GetClockEntry(IndicatorForClockSource).Value);
+            }
+        }
+
+        public TimeSpan ElapsedHostTime
+        {
+            get
+            {
+                return stopwatch.Elapsed;
             }
         }
 
@@ -1174,6 +1186,7 @@ namespace Emul8.Core
 
         private void Resume()
         {
+            stopwatch.Start();
             lock(pausingSync)
             {
                 currentSynchronizer.RestoreSync();
@@ -1246,6 +1259,7 @@ namespace Emul8.Core
         private readonly HashSet<IHasOwnLife> ownLifes;
         private readonly PeripheralsShelf shelf;
         private readonly HostTimeClockSource hostTimeClockSource;
+        private readonly Stopwatch stopwatch;
         private readonly ClockSourceWrapper clockSourceWrapper;
         private readonly List<SynchronizedManagedThread> syncedManagedThreads;
         private readonly SortedSet<DelayedTask> delayedTasks;
