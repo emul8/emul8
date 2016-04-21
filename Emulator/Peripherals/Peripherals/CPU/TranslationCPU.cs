@@ -614,7 +614,10 @@ namespace Emul8.Peripherals.CPU
             {
                 UpdateContext();
             }
-            return machine.SystemBus.ReadByte(offset);
+            using(ObtainPauseGuard(true, offset))
+            {
+                return machine.SystemBus.ReadByte(offset);
+            }
         }
 
         [Export]
@@ -624,7 +627,10 @@ namespace Emul8.Peripherals.CPU
             {
                 UpdateContext();
             }
-            return machine.SystemBus.ReadWord(offset);
+            using(ObtainPauseGuard(true, offset))
+            {
+                return machine.SystemBus.ReadWord(offset);
+            }
         }
 
         [Export]
@@ -634,7 +640,10 @@ namespace Emul8.Peripherals.CPU
             {
                 UpdateContext();
             }
-            return machine.SystemBus.ReadDoubleWord(offset);
+            using(ObtainPauseGuard(true, offset))
+            {
+                return machine.SystemBus.ReadDoubleWord(offset);
+            }
         }
 
         [Export]
@@ -644,7 +653,7 @@ namespace Emul8.Peripherals.CPU
             {
                 UpdateContext();
             }
-            using(ObtainPauseGuard())
+            using(ObtainPauseGuard(false, offset))
             {
                 machine.SystemBus.WriteByte(offset, unchecked((byte)value));
             }
@@ -657,7 +666,7 @@ namespace Emul8.Peripherals.CPU
             {
                 UpdateContext();
             }
-            using(ObtainPauseGuard())
+            using(ObtainPauseGuard(false, offset))
             {
                 machine.SystemBus.WriteWord(offset, unchecked((ushort)value));
             }
@@ -670,7 +679,7 @@ namespace Emul8.Peripherals.CPU
             {
                 UpdateContext();
             }
-            using(ObtainPauseGuard())
+            using(ObtainPauseGuard(false, offset))
             {
                 machine.SystemBus.WriteDoubleWord(offset, value);
             }
@@ -1307,9 +1316,9 @@ namespace Emul8.Peripherals.CPU
             hooks.Clear();
         }
 
-        private CpuThreadPauseGuard ObtainPauseGuard()
+        private CpuThreadPauseGuard ObtainPauseGuard(bool forReading, long address)
         {
-            pauseGuard.Initialize();
+            pauseGuard.Initialize(forReading, address);
             return pauseGuard;
         }
 
@@ -1439,13 +1448,32 @@ namespace Emul8.Peripherals.CPU
             public CpuThreadPauseGuard(TranslationCPU parent)
             {
                 guard = new ThreadLocal<object>();
-                pauseOrdered = new ThreadLocal<bool>();
+                blockRestartReached = new ThreadLocal<bool>();
                 this.parent = parent;
             }
 
-            public void Initialize()
+            public void Initialize(bool forReading, long address)
             {
                 guard.Value = new object();
+                if(parent.machine.SystemBus.IsWatchpointAt(address, forReading ? Access.Read : Access.Write))
+                {
+                    /*
+                     *  The idea here is as follows:
+                     *  - first time we reach this point we know that the currently executed instruction can result in a pause during watchpoint hook
+                     *  - we restart (recompile) the current translation block so that it will contain only currently executed instruction
+                     *  - then we reach this point again, this time doing nothing; pause will happen just after execution
+                     */
+                    var wasReached = blockRestartReached.Value;
+                    blockRestartReached.Value = true;
+                    if(!wasReached)
+                    {
+                        // we're here for the first time
+                        parent.TlibRestartTranslationBlock();
+                        // note that on the line below we effectively exit the function so the stuff below is not executed
+                    }
+                    // since the translation block is now short, we can simply continue
+                    blockRestartReached.Value = false;
+                }
             }
 
             public void OrderPause()
@@ -1454,23 +1482,15 @@ namespace Emul8.Peripherals.CPU
                 {
                     throw new InvalidOperationException("Trying to order pause without prior guard initialization on this thread.");
                 }
-                pauseOrdered.Value = true;
             }
 
             void IDisposable.Dispose()
             {
-                guard.Value = null;
-                if(!pauseOrdered.Value)
-                {
-                    return;
-                }
-                pauseOrdered.Value = false;
-                parent.TlibStopExecution();
-                
+                guard.Value = null;                
             }
 
             private readonly ThreadLocal<object> guard;
-            private readonly ThreadLocal<bool> pauseOrdered;
+            private readonly ThreadLocal<bool> blockRestartReached;
             private readonly TranslationCPU parent;
         }
 
@@ -1633,7 +1653,7 @@ namespace Emul8.Peripherals.CPU
         private Action TlibExecute;
 
         [Import]
-        protected Action TlibStopExecution;
+        protected Action TlibRestartTranslationBlock;
 
         [Import]
         private Action TlibSetPaused;
