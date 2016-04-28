@@ -2,7 +2,7 @@
 # STM32F429 Cortex-M4 template script
 #
 
-machine LoadPeripherals @platforms/cpus/stm32f7.json
+machine LoadPeripherals @platforms/cpus/stm32f746.json
 
 sysbus Tag <0x40023808, 0x40023809> "RCC_CFGR" 0x0019940A
 
