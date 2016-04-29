@@ -21,7 +21,7 @@
         "address":0x20000000,
       },
     },
-    "size":0x00040000
+    "size":0x60000
   },
   "flash":
   {
@@ -50,7 +50,7 @@
       "nvic":[37]
     }
   },
-  "can0":
+  "can1":
   {
     "_type":"CAN.STMCAN",
     "_connection":
@@ -90,7 +90,7 @@
       "cpu":
       {
         "_type":"CPU.CortexM",
-        "cpuType":"cortex-m4",
+        "cpuType":"cortex-m7",
         "nvic":"nvic",
         "_connection": "sysbus",
       }
