@@ -1,15 +1,26 @@
 System requirements
 ===================
 
-Emul8 runs in the *mono* framework. It was specifically tested on Ubuntu 14.04, but should run on most of popular Linux distributions.
+Emul8 runs in the portable *mono* framework. It was specifically tested on Mac and Ubuntu 14.04, but should also run on most of popular Linux distributions.
+
+Prerequisites (Mac)
+-------------------
+
+The installation procedure on Mac is fairly straightforward, as you can use `an official 4.2.3 Mono release <http://download.mono-project.com/archive/4.2.3/macos-10-x86/MonoFramework-MDK-4.2.3.4.macos10.xamarin.x86.pkg>`_.
+
+If not already present, install `homebrew <http://brew.sh/>`_ and then:: 
+
+   brew install binutils gnu-sed coreutils gcc49 dialog
+
+Some less frequently used features (*tun* networking, advanced logger etc.) will not yet work on a Mac, but Emul8 can easily be used without them. 
+
+Prerequisites (Linux)
+---------------------
 
 In order to run the Emul8 framework, a specific version of *mono* is required.
 As we use a development version from the mainline *mono* git repository, it is necessary to build it from source.
 
 Our current fixed version of *mono* is: **37f2657ac778d3934a1b3245076849816ff9e6f9**.
-
-Prerequisites
--------------
 
 Before you start the build procedure make sure that the following components are installed in your system (Ubuntu/Debian package names are given in brackets):
 
@@ -27,8 +38,8 @@ Before you start the build procedure make sure that the following components are
 
 Instead of *gksudo* you may have *beesu* or *kdesudo*.
 
-Guidelines for building *mono*
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Guidelines for building *mono* (Linux)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. note::
 
@@ -39,7 +50,7 @@ Guidelines for building *mono*
 
    ``whereis mono``
 
-#. Clone the *mono* repository from *github* using command:
+#. Clone the *mono* repository from *github* using:
 
    ``git clone https://github.com/mono/mono``
 
@@ -93,4 +104,5 @@ Guidelines for building *mono*
 		Misc:          softdebug 
 		LLVM:          supported, not enabled.
 		GC:            sgen
+
 
