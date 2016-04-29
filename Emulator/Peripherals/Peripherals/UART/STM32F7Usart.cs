@@ -23,19 +23,28 @@ namespace Emul8.Peripherals.UART
             receiveQueue = new Queue<byte>();
 
             var controlRegister1 = new DoubleWordRegister(this);
-            enabled = controlRegister1.DefineFlagField(0);
-            receiveEnabled = controlRegister1.DefineFlagField(2);
-            transmitEnabled = controlRegister1.DefineFlagField(3);
-            receiveInterruptEnabled = controlRegister1.DefineFlagField(5);
+            enabled = controlRegister1.DefineFlagField(0, name: "UE");
+            receiveEnabled = controlRegister1.DefineFlagField(2, name: "RE");
+            transmitEnabled = controlRegister1.DefineFlagField(3, name: "TE");
+            receiveInterruptEnabled = controlRegister1.DefineFlagField(5, name: "RXNEIE");
+            transmitQueueEmptyInterruptEnabled = controlRegister1.DefineFlagField(7, name: "TXEIE", writeCallback: delegate { RefreshInterrupt(); } );
+            controlRegister1.DefineFlagField(8, name: "PEIE");
+            paritySelection = controlRegister1.DefineFlagField(9, name: "PS");
+            parityControlEnabled = controlRegister1.DefineFlagField(10, name: "PCE");
+
+            var controlRegister2 = new DoubleWordRegister(this);
+            stopBits = controlRegister2.DefineValueField(12, 2);
 
             registers = new DoubleWordRegisterCollection(this, new Dictionary<long, DoubleWordRegister> {
                 { (long)Register.ControlRegister1, controlRegister1 },
-                { (long)Register.ControlRegister2, new DoubleWordRegister(this) },
+                { (long)Register.ControlRegister2, controlRegister2 },
                 { (long)Register.ControlRegister3, new DoubleWordRegister(this).WithFlag(0) },
                 { (long)Register.InterruptAndStatus, new DoubleWordRegister(this, 0x200000C0)
                         .WithFlag(5, FieldMode.Read, name: "RXNE", valueProviderCallback: delegate { return receiveQueue.Count > 0; })
                         .WithFlag(6, FieldMode.Read, name: "TC").WithFlag(7, FieldMode.Read, name: "TXE")
-                        .WithValueField(22, 9, FieldMode.Read, name: "Reserved") }
+                        .WithFlag(21, FieldMode.Read, name: "TEACK", valueProviderCallback: delegate { return transmitEnabled.Value; })
+                        .WithFlag(22, FieldMode.Read, name: "REACK", valueProviderCallback: delegate { return receiveEnabled.Value; })
+                        .WithValueField(23, 8, FieldMode.Read, name: "Reserved") }
             });
             registers.Reset();
         }
@@ -69,10 +78,7 @@ namespace Emul8.Peripherals.UART
                     HandleTransmitData(value);
                     break;
                 default:
-                    if(offset != 0x1C)
-                    {
-                        registers.Write(offset, value);
-                    }
+                    registers.Write(offset, value);
                     break;
                 }
             }
@@ -100,7 +106,19 @@ namespace Emul8.Peripherals.UART
         {
             get
             {
-                throw new NotImplementedException();
+                switch(stopBits.Value)
+                {
+                case 0:
+                    return Bits.One;
+                case 1:
+                    return Bits.Half;
+                case 2:
+                    return Bits.Two;
+                case 3:
+                    return Bits.OneAndAHalf;
+                default:
+                    throw new InvalidOperationException("Should not reach here.");
+                }
             }
         }
 
@@ -108,7 +126,11 @@ namespace Emul8.Peripherals.UART
         {
             get
             {
-                throw new NotImplementedException();
+                if(!parityControlEnabled.Value)
+                {
+                    return Parity.None;
+                }
+                return paritySelection.Value ? Parity.Odd : Parity.Even;
             }
         }
 
@@ -131,10 +153,7 @@ namespace Emul8.Peripherals.UART
                 if(receiveEnabled.Value && enabled.Value)
                 {
                     receiveQueue.Enqueue(value);
-                    if(receiveInterruptEnabled.Value)
-                    {
-                        IRQ.Set();
-                    }
+                    RefreshInterrupt();
                 }
                 else
                 {
@@ -159,18 +178,31 @@ namespace Emul8.Peripherals.UART
         private uint HandleReceiveData()
         {
             var result = receiveQueue.Dequeue();
-            if(receiveInterruptEnabled.Value)
-            {
-                IRQ.Set(receiveQueue.Count > 0);
-            }
+            RefreshInterrupt();
             return result;
         }
 
+        private void RefreshInterrupt()
+        {
+            if(transmitQueueEmptyInterruptEnabled.Value)
+            {
+                IRQ.Set();
+            }
+            else if(receiveInterruptEnabled.Value)
+            {
+                IRQ.Set(receiveQueue.Count > 0);
+            }
+        }
+
         private uint baudRateDivisor;
+        private readonly IFlagRegisterField parityControlEnabled;
+        private readonly IFlagRegisterField paritySelection;
+        private readonly IFlagRegisterField transmitQueueEmptyInterruptEnabled;
         private readonly IFlagRegisterField receiveInterruptEnabled;
         private readonly IFlagRegisterField transmitEnabled;
         private readonly IFlagRegisterField receiveEnabled;
         private readonly IFlagRegisterField enabled;
+        private readonly IValueRegisterField stopBits;
         private readonly Queue<byte> receiveQueue;
         private readonly Machine machine;
         private readonly DoubleWordRegisterCollection registers;
