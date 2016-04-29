@@ -20,8 +20,17 @@ Supported architectures
 Installation
 ------------
 
-Prerequisties
-+++++++++++++
+Prerequisites (Mac)
++++++++++++++++++++
+
+The installation procedure on Mac is fairly straightforward, as you can use `an official 4.2.3 Mono release <http://download.mono-project.com/archive/4.2.3/macos-10-x86/MonoFramework-MDK-4.2.3.4.macos10.xamarin.x86.pkg>`_.
+
+If not already present, install `homebrew <http://brew.sh/>`_ and then:: 
+
+   brew install binutils gnu-sed coreutils gcc49 dialog
+
+Prerequisties (Linux)
++++++++++++++++++++++
 
 The package names for prerequisites are given for Ubuntu 14.04 (please adjust those w/r to your distribution and version)::
 
@@ -139,4 +148,5 @@ Contributing
 
 Contributions can be made using the GitHub pull requests mechanism and are very welcome!
 For details, see the *CONTRIBUTING* file.
+
 
