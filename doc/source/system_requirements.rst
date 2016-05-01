@@ -35,6 +35,7 @@ Before you start the build procedure make sure that the following components are
 * *libgtk* (``libgtk2.0-dev``)
 * *dialog* (``dialog``)
 * *screen* (``screen``)
+* *realpath* (``realpath``)
 * *tun* kernel module for guest-host networking
 * *xterm* or *gnome-terminal* or *putty* for window-based terminal analyzers
 

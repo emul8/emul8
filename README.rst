@@ -34,7 +34,7 @@ Prerequisites (Linux)
 
 The package names for prerequisites are given for Ubuntu 14.04 (please adjust those w/r to your distribution and version)::
 
-   sudo apt-get install git mono-complete automake autoconf libtool g++ \
+   sudo apt-get install git mono-complete automake autoconf libtool g++ realpath \
                         libvte0.16-cil-dev gksu libgtk2.0-dev dialog screen
 
 .. note::
