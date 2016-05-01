@@ -25,17 +25,17 @@ Prerequisites (Mac)
 
 The installation procedure on Mac is fairly straightforward, as you can use `an official 4.2.3 Mono release <http://download.mono-project.com/archive/4.2.3/macos-10-x86/MonoFramework-MDK-4.2.3.4.macos10.xamarin.x86.pkg>`_.
 
-If not already present, install `homebrew <http://brew.sh/>`_ and then:: 
+If not already present, install `homebrew <http://brew.sh/>`_ and then::
 
-   brew install binutils gnu-sed coreutils gcc49 dialog
+   brew install binutils gnu-sed coreutils homebrew/versions/gcc49 dialog
 
-Prerequisties (Linux)
+Prerequisites (Linux)
 +++++++++++++++++++++
 
 The package names for prerequisites are given for Ubuntu 14.04 (please adjust those w/r to your distribution and version)::
 
    sudo apt-get install git mono-complete automake autoconf libtool g++ \
-                        libvte0.16-cil-dev gksu libgtk2.0-dev
+                        libvte0.16-cil-dev gksu libgtk2.0-dev dialog screen
 
 .. note::
 
@@ -43,10 +43,10 @@ The package names for prerequisites are given for Ubuntu 14.04 (please adjust th
 
 If you want to modify or extend the source code of Emul8, it is recommended to install the *MonoDevelop* IDE.
 
-Mono
-~~~~
+Mono (Linux)
+~~~~~~~~~~~~
 
-Emul8 requires a specific version of Mono compiled from source::
+Emul8 requires a specific version of Mono compiled from source if running on Linux::
 
    git clone https://github.com/mono/mono.git
    cd mono
