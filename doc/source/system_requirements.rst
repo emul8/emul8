@@ -10,7 +10,7 @@ The installation procedure on Mac is fairly straightforward, as you can use `an 
 
 If not already present, install `homebrew <http://brew.sh/>`_ and then:: 
 
-   brew install binutils gnu-sed coreutils gcc49 dialog
+   brew install binutils gnu-sed coreutils homebrew/versions/gcc49 dialog
 
 Some less frequently used features (*tun* networking, advanced logger etc.) will not yet work on a Mac, but Emul8 can easily be used without them. 
 
@@ -33,6 +33,8 @@ Before you start the build procedure make sure that the following components are
 * *vte-sharp* (``libvte0.16-cil-dev``)
 * *gksudo* (``gksu``)
 * *libgtk* (``libgtk2.0-dev``)
+* *dialog* (``dialog``)
+* *screen* (``screen``)
 * *tun* kernel module for guest-host networking
 * *xterm* or *gnome-terminal* or *putty* for window-based terminal analyzers
 
