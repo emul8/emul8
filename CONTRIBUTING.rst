@@ -10,6 +10,8 @@ Issues
 
 Issues in the Emul8 project are tracked in the `Github issues system <https://github.com/emul8/emul8/issues>`_.
 
+We also use an internal issue tracker, so it is possible that some referenced issues are not publicly available.
+
 Please create an issue also if you plan to fix it (instead of creating a merge request directly - see below).
 
 If you are reporting a bug, in the description of the issue try to focus on clearly stating the steps necessary to reproduce the problem - this will make it easier to trace and fix the bug and prevent unnecessary frustration and delays.
@@ -68,6 +70,7 @@ Here is a proposed format of the commit message:
    a blank line).
 
 ``#1234`` is obviously the number of the Github issue that describes the problem you're trying to fix.
+As we use an internal issue tracker, you may observe that some issue numbers (over #5000) are not pointing to any Github issue.
 
 Then comes the (optional) category.
 
