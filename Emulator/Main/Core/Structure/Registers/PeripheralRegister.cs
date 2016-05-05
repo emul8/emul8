@@ -281,6 +281,7 @@ namespace Emul8.Core.Structure.Registers
             this.parent = parent;
             this.MaxRegisterLength = maxLength;
             this.resetValue = resetValue;
+            Reset();
         }
 
         protected uint ReadInner()
