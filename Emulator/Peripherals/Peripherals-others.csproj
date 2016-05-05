@@ -151,6 +151,7 @@
     <Compile Include="Peripherals\UART\STM32F7_USART.cs" />
     <Compile Include="Peripherals\DMA\Dma2DColorMode.cs" />
     <Compile Include="Peripherals\DMA\Stm32Dma2D.cs" />
+    <Compile Include="Peripherals\Video\STM32LTDC.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
