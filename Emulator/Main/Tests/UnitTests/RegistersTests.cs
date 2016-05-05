@@ -163,21 +163,21 @@ namespace Emul8.UnitTests
         public void ShouldWriteBoolField()
         {
             flagRWField.Value = true;
-            Assert.AreEqual(1 << 2, register.Read());
+            Assert.AreEqual(1 << 2 | RegisterResetValue, register.Read());
         }
 
         [Test]
         public void ShouldWriteEnumField()
         {
             enumRWField.Value = TwoBitEnum.D;
-            Assert.AreEqual((uint)TwoBitEnum.D, register.Read());
+            Assert.AreEqual((uint)TwoBitEnum.D | RegisterResetValue, register.Read());
         }
 
         [Test]
         public void ShouldWriteValueField()
         {
             valueRWField.Value = 11;
-            Assert.AreEqual(88, register.Read());
+            Assert.AreEqual(88 | RegisterResetValue, register.Read());
         }
 
         [Test]
@@ -198,14 +198,14 @@ namespace Emul8.UnitTests
         public void ShouldNotReadUnreadableField()
         {
             flagWField.Value = true;
-            Assert.AreEqual(0, register.Read());
+            Assert.AreEqual(RegisterResetValue, register.Read());
         }
 
         [Test]
         public void ShouldWriteZeroToClear()
         {
             flagW0CField.Value = true;
-            Assert.AreEqual(1 << 18, register.Read());
+            Assert.AreEqual(1 << 18 | RegisterResetValue, register.Read());
             register.Write(0);
             Assert.AreEqual(false, flagW0CField.Value);
             Assert.AreEqual(0, register.Read());
@@ -215,7 +215,7 @@ namespace Emul8.UnitTests
         public void ShouldWriteOneToClear()
         {
             flagW1CField.Value = true;
-            Assert.AreEqual(1 << 17, register.Read());
+            Assert.AreEqual(1 << 17 | RegisterResetValue, register.Read());
             register.Write(1 << 17);
             Assert.AreEqual(false, flagW0CField.Value);
             Assert.AreEqual(0, register.Read());
@@ -225,7 +225,7 @@ namespace Emul8.UnitTests
         public void ShouldReadToClear()
         {
             flagWRTCField.Value = true;
-            Assert.AreEqual(1 << 19, register.Read());
+            Assert.AreEqual(1 << 19 | RegisterResetValue, register.Read());
             Assert.AreEqual(false, flagWRTCField.Value);
         }
 
@@ -260,15 +260,15 @@ namespace Emul8.UnitTests
             Assert.AreEqual(0, enumCallbacks);
             Assert.AreEqual(0, boolCallbacks);
             Assert.AreEqual(0, numberCallbacks);
-            register.Write(0x2880);
+            register.Write(0x2A80);
             //Two calls for changed registers, 1 call for unchanged register
             Assert.AreEqual(2, enumCallbacks);
             Assert.AreEqual(1, boolCallbacks);
             Assert.AreEqual(2, numberCallbacks);
 
             Assert.IsTrue(oldBoolValue == newBoolValue);
-            Assert.IsTrue(oldEnumValue == TwoBitEnum.A && newEnumValue == TwoBitEnum.B);
-            Assert.IsTrue(oldUintValue == 0);
+            Assert.IsTrue(oldEnumValue == TwoBitEnum.D && newEnumValue == TwoBitEnum.B);
+            Assert.IsTrue(oldUintValue == 13);
             Assert.IsTrue(newUintValue == 10);
         }
 
@@ -302,7 +302,7 @@ namespace Emul8.UnitTests
         [SetUp]
         public void SetUp()
         {
-            register = new DoubleWordRegister(null, 0x3780u);
+            register = new DoubleWordRegister(null, RegisterResetValue);
             enumRWField = register.DefineEnumField<TwoBitEnum>(0, 2);
             flagRWField = register.DefineFlagField(2);
             valueRWField = register.DefineValueField(3, 4);
@@ -451,6 +451,8 @@ namespace Emul8.UnitTests
         private IFlagRegisterField flagWRTCField;
         private IFlagRegisterField flagWField;
         private IFlagRegisterField flagRField;
+
+        private const uint RegisterResetValue = 0x3780u;
 
         private enum TwoBitEnum
         {
