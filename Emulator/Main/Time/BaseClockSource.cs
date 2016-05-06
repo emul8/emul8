@@ -240,7 +240,7 @@ namespace Emul8.Time
                 entry = entry.With(enabled: entry.Enabled & (entry.WorkMode != WorkMode.OneShot));
             }
 
-            nearestTickIn = Math.Min(nearestTickIn, entry.Value * -entry.Ratio);
+            nearestTickIn = Math.Min(nearestTickIn, entry.Value * -entry.Ratio + entry.ValueResiduum);
             return flag;
         }
 
@@ -276,7 +276,7 @@ namespace Emul8.Time
                 entry = entry.With(enabled: entry.Enabled & (entry.WorkMode != WorkMode.OneShot));
             }
 
-            nearestTickIn = Math.Min(nearestTickIn, (entry.Period - entry.Value) * -entry.Ratio);
+            nearestTickIn = Math.Min(nearestTickIn, ((entry.Period - entry.Value) * -entry.Ratio) - entry.ValueResiduum);
             return flag;
         }
 
