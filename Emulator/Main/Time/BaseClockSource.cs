@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Antmicro.Migrant;
+using Emul8.Logging;
 
 namespace Emul8.Time
 {
@@ -37,6 +38,23 @@ namespace Emul8.Time
         }
 
         public void Advance(long ticks, bool immediately = false)
+        {
+            lock(sync)
+            {
+                if(ticks > nearestTickIn)
+                {
+                    var left = ticks - nearestTickIn;
+                    AdvanceInner(nearestTickIn, immediately);
+                    Advance(left, immediately);
+                }
+                else
+                {
+                    AdvanceInner(ticks, immediately);
+                }
+            }
+        }
+
+        public void AdvanceInner(long ticks, bool immediately)
         {
             lock(sync)
             {
@@ -291,7 +309,7 @@ namespace Emul8.Time
 
         private void UpdateLimits()
         {
-            Advance(0, true);
+            AdvanceInner(0, true);
         }
 
         private void Update(long ticks)
