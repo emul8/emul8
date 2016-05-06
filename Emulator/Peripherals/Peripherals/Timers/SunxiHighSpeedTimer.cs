@@ -77,11 +77,11 @@ namespace Emul8.Peripherals.Timers
             switch(offsetPerTimer)
             {
             case Registers.IRQEnable:
-                irqEnableRegister.Write(value);
+                irqEnableRegister.Write(offset, value);
                 Update();
                 break;
             case Registers.IRQStatus:
-                irqStatusRegister.Write(value);
+                irqStatusRegister.Write(offset, value);
                 Update();
                 break;
             case Registers.Control:
@@ -257,7 +257,7 @@ namespace Emul8.Peripherals.Timers
                 }
                 set
                 {
-                    controlRegister.Write(value);
+                    controlRegister.Write((long)Registers.Control, value);
                 }
             }
 

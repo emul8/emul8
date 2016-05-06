@@ -161,7 +161,7 @@ namespace Emul8.Peripherals.Timers
                 }
                 set
                 {
-                    controlRegister.Write(value);
+                    controlRegister.Write((long)Registers.VirtualTimerControl, value);
                 }
             }
 

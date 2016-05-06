@@ -53,7 +53,7 @@ namespace Emul8.Peripherals.Timers
             switch((Registers)offset)
             {
             case Registers.Control:
-                controlRegister.Write(value);
+                controlRegister.Write(offset, value);
                 break;
             case Registers.Counter1:
                 Value = (Value & 0x7FFFFFFF00000000) | value;

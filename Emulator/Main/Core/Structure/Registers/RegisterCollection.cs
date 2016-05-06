@@ -69,7 +69,7 @@ namespace Emul8.Core.Structure.Registers
         {
             if(!TryWrite(offset, value))
             {                
-                parent.LogUnhandledRead(offset);
+                parent.LogUnhandledWrite(offset, value);
             }
         }
 
@@ -84,7 +84,7 @@ namespace Emul8.Core.Structure.Registers
             DoubleWordRegister register;
             if(registers.TryGetValue(offset, out register))
             {
-                register.Write(value);
+                register.Write(offset, value);
                 return true;
             }
             parent.LogUnhandledWrite(offset, value);
@@ -179,7 +179,7 @@ namespace Emul8.Core.Structure.Registers
             WordRegister register;
             if(registers.TryGetValue(offset, out register))
             {
-                register.Write(value);
+                register.Write(offset, value);
                 return true;
             }
             parent.LogUnhandledWrite(offset, value);
@@ -274,7 +274,7 @@ namespace Emul8.Core.Structure.Registers
             ByteRegister register;
             if(registers.TryGetValue(offset, out register))
             {
-                register.Write(value);
+                register.Write(offset, value);
                 return true;
             }
             parent.LogUnhandledWrite(offset, value);

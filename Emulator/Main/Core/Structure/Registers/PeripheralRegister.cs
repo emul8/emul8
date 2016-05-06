@@ -48,9 +48,9 @@ namespace Emul8.Core.Structure.Registers
         /// <summary>
         /// Writes the given value to writeable fields. All FieldMode values are interpreted and callbacks are executed where applicable.
         /// </summary>
-        public void Write(uint value)
+        public void Write(long offset, uint value)
         {
-            WriteInner(value);
+            WriteInner(offset, value);
         }
 
         /// <summary>
@@ -99,9 +99,9 @@ namespace Emul8.Core.Structure.Registers
         /// <summary>
         /// Writes the given value to writeable fields. All FieldMode values are interpreted and callbacks are executed where applicable.
         /// </summary>
-        public void Write(ushort value)
+        public void Write(long offset, ushort value)
         {
-            WriteInner(value);
+            WriteInner(offset, value);
         }
 
         /// <summary>
@@ -150,9 +150,9 @@ namespace Emul8.Core.Structure.Registers
         /// <summary>
         /// Writes the given value to writeable fields. All FieldMode values are interpreted and callbacks are executed where applicable.
         /// </summary>
-        public void Write(byte value)
+        public void Write(long offset, byte value)
         {
-            WriteInner(value);
+            WriteInner(offset, value);
         }
 
         /// <summary>
@@ -317,7 +317,7 @@ namespace Emul8.Core.Structure.Registers
             return valueToRead;
         }
 
-        protected void WriteInner(uint value)
+        protected void WriteInner(long offset, uint value)
         {
             var baseValue = UnderlyingValue;
             var difference = UnderlyingValue ^ value;
@@ -377,7 +377,7 @@ namespace Emul8.Core.Structure.Registers
             var unhandledWrites = value & ~definedFieldsMask;
             if(unhandledWrites != 0)
             {
-                parent.Log(LogLevel.Warning, TagLogger(unhandledWrites));
+                parent.Log(LogLevel.Warning, TagLogger(offset, unhandledWrites, value));
             }
         }
 
@@ -388,14 +388,19 @@ namespace Emul8.Core.Structure.Registers
         /// <summary>
         /// Returns information about tag writes. Extracted as a method to allow future lazy evaluation.
         /// </summary>
-        /// <param name="value">The whole register value.</param>
-        private string TagLogger(uint value)
+        /// <param name="offset">The offset of the affected register.</param>
+        /// <param name="value">Unhandled value.</param>
+        /// <param name="originalValue">The whole value written to the register.</param>
+        private string TagLogger(long offset, uint value, uint originalValue)
         {
-            return "Unhandled writes: 0x{1:X}. Tags: {0}."
-                .FormatWith(
-                tags.Select(x => new {Name = x.Name, Value = BitHelper.GetValue(value, x.Position, x.Width)})
-                    .Where(x => x.Value != 0).Select(x => "{0} (0x{1:X})".FormatWith(x.Name, x.Value)).Stringify(", "),
-                value);
+            var tagsAffected = tags.Select(x => new {Name = x.Name, Value = BitHelper.GetValue(value, x.Position, x.Width)})
+                .Where(x => x.Value != 0);
+            return "Unhandled write to offset 0x{2}. Unhandled bits: [{1}] when writing  value 0x{3}.{0}"
+                .FormatWith(tagsAffected.Any() ? " Tags: {0}.".FormatWith(
+                    tagsAffected.Select(x => "{0} (0x{1:X})".FormatWith(x.Name, x.Value)).Stringify(", ")) : String.Empty,
+                    BitHelper.GetSetBitsPretty(value),
+                    offset,
+                    originalValue);
         }
 
         private void ThrowIfRangeIllegal(int position, int width, string name)
