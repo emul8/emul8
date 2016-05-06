@@ -78,10 +78,10 @@ namespace Emul8.Peripherals.SD
                 ByteCount = (int)value;
                 break;
             case Registers.CommandRegister:
-                commandRegister.Write(value);
+                commandRegister.Write(offset, value);
                 break;
             case Registers.DmacStatus:
-                dmacStatusRegister.Write(value);
+                dmacStatusRegister.Write(offset, value);
                 break;
             default:
                 generalRegisters.Write(offset, value);
