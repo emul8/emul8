@@ -218,7 +218,7 @@ namespace Emul8.Peripherals.Video
                 windowVerticalStopPositionField = windowVerticalPositionConfigurationRegister.DefineValueField(16, 12, FieldMode.Read | FieldMode.Write, name: "WVSPPOS", writeCallback: (_, __) => video.HandlePositionConfigurationChange(i));
 
                 pixelFormatConfigurationRegister = new DoubleWordRegister(video);
-                pixelFormatField = pixelFormatConfigurationRegister.DefineEnumField<Dma2DColorMode>(0, 3, FieldMode.Read | FieldMode.Write, name: "PF", writeCallback: (_, __) => { video.RestoreBuffer(i); video.HandlePixelFormatChange(); });
+                pixelFormatField = pixelFormatConfigurationRegister.DefineEnumField<DMA2DColorMode>(0, 3, FieldMode.Read | FieldMode.Write, name: "PF", writeCallback: (_, __) => { video.RestoreBuffer(i); video.HandlePixelFormatChange(); });
 
                 constantAlphaConfigurationRegister = new DoubleWordRegister(video, 0xFF).WithValueField(0, 8, FieldMode.Read | FieldMode.Write, name: "CONSTA");
 
@@ -235,7 +235,7 @@ namespace Emul8.Peripherals.Video
             public IFlagRegisterField layerEnableFlag;
 
             public DoubleWordRegister pixelFormatConfigurationRegister;
-            public IEnumRegisterField<Dma2DColorMode> pixelFormatField;
+            public IEnumRegisterField<DMA2DColorMode> pixelFormatField;
 
             public DoubleWordRegister constantAlphaConfigurationRegister;
 

@@ -10,7 +10,7 @@ using Emul8.Backends.Display;
 
 namespace Emul8.Peripherals.DMA
 {
-    internal enum Dma2DColorMode
+    internal enum DMA2DColorMode
     {
         ARGB8888,
         RGB888,
@@ -27,7 +27,7 @@ namespace Emul8.Peripherals.DMA
 
     internal static class Dma2DColorModeExtensions
     {
-        public static PixelFormat ToPixelFormat(this Dma2DColorMode mode)
+        public static PixelFormat ToPixelFormat(this DMA2DColorMode mode)
         {
             return (PixelFormat)Enum.Parse(typeof(PixelFormat), mode.ToString());
         }
