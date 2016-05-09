@@ -28,13 +28,18 @@ namespace Emul8.Launcher
             return descriptors.SingleOrDefault(x => x.AssemblyConfiguration == configuration);
         }
 
-        public void GenerateSwitches(OptionsParser optionsParser)
+        public void GenerateSwitches(OptionsParser optionsParser, bool defaultOption = false)
         {
             // here we assume that all descriptors from `descriptors` array
             // have the same basic attributes (name, description, switches, etc.)
             // they should differ only in configuration and path
             SwitchOption = optionsParser.WithOption<bool>(descriptors[0].ShortSwitch ?? Tokenizer.NullCharacter, descriptors[0].LongSwitch);
             SwitchOption.Description = descriptors[0].Description;
+
+            if(defaultOption) 
+            {
+                SwitchOption.Description += " (default)";
+            }
 
             if(descriptors[0].ProvidesHelp)
             {

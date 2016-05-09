@@ -17,7 +17,7 @@ namespace Emul8.Launcher
 
     public class Options : BasicOptions, IValidatedOptions
     {
-        [Name('d', "debug"), Description("Use non-optimized, debugabble version.")]
+        [Name('d', "debug"), Description("Use non-optimized, debuggable version.")]
         public bool Debug { get; set; }
 
         [Description("Do not output errors on console.")]
