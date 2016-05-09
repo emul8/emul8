@@ -38,7 +38,7 @@ namespace Emul8.Peripherals.UART
             registers = new DoubleWordRegisterCollection(this, new Dictionary<long, DoubleWordRegister> {
                 { (long)Register.ControlRegister1, controlRegister1 },
                 { (long)Register.ControlRegister2, controlRegister2 },
-                { (long)Register.ControlRegister3, new DoubleWordRegister(this).WithFlag(0) },
+                { (long)Register.ControlRegister3, new DoubleWordRegister(this).WithFlag(0, name: "EIE") },
                 { (long)Register.InterruptAndStatus, new DoubleWordRegister(this, 0x200000C0)
                         .WithFlag(5, FieldMode.Read, name: "RXNE", valueProviderCallback: delegate { return receiveQueue.Count > 0; })
                         .WithFlag(6, FieldMode.Read, name: "TC").WithFlag(7, FieldMode.Read, name: "TXE")
@@ -167,7 +167,10 @@ namespace Emul8.Peripherals.UART
             if(transmitEnabled.Value && enabled.Value)
             {
                 var charReceived = CharReceived;
-                charReceived((byte)value);
+                if(charReceived != null)
+                {
+                    charReceived((byte)value);
+                }
             }
             else
             {
@@ -191,6 +194,10 @@ namespace Emul8.Peripherals.UART
             else if(receiveInterruptEnabled.Value)
             {
                 IRQ.Set(receiveQueue.Count > 0);
+            }
+            else
+            {
+                IRQ.Unset();
             }
         }
 

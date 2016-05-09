@@ -1,5 +1,5 @@
 #
-# STM32F429 Cortex-M4 template script
+# STM32F429 Cortex-M7 template script
 #
 
 machine LoadPeripherals @platforms/cpus/stm32f746.json
