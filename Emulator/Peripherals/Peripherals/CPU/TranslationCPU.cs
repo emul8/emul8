@@ -756,7 +756,6 @@ namespace Emul8.Peripherals.CPU
 
             while(true)
             {
-                
                 string info = string.Empty;
 
                 if(LogTranslationBlockFetch)
@@ -1458,10 +1457,14 @@ namespace Emul8.Peripherals.CPU
                 if(parent.machine.SystemBus.IsWatchpointAt(address, forReading ? Access.Read : Access.Write))
                 {
                     /*
-                     *  The idea here is as follows:
-                     *  - first time we reach this point we know that the currently executed instruction can result in a pause during watchpoint hook
-                     *  - we restart (recompile) the current translation block so that it will contain only currently executed instruction
-                     *  - then we reach this point again, this time doing nothing; pause will happen just after execution
+                     * In general precise pause works as follows:
+                     * - translation libraries execute an instruction that reads/writes to/from memory
+                     * - the execution is then transferred to the system bus (to process memory access)
+                     * - we check whether the accessed address can contain hook (IsWatchpointAt)
+                     * - if it can, we invalidate the block and issue retranslation of the code at current PC - but limiting block size to 1 instruction
+                     * - we exit the cpu loop so that newly translated block will be executed now
+                     * - because the mentioned memory access is executed again, we reach this point for the second time
+                     * - but now we can simply do nothing; because the executed block is of size 1, the pause will be precise
                      */
                     var wasReached = blockRestartReached.Value;
                     blockRestartReached.Value = true;
@@ -1469,7 +1472,7 @@ namespace Emul8.Peripherals.CPU
                     {
                         // we're here for the first time
                         parent.TlibRestartTranslationBlock();
-                        // note that on the line below we effectively exit the function so the stuff below is not executed
+                        // note that on the line above we effectively exit the function so the stuff below is not executed
                     }
                     // since the translation block is now short, we can simply continue
                     blockRestartReached.Value = false;
