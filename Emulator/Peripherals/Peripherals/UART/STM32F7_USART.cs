@@ -13,9 +13,9 @@ using Emul8.Core.Structure.Registers;
 
 namespace Emul8.Peripherals.UART
 {
-    public sealed class Stm32F7Usart : IDoubleWordPeripheral, IKnownSize, IUART
+    public sealed class STM32F7_USART : IDoubleWordPeripheral, IKnownSize, IUART
     {
-        public Stm32F7Usart(Machine machine)
+        public STM32F7_USART(Machine machine)
         {
             sync = new object();
             this.machine = machine;
