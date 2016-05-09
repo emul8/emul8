@@ -37,9 +37,6 @@
     <Reference Include="Mono.Posix" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Xml" />
-    <Reference Include="Svg">
-      <HintPath>..\..\External\Lib\Svg.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AssemblyInfo.cs" />
