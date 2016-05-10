@@ -39,6 +39,12 @@ namespace Emul8.Time
 
         public void Advance(long ticks, bool immediately = false)
         {
+            #if DEBUG
+            if(ticks < 0)
+            {
+                throw new ArgumentException("Ticks cannot be negative.");
+            }
+            #endif
             lock(sync)
             {
                 if(ticks > nearestTickIn)
@@ -56,6 +62,12 @@ namespace Emul8.Time
 
         public void AdvanceInner(long ticks, bool immediately)
         {
+            #if DEBUG
+            if(ticks > nearestTickIn)
+            {
+                throw new InvalidOperationException("Should not reach here.");
+            }
+            #endif
             lock(sync)
             {
                 elapsed += ticks;
