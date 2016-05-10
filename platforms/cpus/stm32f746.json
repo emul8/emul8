@@ -37,7 +37,7 @@
   },
   "usart1":
   {
-    "_type":"UART.Stm32F7Usart",
+    "_type":"UART.STM32F7_USART",
     "_connection":
     {
       "sysbus":
