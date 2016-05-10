@@ -105,7 +105,7 @@ namespace Emul8.Time
         {
             while(!token.IsCancellationRequested)
             {
-                var nearestInterruptTrigger = Consts.TimeQuantum.Multiply(Math.Min(NearestTickIn, MaximumWaitInTicks));
+                var nearestInterruptTrigger = Consts.TimeQuantum.Multiply(Math.Min(NearestLimitIn, MaximumWaitInTicks));
                 quickProgress.WaitOne(nearestInterruptTrigger);
                 lock(updateSync)
                 {

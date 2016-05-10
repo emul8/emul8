@@ -21,18 +21,18 @@ namespace Emul8.Time
             clockEntries = new List<ClockEntry>();
             clockEntriesUpdateHandlers = new List<UpdateHandlerDelegate>();
             toNotify = new List<Action>();
-            nearestTickIn = long.MaxValue;
+            nearestLimitIn = long.MaxValue;
             sync = new object();
             updateAlreadyInProgress = new ThreadLocal<bool>();
         }
 
-        public long NearestTickIn
+        public long NearestLimitIn
         {
             get
             {
                 lock(sync)
                 {
-                    return nearestTickIn;
+                    return nearestLimitIn;
                 }
             }
         }
@@ -47,10 +47,10 @@ namespace Emul8.Time
             #endif
             lock(sync)
             {
-                if(ticks > nearestTickIn)
+                if(ticks > nearestLimitIn)
                 {
-                    var left = ticks - nearestTickIn;
-                    AdvanceInner(nearestTickIn, immediately);
+                    var left = ticks - nearestLimitIn;
+                    AdvanceInner(nearestLimitIn, immediately);
                     Advance(left, immediately);
                 }
                 else
@@ -63,7 +63,7 @@ namespace Emul8.Time
         public void AdvanceInner(long ticks, bool immediately)
         {
             #if DEBUG
-            if(ticks > nearestTickIn)
+            if(ticks > nearestLimitIn)
             {
                 throw new InvalidOperationException("Should not reach here.");
             }
@@ -72,10 +72,10 @@ namespace Emul8.Time
             {
                 elapsed += ticks;
                 totalElapsed += ticks;
-                if(nearestTickIn > ticks && !immediately)
+                if(nearestLimitIn > ticks && !immediately)
                 {
                     // nothing happens
-                    nearestTickIn -= ticks;
+                    nearestLimitIn -= ticks;
                     return;
                 }
                 Update(elapsed);
@@ -335,7 +335,7 @@ namespace Emul8.Time
                 updateAlreadyInProgress.Value = true;
                 lock(sync)
                 {
-                    nearestTickIn = long.MaxValue;
+                    nearestLimitIn = long.MaxValue;
                     for(var i = 0; i < clockEntries.Count; i++)
                     {
                         var clockEntry = clockEntries[i];
@@ -344,7 +344,7 @@ namespace Emul8.Time
                         {
                             continue;
                         }
-                        if(updateHandler(ref clockEntry, ticks, ref nearestTickIn))
+                        if(updateHandler(ref clockEntry, ticks, ref nearestLimitIn))
                         {
                             toNotify.Add(clockEntry.Handler);
                         }
@@ -392,7 +392,7 @@ namespace Emul8.Time
         [Constructor]
         private ThreadLocal<bool> updateAlreadyInProgress;
 
-        private long nearestTickIn;
+        private long nearestLimitIn;
         private long elapsed;
         private long totalElapsed;
         private readonly List<Action> toNotify;
