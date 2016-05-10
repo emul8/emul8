@@ -11,6 +11,7 @@ using Emul8.Peripherals.Bus;
 using Emul8.Core.Structure.Registers;
 using System.Collections.Generic;
 using Emul8.Peripherals.DMA;
+using Emul8.Logging;
 
 namespace Emul8.Peripherals.Video
 {
@@ -26,6 +27,14 @@ namespace Emul8.Peripherals.Video
             layerBackgroundBuffer = new byte[2][];
             this.machine = machine;
             lock_obj = new object();
+
+            activeWidthConfigurationRegister = new DoubleWordRegister(this);
+            accumulatedActiveHeightField = activeWidthConfigurationRegister.DefineValueField(0, 11, FieldMode.Read | FieldMode.Write, name: "AAH");
+            accumulatedActiveWidthField = activeWidthConfigurationRegister.DefineValueField(16, 12, FieldMode.Read | FieldMode.Write, name: "AAW", writeCallback: (_, __) => HandleActiveDisplayChange());
+
+            backPorchConfigurationRegister = new DoubleWordRegister(this);
+            accumulatedVerticalBackPorchField = backPorchConfigurationRegister.DefineValueField(0, 11, FieldMode.Read | FieldMode.Write, name: "AVBP");
+            accumulatedHorizontalBackPorchField = backPorchConfigurationRegister.DefineValueField(16, 12, FieldMode.Read | FieldMode.Write, name: "AHBP", writeCallback: (_, __) => HandleActiveDisplayChange());
 
             backgroundColorConfigurationRegister = new DoubleWordRegister(this);
             backgroundColorBlueChannelField = backgroundColorConfigurationRegister.DefineValueField(0, 8, FieldMode.Read | FieldMode.Write, name: "BCBLUE");
@@ -46,6 +55,8 @@ namespace Emul8.Peripherals.Video
 
             var registerMappings = new Dictionary<long, DoubleWordRegister>
             {
+                { 0x0C, backPorchConfigurationRegister },
+                { 0x10, activeWidthConfigurationRegister },
                 { 0x2C, backgroundColorConfigurationRegister },
                 { 0x34, interruptEnableRegister },
                 { 0x38, interruptStatusRegister },
@@ -99,7 +110,6 @@ namespace Emul8.Peripherals.Video
                     return;
                 }
 
-
                 var localLayerBuffer = new byte[2][];
 
                 for(int i = 0; i < 2; i++)
@@ -148,17 +158,35 @@ namespace Emul8.Peripherals.Video
                                   .Convert(colorBuffer, ref layerBackgroundBuffer[layerId]);
         }
 
-        private void HandlePositionConfigurationChange(int layerId)
+        private void HandleLayerWindowConfigurationChange(int layerId)
         {
             lock(lock_obj)
             {
                 var width = (int)(layer[layerId].windowHorizontalStopPositionField.Value - layer[layerId].windowHorizontalStartPositionField.Value) + 1;
                 var height = (int)(layer[layerId].windowVerticalStopPositionField.Value - layer[layerId].windowVerticalStartPositionField.Value) + 1;
-                if(width != 0 && height != 0 && (width != Width || height != Height))
+
+                if(width != Width || height != Height)
                 {
-                    Reconfigure(width, height);
-                    RestoreBuffer(layerId);
+                    this.Log(LogLevel.Warning, "Windowing is not supported yet for layer {0}.", layerId);
                 }
+            }
+        }
+
+        private void HandleActiveDisplayChange()
+        {
+            lock(lock_obj)
+            {
+                var width = (int)(accumulatedActiveWidthField.Value - accumulatedHorizontalBackPorchField.Value);
+                var height = (int)(accumulatedActiveHeightField.Value - accumulatedVerticalBackPorchField.Value);
+
+                if((width == Width && height == Height) || width < 0 || height < 0)
+                {
+                    return;
+                }
+
+                Reconfigure(width, height);
+                RestoreBuffer(0);
+                RestoreBuffer(1);
             }
         }
 
@@ -175,13 +203,21 @@ namespace Emul8.Peripherals.Video
             lock(lock_obj)
             {
                 var layerPixelFormat = layer[layerId].pixelFormatField.Value.ToPixelFormat();
-                layerBuffer[layerId] = new byte[Width * Height * layerPixelFormat.GetColorDepth()];
-                layerBackgroundBuffer[layerId] = new byte[Width * Height * layerPixelFormat.GetColorDepth()];
+                var colorDepth = layerPixelFormat.GetColorDepth();
+                layerBuffer[layerId] = new byte[Width * Height * colorDepth];
+                layerBackgroundBuffer[layerId] = new byte[Width * Height * colorDepth];
 
                 HandleLayerBackgroundColorChange(layerId);
             }
         }
 
+        private readonly DoubleWordRegister backPorchConfigurationRegister;
+        private readonly IValueRegisterField accumulatedVerticalBackPorchField;
+        private readonly IValueRegisterField accumulatedHorizontalBackPorchField;
+
+        private readonly DoubleWordRegister activeWidthConfigurationRegister;
+        private readonly IValueRegisterField accumulatedActiveHeightField;
+        private readonly IValueRegisterField accumulatedActiveWidthField;
         private readonly DoubleWordRegister interruptStatusRegister;
         private readonly DoubleWordRegister interruptClearRegister;
         private readonly DoubleWordRegister backgroundColorConfigurationRegister;
@@ -211,11 +247,11 @@ namespace Emul8.Peripherals.Video
 
                 windowHorizontalPositionConfigurationRegister = new DoubleWordRegister(video);
                 windowHorizontalStartPositionField = windowHorizontalPositionConfigurationRegister.DefineValueField(0, 12, FieldMode.Read | FieldMode.Write, name: "WHSTPOS");
-                windowHorizontalStopPositionField = windowHorizontalPositionConfigurationRegister.DefineValueField(16, 12, FieldMode.Read | FieldMode.Write, name: "WHSPPOS", writeCallback: (_, __) => video.HandlePositionConfigurationChange(i));
+                windowHorizontalStopPositionField = windowHorizontalPositionConfigurationRegister.DefineValueField(16, 12, FieldMode.Read | FieldMode.Write, name: "WHSPPOS", writeCallback: (_, __) => video.HandleLayerWindowConfigurationChange(i));
 
                 windowVerticalPositionConfigurationRegister = new DoubleWordRegister(video);
                 windowVerticalStartPositionField = windowVerticalPositionConfigurationRegister.DefineValueField(0, 12, FieldMode.Read | FieldMode.Write, name: "WVSTPOS");
-                windowVerticalStopPositionField = windowVerticalPositionConfigurationRegister.DefineValueField(16, 12, FieldMode.Read | FieldMode.Write, name: "WVSPPOS", writeCallback: (_, __) => video.HandlePositionConfigurationChange(i));
+                windowVerticalStopPositionField = windowVerticalPositionConfigurationRegister.DefineValueField(16, 12, FieldMode.Read | FieldMode.Write, name: "WVSPPOS", writeCallback: (_, __) => video.HandleLayerWindowConfigurationChange(i));
 
                 pixelFormatConfigurationRegister = new DoubleWordRegister(video);
                 pixelFormatField = pixelFormatConfigurationRegister.DefineEnumField<DMA2DColorMode>(0, 3, FieldMode.Read | FieldMode.Write, name: "PF", writeCallback: (_, __) => { video.RestoreBuffer(i); video.HandlePixelFormatChange(); });
