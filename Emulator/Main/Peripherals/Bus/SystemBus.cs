@@ -700,6 +700,22 @@ namespace Emul8.Peripherals.Bus
             UpdatePageAccesses();
         }
 
+        public bool IsWatchpointAt(long address, Access access)
+        {
+            if(access == Access.ReadAndWrite || access == Access.Read)
+            {
+                if(hooksOnRead.ContainsKey(address))
+                {
+                    return true;
+                }
+                else if(access == Access.Read)
+                {
+                    return false;
+                }
+            }
+            return hooksOnWrite.ContainsKey(address);
+        }
+
         public IEnumerable<BusRangeRegistration> GetRegistrationPoints(IBusPeripheral peripheral)
         {
             return peripherals.Peripherals.Where(x => x.Peripheral == peripheral).Select(x => x.RegistrationPoint);
