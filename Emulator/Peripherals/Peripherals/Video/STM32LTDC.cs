@@ -112,7 +112,7 @@ namespace Emul8.Peripherals.Video
 
                 for(int i = 0; i < 2; i++)
                 {
-                    if(layer[i].layerEnableFlag.Value)
+                    if(layer[i].layerEnableFlag.Value && layer[i].colorFrameBufferAddressRegister.Value != 0)
                     {
                         machine.SystemBus.ReadBytes(layer[i].colorFrameBufferAddressRegister.Value, layer[i].layerBuffer.Length, layer[i].layerBuffer, 0);
                         localLayerBuffer[i] = layer[i].layerBuffer;
@@ -197,7 +197,7 @@ namespace Emul8.Peripherals.Video
             public Layer(STM32LTDC video, int i)
             {
                 controlRegister = new DoubleWordRegister(video);
-                layerEnableFlag = controlRegister.DefineFlagField(0, FieldMode.Read | FieldMode.Write, name: "LEN");
+                layerEnableFlag = controlRegister.DefineFlagField(0, FieldMode.Read | FieldMode.Write, name: "LEN", writeCallback: (_, __) => WarnAboutWrongBufferConfiguration());
 
                 windowHorizontalPositionConfigurationRegister = new DoubleWordRegister(video);
                 windowHorizontalStartPositionField = windowHorizontalPositionConfigurationRegister.DefineValueField(0, 12, FieldMode.Read | FieldMode.Write, name: "WHSTPOS");
@@ -212,7 +212,7 @@ namespace Emul8.Peripherals.Video
 
                 constantAlphaConfigurationRegister = new DoubleWordRegister(video, 0xFF).WithValueField(0, 8, FieldMode.Read | FieldMode.Write, name: "CONSTA");
 
-                colorFrameBufferAddressRegister = new DoubleWordRegister(video).WithValueField(0, 32, FieldMode.Read | FieldMode.Write, name: "CFBADD");
+                colorFrameBufferAddressRegister = new DoubleWordRegister(video).WithValueField(0, 32, FieldMode.Read | FieldMode.Write, name: "CFBADD", writeCallback: (_, __) => WarnAboutWrongBufferConfiguration());
 
                 defaultColorConfigurationRegister = new DoubleWordRegister(video);
                 defaultColorBlueField = defaultColorConfigurationRegister.DefineValueField(0, 8, FieldMode.Read | FieldMode.Write, name: "DCBLUE");
@@ -234,6 +234,25 @@ namespace Emul8.Peripherals.Video
                     layerBackgroundBuffer = new byte[layerBuffer.Length];
 
                     HandleLayerBackgroundColorChange();
+                }
+            }
+
+            private void WarnAboutWrongBufferConfiguration()
+            {
+                lock(video.lock_obj)
+                {
+                    if(layerEnableFlag.Value && colorFrameBufferAddressRegister.Value == 0)
+                    {
+                        if(!warningFlag)
+                        {
+                            video.Log(LogLevel.Warning, "Layer {0} is enabled, but no frame buffer register is set", layerId);
+                            warningFlag = true;
+                        }
+                    }
+                    else
+                    {
+                        warningFlag = false;
+                    }
                 }
             }
 
@@ -293,6 +312,7 @@ namespace Emul8.Peripherals.Video
             public byte[] layerBuffer;
             public byte[] layerBackgroundBuffer;
 
+            private bool warningFlag;
             private readonly int layerId;
             private readonly STM32LTDC video;
         }
