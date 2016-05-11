@@ -226,7 +226,7 @@ namespace Emul8.Utilities
 
         public static uint GetValue(uint reg, int offset, int size)
         {
-            return (uint)((reg >> offset) & ((0x1 << size) - 1));
+            return (uint)((reg >> offset) & ((0x1ul << size) - 1));
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

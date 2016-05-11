@@ -299,6 +299,14 @@ namespace Emul8.UnitTests
             Assert.AreEqual(true, flagSRField.Value);
         }
 
+        [Test]
+        public void ShouldHandle32BitWideRegistersProperly()
+        {
+            uint test = 0;
+            new DoubleWordRegister(null, 0).WithValueField(0, 32, writeCallback: (oldValue, newValue) => test = newValue).Write(0x0, 0xDEADBEEF);
+            Assert.AreEqual(0xDEADBEEF, test);
+        }
+
         [SetUp]
         public void SetUp()
         {
