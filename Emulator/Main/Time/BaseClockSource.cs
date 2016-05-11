@@ -49,9 +49,13 @@ namespace Emul8.Time
             {
                 if(ticks > nearestLimitIn && !skipAdvancesHigherThanNearestLimit)
                 {
-                    var left = ticks - nearestLimitIn;
-                    AdvanceInner(nearestLimitIn, immediately);
-                    Advance(left, immediately);
+                    var left = ticks;
+                    while(left > 0)
+                    {
+                        var thisTurn = Math.Min(nearestLimitIn, left);
+                        left -= thisTurn;
+                        AdvanceInner(thisTurn, immediately);
+                    }
                 }
                 else
                 {
