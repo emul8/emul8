@@ -13,6 +13,7 @@ using Xwt.GtkBackend;
 using System.Threading;
 using Emul8.Exceptions;
 using Emul8.UserInterface;
+using Emul8.Logging;
 
 namespace Emul8.Plugins.XwtProviderPlugin
 {
@@ -99,25 +100,24 @@ namespace Emul8.Plugins.XwtProviderPlugin
         
         private void StartXwtThread()
         {
-            InitializeXwt();
-            xwtThread = new Thread(RunXwtInCurrentThread) 
+            Emulator.ExecuteOnMainThread(() =>
             {
-                Name = "XwtProvider GUI thread",
-            };
-            
-            xwtThread.Start();
+                InitializeXwt();
+                RunXwtInCurrentThread();
+            });
         }
         
         private void StopXwtThread()
         {
-            if(xwtThread == null)
+            lock(internalLock)
             {
-                return;
+                if(UiThreadId == -1)
+                {
+                    return;
+                }
+                ApplicationExtensions.InvokeInUIThreadAndWait(Application.Exit);
+                UiThreadId = -1;
             }
-            
-            ApplicationExtensions.InvokeInUIThreadAndWait(Application.Exit);
-            xwtThread.Join();
-            xwtThread = null;
         }
         
         private readonly IUserInterfaceProvider previousProvider;
