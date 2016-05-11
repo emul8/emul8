@@ -374,7 +374,7 @@ namespace Emul8.Core.Structure.Registers
                 changedRegister.CallChangeHandler(baseValue, UnderlyingValue);
             }
 
-            var unhandledWrites = value & ~definedFieldsMask;
+            var unhandledWrites = difference & ~definedFieldsMask;
             if(unhandledWrites != 0)
             {
                 parent.Log(LogLevel.Warning, TagLogger(offset, unhandledWrites, value));
