@@ -25,6 +25,7 @@ namespace Emul8.Time
             threadFinished = new ManualResetEventSlim();
             quickProgress = new AutoResetEvent(false);
             tokenSource = new CancellationTokenSource();
+            SkipAdvancesHigherThanNearestLimit = true;
         }
 
         public void Start()
