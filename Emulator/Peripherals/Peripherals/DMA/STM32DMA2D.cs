@@ -74,6 +74,7 @@ namespace Emul8.Peripherals.DMA
             outputColorModeField = outputPfcControlRegister.DefineEnumField<Dma2DColorMode>(0, 3, FieldMode.Read | FieldMode.Write, name: "CM", 
                 writeCallback: (_, __) => 
                 { 
+                    HandlePixelFormatChange(); 
                     HandleOutputBufferSizeChange(); 
                 });
 
@@ -81,6 +82,7 @@ namespace Emul8.Peripherals.DMA
             foregroundColorModeField = foregroundPfcControlRegister.DefineEnumField<Dma2DColorMode>(0, 4, FieldMode.Read | FieldMode.Write, name: "CM", 
                 writeCallback: (_, __) => 
                 { 
+                    HandlePixelFormatChange(); 
                     HandleForegroundBufferSizeChange(); 
                 });
 
@@ -88,6 +90,7 @@ namespace Emul8.Peripherals.DMA
             backgroundColorModeField = backgroundPfcControlRegister.DefineEnumField<Dma2DColorMode>(0, 4, FieldMode.Read | FieldMode.Write, name: "CM", 
                 writeCallback: (_, __) => 
                 { 
+                    HandlePixelFormatChange(); 
                     HandleBackgroundBufferSizeChange(); 
                 });
 
@@ -142,6 +145,17 @@ namespace Emul8.Peripherals.DMA
             foregroundBuffer = new byte[pixelsPerLineField.Value * numberOfLineField.Value * foregroundFormatColorDepth];
             foregroundLineBuffer = new byte[pixelsPerLineField.Value * foregroundFormatColorDepth];
         }
+
+        private void HandlePixelFormatChange()
+        {
+            var outputFormat = outputColorModeField.Value.ToPixelFormat();
+            var backgroundFormat = backgroundColorModeField.Value.ToPixelFormat();
+            var foregroundFormat = foregroundColorModeField.Value.ToPixelFormat();
+
+            converter = PixelManipulationTools.GetConverter(foregroundFormat, Endianness, outputFormat, Endianness);
+            blender = PixelManipulationTools.GetBlender(backgroundFormat, Endianness, foregroundFormat, Endianness, outputFormat, Endianness);
+        }
+
         private void DoTransfer()
         {
             var foregroundFormat = foregroundColorModeField.Value.ToPixelFormat();
@@ -177,7 +191,6 @@ namespace Emul8.Peripherals.DMA
                 break;
                 case Mode.MemoryToMemoryWithBlending:
                     var backgroundFormat = backgroundColorModeField.Value.ToPixelFormat();
-                    var blender = PixelManipulationTools.GetBlender(backgroundFormat, Endianness, foregroundFormat, Endianness, outputFormat, Endianness);
 
                     if(outputLineOffsetField.Value == 0 && foregroundLineOffsetField.Value == 0 && backgroundLineOffsetField.Value == 0)
                     {
@@ -207,7 +220,6 @@ namespace Emul8.Peripherals.DMA
                     }
                 break;
                 case Mode.MemoryToMemoryWithPfc:
-                    var converter = PixelManipulationTools.GetConverter(foregroundFormat, Endianness, outputFormat, Endianness);
                     foregroundFormat = foregroundColorModeField.Value.ToPixelFormat();
 
                     if(outputLineOffsetField.Value == 0 && foregroundLineOffsetField.Value == 0 && backgroundLineOffsetField.Value == 0)
@@ -300,6 +312,9 @@ namespace Emul8.Peripherals.DMA
 
         private byte[] backgroundBuffer;
         private byte[] backgroundLineBuffer;
+
+        private IPixelBlender blender;
+        private IPixelConverter converter;
 
         private const ELFSharp.ELF.Endianess Endianness = ELFSharp.ELF.Endianess.LittleEndian;
 
