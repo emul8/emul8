@@ -64,12 +64,12 @@ namespace Emul8.Peripherals.Video
                 layer[i] = new Layer(this, i);
 
                 var offset = 0x80 * i;
-                registerMappings.Add(0x84 + offset, layer[i].controlRegister);
-                registerMappings.Add(0x88 + offset, layer[i].windowHorizontalPositionConfigurationRegister);
-                registerMappings.Add(0x8C + offset, layer[i].windowVerticalPositionConfigurationRegister);
-                registerMappings.Add(0x94 + offset, layer[i].pixelFormatConfigurationRegister);
-                registerMappings.Add(0x98 + offset, layer[i].constantAlphaConfigurationRegister);
-                registerMappings.Add(0xAC + offset, layer[i].colorFrameBufferAddressRegister);
+                registerMappings.Add(0x84 + offset, layer[i].ControlRegister);
+                registerMappings.Add(0x88 + offset, layer[i].WindowHorizontalPositionConfigurationRegister);
+                registerMappings.Add(0x8C + offset, layer[i].WindowVerticalPositionConfigurationRegister);
+                registerMappings.Add(0x94 + offset, layer[i].PixelFormatConfigurationRegister);
+                registerMappings.Add(0x98 + offset, layer[i].ConstantAlphaConfigurationRegister);
+                registerMappings.Add(0xAC + offset, layer[i].ColorFrameBufferAddressRegister);
             }
 
             registers = new DoubleWordRegisterCollection(this, registerMappings);
@@ -109,18 +109,18 @@ namespace Emul8.Peripherals.Video
 
                 for(var i = 0; i < 2; i++)
                 {
-                    if(layer[i].layerEnableFlag.Value && layer[i].colorFrameBufferAddressRegister.Value != 0)
+                    if(layer[i].LayerEnableFlag.Value && layer[i].ColorFrameBufferAddressRegister.Value != 0)
                     {
-                        machine.SystemBus.ReadBytes(layer[i].colorFrameBufferAddressRegister.Value, layer[i].layerBuffer.Length, layer[i].layerBuffer, 0);
-                        localLayerBuffer[i] = layer[i].layerBuffer;
+                        machine.SystemBus.ReadBytes(layer[i].ColorFrameBufferAddressRegister.Value, layer[i].LayerBuffer.Length, layer[i].LayerBuffer, 0);
+                        localLayerBuffer[i] = layer[i].LayerBuffer;
                     }
                     else
                     {
-                        localLayerBuffer[i] = layer[i].layerBackgroundBuffer;                
+                        localLayerBuffer[i] = layer[i].LayerBackgroundBuffer;                
                     }
                 }
 
-                blender.Blend(localLayerBuffer[0], localLayerBuffer[1], ref buffer, backgroundColor, (byte)layer[0].constantAlphaConfigurationRegister.Value, (byte)layer[1].constantAlphaConfigurationRegister.Value);
+                blender.Blend(localLayerBuffer[0], localLayerBuffer[1], ref buffer, backgroundColor, (byte)layer[0].ConstantAlphaConfigurationRegister.Value, (byte)layer[1].ConstantAlphaConfigurationRegister.Value);
 
                 if(lineInterruptEnableFlag.Value)
                 {
@@ -160,7 +160,7 @@ namespace Emul8.Peripherals.Video
         {
             lock(internalLock)
             {
-                blender = PixelManipulationTools.GetBlender(layer[0].pixelFormatField.Value.ToPixelFormat(), Endianess, layer[1].pixelFormatField.Value.ToPixelFormat(), Endianess, Format, Endianess);
+                blender = PixelManipulationTools.GetBlender(layer[0].PixelFormatField.Value.ToPixelFormat(), Endianess, layer[1].PixelFormatField.Value.ToPixelFormat(), Endianess, Format, Endianess);
             }
         }
 
@@ -196,29 +196,29 @@ namespace Emul8.Peripherals.Video
         {
             public Layer(STM32LTDC video, int layerId)
             {
-                controlRegister = new DoubleWordRegister(video);
-                layerEnableFlag = controlRegister.DefineFlagField(0, FieldMode.Read | FieldMode.Write, name: "LEN", writeCallback: (_, __) => WarnAboutWrongBufferConfiguration());
+                ControlRegister = new DoubleWordRegister(video);
+                LayerEnableFlag = ControlRegister.DefineFlagField(0, FieldMode.Read | FieldMode.Write, name: "LEN", writeCallback: (_, __) => WarnAboutWrongBufferConfiguration());
 
-                windowHorizontalPositionConfigurationRegister = new DoubleWordRegister(video);
-                windowHorizontalStartPositionField = windowHorizontalPositionConfigurationRegister.DefineValueField(0, 12, FieldMode.Read | FieldMode.Write, name: "WHSTPOS");
-                windowHorizontalStopPositionField = windowHorizontalPositionConfigurationRegister.DefineValueField(16, 12, FieldMode.Read | FieldMode.Write, name: "WHSPPOS", writeCallback: (_, __) => HandleLayerWindowConfigurationChange());
+                WindowHorizontalPositionConfigurationRegister = new DoubleWordRegister(video);
+                WindowHorizontalStartPositionField = WindowHorizontalPositionConfigurationRegister.DefineValueField(0, 12, FieldMode.Read | FieldMode.Write, name: "WHSTPOS");
+                WindowHorizontalStopPositionField = WindowHorizontalPositionConfigurationRegister.DefineValueField(16, 12, FieldMode.Read | FieldMode.Write, name: "WHSPPOS", writeCallback: (_, __) => HandleLayerWindowConfigurationChange());
 
-                windowVerticalPositionConfigurationRegister = new DoubleWordRegister(video);
-                windowVerticalStartPositionField = windowVerticalPositionConfigurationRegister.DefineValueField(0, 12, FieldMode.Read | FieldMode.Write, name: "WVSTPOS");
-                windowVerticalStopPositionField = windowVerticalPositionConfigurationRegister.DefineValueField(16, 12, FieldMode.Read | FieldMode.Write, name: "WVSPPOS", writeCallback: (_, __) => HandleLayerWindowConfigurationChange());
+                WindowVerticalPositionConfigurationRegister = new DoubleWordRegister(video);
+                WindowVerticalStartPositionField = WindowVerticalPositionConfigurationRegister.DefineValueField(0, 12, FieldMode.Read | FieldMode.Write, name: "WVSTPOS");
+                WindowVerticalStopPositionField = WindowVerticalPositionConfigurationRegister.DefineValueField(16, 12, FieldMode.Read | FieldMode.Write, name: "WVSPPOS", writeCallback: (_, __) => HandleLayerWindowConfigurationChange());
 
-                pixelFormatConfigurationRegister = new DoubleWordRegister(video);
-                pixelFormatField = pixelFormatConfigurationRegister.DefineEnumField<Dma2DColorMode>(0, 3, FieldMode.Read | FieldMode.Write, name: "PF", writeCallback: (_, __) => { RestoreBuffers(); video.HandlePixelFormatChange(); });
+                PixelFormatConfigurationRegister = new DoubleWordRegister(video);
+                PixelFormatField = PixelFormatConfigurationRegister.DefineEnumField<Dma2DColorMode>(0, 3, FieldMode.Read | FieldMode.Write, name: "PF", writeCallback: (_, __) => { RestoreBuffers(); video.HandlePixelFormatChange(); });
 
-                constantAlphaConfigurationRegister = new DoubleWordRegister(video, 0xFF).WithValueField(0, 8, FieldMode.Read | FieldMode.Write, name: "CONSTA");
+                ConstantAlphaConfigurationRegister = new DoubleWordRegister(video, 0xFF).WithValueField(0, 8, FieldMode.Read | FieldMode.Write, name: "CONSTA");
 
-                colorFrameBufferAddressRegister = new DoubleWordRegister(video).WithValueField(0, 32, FieldMode.Read | FieldMode.Write, name: "CFBADD", writeCallback: (_, __) => WarnAboutWrongBufferConfiguration());
+                ColorFrameBufferAddressRegister = new DoubleWordRegister(video).WithValueField(0, 32, FieldMode.Read | FieldMode.Write, name: "CFBADD", writeCallback: (_, __) => WarnAboutWrongBufferConfiguration());
 
-                defaultColorConfigurationRegister = new DoubleWordRegister(video);
-                defaultColorBlueField = defaultColorConfigurationRegister.DefineValueField(0, 8, FieldMode.Read | FieldMode.Write, name: "DCBLUE");
-                defaultColorGreenField = defaultColorConfigurationRegister.DefineValueField(8, 8, FieldMode.Read | FieldMode.Write, name: "DCGREEN");
-                defaultColorRedField = defaultColorConfigurationRegister.DefineValueField(16, 8, FieldMode.Read | FieldMode.Write, name: "DCRED");
-                defaultColorAlphaField = defaultColorConfigurationRegister.DefineValueField(24, 8, FieldMode.Read | FieldMode.Write, name: "DCALPHA", writeCallback: (_, __) => HandleLayerBackgroundColorChange());
+                DefaultColorConfigurationRegister = new DoubleWordRegister(video);
+                DefaultColorBlueField = DefaultColorConfigurationRegister.DefineValueField(0, 8, FieldMode.Read | FieldMode.Write, name: "DCBLUE");
+                DefaultColorGreenField = DefaultColorConfigurationRegister.DefineValueField(8, 8, FieldMode.Read | FieldMode.Write, name: "DCGREEN");
+                DefaultColorRedField = DefaultColorConfigurationRegister.DefineValueField(16, 8, FieldMode.Read | FieldMode.Write, name: "DCRED");
+                DefaultColorAlphaField = DefaultColorConfigurationRegister.DefineValueField(24, 8, FieldMode.Read | FieldMode.Write, name: "DCALPHA", writeCallback: (_, __) => HandleLayerBackgroundColorChange());
 
                 this.layerId = layerId;
                 this.video = video;
@@ -228,10 +228,10 @@ namespace Emul8.Peripherals.Video
             {
                 lock(video.internalLock)
                 {
-                    var layerPixelFormat = pixelFormatField.Value.ToPixelFormat();
+                    var layerPixelFormat = PixelFormatField.Value.ToPixelFormat();
                     var colorDepth = layerPixelFormat.GetColorDepth();
-                    layerBuffer = new byte[video.Width * video.Height * colorDepth];
-                    layerBackgroundBuffer = new byte[layerBuffer.Length];
+                    LayerBuffer = new byte[video.Width * video.Height * colorDepth];
+                    LayerBackgroundBuffer = new byte[LayerBuffer.Length];
 
                     HandleLayerBackgroundColorChange();
                 }
@@ -241,7 +241,7 @@ namespace Emul8.Peripherals.Video
             {
                 lock(video.internalLock)
                 {
-                    if(layerEnableFlag.Value && colorFrameBufferAddressRegister.Value == 0)
+                    if(LayerEnableFlag.Value && ColorFrameBufferAddressRegister.Value == 0)
                     {
                         if(!warningAlreadyIssued)
                         {
@@ -260,8 +260,8 @@ namespace Emul8.Peripherals.Video
             {
                 lock(video.internalLock)
                 {
-                    var width = (int)(windowHorizontalStopPositionField.Value - windowHorizontalStartPositionField.Value) + 1;
-                    var height = (int)(windowVerticalStopPositionField.Value - windowVerticalStartPositionField.Value) + 1;
+                    var width = (int)(WindowHorizontalStopPositionField.Value - WindowHorizontalStartPositionField.Value) + 1;
+                    var height = (int)(WindowVerticalStopPositionField.Value - WindowVerticalStartPositionField.Value) + 1;
 
                     if(width != video.Width || height != video.Height)
                     {
@@ -275,42 +275,42 @@ namespace Emul8.Peripherals.Video
                 var colorBuffer = new byte[4 * video.Width * video.Height];
                 for(var i = 0; i < colorBuffer.Length; i += 4)
                 {
-                    colorBuffer[i] = (byte)defaultColorAlphaField.Value;
-                    colorBuffer[i + 1] = (byte)defaultColorRedField.Value;
-                    colorBuffer[i + 2] = (byte)defaultColorGreenField.Value;
-                    colorBuffer[i + 3] = (byte)defaultColorBlueField.Value;
+                    colorBuffer[i] = (byte)DefaultColorAlphaField.Value;
+                    colorBuffer[i + 1] = (byte)DefaultColorRedField.Value;
+                    colorBuffer[i + 2] = (byte)DefaultColorGreenField.Value;
+                    colorBuffer[i + 3] = (byte)DefaultColorBlueField.Value;
                 }
 
-                PixelManipulationTools.GetConverter(PixelFormat.ARGB8888, video.Endianess, pixelFormatField.Value.ToPixelFormat(), video.Endianess)
-                                      .Convert(colorBuffer, ref layerBackgroundBuffer);
+                PixelManipulationTools.GetConverter(PixelFormat.ARGB8888, video.Endianess, PixelFormatField.Value.ToPixelFormat(), video.Endianess)
+                                      .Convert(colorBuffer, ref LayerBackgroundBuffer);
             }
 
-            public DoubleWordRegister controlRegister;
-            public IFlagRegisterField layerEnableFlag;
+            public DoubleWordRegister ControlRegister;
+            public IFlagRegisterField LayerEnableFlag;
 
-            public DoubleWordRegister pixelFormatConfigurationRegister;
-            public IEnumRegisterField<Dma2DColorMode> pixelFormatField;
+            public DoubleWordRegister PixelFormatConfigurationRegister;
+            public IEnumRegisterField<Dma2DColorMode> PixelFormatField;
 
-            public DoubleWordRegister constantAlphaConfigurationRegister;
+            public DoubleWordRegister ConstantAlphaConfigurationRegister;
 
-            public DoubleWordRegister colorFrameBufferAddressRegister;
+            public DoubleWordRegister ColorFrameBufferAddressRegister;
 
-            public DoubleWordRegister windowHorizontalPositionConfigurationRegister;
-            public IValueRegisterField windowHorizontalStopPositionField;
-            public IValueRegisterField windowHorizontalStartPositionField;
+            public DoubleWordRegister WindowHorizontalPositionConfigurationRegister;
+            public IValueRegisterField WindowHorizontalStopPositionField;
+            public IValueRegisterField WindowHorizontalStartPositionField;
 
-            public DoubleWordRegister windowVerticalPositionConfigurationRegister;
-            public IValueRegisterField windowVerticalStopPositionField;
-            public IValueRegisterField windowVerticalStartPositionField;
+            public DoubleWordRegister WindowVerticalPositionConfigurationRegister;
+            public IValueRegisterField WindowVerticalStopPositionField;
+            public IValueRegisterField WindowVerticalStartPositionField;
 
-            public DoubleWordRegister defaultColorConfigurationRegister;
-            public IValueRegisterField defaultColorBlueField;
-            public IValueRegisterField defaultColorGreenField;
-            public IValueRegisterField defaultColorRedField;
-            public IValueRegisterField defaultColorAlphaField;
+            public DoubleWordRegister DefaultColorConfigurationRegister;
+            public IValueRegisterField DefaultColorBlueField;
+            public IValueRegisterField DefaultColorGreenField;
+            public IValueRegisterField DefaultColorRedField;
+            public IValueRegisterField DefaultColorAlphaField;
 
-            public byte[] layerBuffer;
-            public byte[] layerBackgroundBuffer;
+            public byte[] LayerBuffer;
+            public byte[] LayerBackgroundBuffer;
 
             private bool warningAlreadyIssued;
             private readonly int layerId;
