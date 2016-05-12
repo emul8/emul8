@@ -194,7 +194,7 @@ namespace Emul8.Peripherals.Video
 
         private class Layer
         {
-            public Layer(STM32LTDC video, int i)
+            public Layer(STM32LTDC video, int layerId)
             {
                 controlRegister = new DoubleWordRegister(video);
                 layerEnableFlag = controlRegister.DefineFlagField(0, FieldMode.Read | FieldMode.Write, name: "LEN", writeCallback: (_, __) => WarnAboutWrongBufferConfiguration());
@@ -220,7 +220,7 @@ namespace Emul8.Peripherals.Video
                 defaultColorRedField = defaultColorConfigurationRegister.DefineValueField(16, 8, FieldMode.Read | FieldMode.Write, name: "DCRED");
                 defaultColorAlphaField = defaultColorConfigurationRegister.DefineValueField(24, 8, FieldMode.Read | FieldMode.Write, name: "DCALPHA", writeCallback: (_, __) => HandleLayerBackgroundColorChange());
 
-                layerId = i;
+                this.layerId = layerId;
                 this.video = video;
             }
 
