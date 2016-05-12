@@ -34,14 +34,19 @@ Prerequisites (Linux)
 
 The package names for prerequisites are given for Ubuntu 14.04 (please adjust those w/r to your distribution and version)::
 
+   sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF
+   echo "deb http://download.mono-project.com/repo/debian wheezy main" | sudo tee /etc/apt/sources.list.d/mono-xamarin.list
+   sudo apt-get update
    sudo apt-get install git mono-complete automake autoconf libtool g++ realpath \
-                        libvte0.16-cil-dev gksu libgtk2.0-dev dialog screen
+                        libvte0.16-cil-dev gksu libgtk2.0-dev dialog screen uml-utilities
 
 .. note::
 
-   The system ``mono-complete`` package will be later superseded by a more recent Mono compiled from source (see: `Mono`_ below), but it is necessary to begin with.
+   The system ``mono-complete`` package will be later superseded by a stable Mono compiled from source (see: `Mono`_ below), but it is necessary to begin with.
 
 If you want to modify or extend the source code of Emul8, it is recommended to install the *MonoDevelop* IDE.
+
+For a detailed information on the required packages, please consult the *System requirements* section in the documentation.
 
 Mono (Linux)
 ~~~~~~~~~~~~
