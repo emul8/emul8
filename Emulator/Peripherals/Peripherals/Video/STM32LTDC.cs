@@ -26,26 +26,23 @@ namespace Emul8.Peripherals.Video
             this.machine = machine;
             internalLock = new object();
 
-            activeWidthConfigurationRegister = new DoubleWordRegister(this);
+            var activeWidthConfigurationRegister = new DoubleWordRegister(this);
             accumulatedActiveHeightField = activeWidthConfigurationRegister.DefineValueField(0, 11, FieldMode.Read | FieldMode.Write, name: "AAH");
             accumulatedActiveWidthField = activeWidthConfigurationRegister.DefineValueField(16, 12, FieldMode.Read | FieldMode.Write, name: "AAW", writeCallback: (_, __) => HandleActiveDisplayChange());
 
-            backPorchConfigurationRegister = new DoubleWordRegister(this);
+            var backPorchConfigurationRegister = new DoubleWordRegister(this);
             accumulatedVerticalBackPorchField = backPorchConfigurationRegister.DefineValueField(0, 11, FieldMode.Read | FieldMode.Write, name: "AVBP");
             accumulatedHorizontalBackPorchField = backPorchConfigurationRegister.DefineValueField(16, 12, FieldMode.Read | FieldMode.Write, name: "AHBP", writeCallback: (_, __) => HandleActiveDisplayChange());
 
-            backgroundColorConfigurationRegister = new DoubleWordRegister(this);
+            var backgroundColorConfigurationRegister = new DoubleWordRegister(this);
             backgroundColorBlueChannelField = backgroundColorConfigurationRegister.DefineValueField(0, 8, FieldMode.Read | FieldMode.Write, name: "BCBLUE");
             backgroundColorGreenChannelField = backgroundColorConfigurationRegister.DefineValueField(8, 8, FieldMode.Read | FieldMode.Write, name: "BCGREEN");
             backgroundColorRedChannelField = backgroundColorConfigurationRegister.DefineValueField(16, 8, FieldMode.Read | FieldMode.Write, name: "BCRED", writeCallback: (_, __) => HandleBackgroundColorChange());
 
-            interruptEnableRegister = new DoubleWordRegister(this);
+            var interruptEnableRegister = new DoubleWordRegister(this);
             lineInterruptEnableFlag = interruptEnableRegister.DefineFlagField(0, FieldMode.Read | FieldMode.Write, name: "LIE");
 
-            interruptStatusRegister = new DoubleWordRegister(this);
-            interruptStatusRegister.DefineFlagField(0, FieldMode.Read, name: "LIF");
-
-            interruptClearRegister = new DoubleWordRegister(this);
+            var interruptClearRegister = new DoubleWordRegister(this);
             interruptClearRegister.DefineFlagField(0, FieldMode.Write, name: "CLIF", writeCallback: (old, @new) => { if(@new) IRQ.Unset(); });
             interruptClearRegister.DefineFlagField(3, FieldMode.Write, name: "CRRIF", writeCallback: (old, @new) => { if(@new) IRQ.Unset(); });
 
@@ -167,20 +164,13 @@ namespace Emul8.Peripherals.Video
             }
         }
 
-        private readonly DoubleWordRegister backPorchConfigurationRegister;
         private readonly IValueRegisterField accumulatedVerticalBackPorchField;
         private readonly IValueRegisterField accumulatedHorizontalBackPorchField;
-
-        private readonly DoubleWordRegister activeWidthConfigurationRegister;
         private readonly IValueRegisterField accumulatedActiveHeightField;
         private readonly IValueRegisterField accumulatedActiveWidthField;
-        private readonly DoubleWordRegister interruptStatusRegister;
-        private readonly DoubleWordRegister interruptClearRegister;
-        private readonly DoubleWordRegister backgroundColorConfigurationRegister;
         private readonly IValueRegisterField backgroundColorBlueChannelField;
         private readonly IValueRegisterField backgroundColorGreenChannelField;
         private readonly IValueRegisterField backgroundColorRedChannelField;
-        private readonly DoubleWordRegister interruptEnableRegister;
         private readonly IFlagRegisterField lineInterruptEnableFlag;
         private readonly DoubleWordRegister lineInterruptPositionConfigurationRegister;
         private readonly Layer[] layer;
