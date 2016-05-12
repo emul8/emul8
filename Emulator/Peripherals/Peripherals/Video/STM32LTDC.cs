@@ -59,7 +59,7 @@ namespace Emul8.Peripherals.Video
             };
 
             layer = new Layer[2];
-            for(int i = 0; i < layer.Length; i++)
+            for(var i = 0; i < layer.Length; i++)
             {
                 layer[i] = new Layer(this, i);
 
@@ -106,7 +106,7 @@ namespace Emul8.Peripherals.Video
 
                 var localLayerBuffer = new byte[2][];
 
-                for(int i = 0; i < 2; i++)
+                for(var i = 0; i < 2; i++)
                 {
                     if(layer[i].layerEnableFlag.Value && layer[i].colorFrameBufferAddressRegister.Value != 0)
                     {
@@ -272,12 +272,12 @@ namespace Emul8.Peripherals.Video
             private void HandleLayerBackgroundColorChange()
             {
                 var colorBuffer = new byte[4 * video.Width * video.Height];
-                for(int j = 0; j < colorBuffer.Length; j += 4)
+                for(var i = 0; i < colorBuffer.Length; i += 4)
                 {
-                    colorBuffer[j] = (byte)defaultColorAlphaField.Value;
-                    colorBuffer[j + 1] = (byte)defaultColorRedField.Value;
-                    colorBuffer[j + 2] = (byte)defaultColorGreenField.Value;
-                    colorBuffer[j + 3] = (byte)defaultColorBlueField.Value;
+                    colorBuffer[i] = (byte)defaultColorAlphaField.Value;
+                    colorBuffer[i + 1] = (byte)defaultColorRedField.Value;
+                    colorBuffer[i + 2] = (byte)defaultColorGreenField.Value;
+                    colorBuffer[i + 3] = (byte)defaultColorBlueField.Value;
                 }
 
                 PixelManipulationTools.GetConverter(PixelFormat.ARGB8888, video.Endianess, pixelFormatField.Value.ToPixelFormat(), video.Endianess)
