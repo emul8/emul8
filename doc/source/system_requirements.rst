@@ -22,6 +22,12 @@ As we use a development version from the mainline *mono* git repository, it is n
 
 Our current fixed version of *mono* is: **37f2657ac778d3934a1b3245076849816ff9e6f9**.
 
+Since the build process of *mono* requires you to have a recent version already installed, begin with the following commands::
+
+   sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF
+   echo "deb http://download.mono-project.com/repo/debian wheezy main" | sudo tee /etc/apt/sources.list.d/mono-xamarin.list
+   sudo apt-get update
+
 Before you start the build procedure make sure that the following components are installed in your system (Ubuntu/Debian package names are given in brackets):
 
 * *autoconf* (``autoconf``)
@@ -37,6 +43,7 @@ Before you start the build procedure make sure that the following components are
 * *screen* (``screen``)
 * *realpath* (``realpath``)
 * *tun* kernel module for guest-host networking
+* *tunctl* (``uml-utilities``) to interact with *tun* module
 * *xterm* or *gnome-terminal* or *putty* for window-based terminal analyzers
 
 Instead of *gksudo* you may have *beesu* or *kdesudo*.
