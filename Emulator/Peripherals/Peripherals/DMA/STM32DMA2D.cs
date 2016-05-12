@@ -50,13 +50,13 @@ namespace Emul8.Peripherals.DMA
 
         private STM32DMA2D()
         {
-            controlRegister = new DoubleWordRegister(this);
+            var controlRegister = new DoubleWordRegister(this);
             startFlag = controlRegister.DefineFlagField(0, FieldMode.Read | FieldMode.Write, name: "Start", changeCallback: (old, @new) => { if(@new) StartTransfer(); });
             dma2dMode = controlRegister.DefineEnumField<Mode>(16, 2, FieldMode.Read | FieldMode.Write, name: "Mode");
 
-            interruptFlagClearRegister = new DoubleWordRegister(this).WithFlag(1, FieldMode.Read | FieldMode.WriteOneToClear, name: "CTCIF", changeCallback: (old, @new) => { if(!@new) IRQ.Unset(); });
+            var interruptFlagClearRegister = new DoubleWordRegister(this).WithFlag(1, FieldMode.Read | FieldMode.WriteOneToClear, name: "CTCIF", changeCallback: (old, @new) => { if(!@new) IRQ.Unset(); });
 
-            numberOfLineRegister = new DoubleWordRegister(this);
+            var numberOfLineRegister = new DoubleWordRegister(this);
             numberOfLineField = numberOfLineRegister.DefineValueField(0, 16, FieldMode.Read | FieldMode.Write, name: "NL");
             pixelsPerLineField = numberOfLineRegister.DefineValueField(16, 14, FieldMode.Read | FieldMode.Write, name: "PL");
 
@@ -64,24 +64,24 @@ namespace Emul8.Peripherals.DMA
             backgroundMemoryAddressRegister = new DoubleWordRegister(this).WithValueField(0, 32, FieldMode.Read | FieldMode.Write);
             foregroundMemoryAddressRegister = new DoubleWordRegister(this).WithValueField(0, 32, FieldMode.Read | FieldMode.Write);
 
-            outputPfcControlRegister = new DoubleWordRegister(this);
+            var outputPfcControlRegister = new DoubleWordRegister(this);
             outputColorModeField = outputPfcControlRegister.DefineEnumField<Dma2DColorMode>(0, 3, FieldMode.Read | FieldMode.Write, name: "CM");
 
-            foregroundPfcControlRegister = new DoubleWordRegister(this);
+            var foregroundPfcControlRegister = new DoubleWordRegister(this);
             foregroundColorModeField = foregroundPfcControlRegister.DefineEnumField<Dma2DColorMode>(0, 4, FieldMode.Read | FieldMode.Write, name: "CM");
 
-            backgroundPfcControlRegister = new DoubleWordRegister(this);
+            var backgroundPfcControlRegister = new DoubleWordRegister(this);
             backgroundColorModeField = backgroundPfcControlRegister.DefineEnumField<Dma2DColorMode>(0, 4, FieldMode.Read | FieldMode.Write, name: "CM");
 
             outputColorRegister = new DoubleWordRegister(this).WithValueField(0, 32, FieldMode.Read | FieldMode.Write);
 
-            outputOffsetRegister = new DoubleWordRegister(this);
+            var outputOffsetRegister = new DoubleWordRegister(this);
             outputLineOffsetField = outputOffsetRegister.DefineValueField(0, 14, FieldMode.Read | FieldMode.Write, name: "LO");
 
-            foregroundOffsetRegister = new DoubleWordRegister(this);
+            var foregroundOffsetRegister = new DoubleWordRegister(this);
             foregroundLineOffsetField = foregroundOffsetRegister.DefineValueField(0, 14, FieldMode.Read | FieldMode.Write, name: "LO");
 
-            backgroundOffsetRegister = new DoubleWordRegister(this);
+            var backgroundOffsetRegister = new DoubleWordRegister(this);
             backgroundLineOffsetField = backgroundOffsetRegister.DefineValueField(0, 14, FieldMode.Read | FieldMode.Write, name: "LO");
 
             var regs = new Dictionary<long, DoubleWordRegister>
@@ -252,28 +252,19 @@ namespace Emul8.Peripherals.DMA
         }
 
         private readonly Machine machine;
-        private readonly DoubleWordRegister controlRegister;
         private readonly IFlagRegisterField startFlag;
         private readonly IEnumRegisterField<Mode> dma2dMode;
-        private readonly DoubleWordRegister interruptFlagClearRegister;
-        private readonly DoubleWordRegister numberOfLineRegister;
         private readonly IValueRegisterField numberOfLineField;
         private readonly IValueRegisterField pixelsPerLineField;
         private readonly DoubleWordRegister outputMemoryAddressRegister;
         private readonly DoubleWordRegister backgroundMemoryAddressRegister;
         private readonly DoubleWordRegister foregroundMemoryAddressRegister;
-        private readonly DoubleWordRegister outputPfcControlRegister;
         private readonly IEnumRegisterField<Dma2DColorMode> outputColorModeField;
-        private readonly DoubleWordRegister foregroundPfcControlRegister;
         private readonly IEnumRegisterField<Dma2DColorMode> foregroundColorModeField;
-        private readonly DoubleWordRegister backgroundPfcControlRegister;
         private readonly IEnumRegisterField<Dma2DColorMode> backgroundColorModeField;
         private readonly DoubleWordRegister outputColorRegister;
-        private readonly DoubleWordRegister outputOffsetRegister;
         private readonly IValueRegisterField outputLineOffsetField;
-        private readonly DoubleWordRegister foregroundOffsetRegister;
         private readonly IValueRegisterField foregroundLineOffsetField;
-        private readonly DoubleWordRegister backgroundOffsetRegister;
         private readonly IValueRegisterField backgroundLineOffsetField;
         private readonly DoubleWordRegisterCollection registers;
 
