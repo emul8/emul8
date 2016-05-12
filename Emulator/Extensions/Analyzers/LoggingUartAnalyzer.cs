@@ -67,8 +67,10 @@ namespace Emul8.Analyzers
             {
                 var now = CustomDateTime.Now;
                 var virtualNow = machine.ElapsedVirtualTime;
-                uart.Log(LogLevel, "[+{0}s host +{1}s virt] {2}", Misc.NormalizeDecimal((now - lastLineStampHost).TotalSeconds),
-                    Misc.NormalizeDecimal((virtualNow - lastLineStampVirtual).TotalSeconds), line.ToString());
+                uart.Log(LogLevel, "[+{0}s host +{1}s virt {2}s virt from start] {3}", Misc.NormalizeDecimal((now - lastLineStampHost).TotalSeconds),
+                    Misc.NormalizeDecimal((virtualNow - lastLineStampVirtual).TotalSeconds),
+                    Misc.NormalizeDecimal(machine.ElapsedHostTime.TotalSeconds),
+                    line.ToString());
                 lastLineStampHost = now;
                 lastLineStampVirtual = virtualNow;
                 line.Clear();
