@@ -86,19 +86,19 @@ namespace Emul8.Peripherals.DMA
 
             var regs = new Dictionary<long, DoubleWordRegister>
             {
-                { 0x00, controlRegister },
-                { 0x08, interruptFlagClearRegister },
-                { 0x0C, foregroundMemoryAddressRegister },
-                { 0x10, foregroundOffsetRegister },
-                { 0x14, backgroundMemoryAddressRegister },
-                { 0x18, backgroundOffsetRegister },
-                { 0x1C, foregroundPfcControlRegister },
-                { 0x24, backgroundPfcControlRegister },
-                { 0x34, outputPfcControlRegister },
-                { 0x38, outputColorRegister },
-                { 0x3C, outputMemoryAddressRegister },
-                { 0x40, outputOffsetRegister },
-                { 0x44, numberOfLineRegister }
+                { (long)Register.ControlRegister, controlRegister },
+                { (long)Register.InterruptFlagClearRegister, interruptFlagClearRegister },
+                { (long)Register.ForegroundMemoryAddressRegister, foregroundMemoryAddressRegister },
+                { (long)Register.ForegroundOffsetRegister, foregroundOffsetRegister },
+                { (long)Register.BackgroundMemoryAddressRegister, backgroundMemoryAddressRegister },
+                { (long)Register.BackgroundOffsetRegister, backgroundOffsetRegister },
+                { (long)Register.ForegroundPfcControlRegister, foregroundPfcControlRegister },
+                { (long)Register.BackgroundPfcControlRegister, backgroundPfcControlRegister },
+                { (long)Register.OutputPfcControlRegister, outputPfcControlRegister },
+                { (long)Register.OutputColorRegister, outputColorRegister },
+                { (long)Register.OutputMemoryAddressRegister, outputMemoryAddressRegister },
+                { (long)Register.OutputOffsetRegister, outputOffsetRegister },
+                { (long)Register.NumberOfLineRegister, numberOfLineRegister }
             };
 
             registers = new DoubleWordRegisterCollection(this, regs);
@@ -276,6 +276,23 @@ namespace Emul8.Peripherals.DMA
             MemoryToMemoryWithPfc,
             MemoryToMemoryWithBlending,
             RegisterToMemory
+        }
+
+        private enum Register : long
+        {
+            ControlRegister = 0x0,
+            InterruptFlagClearRegister = 0x8,
+            ForegroundMemoryAddressRegister = 0xC,
+            ForegroundOffsetRegister = 0x10,
+            BackgroundMemoryAddressRegister = 0x14,
+            BackgroundOffsetRegister = 0x18,
+            ForegroundPfcControlRegister = 0x1C,
+            BackgroundPfcControlRegister = 0x24,
+            OutputPfcControlRegister = 0x34,
+            OutputColorRegister = 0x38,
+            OutputMemoryAddressRegister = 0x3C,
+            OutputOffsetRegister = 0x40,
+            NumberOfLineRegister = 0x44
         }
     }
 }
