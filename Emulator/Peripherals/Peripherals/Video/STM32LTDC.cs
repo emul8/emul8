@@ -63,12 +63,13 @@ namespace Emul8.Peripherals.Video
             {
                 layer[i] = new Layer(this, i);
 
-                registerMappings.Add(0x84 + 0x80 * i, layer[i].controlRegister);
-                registerMappings.Add(0x88 + 0x80 * i, layer[i].windowHorizontalPositionConfigurationRegister);
-                registerMappings.Add(0x8C + 0x80 * i, layer[i].windowVerticalPositionConfigurationRegister);
-                registerMappings.Add(0x94 + 0x80 * i, layer[i].pixelFormatConfigurationRegister);
-                registerMappings.Add(0x98 + 0x80 * i, layer[i].constantAlphaConfigurationRegister);
-                registerMappings.Add(0xAC + 0x80 * i, layer[i].colorFrameBufferAddressRegister);
+                var offset = 0x80 * i;
+                registerMappings.Add(0x84 + offset, layer[i].controlRegister);
+                registerMappings.Add(0x88 + offset, layer[i].windowHorizontalPositionConfigurationRegister);
+                registerMappings.Add(0x8C + offset, layer[i].windowVerticalPositionConfigurationRegister);
+                registerMappings.Add(0x94 + offset, layer[i].pixelFormatConfigurationRegister);
+                registerMappings.Add(0x98 + offset, layer[i].constantAlphaConfigurationRegister);
+                registerMappings.Add(0xAC + offset, layer[i].colorFrameBufferAddressRegister);
             }
 
             registers = new DoubleWordRegisterCollection(this, registerMappings);
