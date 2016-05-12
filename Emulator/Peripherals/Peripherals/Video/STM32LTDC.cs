@@ -24,7 +24,7 @@ namespace Emul8.Peripherals.Video
             IRQ = new GPIO();
 
             this.machine = machine;
-            lock_obj = new object();
+            internalLock = new object();
 
             activeWidthConfigurationRegister = new DoubleWordRegister(this);
             accumulatedActiveHeightField = activeWidthConfigurationRegister.DefineValueField(0, 11, FieldMode.Read | FieldMode.Write, name: "AAH");
@@ -101,7 +101,7 @@ namespace Emul8.Peripherals.Video
 
         protected override void Repaint()
         {
-            lock(lock_obj)
+            lock(internalLock)
             {
                 if(Width == 0 || Height == 0)
                 {
@@ -143,7 +143,7 @@ namespace Emul8.Peripherals.Video
 
         private void HandleActiveDisplayChange()
         {
-            lock(lock_obj)
+            lock(internalLock)
             {
                 var width = (int)(accumulatedActiveWidthField.Value - accumulatedHorizontalBackPorchField.Value);
                 var height = (int)(accumulatedActiveHeightField.Value - accumulatedVerticalBackPorchField.Value);
@@ -161,7 +161,7 @@ namespace Emul8.Peripherals.Video
 
         private void HandlePixelFormatChange()
         {
-            lock(lock_obj)
+            lock(internalLock)
             {
                 blender = PixelManipulationTools.GetBlender(layer[0].pixelFormatField.Value.ToPixelFormat(), Endianess, layer[1].pixelFormatField.Value.ToPixelFormat(), Endianess, Format, Endianess);
             }
@@ -186,7 +186,7 @@ namespace Emul8.Peripherals.Video
         private readonly Layer[] layer;
         private readonly DoubleWordRegisterCollection registers;
 
-        private readonly object lock_obj;
+        private readonly object internalLock;
         private readonly Machine machine;
 
         private IPixelBlender blender;
@@ -226,7 +226,7 @@ namespace Emul8.Peripherals.Video
 
             public void RestoreBuffers()
             {
-                lock(video.lock_obj)
+                lock(video.internalLock)
                 {
                     var layerPixelFormat = pixelFormatField.Value.ToPixelFormat();
                     var colorDepth = layerPixelFormat.GetColorDepth();
@@ -239,7 +239,7 @@ namespace Emul8.Peripherals.Video
 
             private void WarnAboutWrongBufferConfiguration()
             {
-                lock(video.lock_obj)
+                lock(video.internalLock)
                 {
                     if(layerEnableFlag.Value && colorFrameBufferAddressRegister.Value == 0)
                     {
@@ -258,7 +258,7 @@ namespace Emul8.Peripherals.Video
 
             private void HandleLayerWindowConfigurationChange()
             {
-                lock(video.lock_obj)
+                lock(video.internalLock)
                 {
                     var width = (int)(windowHorizontalStopPositionField.Value - windowHorizontalStartPositionField.Value) + 1;
                     var height = (int)(windowVerticalStopPositionField.Value - windowVerticalStartPositionField.Value) + 1;
