@@ -243,15 +243,15 @@ namespace Emul8.Peripherals.Video
                 {
                     if(layerEnableFlag.Value && colorFrameBufferAddressRegister.Value == 0)
                     {
-                        if(!warningFlag)
+                        if(!warningAlreadyIssued)
                         {
                             video.Log(LogLevel.Warning, "Layer {0} is enabled, but no frame buffer register is set", layerId);
-                            warningFlag = true;
+                            warningAlreadyIssued = true;
                         }
                     }
                     else
                     {
-                        warningFlag = false;
+                        warningAlreadyIssued = false;
                     }
                 }
             }
@@ -312,7 +312,7 @@ namespace Emul8.Peripherals.Video
             public byte[] layerBuffer;
             public byte[] layerBackgroundBuffer;
 
-            private bool warningFlag;
+            private bool warningAlreadyIssued;
             private readonly int layerId;
             private readonly STM32LTDC video;
         }
