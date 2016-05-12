@@ -141,7 +141,7 @@ namespace Emul8.Peripherals.DMA
                 break;
                 case Mode.MemoryToMemoryWithBlending:
                     var backgroundFormat = backgroundColorModeField.Value.ToPixelFormat();
-                    var blender = PixelManipulationTools.GetBlender(backgroundFormat, ENDIANESS, foregroundFormat, ENDIANESS, outputFormat, ENDIANESS);
+                    var blender = PixelManipulationTools.GetBlender(backgroundFormat, Endianness, foregroundFormat, Endianness, outputFormat, Endianness);
 
                     if(outputLineOffsetField.Value == 0 && foregroundLineOffsetField.Value == 0 && backgroundLineOffsetField.Value == 0)
                     {
@@ -178,7 +178,7 @@ namespace Emul8.Peripherals.DMA
                     }
                 break;
                 case Mode.MemoryToMemoryWithPfc:
-                    var converter = PixelManipulationTools.GetConverter(foregroundFormat, ENDIANESS, outputFormat, ENDIANESS);
+                    var converter = PixelManipulationTools.GetConverter(foregroundFormat, Endianness, outputFormat, Endianness);
                     foregroundFormat = foregroundColorModeField.Value.ToPixelFormat();
 
                     if(outputLineOffsetField.Value == 0 && foregroundLineOffsetField.Value == 0 && backgroundLineOffsetField.Value == 0)
@@ -268,7 +268,7 @@ namespace Emul8.Peripherals.DMA
         private readonly IValueRegisterField backgroundLineOffsetField;
         private readonly DoubleWordRegisterCollection registers;
 
-        private const ELFSharp.ELF.Endianess ENDIANESS = ELFSharp.ELF.Endianess.LittleEndian;
+        private const ELFSharp.ELF.Endianess Endianness = ELFSharp.ELF.Endianess.LittleEndian;
 
         private enum Mode
         {
