@@ -58,14 +58,14 @@ namespace Emul8.Peripherals.DMA
 
             var numberOfLineRegister = new DoubleWordRegister(this);
             numberOfLineField = numberOfLineRegister.DefineValueField(0, 16, FieldMode.Read | FieldMode.Write, name: "NL");
-            pixelsPerLineField = numberOfLineRegister.DefineValueField(16, 14, FieldMode.Read | FieldMode.Write, name: "PL");
+            pixelsPerLineField = numberOfLineRegister.DefineValueField(16, 14, FieldMode.Read | FieldMode.Write, name: "PL", writeCallback: (_, __) => HandleBufferSizeChange());
 
             outputMemoryAddressRegister = new DoubleWordRegister(this).WithValueField(0, 32, FieldMode.Read | FieldMode.Write);
             backgroundMemoryAddressRegister = new DoubleWordRegister(this).WithValueField(0, 32, FieldMode.Read | FieldMode.Write);
             foregroundMemoryAddressRegister = new DoubleWordRegister(this).WithValueField(0, 32, FieldMode.Read | FieldMode.Write);
 
             var outputPfcControlRegister = new DoubleWordRegister(this);
-            outputColorModeField = outputPfcControlRegister.DefineEnumField<Dma2DColorMode>(0, 3, FieldMode.Read | FieldMode.Write, name: "CM");
+            outputColorModeField = outputPfcControlRegister.DefineEnumField<Dma2DColorMode>(0, 3, FieldMode.Read | FieldMode.Write, name: "CM", writeCallback: (_, __) => HandleBufferSizeChange());
 
             var foregroundPfcControlRegister = new DoubleWordRegister(this);
             foregroundColorModeField = foregroundPfcControlRegister.DefineEnumField<Dma2DColorMode>(0, 4, FieldMode.Read | FieldMode.Write, name: "CM");
@@ -104,19 +104,24 @@ namespace Emul8.Peripherals.DMA
             registers = new DoubleWordRegisterCollection(this, regs);
         }
 
+        private void HandleBufferSizeChange()
+        {
+            outputBuffer = new byte[numberOfLineField.Value 
+                                    * pixelsPerLineField.Value 
+                                    * outputColorModeField.Value.ToPixelFormat().GetColorDepth()];
+        }
+
         private void DoTransfer()
         {
             var foregroundFormat = foregroundColorModeField.Value.ToPixelFormat();
             var outputFormat = outputColorModeField.Value.ToPixelFormat();
 
-            byte[] outputBuffer;
             switch(dma2dMode.Value)
             {
                 case Mode.RegisterToMemory:
                     var colorBytes = BitConverter.GetBytes(outputColorRegister.Value);
                     var colorDepth = outputFormat.GetColorDepth();
 
-                    outputBuffer = new byte[numberOfLineField.Value * pixelsPerLineField.Value * colorDepth];
                     // fill area with the color defined in output color register
                     for(var i = 0; i < outputBuffer.Length; i++)
                     {
@@ -146,8 +151,6 @@ namespace Emul8.Peripherals.DMA
                     if(outputLineOffsetField.Value == 0 && foregroundLineOffsetField.Value == 0 && backgroundLineOffsetField.Value == 0)
                     {
                         var backgroundBuffer = new byte[pixelsPerLineField.Value * numberOfLineField.Value * backgroundFormat.GetColorDepth()];
-                        outputBuffer = new byte[pixelsPerLineField.Value * numberOfLineField.Value * outputFormat.GetColorDepth()];
-
                         // we can optimize here and copy everything at once
                         DoCopy(foregroundMemoryAddressRegister.Value, outputMemoryAddressRegister.Value,
                                (int)(pixelsPerLineField.Value * numberOfLineField.Value * foregroundFormat.GetColorDepth()),
@@ -183,7 +186,6 @@ namespace Emul8.Peripherals.DMA
 
                     if(outputLineOffsetField.Value == 0 && foregroundLineOffsetField.Value == 0 && backgroundLineOffsetField.Value == 0)
                     {
-                        outputBuffer = new byte[pixelsPerLineField.Value * numberOfLineField.Value * outputFormat.GetColorDepth()];
                         DoCopy(foregroundMemoryAddressRegister.Value, outputMemoryAddressRegister.Value,
                                 (int)(pixelsPerLineField.Value * numberOfLineField.Value * foregroundFormat.GetColorDepth()),
                                 converter: (foregroundBuffer, line) =>
@@ -267,6 +269,8 @@ namespace Emul8.Peripherals.DMA
         private readonly IValueRegisterField foregroundLineOffsetField;
         private readonly IValueRegisterField backgroundLineOffsetField;
         private readonly DoubleWordRegisterCollection registers;
+
+        private byte[] outputBuffer;
 
         private const ELFSharp.ELF.Endianess Endianness = ELFSharp.ELF.Endianess.LittleEndian;
 
