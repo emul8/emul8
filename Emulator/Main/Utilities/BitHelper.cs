@@ -8,7 +8,7 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using System.Text;
+using System.Linq;
 
 namespace Emul8.Utilities
 {
@@ -146,7 +146,7 @@ namespace Emul8.Utilities
             }
         }
 
-        public static int[] GetSetBits(uint reg)
+        public static IList<int> GetSetBits(uint reg)
         {
             var result = new List<int>();
             var pos = 0;
@@ -161,40 +161,19 @@ namespace Emul8.Utilities
                 pos++;
             }
 
-            return result.ToArray();
+            return result;
         }
 
         public static string GetSetBitsPretty(uint reg)
         {
-            var setBits = GetSetBits(reg);
-            if(setBits.Length == 0)
+            var setBits = new HashSet<int>(GetSetBits(reg));
+            if(setBits.Count == 0)
             {
                 return "(none)";
             }
-            var bldr = new StringBuilder(setBits[0].ToString());
-            var previousBit = setBits[0];
-            var beginningOfRange = previousBit;
-            for(var i = 1; i < setBits.Length; ++i)
-            {
-                if(previousBit == setBits[i] - 1)
-                {
-                    if(i == setBits.Length - 1)
-                    {
-                        bldr.AppendFormat ("{1}{0}", setBits[i], beginningOfRange == setBits[i] - 1 ? ", " : "-");
-                    }
-                }
-                else
-                {
-                    if(beginningOfRange != previousBit)
-                    {
-                        bldr.AppendFormat("{1}{0}", previousBit, beginningOfRange == previousBit - 1 ? ", " : "-");
-                    }
-                    bldr.AppendFormat(", {0}", setBits[i]);
-                    beginningOfRange = setBits[i];
-                }
-                previousBit = setBits[i];
-            }
-            return bldr.ToString();
+            var beginnings = setBits.Where(x => !setBits.Contains(x - 1)).ToArray();
+            var endings = setBits.Where(x => !setBits.Contains(x + 1)).ToArray();
+            return beginnings.Select((x, i) => endings[i] == x ? x.ToString() : string.Format("{0}-{1}", x, endings[i])).Stringify(", ");
         }
 
         public static void ForeachActiveBit(uint reg, Action<byte> action)
