@@ -190,8 +190,6 @@ namespace Emul8.Peripherals.DMA
                     }
                 break;
                 case Mode.MemoryToMemoryWithBlending:
-                    var backgroundFormat = backgroundColorModeField.Value.ToPixelFormat();
-
                     if(outputLineOffsetField.Value == 0 && foregroundLineOffsetField.Value == 0 && backgroundLineOffsetField.Value == 0)
                     {
                         // we can optimize here and copy everything at once
@@ -206,6 +204,7 @@ namespace Emul8.Peripherals.DMA
                     }
                     else
                     {
+                        var backgroundFormat = backgroundColorModeField.Value.ToPixelFormat();
                         DoCopy(foregroundMemoryAddressRegister.Value, outputMemoryAddressRegister.Value,
                                foregroundLineBuffer,
                                (int)foregroundLineOffsetField.Value * foregroundFormat.GetColorDepth(),
@@ -220,8 +219,6 @@ namespace Emul8.Peripherals.DMA
                     }
                 break;
                 case Mode.MemoryToMemoryWithPfc:
-                    foregroundFormat = foregroundColorModeField.Value.ToPixelFormat();
-
                     if(outputLineOffsetField.Value == 0 && foregroundLineOffsetField.Value == 0 && backgroundLineOffsetField.Value == 0)
                     {
                         DoCopy(foregroundMemoryAddressRegister.Value, outputMemoryAddressRegister.Value,
@@ -247,7 +244,6 @@ namespace Emul8.Peripherals.DMA
                     }
                 break;
                 case Mode.MemoryToMemory:
-                    foregroundFormat = foregroundColorModeField.Value.ToPixelFormat();
                     if(outputLineOffsetField.Value == 0 && foregroundLineOffsetField.Value == 0)
                     {
                         // we can optimize here and copy everything at once
