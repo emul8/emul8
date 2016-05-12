@@ -50,13 +50,12 @@ namespace Emul8.Peripherals.Video
 
             var registerMappings = new Dictionary<long, DoubleWordRegister>
             {
-                { 0x0C, backPorchConfigurationRegister },
-                { 0x10, activeWidthConfigurationRegister },
-                { 0x2C, backgroundColorConfigurationRegister },
-                { 0x34, interruptEnableRegister },
-                { 0x38, interruptStatusRegister },
-                { 0x3C, interruptClearRegister },
-                { 0x40, lineInterruptPositionConfigurationRegister }
+                { (long)Register.BackPorchConfigurationRegister, backPorchConfigurationRegister },
+                { (long)Register.ActiveWidthConfigurationRegister, activeWidthConfigurationRegister },
+                { (long)Register.BackgroundColorConfigurationRegister, backgroundColorConfigurationRegister },
+                { (long)Register.InterruptEnableRegister, interruptEnableRegister },
+                { (long)Register.InterruptClearRegister, interruptClearRegister },
+                { (long)Register.LineInterruptPositionConfigurationRegister, lineInterruptPositionConfigurationRegister }
             };
 
             layer = new Layer[2];
@@ -181,6 +180,16 @@ namespace Emul8.Peripherals.Video
 
         private IPixelBlender blender;
         private Pixel backgroundColor;
+
+        private enum Register : long
+        {
+            BackPorchConfigurationRegister = 0x0C,
+            ActiveWidthConfigurationRegister = 0x10,
+            BackgroundColorConfigurationRegister = 0x2C,
+            InterruptEnableRegister = 0x34,
+            InterruptClearRegister = 0x3C,
+            LineInterruptPositionConfigurationRegister = 0x40,
+        }
 
         private class Layer
         {
