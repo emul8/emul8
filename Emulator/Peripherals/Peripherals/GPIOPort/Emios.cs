@@ -77,7 +77,7 @@ namespace Emul8.Peripherals.GPIOPort
             ChannelRegister channelRegister;
             if(TryGetChannelRegister(offset, out channelNo, out channelRegister))
             {
-                WriteChannelRegister(channelNo, channelRegister, value);
+                WriteChannelRegister(offset, channelNo, channelRegister, value);
                 return;
             }
             this.LogUnhandledRead(offset);
@@ -137,15 +137,15 @@ namespace Emul8.Peripherals.GPIOPort
             }
         }
 
-        private void WriteChannelRegister(int channelNo, ChannelRegister register, uint value)
+        private void WriteChannelRegister(long offset, int channelNo, ChannelRegister register, uint value)
         {
             switch(register)
             {
             case ChannelRegister.Control:
-                controlRegisters[channelNo].Write(value);
+                controlRegisters[channelNo].Write(offset, value);
                 break;
             case ChannelRegister.Status:
-                statusRegisters[channelNo].Write(value);
+                statusRegisters[channelNo].Write(offset, value);
                 break;
             default:
                 this.Log(LogLevel.Warning, "Unhandled write on channel register {0}, channel no {1}, value 0x{2:X}",

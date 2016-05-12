@@ -46,7 +46,6 @@ namespace Emul8.Peripherals.UART
                         .WithFlag(22, FieldMode.Read, name: "REACK", valueProviderCallback: delegate { return receiveEnabled.Value; })
                         .WithValueField(23, 8, FieldMode.Read, name: "Reserved") }
             });
-            registers.Reset();
         }
 
         public uint ReadDoubleWord(long offset)
@@ -86,6 +85,7 @@ namespace Emul8.Peripherals.UART
 
         public void Reset()
         {
+            baudRateDivisor = 0;
             registers.Reset();
         }
 

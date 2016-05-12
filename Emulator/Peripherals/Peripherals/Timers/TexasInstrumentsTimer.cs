@@ -76,11 +76,11 @@ namespace Emul8.Peripherals.Timers
                 Update();
                 break;
             case Registers.TimerControl:
-                timerControlRegister.Write(value);
+                timerControlRegister.Write(offset, value);
                 Update();
                 break;
             case Registers.TimerGlobalControl:
-                timerGlobalControlRegister.Write(value);
+                timerGlobalControlRegister.Write(offset, value);
                 break;
             case Registers.TimerPeriod12:
                 timerPeriod12 = value;
@@ -93,7 +93,7 @@ namespace Emul8.Peripherals.Timers
                 Update();
                 break;
             case Registers.TimerInterruptControlAndStatus:
-                timerInterruptControlAndStatusRegister.Write(value);
+                timerInterruptControlAndStatusRegister.Write(offset, value);
                 break;
             default:
                 this.LogUnhandledWrite(offset, value);

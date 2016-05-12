@@ -56,7 +56,7 @@ namespace Emul8.Core.Structure.Registers
                 return false;
             }
             //the assumption that write flags are exclusive is used in BusRegister logic (switch instead of ifs)
-            if(BitHelper.GetSetBits((uint)(mode & (FieldMode.Write | FieldMode.Set | FieldMode.Toggle | FieldMode.WriteOneToClear | FieldMode.WriteZeroToClear))).Length > 1)
+            if(BitHelper.GetSetBits((uint)(mode & (FieldMode.Write | FieldMode.Set | FieldMode.Toggle | FieldMode.WriteOneToClear | FieldMode.WriteZeroToClear))).Count > 1)
             {
                 return false;
             }

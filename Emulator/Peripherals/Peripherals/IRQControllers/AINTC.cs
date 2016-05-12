@@ -73,7 +73,7 @@ namespace Emul8.Peripherals.IRQControllers
                 WriteEnableRegister(1, value);
                 break;
             case Registers.InterruptOperationControl:
-                interruptOperationControl.Write(value);
+                interruptOperationControl.Write(offset, value);
                 break;
             case Registers.EntryTableBaseAddress:
                 entryTableBaseAddress = value;

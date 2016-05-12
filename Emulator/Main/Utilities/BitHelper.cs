@@ -8,6 +8,7 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using System.Linq;
 
 namespace Emul8.Utilities
 {
@@ -145,7 +146,7 @@ namespace Emul8.Utilities
             }
         }
 
-        public static int[] GetSetBits(uint reg)
+        public static IList<int> GetSetBits(uint reg)
         {
             var result = new List<int>();
             var pos = 0;
@@ -160,7 +161,19 @@ namespace Emul8.Utilities
                 pos++;
             }
 
-            return result.ToArray();
+            return result;
+        }
+
+        public static string GetSetBitsPretty(uint reg)
+        {
+            var setBits = new HashSet<int>(GetSetBits(reg));
+            if(setBits.Count == 0)
+            {
+                return "(none)";
+            }
+            var beginnings = setBits.Where(x => !setBits.Contains(x - 1)).ToArray();
+            var endings = setBits.Where(x => !setBits.Contains(x + 1)).ToArray();
+            return beginnings.Select((x, i) => endings[i] == x ? x.ToString() : string.Format("{0}-{1}", x, endings[i])).Stringify(", ");
         }
 
         public static void ForeachActiveBit(uint reg, Action<byte> action)
@@ -192,7 +205,7 @@ namespace Emul8.Utilities
 
         public static uint GetValue(uint reg, int offset, int size)
         {
-            return (uint)((reg >> offset) & ((0x1 << size) - 1));
+            return (uint)((reg >> offset) & ((0x1ul << size) - 1));
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
