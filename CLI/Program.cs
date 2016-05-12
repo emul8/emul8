@@ -8,11 +8,11 @@
 
 namespace Emul8.CLI
 {
-	public class Program
-	{
-		public static void Main(string[] args)
-		{
+    public class Program
+    {
+        public static void Main(string[] args)
+        {
             CommandLineInterface.Run(args);
-		}
-	}
+        }
+    }
 }
