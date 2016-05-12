@@ -58,6 +58,7 @@ namespace Emul8.Peripherals.Video
                 { (long)Register.LineInterruptPositionConfigurationRegister, lineInterruptPositionConfigurationRegister }
             };
 
+            localLayerBuffer = new byte[2][];
             layer = new Layer[2];
             for(var i = 0; i < layer.Length; i++)
             {
@@ -105,8 +106,6 @@ namespace Emul8.Peripherals.Video
                     return;
                 }
 
-                var localLayerBuffer = new byte[2][];
-
                 for(var i = 0; i < 2; i++)
                 {
                     if(layer[i].LayerEnableFlag.Value && layer[i].ColorFrameBufferAddressRegister.Value != 0)
@@ -128,6 +127,8 @@ namespace Emul8.Peripherals.Video
                 }
             }
         }
+
+        private readonly byte[][] localLayerBuffer;
 
         private void HandleBackgroundColorChange()
         {
