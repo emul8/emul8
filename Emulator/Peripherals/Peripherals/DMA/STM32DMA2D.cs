@@ -118,7 +118,7 @@ namespace Emul8.Peripherals.DMA
 
                     outputBuffer = new byte[numberOfLineField.Value * pixelsPerLineField.Value * colorDepth];
                     // fill area with the color defined in output color register
-                    for(int i = 0; i < outputBuffer.Length; i++)
+                    for(var i = 0; i < outputBuffer.Length; i++)
                     {
                         outputBuffer[i] = colorBytes[i % colorDepth];
                     }
@@ -133,7 +133,7 @@ namespace Emul8.Peripherals.DMA
                         // we have to copy per line
                         var lineWidth = (int)(pixelsPerLineField.Value * outputFormat.GetColorDepth());
                         var offset = lineWidth + (outputLineOffsetField.Value * outputFormat.GetColorDepth());
-                        for(int line = 0; line < numberOfLineField.Value; line++)
+                        for(var line = 0; line < numberOfLineField.Value; line++)
                         {
                             machine.SystemBus.WriteBytes(outputBuffer, outputMemoryAddressRegister.Value + line * offset, line * lineWidth, lineWidth);
                         }
@@ -240,7 +240,7 @@ namespace Emul8.Peripherals.DMA
             var currentSource = sourceAddress;
             var currentDestination = destinationAddress;
 
-            for(int line = 0; line < count; line++)
+            for(var line = 0; line < count; line++)
             {
                 machine.SystemBus.ReadBytes(currentSource, sourceBuffer.Length, sourceBuffer, 0);
                 var destinationBuffer = converter == null ? sourceBuffer : converter(sourceBuffer, line);
