@@ -51,7 +51,7 @@ namespace Emul8.Peripherals.DMA
         private STM32DMA2D()
         {
             var controlRegister = new DoubleWordRegister(this);
-            startFlag = controlRegister.DefineFlagField(0, FieldMode.Read | FieldMode.Write, name: "Start", changeCallback: (old, @new) => { if(@new) StartTransfer(); });
+            startFlag = controlRegister.DefineFlagField(0, FieldMode.Read | FieldMode.Write, name: "Start", changeCallback: (old, @new) => { if(@new) DoTransfer(); });
             dma2dMode = controlRegister.DefineEnumField<Mode>(16, 2, FieldMode.Read | FieldMode.Write, name: "Mode");
 
             var interruptFlagClearRegister = new DoubleWordRegister(this).WithFlag(1, FieldMode.Read | FieldMode.WriteOneToClear, name: "CTCIF", changeCallback: (old, @new) => { if(!@new) IRQ.Unset(); });
@@ -104,7 +104,7 @@ namespace Emul8.Peripherals.DMA
             registers = new DoubleWordRegisterCollection(this, regs);
         }
 
-        private void StartTransfer()
+        private void DoTransfer()
         {
             var foregroundFormat = foregroundColorModeField.Value.ToPixelFormat();
             var outputFormat = outputColorModeField.Value.ToPixelFormat();
