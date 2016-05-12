@@ -149,7 +149,7 @@
     <Compile Include="Peripherals\Timers\Efm32Timer.cs" />
     <Compile Include="Peripherals\UART\AppUart.cs" />
     <Compile Include="Peripherals\UART\STM32F7_USART.cs" />
-    <Compile Include="Peripherals\DMA\DMA2DColorMode.cs" />
+    <Compile Include="Peripherals\DMA\Dma2DColorMode.cs" />
     <Compile Include="Peripherals\DMA\STM32DMA2D.cs" />
     <Compile Include="Peripherals\Video\STM32LTDC.cs" />
   </ItemGroup>
