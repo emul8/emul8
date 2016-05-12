@@ -124,14 +124,14 @@ namespace Emul8.Peripherals.Timers
                 switch((Registers)offset)
                 {
                 case Registers.TimerIrqEnable:
-                    timerIrqEnableRegister.Write(value);
+                    timerIrqEnableRegister.Write(offset, value);
                     break;
                 case Registers.TimerStatus:
-                    timerStatusRegister.Write(value);
+                    timerStatusRegister.Write(offset, value);
                     Update();
                     break;
                 case Registers.LowOscillatorControl:
-                    lowOscillatorControlRegister.Write(value);
+                    lowOscillatorControlRegister.Write(offset, value);
                     break;
                 default:  
                     this.LogUnhandledWrite(offset, value);
@@ -231,7 +231,7 @@ namespace Emul8.Peripherals.Timers
                 }
                 set
                 {
-                    controlRegister.Write(value);
+                    controlRegister.Write((long)Registers.TimerXControl, value);
                 }
             }
 

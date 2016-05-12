@@ -46,7 +46,7 @@ namespace Emul8.Peripherals.I2C
         {
             if((Registers)offset == Registers.Data)
             {
-                data.Write(value);
+                data.Write(offset, value);
             }
             else
             {
