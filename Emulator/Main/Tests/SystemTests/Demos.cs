@@ -152,8 +152,6 @@ namespace Emul8.SystemTests
             {
                 // this is intentionally left blank
             }
-
-            public override string Id { get { return "DummyUartAnalyzer"; } }
         }
 
         private class DummyVideoAnalyzer : VideoAnalyzer
@@ -167,8 +165,6 @@ namespace Emul8.SystemTests
             {
                 // this is intentionally left blank
             }
-
-            public override string Id { get { return "DummyVideoAnalyzer"; } }
         }
     }
 }

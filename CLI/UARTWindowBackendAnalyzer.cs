@@ -100,8 +100,6 @@ namespace Emul8.CLI
             process = null;
         }
 
-        public string Id { get { return "Terminal"; } }
-
         public string Name { get { return IO.Source.Name; } }
 
         public IAnalyzableBackend Backend { get; private set; }
