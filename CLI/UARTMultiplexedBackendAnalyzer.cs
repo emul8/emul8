@@ -45,8 +45,6 @@ namespace Emul8.CLI
             Multiplexer.DetachTerminal(name);
         }
 
-        public string Id { get { return "multiplexed-UART"; } }
-
         public IAnalyzableBackend Backend { get; private set; }
 
         public UARTMultiplexedBackendAnalyzer()

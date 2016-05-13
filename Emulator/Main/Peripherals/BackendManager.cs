@@ -31,7 +31,7 @@ namespace Emul8.Peripherals
                 return new string[0];
             }
 
-            return analyzers[backend.GetType()].Select(x => (IAnalyzableBackendAnalyzer)Activator.CreateInstance(x)).Select(y => y.Id);
+            return analyzers[backend.GetType()].Select(x => (IAnalyzableBackendAnalyzer)Activator.CreateInstance(x)).Select(y => y.GetType().FullName);
         }
 
         public void SetPreferredAnalyzer(Type backendType, Type analyzerType)
@@ -41,7 +41,7 @@ namespace Emul8.Peripherals
 
         public string GetPreferredAnalyzerFor(IAnalyzableBackend backend)
         {
-            return preferredAnalyzer.ContainsKey(backend.GetType()) ? ((IAnalyzableBackendAnalyzer)Activator.CreateInstance(preferredAnalyzer[backend.GetType()])).Id : null;
+            return preferredAnalyzer.ContainsKey(backend.GetType()) ? ((IAnalyzableBackendAnalyzer)Activator.CreateInstance(preferredAnalyzer[backend.GetType()])).GetType().FullName : null;
         }
 
         public bool TryCreateBackend<T>(T analyzable) where T : IAnalyzable
@@ -112,7 +112,7 @@ namespace Emul8.Peripherals
             return true;
         }
 
-        public bool TryCreateAnalyzerForBackend<T>(T backend, string id, out IAnalyzableBackendAnalyzer analyzer) where T : IAnalyzableBackend
+        public bool TryCreateAnalyzerForBackend<T>(T backend, string analyzerType, out IAnalyzableBackendAnalyzer analyzer) where T : IAnalyzableBackend
         {
             if (!analyzers.ContainsKey(backend.GetType()))
             {
@@ -122,7 +122,7 @@ namespace Emul8.Peripherals
             var foundAnalyzers = analyzers[backend.GetType()];
             foreach(var found in foundAnalyzers)
             {
-                if(TryCreateAndAttach(found, backend, a => a.Id == id, out analyzer))
+                if(TryCreateAndAttach(found, backend, a => a.GetType().FullName == analyzerType, out analyzer))
                 {
                     activeAnalyzers.Add(analyzer);
                     return true;

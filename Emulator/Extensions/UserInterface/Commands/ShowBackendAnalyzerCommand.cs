@@ -99,7 +99,7 @@ namespace Emul8.UserInterface.Commands
 
             if(viewId != null)
             {
-                if (!available.Contains(viewId))
+                if(!available.Contains(viewId))
                 {
                     throw new Exception(string.Format("{0}: analyzer not found.", viewId));
                 }
