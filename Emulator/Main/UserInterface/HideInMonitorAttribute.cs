@@ -9,10 +9,10 @@ using System;
 
 namespace Emul8.UserInterface
 {
-    [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Method)]
-    public class HideMemberInMonitorAttribute : Attribute
+    [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Method | AttributeTargets.Class)]
+    public class HideInMonitorAttribute : Attribute
     {
-        public HideMemberInMonitorAttribute()
+        public HideInMonitorAttribute()
         {
         }
     }
