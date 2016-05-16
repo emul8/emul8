@@ -13,6 +13,7 @@ using Antmicro.Migrant;
 using Antmicro.Migrant.Hooks;
 using Emul8.Logging;
 using Emul8.Utilities.Collections;
+using Emul8.UserInterface;
 
 namespace Emul8.Peripherals
 {
@@ -181,7 +182,8 @@ namespace Emul8.Peripherals
                     analyzers.Add(arg, new List<Tuple<Type, bool>>());
                 }
 
-                analyzers[arg].Add(Tuple.Create(t, true));
+                var hidden = arg.GetCustomAttributes(typeof(HideInMonitorAttribute), true).Any();
+                analyzers[arg].Add(Tuple.Create(t, hidden));
             }
 
             var backendTypes = interestingInterfaces.Where(i => i.GetGenericTypeDefinition() == typeof(IAnalyzableBackend<>)).SelectMany(i => i.GetGenericArguments()).ToArray();
