@@ -22,19 +22,19 @@ namespace Emul8.UserInterface.Commands
         {
             writer.WriteLine("Usage:");
             writer.WriteLine("------");
-            writer.WriteLine("showAnalyzer ([externalName]) [peripheral] ([id])");
+            writer.WriteLine("showAnalyzer ([externalName]) [peripheral] ([typeName])");
             writer.WriteLine("\tshows analyzer for [peripheral]");
             writer.WriteLine("");
             writer.WriteLine("[externalName] (optional) - if set, command will create external named [externalName]; this can be used only for analyzers implementing IExternal interface");
-            writer.WriteLine("[id] (optional) - if set, command will select analyzer identyfied by [id]; this must be used when there are more than one analyzers available and no default is set"); 
+            writer.WriteLine("[typeName] (optional) - if set, command will select analyzer provided in class [typeName]; this must be used when there are more than one analyzers available and no default is set"); 
         }
 
         [Runnable]
-        public void Run(ICommandInteraction writer, StringToken analyzerName, LiteralToken peripheral, StringToken viewId)
+        public void Run(ICommandInteraction writer, StringToken analyzerName, LiteralToken peripheral, LiteralToken analyzerTypeName)
         {
             try
             {
-                var analyzer = GetAnalyzer(peripheral.Value, viewId == null ? null : viewId.Value);
+                var analyzer = GetAnalyzer(peripheral.Value, analyzerTypeName == null ? null : analyzerTypeName.Value);
                 if (analyzerName != null)
                 {
                     EmulationManager.Instance.CurrentEmulation.ExternalsManager.AddExternal((IExternal)analyzer, analyzerName.Value);
@@ -60,16 +60,16 @@ namespace Emul8.UserInterface.Commands
         }
 
         [Runnable]
-        public void Run(ICommandInteraction writer, LiteralToken peripheral, StringToken viewId)
+        public void Run(ICommandInteraction writer, LiteralToken peripheral, LiteralToken analyzerTypeName)
         {
-            Run(writer, null, peripheral, viewId);
+            Run(writer, null, peripheral, analyzerTypeName);
         }
 
         public ShowBackendAnalyzerCommand(Monitor monitor) : base(monitor, "showAnalyzer", "opens a peripheral backend analyzer.", "sa")
         {
         }
 
-        private IAnalyzableBackendAnalyzer GetAnalyzer(string peripheralName, string viewId)
+        private IAnalyzableBackendAnalyzer GetAnalyzer(string peripheralName, string analyzerTypeName)
         {
             var emu = EmulationManager.Instance.CurrentEmulation;
             IPeripheral p;
@@ -97,16 +97,16 @@ namespace Emul8.UserInterface.Commands
                 throw new Exception(string.Format("No suitable analyzer found for {0}", peripheralName));
             }
 
-            if(viewId != null)
+            if(analyzerTypeName != null)
             {
-                if(!available.Contains(viewId))
+                if(!available.Contains(analyzerTypeName))
                 {
-                    throw new Exception(string.Format("{0}: analyzer not found.", viewId));
+                    throw new Exception(string.Format("{0}: analyzer not found.", analyzerTypeName));
                 }
 
-                if(!emu.BackendManager.TryCreateAnalyzerForBackend(backend, viewId, out analyzer))
+                if(!emu.BackendManager.TryCreateAnalyzerForBackend(backend, analyzerTypeName, out analyzer))
                 {
-                    throw new Exception(string.Format("Couldn't create analyzer {0}.", viewId));
+                    throw new Exception(string.Format("Couldn't create analyzer {0}.", analyzerTypeName));
                 }
             }
             else if(!emu.BackendManager.TryCreateAnalyzerForBackend(backend, out analyzer))
