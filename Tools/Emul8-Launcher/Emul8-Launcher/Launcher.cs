@@ -46,11 +46,12 @@ namespace Emul8.Launcher
             var interestingBinaries = Scanner.ScanForInterestingBinaries(basicOptions.RootPath).OrderBy(x => x.Priority).ThenBy(x => x.Name).ToArray();
             for(var i = 0; i < interestingBinaries.Length; i++) 
             {
+                var j = i;
                 possibleLaunchees.Add(interestingBinaries[i]);
                 interestingBinaries[i].GenerateSwitches(optionsParser, i == 0);
                 interestingBinaries[i].SwitchOption.Parsed += (option, value) =>
                 {
-                    selectedLaunchees.Add(interestingBinaries[i]);
+                    selectedLaunchees.Add(interestingBinaries[j]);
                 };
 
                 if(interestingBinaries[i].HelpOption != null)
