@@ -31,7 +31,7 @@ namespace Emul8.Peripherals
                 return new string[0];
             }
 
-            return analyzers[backend.GetType()].Select(x => (IAnalyzableBackendAnalyzer)Activator.CreateInstance(x)).Select(y => y.GetType().FullName);
+            return analyzers[backend.GetType()].Where(x => x.Item2).Select(x => (IAnalyzableBackendAnalyzer)Activator.CreateInstance(x.Item1)).Select(y => y.GetType().FullName);
         }
 
         public void SetPreferredAnalyzer(Type backendType, Type analyzerType)
@@ -82,29 +82,22 @@ namespace Emul8.Peripherals
 
         public bool TryCreateAnalyzerForBackend<T>(T backend, out IAnalyzableBackendAnalyzer analyzer) where T : IAnalyzableBackend
         {
-            if (!analyzers.ContainsKey(backend.GetType()))
-            {
-                analyzer = null;
-                return false;
-            }
-            var foundAnalyzers = analyzers[backend.GetType()];
-
             Type analyzerType;
-            if(foundAnalyzers.Count > 1)
+            var backendType = backend.GetType();
+            if(preferredAnalyzer.ContainsKey(backendType))
             {
-                if(preferredAnalyzer.ContainsKey(backend.GetType()))
-                {
-                    analyzerType = preferredAnalyzer[backend.GetType()];
-                }
-                else
+                analyzerType = preferredAnalyzer[backendType];
+            }
+            else
+            {
+                List<Tuple<Type, bool>> foundAnalyzers;
+                if(!analyzers.TryGetValue(backendType, out foundAnalyzers) || foundAnalyzers.Count(x => x.Item2) > 1)
                 {
                     analyzer = null;
                     return false;
                 }
-            }
-            else
-            {
-                analyzerType = foundAnalyzers.First();
+
+                analyzerType = foundAnalyzers.First(x => x.Item2).Item1;
             }
 
             analyzer = CreateAndAttach(analyzerType, backend);
@@ -112,21 +105,21 @@ namespace Emul8.Peripherals
             return true;
         }
 
-        public bool TryCreateAnalyzerForBackend<T>(T backend, string analyzerType, out IAnalyzableBackendAnalyzer analyzer) where T : IAnalyzableBackend
+        public bool TryCreateAnalyzerForBackend<T>(T backend, string analyzerTypeName, out IAnalyzableBackendAnalyzer analyzer) where T : IAnalyzableBackend
         {
             if (!analyzers.ContainsKey(backend.GetType()))
             {
                 analyzer = null;
                 return false;
             }
+
             var foundAnalyzers = analyzers[backend.GetType()];
-            foreach(var found in foundAnalyzers)
+            var analyzerType = foundAnalyzers.FirstOrDefault(x => x.Item1.FullName == analyzerTypeName).Item1;
+            if(analyzerType != null)
             {
-                if(TryCreateAndAttach(found, backend, a => a.GetType().FullName == analyzerType, out analyzer))
-                {
-                    activeAnalyzers.Add(analyzer);
-                    return true;
-                }
+                analyzer = CreateAndAttach(analyzerType, backend);
+                activeAnalyzers.Add(analyzer);
+                return true;
             }
 
             analyzer = null;
@@ -185,10 +178,10 @@ namespace Emul8.Peripherals
             {
                 if(!analyzers.ContainsKey(arg))
                 {
-                    analyzers.Add(arg, new List<Type>());
+                    analyzers.Add(arg, new List<Tuple<Type, bool>>());
                 }
 
-                analyzers[arg].Add(t);
+                analyzers[arg].Add(Tuple.Create(t, true));
             }
 
             var backendTypes = interestingInterfaces.Where(i => i.GetGenericTypeDefinition() == typeof(IAnalyzableBackend<>)).SelectMany(i => i.GetGenericArguments()).ToArray();
@@ -237,7 +230,7 @@ namespace Emul8.Peripherals
         [PostDeserialization]
         private void Init()
         {
-            analyzers = new Dictionary<Type, List<Type>>();
+            analyzers = new Dictionary<Type, List<Tuple<Type, bool>>>();
             backends = new Dictionary<Type, Type>();
             preferredAnalyzer = new Dictionary<Type, Type>();
             activeAnalyzers = new List<IAnalyzableBackendAnalyzer>();
@@ -248,7 +241,7 @@ namespace Emul8.Peripherals
 
         private SerializableWeakKeyDictionary<IAnalyzable, IAnalyzableBackend> map;
         [Transient]
-        private Dictionary<Type, List<Type>> analyzers;
+        private Dictionary<Type, List<Tuple<Type, bool>>> analyzers;
         [Transient]
         private Dictionary<Type, Type> backends;
         [Transient]
