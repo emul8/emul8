@@ -96,6 +96,7 @@ xbuild $CCTASK_DIR/CCTask.sln /p:Configuration=Release /nologo /verbosity:quiet 
 
 OS_NAME=`uname`
 
+rm -f $OUTPUT_DIRECTORY/properties.csproj
 if [ "$OS_NAME" == "Darwin" ]
 then
   mkdir -p $OUTPUT_DIRECTORY
