@@ -121,7 +121,6 @@ namespace Emul8.Plugins.XwtProviderPlugin
         }
         
         private readonly IUserInterfaceProvider previousProvider;
-        private Thread xwtThread;
     }
 }
 
