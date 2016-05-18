@@ -110,7 +110,6 @@
     <Compile Include="Peripherals\Input\AR1021.cs" />
     <Compile Include="Peripherals\Miscellaneous\PrimeCellIDHelper.cs" />
     <Compile Include="Peripherals\SPI\STM32SPI.cs" />
-    <Compile Include="Peripherals\Wireless\CC2538RF.cs" />
     <Compile Include="Peripherals\Timers\CC2538Watchdog.cs" />
     <Compile Include="Peripherals\USB\USBDeviceSpeed.cs" />
     <Compile Include="Peripherals\GPIOPort\EFMGPIOPort.cs" />
@@ -152,6 +151,14 @@
     <Compile Include="Peripherals\DMA\Dma2DColorMode.cs" />
     <Compile Include="Peripherals\DMA\STM32DMA2D.cs" />
     <Compile Include="Peripherals\Video\STM32LTDC.cs" />
+    <Compile Include="Peripherals\Wireless\CC2538\Address.cs" />
+    <Compile Include="Peripherals\Wireless\CC2538\AddressInformation.cs" />
+    <Compile Include="Peripherals\Wireless\CC2538\AddressingMode.cs" />
+    <Compile Include="Peripherals\Wireless\CC2538\Frame.cs" />
+    <Compile Include="Peripherals\Wireless\CC2538\FrameType.cs" />
+    <Compile Include="Peripherals\Wireless\CC2538\InterruptRegister.cs" />
+    <Compile Include="Peripherals\Wireless\CC2538\InterruptSource.cs" />
+    <Compile Include="Peripherals\Wireless\CC2538RF.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
