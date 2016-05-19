@@ -55,6 +55,8 @@ namespace UnitTests
         [Test]
         public void ShouldHaveHandlersInSync()
         {
+            // we test here whether handler executed by the slower clock entry
+            // always "sees" value of the faster one as ten times its own value
             var clockSource = new BaseClockSource();
 
             Action firstHandler = () =>
@@ -62,6 +64,8 @@ namespace UnitTests
             };
 
             var values = new List<long>();
+
+            // clock entry with ratio -10 is 10 times slower than the one with 1
             clockSource.AddClockEntry(new ClockEntry(10000, 1, firstHandler));
             clockSource.AddClockEntry(new ClockEntry(1, -10, () => values.Add(clockSource.GetClockEntry(firstHandler).Value)));
 

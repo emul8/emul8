@@ -17,7 +17,7 @@ namespace Emul8.Time
 {
     public sealed class HostTimeClockSource : BaseClockSource, IHasOwnLife
     {
-        public HostTimeClockSource()
+        public HostTimeClockSource() : base(true)
         {
             stopwatch = new Stopwatch();
             startStopSync = new object();
@@ -25,7 +25,6 @@ namespace Emul8.Time
             threadFinished = new ManualResetEventSlim();
             quickProgress = new AutoResetEvent(false);
             tokenSource = new CancellationTokenSource();
-            SkipAdvancesHigherThanNearestLimit = true;
         }
 
         public void Start()
