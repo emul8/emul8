@@ -8,7 +8,7 @@ include @platforms/boards/tegra3
 sysbus Redirect 0xC0000000 0x80000000 0x40000000
 
 showAnalyzer sysbus.uart0
-showAnalyzer sysbus.uart0 "LoggingAnalyzer"
+showAnalyzer sysbus.uart0 Emul8.Analyzers.LoggingUartAnalyzer
 
 machine PendriveFromFile @http://emul8.org/emul8_files/binaries/tegra_pendrive.img-s_36700160-cadcf9fa3e7306301858a9d949b4cd7d579ba88e "pendrive" sysbus.usbehci2.usbhub 3 false
 

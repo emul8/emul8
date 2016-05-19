@@ -19,8 +19,6 @@ namespace Emul8.Peripherals
         public abstract void Show();
         public abstract void Hide();
 
-        public abstract string Id { get; }
-
         public IAnalyzableBackend Backend { get; private set; }
     }
 }

@@ -48,7 +48,7 @@ namespace Emul8.Utilities
 
         private static bool IsBaseCallable(this MemberInfo info)
         {
-            return !info.IsDefined(typeof(HideMemberInMonitorAttribute));
+            return !info.IsDefined(typeof(HideInMonitorAttribute));
         }
 
         public static bool IsStatic(this MemberInfo info)

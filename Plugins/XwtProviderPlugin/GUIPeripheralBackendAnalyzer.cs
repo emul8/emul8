@@ -59,8 +59,6 @@ namespace Emul8.Plugins.XwtProviderPlugin
         protected abstract void OnAttach(T backend);
 
         public abstract Widget Widget { get; }
-
-        public override string Id { get { return "tab"; } }
     }
 }
 

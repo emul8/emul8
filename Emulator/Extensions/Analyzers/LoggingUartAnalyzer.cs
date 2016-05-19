@@ -57,8 +57,6 @@ namespace Emul8.Analyzers
             uart.CharReceived -= WriteChar;
         }
 
-        public override string Id { get { return "LoggingAnalyzer"; } }
-
         public LogLevel LogLevel { get; set; }
 
         private void WriteChar(byte value)

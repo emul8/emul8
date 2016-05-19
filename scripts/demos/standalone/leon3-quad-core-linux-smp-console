@@ -14,7 +14,7 @@ cpu0 PerformanceInMips 100
 ### create externals ###
 
 showAnalyzer sysbus.uart
-showAnalyzer sysbus.uart "LoggingAnalyzer"
+showAnalyzer sysbus.uart Emul8.Analyzers.LoggingUartAnalyzer
 
 ### network setup ###
 
