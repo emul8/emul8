@@ -16,8 +16,9 @@ namespace Emul8.Time
 {
     public class BaseClockSource : IClockSource
     {
-        public BaseClockSource()
+        public BaseClockSource(bool skipAdvancesHigherThanNearestLimit = false)
         {
+            this.skipAdvancesHigherThanNearestLimit = skipAdvancesHigherThanNearestLimit;
             clockEntries = new List<ClockEntry>();
             clockEntriesUpdateHandlers = new List<UpdateHandlerDelegate>();
             toNotify = new List<Action>();
@@ -61,29 +62,6 @@ namespace Emul8.Time
                 {
                     AdvanceInner(ticks, immediately);
                 }
-            }
-        }
-
-        public void AdvanceInner(long ticks, bool immediately)
-        {
-            lock(sync)
-            {
-                #if DEBUG
-                if(ticks > nearestLimitIn && !skipAdvancesHigherThanNearestLimit)
-                {
-                    throw new InvalidOperationException("Should not reach here.");
-                }
-                #endif
-                elapsed += ticks;
-                totalElapsed += ticks;
-                if(nearestLimitIn > ticks && !immediately)
-                {
-                    // nothing happens
-                    nearestLimitIn -= ticks;
-                    return;
-                }
-                Update(elapsed);
-                elapsed = 0;
             }
         }
 
@@ -241,24 +219,6 @@ namespace Emul8.Time
             }
         }
 
-        public bool SkipAdvancesHigherThanNearestLimit
-        {
-            get
-            {
-                lock(sync)
-                {
-                    return skipAdvancesHigherThanNearestLimit;
-                }
-            }
-            set
-            {
-                lock(sync)
-                {
-                    skipAdvancesHigherThanNearestLimit = value;
-                }
-            }
-        }
-
         public event Action<int, int> NumberOfEntriesChanged;
 
         private static bool HandleDirectionDescendingPositiveRatio(ref ClockEntry entry, long ticks, ref long nearestTickIn) 
@@ -330,6 +290,29 @@ namespace Emul8.Time
 
             nearestTickIn = Math.Min(nearestTickIn, ((entry.Period - entry.Value) * -entry.Ratio) - entry.ValueResiduum);
             return flag;
+        }
+
+        private void AdvanceInner(long ticks, bool immediately)
+        {
+            lock(sync)
+            {
+                #if DEBUG
+                if(ticks > nearestLimitIn && !skipAdvancesHigherThanNearestLimit)
+                {
+                    throw new InvalidOperationException("Should not reach here.");
+                }
+                #endif
+                elapsed += ticks;
+                totalElapsed += ticks;
+                if(nearestLimitIn > ticks && !immediately)
+                {
+                    // nothing happens
+                    nearestLimitIn -= ticks;
+                    return;
+                }
+                Update(elapsed);
+                elapsed = 0;
+            }
         }
 
         private void NotifyNumberOfEntriesChanged(int oldValue, int newValue)
@@ -417,7 +400,7 @@ namespace Emul8.Time
         private long nearestLimitIn;
         private long elapsed;
         private long totalElapsed;
-        private bool skipAdvancesHigherThanNearestLimit;
+        private readonly bool skipAdvancesHigherThanNearestLimit;
         private readonly List<Action> toNotify;
         private readonly List<ClockEntry> clockEntries;
         private readonly List<UpdateHandlerDelegate> clockEntriesUpdateHandlers;
