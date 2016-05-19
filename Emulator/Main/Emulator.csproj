@@ -275,7 +275,7 @@
     <Compile Include="Storage\FileStreamLimitWrapper.cs" />
     <Compile Include="Plugins\PluginAttribute.cs" />
     <Compile Include="Utilities\PluginDescriptor.cs" />
-    <Compile Include="UserInterface\HideMemberInMonitorAttribute.cs" />
+    <Compile Include="UserInterface\HideInMonitorAttribute.cs" />
     <Compile Include="Utilities\TimerResult.cs" />
     <Compile Include="Core\IGPIO.cs" />
     <Compile Include="Core\IGPIORedirector.cs" />

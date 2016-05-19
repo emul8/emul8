@@ -72,13 +72,13 @@ namespace Emul8.Plugins
             activePlugins.Clear();
         }
 
-        [HideMemberInMonitor]
+        [HideInMonitor]
         public IDictionary<PluginDescriptor, bool> GetPluginsMap()
         {
             return TypeManager.Instance.AvailablePlugins.ToDictionary(key => key, value => activePlugins.ContainsKey(value));
         }
 
-        [HideMemberInMonitor]
+        [HideInMonitor]
         public void Init(params string[] modes)
         {
             enabledModes = new HashSet<string>(modes);

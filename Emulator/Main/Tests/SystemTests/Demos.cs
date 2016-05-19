@@ -141,6 +141,7 @@ namespace Emul8.SystemTests
         private XwtProvider xwtProvider;
         private ObjectCreator.Context context;
 
+        [HideInMonitor]
         private class DummyUartAnalyzer : BasicPeripheralBackendAnalyzer<UARTBackend>
         {
             public override void Show()
@@ -152,10 +153,9 @@ namespace Emul8.SystemTests
             {
                 // this is intentionally left blank
             }
-
-            public override string Id { get { return "DummyUartAnalyzer"; } }
         }
 
+        [HideInMonitor]
         private class DummyVideoAnalyzer : VideoAnalyzer
         {
             public override void Show()
@@ -167,8 +167,6 @@ namespace Emul8.SystemTests
             {
                 // this is intentionally left blank
             }
-
-            public override string Id { get { return "DummyVideoAnalyzer"; } }
         }
     }
 }
