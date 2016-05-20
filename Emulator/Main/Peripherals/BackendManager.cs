@@ -174,6 +174,7 @@ namespace Emul8.Peripherals
                 return;
             }
 
+            var hidden = t.GetCustomAttributes(typeof(HideInMonitorAttribute), true).Any();
             var analyzerTypes = interestingInterfaces.Where(i => i.GetGenericTypeDefinition() == typeof(IAnalyzableBackendAnalyzer<>)).SelectMany(i => i.GetGenericArguments()).ToArray();
             foreach(var arg in analyzerTypes)
             {
@@ -182,7 +183,6 @@ namespace Emul8.Peripherals
                     analyzers.Add(arg, new List<Tuple<Type, bool>>());
                 }
 
-                var hidden = arg.GetCustomAttributes(typeof(HideInMonitorAttribute), true).Any();
                 analyzers[arg].Add(Tuple.Create(t, !hidden));
             }
 
