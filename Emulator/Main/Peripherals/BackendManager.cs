@@ -183,7 +183,7 @@ namespace Emul8.Peripherals
                 }
 
                 var hidden = arg.GetCustomAttributes(typeof(HideInMonitorAttribute), true).Any();
-                analyzers[arg].Add(Tuple.Create(t, hidden));
+                analyzers[arg].Add(Tuple.Create(t, !hidden));
             }
 
             var backendTypes = interestingInterfaces.Where(i => i.GetGenericTypeDefinition() == typeof(IAnalyzableBackend<>)).SelectMany(i => i.GetGenericArguments()).ToArray();
