@@ -58,9 +58,9 @@ namespace Emul8.Utilities
             Port = port;
         }
 
-        void OnHalted(HaltReason reason)
+        void OnHalted(HaltArguments args)
         {
-            if((reason == HaltReason.Breakpoint) || (reason == HaltReason.StepMode) || (reason == HaltReason.Abort) || (reason == HaltReason.Pause))
+            if((args.Reason == HaltReason.Breakpoint) || (args.Reason == HaltReason.StepMode) || (args.Reason == HaltReason.Abort) || (args.Reason == HaltReason.Pause))
             {
                 send_command("S05");
             }
