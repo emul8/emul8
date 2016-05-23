@@ -51,6 +51,7 @@ namespace Emul8.Peripherals.CPU
             PerformanceInMips = 100;
             currentCountThreshold = 5000;
             this.cpuType = cpuType;
+            DisableInterruptsWhileStepping = true;
             ClockSource = new BaseClockSource();
             ClockSource.NumberOfEntriesChanged += (oldValue, newValue) =>
             {
@@ -620,6 +621,7 @@ namespace Emul8.Peripherals.CPU
             pagesAccessedByIo.Remove(address & TlibGetPageSize());
         }
 
+        public bool DisableInterruptsWhileStepping { get; set; }
         public int PerformanceInMips { get; set; }
 
         public void LogFunctionNames(bool value)
@@ -847,7 +849,7 @@ namespace Emul8.Peripherals.CPU
                         info = "- " + info;
                 }
                 //this.NoisyLog("Entered iteration @ 0x{0:x8} {1}", PC,info);
-                if(TlibIsIrqSet() == 0 && interruptEvents.Any(x => x.WaitOne(0)))
+                if(!(DisableInterruptsWhileStepping && stepMode) && TlibIsIrqSet() == 0 && interruptEvents.Any(x => x.WaitOne(0)))
                 {
                     for(var i = 0; i < interruptEvents.Length; i++)
                     {
