@@ -14,6 +14,7 @@ using System.Collections.Generic;
 using Emul8.Time;
 using Emul8.Logging;
 using Emul8.Peripherals.IRQControllers;
+using Endianess = ELFSharp.ELF.Endianess;
 
 namespace Emul8.Peripherals.CPU
 {
@@ -22,7 +23,7 @@ namespace Emul8.Peripherals.CPU
     [GPIO(NumberOfInputs = 3)]
     public partial class Sparc : TranslationCPU
     {
-        public Sparc(string cpuType, Machine machine, EndiannessEnum endianness = EndiannessEnum.BigEndian): base(cpuType, machine, endianness)
+        public Sparc(string cpuType, Machine machine, Endianess endianness = Endianess.BigEndian): base(cpuType, machine, endianness)
         {
             Init();
         }

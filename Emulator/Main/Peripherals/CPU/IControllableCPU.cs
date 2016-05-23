@@ -38,6 +38,8 @@ namespace Emul8.Peripherals.CPU
         void InitFromUImage(UImage uImage);
 
         event Action<HaltReason> Halted;
+
+        Endianess Endianness { get; }
     }
 }
 

@@ -18,12 +18,13 @@ using Emul8.Core.Structure;
 using Emul8.Exceptions;
 using Emul8.Utilities;
 using Emul8.Peripherals.Miscellaneous;
+using Endianess = ELFSharp.ELF.Endianess;
 
 namespace Emul8.Peripherals.CPU
 {
     public partial class Arm : TranslationCPU, ICPUWithBlockBeginHook, IPeripheralRegister<SemihostingUart, NullRegistrationPoint>
     {
-        public Arm(string cpuType, Machine machine, EndiannessEnum endianness = EndiannessEnum.LittleEndian): base(cpuType, machine, endianness)
+        public Arm(string cpuType, Machine machine, Endianess endianness = Endianess.LittleEndian): base(cpuType, machine, endianness)
         {
         }
             

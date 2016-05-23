@@ -35,9 +35,9 @@ namespace Emul8.Peripherals.CPU
     [GPIO(NumberOfInputs = 2)]  // TODO: maybe we should support more?
     public abstract class TranslationCPU : IGPIOReceiver, IControllableCPU, IDisposable, IDisassemblable, IClockSource
     {
-        public EndiannessEnum Endianness { get; protected set; }
+        public Endianess Endianness { get; protected set; }
 
-        protected TranslationCPU(string cpuType, Machine machine, EndiannessEnum endianness)
+        protected TranslationCPU(string cpuType, Machine machine, Endianess endianness)
         {
             if(cpuType == null)
             {
@@ -1119,7 +1119,7 @@ namespace Emul8.Peripherals.CPU
             }
             onTranslationBlockFetch = OnTranslationBlockFetch;
 
-            var libraryResource = string.Format("Emul8.translate_{0}-{1}-{2}.so", IntPtr.Size * 8, Architecture, Endianness == EndiannessEnum.BigEndian ? "be" : "le");
+            var libraryResource = string.Format("Emul8.translate_{0}-{1}-{2}.so", IntPtr.Size * 8, Architecture, Endianness == Endianess.BigEndian ? "be" : "le");
             libraryFile = GetType().Assembly.FromResourceToTemporaryFile(libraryResource);
 
             binder = new NativeBinder(this, libraryFile);
@@ -1786,15 +1786,6 @@ namespace Emul8.Peripherals.CPU
         protected static readonly Exception InvalidInterruptNumberException = new InvalidOperationException("Invalid interrupt number.");
 
         private const int DefaultMaximumBlockSize = 0x7FF;
-
     }
-
-
-    public enum EndiannessEnum
-    {
-        BigEndian,
-        LittleEndian
-    }
-
 }
 

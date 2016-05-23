@@ -73,6 +73,10 @@
       <Project>{66400796-0C5B-4386-A859-50A2AC3F3DB6}</Project>
       <Name>Peripherals-GRLIB</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\External\ELFSharp\ELFSharp\ELFSharp.csproj">
+      <Project>{CF944E09-7C14-433C-A185-161848E989B3}</Project>
+      <Name>ELFSharp</Name>
+    </ProjectReference>
   </ItemGroup>
   <ProjectExtensions>
     <MonoDevelop>
