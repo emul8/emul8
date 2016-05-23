@@ -367,6 +367,7 @@
     <Compile Include="Testing\FrameBufferTester.cs" />
     <Compile Include="Peripherals\InterruptHandler.cs" />
     <Compile Include="Peripherals\CPU\BreakpointType.cs" />
+    <Compile Include="Peripherals\CPU\HaltArguments.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup />
