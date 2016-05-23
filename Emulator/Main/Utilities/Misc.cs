@@ -828,6 +828,18 @@ namespace Emul8.Utilities
             get { return Environment.UserName == "root"; }
         }
 
+        public static bool IsOnOsX
+        {
+            get
+            {
+                if(Environment.OSVersion.Platform == PlatformID.MacOSX)
+                {
+                    return true;
+                }
+                return Directory.Exists("/Library") && Directory.Exists("/Applications");
+            }
+        }
+
         public static bool IsCommandAvaialble(string command)
         {
             var verifyProc = new Process();
