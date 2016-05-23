@@ -25,12 +25,34 @@ namespace Emul8.Plugins.XwtProviderPlugin
             internalLock = new object();
             UiThreadId = -1;
         }
-        
+
+        public static int UiThreadId { get; private set; }
+
+        public XwtProvider()
+        {
+            if(UiThreadId != -1)
+            {
+                // if there is an UI thread running already then do nothing
+                return;
+            }
+            try
+            {
+                previousProvider = Emulator.UserInterfaceProvider;
+            }
+            catch
+            {
+                previousProvider = null;
+            }
+            
+            Emulator.UserInterfaceProvider = new WindowedUserInterfaceProvider();
+            StartXwtThread();
+        }
+
         public static void InitializeXwt()
         {
             Application.Initialize(ToolkitType.Gtk);
         }
-        
+
         public static void RunXwtInCurrentThread()
         {
             lock(internalLock)
@@ -41,39 +63,16 @@ namespace Emul8.Plugins.XwtProviderPlugin
                 }
                 UiThreadId = Thread.CurrentThread.ManagedThreadId;
             }
-                
+
             Application.UnhandledException += LocalCrashHandler;
             GLib.ExceptionManager.UnhandledException += arg => CrashHandler.HandleCrash((Exception)arg.ExceptionObject);
             Application.Run();
             GtkTextLayoutBackendHandler.DisposeResources();
-            
+
             lock(internalLock)
             {
                 UiThreadId = -1;
             }
-        }
-        
-        public static int UiThreadId { get; private set; }
-        
-        public XwtProvider()
-        {
-            if(UiThreadId != -1)
-            {
-                // if there is an UI thread running already then do nothing
-                return;
-            }
-               
-            try 
-            {
-                previousProvider = Emulator.UserInterfaceProvider;
-            } 
-            catch
-            {
-                previousProvider = null;
-            }
-            
-            Emulator.UserInterfaceProvider = new WindowedUserInterfaceProvider();
-            StartXwtThread();
         }
 
         public void Dispose()
@@ -81,7 +80,7 @@ namespace Emul8.Plugins.XwtProviderPlugin
             Emulator.UserInterfaceProvider = previousProvider;
             StopXwtThread();
         }
-        
+
         private static void LocalCrashHandler(object sender, ExceptionEventArgs args)
         {
             var exception = args.ErrorException;
@@ -95,9 +94,9 @@ namespace Emul8.Plugins.XwtProviderPlugin
                 MessageDialog.ShowWarning(args.ErrorException.ToString());
             }           
         }
-        
+
         private static object internalLock;
-        
+
         private void StartXwtThread()
         {
             Emulator.ExecuteOnMainThread(() =>
@@ -106,7 +105,7 @@ namespace Emul8.Plugins.XwtProviderPlugin
                 RunXwtInCurrentThread();
             });
         }
-        
+
         private void StopXwtThread()
         {
             lock(internalLock)
@@ -119,7 +118,7 @@ namespace Emul8.Plugins.XwtProviderPlugin
                 UiThreadId = -1;
             }
         }
-        
+
         private readonly IUserInterfaceProvider previousProvider;
     }
 }
