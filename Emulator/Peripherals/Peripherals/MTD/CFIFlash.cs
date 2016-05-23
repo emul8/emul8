@@ -19,17 +19,17 @@ namespace Emul8.Peripherals.MTD
     [Icon("sd")]
     public sealed class CFIFlash : IBytePeripheral, IWordPeripheral, IDoubleWordPeripheral, IKnownSize, IDisposable
     {        
-        public CFIFlash(string fileName, int size, BusWidth bits = BusWidth.Bits32, bool nonPersistent = false)
+        public CFIFlash(string fileName, int size, Width bits = Width.DoubleWord, bool nonPersistent = false)
         {
             switch(bits)
             {
-            case BusWidth.Bits8:
+            case Width.Byte:
                 busWidth = 0;
                 break;
-            case BusWidth.Bits16:
+            case Width.Word:
                 busWidth = 1;
                 break;
-            case BusWidth.Bits32:
+            case Width.DoubleWord:
                 busWidth = 2;
                 break;
             default:

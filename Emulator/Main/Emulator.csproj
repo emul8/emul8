@@ -192,7 +192,6 @@
     <Compile Include="Peripherals\Bus\Wrappers\ReadHookWrapper.cs" />
     <Compile Include="Peripherals\Bus\Wrappers\ReadLoggingWrapper.cs" />
     <Compile Include="Peripherals\Bus\Wrappers\HookWrapper.cs" />
-    <Compile Include="Core\BusWidth.cs" />
     <Compile Include="Core\Structure\SimpleContainer.cs" />
     <Compile Include="Utilities\ExtensionOnObjectAttribute.cs" />
     <Compile Include="Peripherals\Bus\Wrappers\WriteHookWrapper.cs" />
