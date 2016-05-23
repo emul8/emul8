@@ -15,7 +15,7 @@ namespace Emul8.Peripherals.MTD
 {
     public static class CFIFlashExtensions
     {
-        public static void CFIFlashFromFile(this Machine machine, string fileName, long whereToRegister, string name, BusWidth busWidth = BusWidth.Bits32, bool nonPersistent = false, int? size = null)
+        public static void CFIFlashFromFile(this Machine machine, string fileName, long whereToRegister, string name, Width busWidth = Width.DoubleWord, bool nonPersistent = false, int? size = null)
         {
             CFIFlash flash;
             try
