@@ -436,49 +436,65 @@ namespace Emul8.Peripherals.CPU
 
         public void Pause()
         {
+            InnerPause(new HaltArguments(HaltReason.Pause));
+        }
+
+        private void InnerPause(HaltArguments haltArgs)
+        {
             if(PauseEvent.WaitOne(0))
             {
+                // cpu is already paused
                 return;
             }
+
             PauseEvent.Set();
             TlibSetPaused();
-            if(Thread.CurrentThread.ManagedThreadId == cpuThread.ManagedThreadId)
+
+            if(Thread.CurrentThread.ManagedThreadId != cpuThread.ManagedThreadId)
+            {
+                this.NoisyLog("Waiting for thread to pause.");
+                cpuThread.Join();
+                this.NoisyLog("Paused.");
+                cpuThread = null;
+                TlibClearPaused();
+            }
+            else
             {
                 pauseGuard.OrderPause();
-                return;
             }
-            this.NoisyLog("Waiting for thread to pause.");
-            cpuThread.Join();
-            this.NoisyLog("Paused.");
-            cpuThread = null;
-            TlibClearPaused();
+
+            InvokeHalted(haltArgs);
         }
      
         public virtual void Resume()
         {
-            if(!PauseEvent.WaitOne(0))
+            lock(pauseLock)
             {
-                return;
-            }
-            started = true;
-            lock(pumpingModeSync)
-            {
-                if(executionLimit.HasValue)
+                if(!PauseEvent.WaitOne(0))
                 {
                     return;
                 }
+                started = true;
+                lock(pumpingModeSync)
+                {
+                    if(executionLimit.HasValue)
+                    {
+                        return;
+                    }
+                }
+                this.NoisyLog("Resuming.");
+                cpuThread = new Thread(CpuLoop)
+                {
+                    IsBackground = true,
+                    Name = this.GetCPUThreadName(machine)
+                };
+                PauseEvent.Reset();
+                cpuThread.Start();
+                TlibClearPaused();
+                this.NoisyLog("Resumed.");
             }
-            this.NoisyLog("Resuming.");
-            cpuThread = new Thread(CpuLoop) 
-            {
-                IsBackground = true,
-                Name = this.GetCPUThreadName(machine)
-            };
-            PauseEvent.Reset();
-            TlibClearPaused();
-            cpuThread.Start();
-            this.NoisyLog("Resumed.");
         }
+
         public virtual void Reset()
         {
             Pause();
@@ -804,7 +820,6 @@ namespace Emul8.Peripherals.CPU
                 catch(CpuAbortException)
                 {
                     this.NoisyLog("CPU abort detected, halting.");
-                    PauseEvent.Set();
                     machine.Pause();
                     InvokeHalted(HaltReason.Abort);
                     break;
@@ -1041,6 +1056,8 @@ namespace Emul8.Peripherals.CPU
             }
         }
 
+        private readonly object pauseLock = new object();
+
         public void WaitForStepDone()
         {
             stepDoneEvent.WaitOne();
@@ -1185,8 +1202,7 @@ namespace Emul8.Peripherals.CPU
                     executionLimit -= value;
                     if(executionLimit <= 0)
                     {
-                        PauseEvent.Set();
-                        TlibSetPaused();
+                        InnerPause(null);
                     }
                 }
             }
