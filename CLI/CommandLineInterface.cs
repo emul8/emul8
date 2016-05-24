@@ -49,13 +49,12 @@ namespace Emul8.CLI
                 var crashHandler = new CrashHandler();
                 AppDomain.CurrentDomain.UnhandledException += (sender, e) => crashHandler.HandleCrash(e);
 
-                var resetEvent = new ManualResetEventSlim();
                 if(options.StdInOut)
                 {
                     Logger.AddBackend(new FileBackend("logger.log"), "file");
                     var world = new StreamIOSource(Console.OpenStandardInput(), Console.OpenStandardOutput());
                     var io = new DetachableIO(world);
-                    monitor.Quitted += resetEvent.Set;
+                    monitor.Quitted += Emulator.Exit;
                     var handler = new StdInOutHandler(io, monitor, options.Plain);
                     handler.Start();
                 }
@@ -67,7 +66,6 @@ namespace Emul8.CLI
                     {
                         var io = new DetachableIO(new SocketIOSource(options.Port));
                         shell = ShellProvider.GenerateShell(io, monitor, true, false);
-                        shell.Quitted += resetEvent.Set;
                     }
                     else if(options.ConsoleMode)
                     {
@@ -84,8 +82,6 @@ namespace Emul8.CLI
 
                         shell = ShellProvider.GenerateShell(monitor);
                         consoleTerm.AttachTerminal("shell", shell.Terminal);
-
-                        shell.Quitted += resetEvent.Set;
                     }
                     else
                     {
@@ -96,7 +92,6 @@ namespace Emul8.CLI
                         var terminal = new UARTWindowBackendAnalyzer(dio);
                         shell = ShellProvider.GenerateShell(dio, monitor);     
 
-                        shell.Quitted += resetEvent.Set;
                         monitor.Quitted += shell.Stop;
 
                         try
@@ -107,9 +102,10 @@ namespace Emul8.CLI
                         {
                             Console.ForegroundColor = ConsoleColor.Red;
                             Console.Error.WriteLine(ex.Message);
-                            resetEvent.Set();
+                            Emulator.Exit();
                         }
                     }
+                    shell.Quitted += Emulator.Exit;
 
                     if(preferredUARTAnalyzer != null)
                     {
@@ -135,10 +131,12 @@ namespace Emul8.CLI
                     new Thread(x => shell.Start(true)) { IsBackground = true, Name = "Shell thread" }.Start();
                 }
 
-                resetEvent.Wait();
-                EmulationManager.Instance.Clear();
-                TypeManager.Instance.Dispose();
-                Logger.Dispose();
+                Emulator.BeforeExit += () =>
+                {
+                  Emulator.DisposeAll();
+                };
+
+                Emulator.WaitForExit();
             }
         }
     }
