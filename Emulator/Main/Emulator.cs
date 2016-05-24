@@ -7,6 +7,9 @@
 //
 using Emul8.Exceptions;
 using Emul8.UserInterface;
+using System.Collections.Concurrent;
+using System;
+using System.Threading;
 
 namespace Emul8
 {
@@ -28,6 +31,26 @@ namespace Emul8
             }
         }
 
+        public static void ExecuteOnMainThread(Action what)
+        {
+            actionsOnMainThread.Add(what);
+        }
+
+        public static void ExecuteAsMainThread()
+        {
+            Action action;
+            while(actionsOnMainThread.TryTake(out action, -1))
+            {
+                action();
+            }
+        }
+
+        public static void FinishExecutionAsMainThread()
+        {
+            actionsOnMainThread.CompleteAdding();
+        }
+
+        private static readonly BlockingCollection<Action> actionsOnMainThread = new BlockingCollection<Action>();
         private static IUserInterfaceProvider userInterfaceProvider;
     }
 }
