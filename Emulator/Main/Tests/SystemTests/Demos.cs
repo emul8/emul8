@@ -39,6 +39,7 @@ namespace Emul8.SystemTests
             // plugins in configuration that will start at this moment
             // (so the environment must be already prepared)
             xwtProvider = new XwtProvider();
+            new System.Threading.Thread(Emulator.ExecuteAsMainThread) { IsBackground = true }.Start();
 
             // this must be set before creating monitor
             ConfigurationManager.Instance.SetNonPersistent("monitor", "consume-exceptions-from-command", false);
