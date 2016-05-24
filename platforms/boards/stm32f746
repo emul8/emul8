@@ -1,0 +1,13 @@
+:Name: STM32F746
+:Icon: STM32
+
+#
+# stm32f746 board
+#
+
+include @platforms/cpus/stm32f746
+machine LoadPeripherals @platforms/boards/stm32f4_discovery-bb.json
+
+machine PyDevFromFile @scripts/pydev/flipflop.py 0x40023800 0x4 True
+machine PyDevFromFile @scripts/pydev/flipflop.py 0x40007004 0x4 True
+machine PyDevFromFile @scripts/pydev/flipflop.py 0x40012C34 0x4 True

@@ -27,7 +27,7 @@ namespace Emul8.Plugins.XwtProviderPlugin
                 tabName = "?";
             }
 
-            ApplicationExtensions.InvokeInUIThread(() => Emulator.UserInterfaceProvider.ShowAnalyser(this, tabName));
+            ApplicationExtensions.InvokeInUIThreadAndWait(() => Emulator.UserInterfaceProvider.ShowAnalyser(this, tabName));
         }
 
         public override void Hide()
@@ -37,7 +37,7 @@ namespace Emul8.Plugins.XwtProviderPlugin
                 throw new RecoverableException("This analyzer requires running GUI thread");
             }
 
-            ApplicationExtensions.InvokeInUIThread(() => Emulator.UserInterfaceProvider.HideAnalyser(this));
+            ApplicationExtensions.InvokeInUIThreadAndWait(() => Emulator.UserInterfaceProvider.HideAnalyser(this));
         }
 
         public override void AttachTo(T backend)
