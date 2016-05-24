@@ -155,7 +155,7 @@ namespace UnitTests
                 timer.LimitReached += () => ticked = true;
                 machine.Start();
                 // var val =timer.Value;
-                manualClockSource.AdvanceBySeconds(110);
+                manualClockSource.AdvanceBySeconds(10);
                 Assert.IsTrue(ticked);
             }
         }

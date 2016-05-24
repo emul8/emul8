@@ -842,7 +842,7 @@ namespace Emul8.Peripherals.CPU
                     {
                         try
                         {
-                            var timeToSleep = new TimeSpan(Time.Consts.TimeQuantum.Ticks * ClockSource.NearestTickIn);
+                            var timeToSleep = new TimeSpan(Time.Consts.TimeQuantum.Ticks * ClockSource.NearestLimitIn);
                             var timeToSleepInMs = Math.Min(int.MaxValue, (int)timeToSleep.TotalMilliseconds);
                             if(timeToSleepInMs > 0)
                             {
@@ -854,7 +854,7 @@ namespace Emul8.Peripherals.CPU
                             }
                             else
                             {
-                                ClockSource.Advance(ClockSource.NearestTickIn);
+                                ClockSource.Advance(ClockSource.NearestLimitIn);
                             }
                         }
                         catch(OperationCanceledException)
