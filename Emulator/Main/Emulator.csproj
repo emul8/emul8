@@ -364,6 +364,7 @@
     <Compile Include="Peripherals\Bus\Width.cs" />
     <Compile Include="Peripherals\Bus\Access.cs" />
     <Compile Include="Peripherals\Bus\BusHookHandler.cs" />
+    <Compile Include="Testing\FrameBufferTester.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup />

@@ -57,7 +57,7 @@ namespace Emul8.Extensions.Analyzers.Video
             lastRewrite = CustomDateTime.Now;
             EnsureAnalyserWidget();
 
-            videoPeripheral.ConfigurationChanged += displayWidget.SetDisplayParameters;
+            videoPeripheral.ConfigurationChanged += (w, h, f, e) => ApplicationExtensions.InvokeInUIThread(() => displayWidget.SetDisplayParameters(w, h, f, e));
             videoPeripheral.FrameRendered += displayWidget.DrawFrame;
 
             displayWidget.InputAttached += i =>
@@ -158,7 +158,7 @@ namespace Emul8.Extensions.Analyzers.Video
 
                 var summaryVB = new HBox();
                 var resolutionL = new Label("unknown");
-                displayWidget.DisplayParametersChanged += (w, h, f) => resolutionL.Text = string.Format("{0} x {1} ({2})", w, h, f);
+                displayWidget.DisplayParametersChanged += (w, h, f) => ApplicationExtensions.InvokeInUIThread(() => resolutionL.Text = string.Format("{0} x {1} ({2})", w, h, f));
                 summaryVB.PackStart(new Label("Resolution: "));
                 summaryVB.PackStart(resolutionL);
                 summaryVB.PackStart(new Label(), true);
