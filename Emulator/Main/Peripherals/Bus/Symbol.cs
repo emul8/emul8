@@ -30,20 +30,11 @@ namespace Emul8.Core
         /// </summary>
         static Symbol()
         {
-            IntPtr library;
-            if(!SharedLibraries.TryLoadLibrary(LibStdCppHelper.LibStdCppName, out library))
+            if(!LibStdCppHelper.TryGetCxaDemangle(out CxaDemangle))
             {
-                var libstdPath = LibStdCppHelper.GetLibStdCppPath();
-                if(!SharedLibraries.TryLoadLibrary(libstdPath, out library))
-                {
-                    Logger.Log(LogLevel.Warning, "Could not load demangling library. Symbols will not be demangled.");
-                    return;
-                }
+                Logger.Log(LogLevel.Warning, "Could not load demangling library. Symbols will not be demangled.");
+                return;
             }
-            var address = SharedLibraries.GetSymbolAddress(library, "__cxa_demangle");
-            var delegateType = typeof(LibStdCppHelper.CxaDemangleDelegate);
-            var callback = (LibStdCppHelper.CxaDemangleDelegate)Marshal.GetDelegateForFunctionPointer(address, delegateType);
-            CxaDemangle = callback;
         }
 
         /// <summary>
