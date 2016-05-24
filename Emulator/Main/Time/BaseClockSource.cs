@@ -10,46 +10,58 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Antmicro.Migrant;
+using Emul8.Logging;
 
 namespace Emul8.Time
 {
     public class BaseClockSource : IClockSource
     {
-        public BaseClockSource()
+        public BaseClockSource(bool skipAdvancesHigherThanNearestLimit = false)
         {
+            this.skipAdvancesHigherThanNearestLimit = skipAdvancesHigherThanNearestLimit;
             clockEntries = new List<ClockEntry>();
             clockEntriesUpdateHandlers = new List<UpdateHandlerDelegate>();
             toNotify = new List<Action>();
-            nearestTickIn = long.MaxValue;
+            nearestLimitIn = long.MaxValue;
             sync = new object();
             updateAlreadyInProgress = new ThreadLocal<bool>();
         }
 
-        public long NearestTickIn
+        public long NearestLimitIn
         {
             get
             {
                 lock(sync)
                 {
-                    return nearestTickIn;
+                    return nearestLimitIn;
                 }
             }
         }
 
         public void Advance(long ticks, bool immediately = false)
         {
+            #if DEBUG
+            if(ticks < 0)
+            {
+                throw new ArgumentException("Ticks cannot be negative.");
+            }
+            #endif
             lock(sync)
             {
-                elapsed += ticks;
-                totalElapsed += ticks;
-                if(nearestTickIn > ticks && !immediately)
+                if(ticks > nearestLimitIn && !skipAdvancesHigherThanNearestLimit)
                 {
-                    // nothing happens
-                    nearestTickIn -= ticks;
-                    return;
+                    var left = ticks;
+                    while(left > 0)
+                    {
+                        var thisTurn = Math.Min(nearestLimitIn, left);
+                        left -= thisTurn;
+                        AdvanceInner(thisTurn, immediately);
+                    }
                 }
-                Update(elapsed);
-                elapsed = 0;
+                else
+                {
+                    AdvanceInner(ticks, immediately);
+                }
             }
         }
 
@@ -240,7 +252,7 @@ namespace Emul8.Time
                 entry = entry.With(enabled: entry.Enabled & (entry.WorkMode != WorkMode.OneShot));
             }
 
-            nearestTickIn = Math.Min(nearestTickIn, entry.Value * -entry.Ratio);
+            nearestTickIn = Math.Min(nearestTickIn, entry.Value * -entry.Ratio + entry.ValueResiduum);
             return flag;
         }
 
@@ -276,8 +288,31 @@ namespace Emul8.Time
                 entry = entry.With(enabled: entry.Enabled & (entry.WorkMode != WorkMode.OneShot));
             }
 
-            nearestTickIn = Math.Min(nearestTickIn, (entry.Period - entry.Value) * -entry.Ratio);
+            nearestTickIn = Math.Min(nearestTickIn, ((entry.Period - entry.Value) * -entry.Ratio) - entry.ValueResiduum);
             return flag;
+        }
+
+        private void AdvanceInner(long ticks, bool immediately)
+        {
+            lock(sync)
+            {
+                #if DEBUG
+                if(ticks > nearestLimitIn && !skipAdvancesHigherThanNearestLimit)
+                {
+                    throw new InvalidOperationException("Should not reach here.");
+                }
+                #endif
+                elapsed += ticks;
+                totalElapsed += ticks;
+                if(nearestLimitIn > ticks && !immediately)
+                {
+                    // nothing happens
+                    nearestLimitIn -= ticks;
+                    return;
+                }
+                Update(elapsed);
+                elapsed = 0;
+            }
         }
 
         private void NotifyNumberOfEntriesChanged(int oldValue, int newValue)
@@ -291,7 +326,7 @@ namespace Emul8.Time
 
         private void UpdateLimits()
         {
-            Advance(0, true);
+            AdvanceInner(0, true);
         }
 
         private void Update(long ticks)
@@ -305,7 +340,7 @@ namespace Emul8.Time
                 updateAlreadyInProgress.Value = true;
                 lock(sync)
                 {
-                    nearestTickIn = long.MaxValue;
+                    nearestLimitIn = long.MaxValue;
                     for(var i = 0; i < clockEntries.Count; i++)
                     {
                         var clockEntry = clockEntries[i];
@@ -314,7 +349,7 @@ namespace Emul8.Time
                         {
                             continue;
                         }
-                        if(updateHandler(ref clockEntry, ticks, ref nearestTickIn))
+                        if(updateHandler(ref clockEntry, ticks, ref nearestLimitIn))
                         {
                             toNotify.Add(clockEntry.Handler);
                         }
@@ -362,9 +397,10 @@ namespace Emul8.Time
         [Constructor]
         private ThreadLocal<bool> updateAlreadyInProgress;
 
-        private long nearestTickIn;
+        private long nearestLimitIn;
         private long elapsed;
         private long totalElapsed;
+        private readonly bool skipAdvancesHigherThanNearestLimit;
         private readonly List<Action> toNotify;
         private readonly List<ClockEntry> clockEntries;
         private readonly List<UpdateHandlerDelegate> clockEntriesUpdateHandlers;

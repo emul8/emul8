@@ -238,7 +238,16 @@ namespace Emul8.UnitTests
             }
             machines[0].Start();
 
-            var thread = new Thread(() => clockSources[0].Advance(2)) { IsBackground = false };
+            var thread = new Thread(() => 
+            { 
+                try
+                {
+                    clockSources[0].Advance(2); 
+                }
+                catch(OperationCanceledException)
+                {
+                }
+            }) { IsBackground = true };
             thread.Start();
             clockSources[1].Advance(1);
 
