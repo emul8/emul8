@@ -19,7 +19,7 @@ namespace Emul8.Utilities
             var name = GetLibName();
 
             // first we try to get the library from the loader path
-            if(TryLoadFunction(name, out result))
+            if(TryLoadDemangleFunction(name, out result))
             {
                 return true;
             }
@@ -28,7 +28,7 @@ namespace Emul8.Utilities
             foreach(var path in gccPaths)
             {
                 string libraryName;
-                if(TryFindLibStdCppInDir(path, out libraryName) && TryLoadFunction(libraryName, out result))
+                if(TryFindLibStdCppInDir(path, out libraryName) && TryLoadDemangleFunction(libraryName, out result))
                 {
                     return true;
                 }
@@ -36,7 +36,7 @@ namespace Emul8.Utilities
             return false;
         }
 
-        private static bool TryLoadFunction(string libraryName, out CxaDemangleDelegate result)
+        private static bool TryLoadDemangleFunction(string libraryName, out CxaDemangleDelegate result)
         {
             IntPtr libraryAddress;
             if(!SharedLibraries.TryLoadLibrary(libraryName, out libraryAddress))
@@ -95,7 +95,8 @@ namespace Emul8.Utilities
             return BareLibraryName + (Misc.IsOnOsX ? ".dylib" : ".so");
         }
 
-        private static readonly string[] gccPaths = {
+        private static readonly string[] gccPaths = 
+        {
             "/lib",
             "/usr/lib/",
             "/usr/lib/gcc",
