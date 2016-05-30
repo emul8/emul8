@@ -822,6 +822,7 @@ namespace Emul8.Peripherals.CPU
 
         private void CpuLoop()
         {
+            var tlibResult = 0;
             if(ClockSource.HasEntries && advanceShouldBeRestarted)
             {
                 try
@@ -867,7 +868,8 @@ namespace Emul8.Peripherals.CPU
                     }
                     if(doIteration)
                     {
-                        TlibExecute();
+                        tlibResult = TlibExecute();
+                        incarnation++;
                         if(CheckIfPaused())
                         {
                             break;
@@ -900,7 +902,16 @@ namespace Emul8.Peripherals.CPU
                     }
                 }
 
-                HandleHooksAndBreakpoints();
+                // this is EXCP_DEBUG reported when exiting
+                // TlibExecute as a result of a breakpoint
+                if(tlibResult == BreakpointResult && breakpoints.Contains(PC))
+                {
+                    this.DebugLog("Breakpoint at PC=0x{0:X8}, pausing", PC);
+                    InvokeHalted(new HaltArguments(HaltReason.Breakpoint, breakpointType: BreakpointType.HardwareBreakpoint));
+                    lastIncarnation = incarnation;
+                    stepEvent.WaitOne();
+                    stepDoneEvent.Set();
+                }
 
                 if(CheckIfPaused())
                 {
@@ -950,29 +961,6 @@ namespace Emul8.Peripherals.CPU
             }
         }
 
-        private void HandleHooksAndBreakpoints()
-        {
-            // breakpoints handling
-            if(breakpoints.Contains(PC))
-            {
-                this.DebugLog("Breakpoint at PC=0x{0:X8}, pausing", PC);
-                stepDoneEvent.Set();// TODO
-                InvokeHalted(new HaltArguments(HaltReason.Breakpoint));
-                stepEvent.WaitOne();
-
-                // todo: should we pause machine here? this is a quite problematic matter:
-                // if the breakpoint is set by the user in monitor, perhaps we should (maybe even whole emulation),
-                // but when it is issued by GDB than what?
-            } 
-            else if(stepMode) 
-            {
-                stepDoneEvent.Set();
-                this.NoisyLog("Waiting for another step (PC=0x{0:X8}).", PC);
-                InvokeHalted(new HaltArguments(HaltReason.StepMode));
-                stepEvent.WaitOne();
-            }
-        }
-
         // TODO
         private object lck = new object();
 
@@ -995,8 +983,23 @@ namespace Emul8.Peripherals.CPU
             // handle single-stepping mode
             if(stepMode)
             {
-                HandleHooksAndBreakpoints();
+                if(lastIncarnation == incarnation)
+                {
+                    // this `if` is needed when handling a breakpoint that executes a single step;
+                    // as a result `stepMode` is set and next `CpuLoop` iteration is started;
+                    // at the beginning `OnBlockBegin` is called and this code is executed;
+                    // as a result we wait on `stepEvent` even though we are at the same PC as the breakpoint
+                    //
+                    // todo: better solution needed
+                    lastIncarnation = -1;
+                    return;
+                }
+                this.NoisyLog("Waiting for another step (PC=0x{0:X8}).", PC);
+                InvokeHalted(new HaltArguments(HaltReason.StepMode));
+                stepEvent.WaitOne();
+                stepDoneEvent.Set();
             }
+
             // add missing hooks
             foreach(var hook in inactiveHooks)
             {
@@ -1796,7 +1799,7 @@ namespace Emul8.Peripherals.CPU
         private Action TlibReset;
 
         [Import]
-        private Action TlibExecute;
+        private FuncInt32 TlibExecute;
 
         [Import]
         protected Action TlibRestartTranslationBlock;
@@ -1917,9 +1920,13 @@ namespace Emul8.Peripherals.CPU
 
         private bool advanceShouldBeRestarted;
 
+        private int incarnation = 0;
+        private int lastIncarnation = -1;
+
         protected static readonly Exception InvalidInterruptNumberException = new InvalidOperationException("Invalid interrupt number.");
 
         private const int DefaultMaximumBlockSize = 0x7FF;
+        private const int BreakpointResult = 0x10002;
     }
 }
 
