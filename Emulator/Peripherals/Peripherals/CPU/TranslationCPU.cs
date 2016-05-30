@@ -69,7 +69,6 @@ namespace Emul8.Peripherals.CPU
             started = false;
             isHalted = false;
             translationCacheSync = new object();
-            pumpingModeSync = new object();
             pagesAccessedByIo = new HashSet<long>();
             pauseGuard = new CpuThreadPauseGuard(this);
             InitializeRegisters();
@@ -235,40 +234,6 @@ namespace Emul8.Peripherals.CPU
                 {
                     TlibInvalidateTranslationCache();
                 }
-            }
-        }
-
-        public long Pump(long numberOfInstructions)
-        {
-            lock(pumpingModeSync)
-            {
-                executionLimit = numberOfInstructions;
-                var oldCountThreshold = CountThreshold;
-                if(numberOfInstructions < CountThreshold)
-                {
-                    this.NoisyLog("Corrected count threshold to {0}.", numberOfInstructions);
-                    CountThreshold = (int)numberOfInstructions; // always fits because numberOfInstructions < CountThreshold which had to be 32bit
-                }
-                if(IsInstructionCountEnabled() == 0)
-                {
-                    throw new RecoverableException("You can only pump if virtual timers are used.");
-                }
-                if(!PauseEvent.WaitOne(0))
-                {
-                    throw new RecoverableException("You can only pump when CPU is not running (i.e. not started or paused).");
-                }
-                machine.Start();
-                PauseEvent.Reset();
-                CpuLoop();
-                pauseFinishedEvent.Reset();
-                TlibClearPaused();
-                machine.Pause(); // needed because _whole_ machine should be paused after executing pump
-                var reallyExecuted = numberOfInstructions - executionLimit.Value;
-                var discrepancy = Math.Abs(1.0 * numberOfInstructions - reallyExecuted) / numberOfInstructions * 100.0;
-                this.DebugLog("Pump mode: {0} instructions requested, {1} instruction executed, {2:00.00}% discrepancy.", numberOfInstructions, reallyExecuted, discrepancy);
-                CountThreshold = oldCountThreshold;
-                executionLimit = null;
-                return reallyExecuted;
             }
         }
 
@@ -514,13 +479,6 @@ namespace Emul8.Peripherals.CPU
                     return;
                 }
                 started = true;
-                lock(pumpingModeSync)
-                {
-                    if(executionLimit.HasValue)
-                    {
-                        return;
-                    }
-                }
                 this.NoisyLog("Resuming.");
                 cpuThread = new Thread(CpuLoop)
                 {
@@ -1297,17 +1255,6 @@ namespace Emul8.Peripherals.CPU
         private void UpdateInstructionCounter(int value)
         {
             ExecutedInstructions += value;
-            lock(pumpingModeSync)
-            {
-                if(executionLimit.HasValue)
-                {
-                    executionLimit -= value;
-                    if(executionLimit <= 0)
-                    {
-                        InnerPause(null);
-                    }
-                }
-            }
             var instructionsThisTurn = value + instructionCountResiduum;
             instructionCountResiduum = instructionsThisTurn % PerformanceInMips;
             ClockSource.Advance(instructionsThisTurn / PerformanceInMips);
@@ -1337,8 +1284,6 @@ namespace Emul8.Peripherals.CPU
         private byte[] cpuState;
         private int instructionCountResiduum;
         private bool isHalted;
-        private readonly object pumpingModeSync; 
-        private long? executionLimit;
 
         [Transient]
         private volatile bool started;
