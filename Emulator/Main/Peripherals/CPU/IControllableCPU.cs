@@ -25,9 +25,7 @@ namespace Emul8.Peripherals.CPU
 
         void WaitForStepDone();
 
-        bool InSingleStep();
-
-        void SingleStep();
+        void Step(int count);
 
         void AddBreakpoint(uint addr);
 

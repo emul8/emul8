@@ -25,7 +25,7 @@ namespace Emul8.Utilities.GDB.Commands
             }
 
             cpu.SetSingleStepMode(false);
-            cpu.SingleStep();
+            cpu.Step();
 
             return null;
         }

@@ -1086,14 +1086,13 @@ namespace Emul8.Peripherals.CPU
             }
         }
 
-        public bool InSingleStep()
+        public void Step(int count = 1)
         {
-            return stepMode;
-        }
-
-        public void SingleStep()
-        {
-            stepEvent.Set();
+            for(var i = 0; i < count; i++)
+            {
+                stepEvent.Set();
+                stepDoneEvent.WaitOne();
+            }
         }
 
         public void AddBreakpoint(uint addr)
