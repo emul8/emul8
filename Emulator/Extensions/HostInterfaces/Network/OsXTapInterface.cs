@@ -26,7 +26,16 @@ namespace Emul8.HostInterfaces.Network
         {
             deviceFile = File.Open(device, FileMode.Open, FileAccess.ReadWrite);
             Link = new NetworkLink(this);
-            networkInterface = NetworkInterface.GetAllNetworkInterfaces().First(x => x.Name.Contains("tap"));
+
+            // let's find out to what interface the character device file belongs
+            var deviceType = new UnixFileInfo(device).DeviceType;
+            var majorNumber = deviceType >> 24;
+            var minorNumber = deviceType & 0xFFFFFF;
+            if(majorNumber != ExpectedMajorNumber)
+            {
+                throw new ConstructionException(string.Format("Unexpected major device number for OS X's tap: {0}.", majorNumber));
+            }
+            networkInterface = NetworkInterface.GetAllNetworkInterfaces().Single(x => x.Name == "tap" + minorNumber);
             MAC = (MACAddress)networkInterface.GetPhysicalAddress();
         }
 
@@ -101,6 +110,7 @@ namespace Emul8.HostInterfaces.Network
 
         private static readonly TimeSpan GracePeriod = TimeSpan.FromSeconds(1);
         private const int Mtu = 1500;
+        private const int ExpectedMajorNumber = 20;
     }
 }
 
