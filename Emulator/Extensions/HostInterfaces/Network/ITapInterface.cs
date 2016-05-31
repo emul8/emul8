@@ -12,6 +12,7 @@ namespace Emul8.HostInterfaces.Network
 {
     public interface ITapInterface : IMACInterface, IHostMachineElement
     {
+        string InterfaceName { get; }
     }
 }
 
