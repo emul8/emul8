@@ -67,19 +67,19 @@ parser.add_argument("-n", "--repeat", dest="repeat_count", nargs="?", type=int, 
 parser.add_argument("-p", "--project", dest="projects", nargs="*", help="Use only specified projects (no-flag: all projects, no-value: project listing).")
 parser.add_argument("-d", "--debug", dest="debug_mode", action="store_true", default=False, help="Debug mode")
 parser.add_argument("-o", "--output", dest="output", action="store", default=None, help="Output file, default STDOUT.")
-parser.add_argument("-b", "--buildbot", dest="buildbot", action="store_true", default=False, help="Buildbot mode. Before running tests prepare environment, i.e., create tap69 interface.")
+parser.add_argument("-b", "--buildbot", dest="buildbot", action="store_true", default=False, help="Buildbot mode. Before running tests prepare environment, i.e., create tap0 interface.")
 parser.add_argument("-t", "--tests", dest="tests", action="store", default=None, help="Path to a file with a list of assemblies with tests to run.")
 options  = parser.parse_args()
 
 if options.buildbot:
     print("Preparing Environment")
-    ret_code = subprocess.call(['/usr/sbin/tunctl', '-d', 'tap69'])
+    ret_code = subprocess.call(['/usr/sbin/tunctl', '-d', 'tap0'])
     if ret_code != 0:
-        print('Error while removing old tap69 interface')
+        print('Error while removing old tap0 interface')
         sys.exit(ret_code)
-    ret_code = subprocess.call(['/usr/sbin/tunctl', '-t', 'tap69', '-u', str(os.getuid())])
+    ret_code = subprocess.call(['/usr/sbin/tunctl', '-t', 'tap0', '-u', str(os.getuid())])
     if ret_code != 0:
-        print('Error while creating tap69 interface')
+        print('Error while creating tap0 interface')
         sys.exit(ret_code)
 if options.debug_mode:
     print("Running in debug mode.")

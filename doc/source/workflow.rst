@@ -131,16 +131,16 @@ Creating an external network interface and connecting it to the host is done as 
 .. code-block:: bash
 
     emulation CreateSwitch "switch"
-    emulation CreateTAP "tap69" "tap"
+    emulation CreateTap "tap0" "tap"
     connector Connect tap switch
     connector Connect smc91x switch
 
-Firstly, two external interfaces are created: a network switch (named "switch") and TAP network interface (named "tap"), connected to the ``tap69`` interface of the host machine.
+Firstly, two external interfaces are created: a network switch (named "switch") and TAP network interface (named "tap"), connected to the ``tap0`` interface of the host machine.
 
 If such an interface is not available, a prompt window will pop-up, requesting the user to provide a password (provided the user is a valid sudoer).
 Please note that after the creation of these interfaces they are available as emulation objects, so they are accessed without double quotes in subsequent commands.
 
-After the necessary interfaces are created, the two subsequent commands are used to connect them together: both the newly created ``tap`` and Versatile's ``smc91x`` network card are connected to the ``switch``, creating a fully usable network setup, accessible from the host machine via the ``tap69`` interface.
+After the necessary interfaces are created, the two subsequent commands are used to connect them together: both the newly created ``tap`` and Versatile's ``smc91x`` network card are connected to the ``switch``, creating a fully usable network setup, accessible from the host machine via the ``tap0`` interface.
 
 Binaries
 ++++++++
