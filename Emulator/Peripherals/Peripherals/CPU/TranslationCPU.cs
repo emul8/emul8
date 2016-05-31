@@ -873,6 +873,13 @@ namespace Emul8.Peripherals.CPU
                     stepEvent.WaitOne();
                     stepDoneEvent.Set();
                 }
+                else
+                {
+                    // this is needed for GDB and infinite loops
+                    // as in such case `OnBlockBegin` callback
+                    // might not be called
+                    HandleStepping();
+                }
 
                 if(CheckIfPaused())
                 {
@@ -938,10 +945,8 @@ namespace Emul8.Peripherals.CPU
             interruptEvents[number].Reset();
         }
 
-        [Export]
-        private void OnBlockBegin(uint address, uint size)
+        private void HandleStepping()
         {
-            // handle single-stepping mode
             if(stepMode)
             {
                 if(lastIncarnation == incarnation)
@@ -960,6 +965,12 @@ namespace Emul8.Peripherals.CPU
                 stepEvent.WaitOne();
                 stepDoneEvent.Set();
             }
+        }
+
+        [Export]
+        private void OnBlockBegin(uint address, uint size)
+        {
+            HandleStepping();
 
             // add missing hooks
             foreach(var hook in inactiveHooks)
