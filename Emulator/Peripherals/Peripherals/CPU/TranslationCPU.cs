@@ -361,14 +361,17 @@ namespace Emul8.Peripherals.CPU
 
         public void SetSingleStepMode(bool on)
         {
-            if(on == stepMode)
+            lock(pauseLock)
             {
-                return;
-            }
+                if(on == stepMode)
+                {
+                    return;
+                }
 
-            stepMode = on;
-            stepEvent.Reset();
-            blockSizeNeedsAdjustment = true;
+                stepMode = on;
+                stepEvent.Reset();
+                blockSizeNeedsAdjustment = true;
+            }
         }
 
         private bool blockSizeNeedsAdjustment;
@@ -1049,10 +1052,13 @@ namespace Emul8.Peripherals.CPU
 
         public void Step(int count = 1)
         {
-            for(var i = 0; i < count; i++)
+            lock(pauseLock)
             {
-                stepEvent.Set();
-                stepDoneEvent.WaitOne();
+                for(var i = 0; i < count; i++)
+                {
+                    stepEvent.Set();
+                    stepDoneEvent.WaitOne();
+                }
             }
         }
 
