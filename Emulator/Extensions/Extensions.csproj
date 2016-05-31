@@ -128,6 +128,8 @@
     <Compile Include="Hooks\SystemBusHooksExtensions.cs" />
     <Compile Include="Hooks\WatchpointHookPythonEngine.cs" />
     <Compile Include="HostInterfaces\Network\LinuxTapInterface.cs" />
+    <Compile Include="HostInterfaces\Network\OsXTapInterface.cs" />
+    <Compile Include="HostInterfaces\Network\ITapInterface.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

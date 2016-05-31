@@ -29,7 +29,7 @@ using Antmicro.Migrant;
 namespace Emul8.HostInterfaces.Network
 {
 
-    public class LinuxTapInterface : IMACInterface, IHasOwnLife, IDisposable, IHostMachineElement
+    public sealed class LinuxTapInterface : ITapInterface, IHasOwnLife, IDisposable
     {
         public LinuxTapInterface(string name, bool persistent)
         {
