@@ -64,10 +64,6 @@ namespace Emul8.HostInterfaces.Network
             this.NoisyLog("Frame of length {0} sent to host.", frame.Length);
         }
 
-        public NetworkLink Link { get; private set; }
-
-        public MACAddress MAC { get; set; }
-
         public void Start()
         {
             Resume();
@@ -90,6 +86,18 @@ namespace Emul8.HostInterfaces.Network
         public void Dispose()
         {
             deviceFile.Close();
+        }
+
+        public NetworkLink Link { get; private set; }
+
+        public MACAddress MAC { get; set; }
+
+        public string InterfaceName 
+        {
+            get
+            {
+                return networkInterface.Name;
+            }
         }
 
         private async Task ReadPacketAsync()
