@@ -29,21 +29,21 @@ namespace Emul8.HostInterfaces.Network
 {
     public static class TapExtensions
     {
-        public static LinuxTapInterface CreateAndGetTAP(this Emulation emulation, string hostInterfaceName, string name, bool persistent = false)
+        public static IMACInterface CreateAndGetTap(this Emulation emulation, string hostInterfaceName, string name, bool persistent = false)
         {
             var onOsX = Misc.IsOnOsX;
             if(onOsX && persistent)
             {
                 throw new RecoverableException("Persitent TAP is not available on OS X.");
             }
-            var result = new LinuxTapInterface(hostInterfaceName, persistent);
+            var result = onOsX ? (ITapInterface)new OsXTapInterface(hostInterfaceName) : new LinuxTapInterface(hostInterfaceName, persistent);
             emulation.HostMachine.AddHostMachineElement(result, name);
             return result;
         }
 
-        public static void CreateTAP(this Emulation emulation, string hostInterfaceName, string name, bool persistent = false)
+        public static void CreateTap(this Emulation emulation, string hostInterfaceName, string name, bool persistent = false)
         {
-            CreateAndGetTAP(emulation, hostInterfaceName, name, persistent);
+            CreateAndGetTap(emulation, hostInterfaceName, name, persistent);
         }
     }
 
