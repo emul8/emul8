@@ -17,6 +17,8 @@ using Emul8.Network;
 using System.Net.NetworkInformation;
 using System.Linq;
 using Emul8.Utilities;
+using Mono.Unix;
+using Emul8.Exceptions;
 
 namespace Emul8.HostInterfaces.Network
 {
@@ -42,8 +44,23 @@ namespace Emul8.HostInterfaces.Network
         public void ReceiveFrame(EthernetFrame frame)
         {
             var bytes = frame.Bytes;
-            deviceFile.Write(bytes, 0, bytes.Length);
-            deviceFile.Flush();
+            try
+            {
+                // since the file reader operations are buffered, we have to immediately flush writes
+                deviceFile.Write(bytes, 0, bytes.Length);
+                deviceFile.Flush();
+            }
+            catch(IOException)
+            {
+                if(networkInterface.OperationalStatus != OperationalStatus.Up)
+                {
+                    this.DebugLog("Interface is not up during write, frame dropped.");
+                }
+                else
+                {
+                    throw;
+                }
+            }
             this.NoisyLog("Frame of length {0} sent to host.", frame.Length);
         }
 
@@ -66,6 +83,8 @@ namespace Emul8.HostInterfaces.Network
         {
             cts = new CancellationTokenSource();
             readerTask = Task.Run(ReadPacketAsync);
+            readerTask.ContinueWith(x => 
+                this.Log(LogLevel.Error, "Exception happened on reader task ({0}). Task stopped.", x.Exception.InnerException.GetType().Name), TaskContinuationOptions.OnlyOnFaulted);
         }
 
         public void Dispose()
