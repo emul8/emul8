@@ -7,23 +7,9 @@
 //
 using System;
 using Emul8.Core;
-using Emul8.Core.Structure;
 using Emul8.Peripherals.Network;
-using System.Net.NetworkInformation;
-using System.Linq;
-using Emul8.TAPHelper;
-using Emul8.Peripherals;
-using System.Threading;
-using Antmicro.Migrant.Hooks;
-using System.IO;
-using Emul8.Logging;
-using System.Runtime.InteropServices;
-using System.Diagnostics;
 using Emul8.Utilities;
 using Emul8.Exceptions;
-using Mono.Unix;
-using Emul8.Network;
-using Antmicro.Migrant;
 
 namespace Emul8.HostInterfaces.Network
 {
