@@ -45,6 +45,7 @@ Before you start the build procedure make sure that the following components are
 * *tun* kernel module for guest-host networking
 * *tunctl* (``uml-utilities``) to interact with *tun* module
 * *xterm* or *gnome-terminal* or *putty* for window-based terminal analyzers
+* *gtk-sharp2* (``gtk-sharp2``) for GTK2-based plugins
 
 Instead of *gksudo* you may have *beesu* or *kdesudo*.
 
