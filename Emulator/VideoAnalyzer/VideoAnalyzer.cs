@@ -132,7 +132,7 @@ namespace Emul8.Extensions.Analyzers.Video
                     var screenshotDir = Path.Combine(emul8HomeDir, "screenshots");
                     Directory.CreateDirectory(screenshotDir);
                     var filename = Path.Combine(screenshotDir, string.Format("screenshot-{0:yyyy_M_d_HHmmss}.png", CustomDateTime.Now));
-                    displayWidget.Image.Save(filename, ImageFileType.Png);
+                    displayWidget.SaveCurrentFrameToFile(filename);
                     MessageDialog.ShowMessage("Screenshot saved in {0}".FormatWith(filename));
                 };
 

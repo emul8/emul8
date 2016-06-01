@@ -34,6 +34,14 @@ namespace Emul8.Extensions.Analyzers.Video
             handler.PointerInputAttached += HandleNewPointerDevice;
         }
 
+        public void SaveCurrentFrameToFile(string filename)
+        {
+            lock(imgLock) 
+            {
+                img.Save(filename, ImageFileType.Png);
+            }
+        }
+
         public void DrawFrame(byte[] frame)
         {
             if(!drawQueued)
