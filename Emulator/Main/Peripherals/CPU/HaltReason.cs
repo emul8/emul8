@@ -13,7 +13,7 @@ namespace Emul8.Peripherals.CPU
     {
         Breakpoint,
         Abort,
-        StepMode,
+        Step,
         Pause
     }
 }

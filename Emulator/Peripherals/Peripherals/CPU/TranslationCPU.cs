@@ -961,7 +961,7 @@ namespace Emul8.Peripherals.CPU
                     return;
                 }
                 this.NoisyLog("Waiting for another step (PC=0x{0:X8}).", PC);
-                InvokeHalted(new HaltArguments(HaltReason.StepMode));
+                InvokeHalted(new HaltArguments(HaltReason.Step));
                 stepEvent.WaitOne();
                 stepDoneEvent.Set();
             }
