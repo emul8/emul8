@@ -121,7 +121,7 @@ namespace Emul8.Utilities
                     break;
                 }
                 return;
-            case HaltReason.StepMode:
+            case HaltReason.Step:
             case HaltReason.Pause:
                 SendPacket(new Packet(PacketData.StopReply(TrapSignal)));
                 return;
