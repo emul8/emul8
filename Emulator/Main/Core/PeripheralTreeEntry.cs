@@ -37,7 +37,7 @@ namespace Emul8.Core
         public override string ToString()
         {
             return string.Format("[PeripheralTreeEntry: Type={0}, Peripheral={1}, Parent={2}, Name={3}, Level={4}, RegistrationPoint={5}]",
-                Type, Peripheral.GetType(), Parent.GetType(), Name, Level, RegistrationPoint);
+                Type, Peripheral.GetType(), Parent == null ? "(none)" : Parent.GetType().ToString(), Name, Level, RegistrationPoint);
         }
 
         public void Reparent(PeripheralTreeEntry entry)
