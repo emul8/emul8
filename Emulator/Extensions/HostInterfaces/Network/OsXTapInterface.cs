@@ -24,13 +24,26 @@ namespace Emul8.HostInterfaces.Network
 {
     public sealed class OsXTapInterface : ITapInterface, IHasOwnLife, IDisposable
     {
-        public OsXTapInterface(string device)
+        public OsXTapInterface(string interfaceNameOrPath)
         {
-            deviceFile = File.Open(device, FileMode.Open, FileAccess.ReadWrite);
             Link = new NetworkLink(this);
 
+            if(!Directory.Exists("/Library/Extensions/tap.kext/"))
+            {
+                this.Log(LogLevel.Warning, "No TUNTAP kernel extension found, running in dummy mode.");
+                MAC = EmulationManager.Instance.CurrentEmulation.MACRepository.GenerateUniqueMAC();
+                return;
+            }
+            if(!File.Exists(interfaceNameOrPath))
+            {
+                var tapDevicePath = ConfigurationManager.Instance.Get<string>("tap", "tap-device-path", Environment.GetFolderPath(Environment.SpecialFolder.UserProfile));
+                interfaceNameOrPath = Path.Combine(tapDevicePath, interfaceNameOrPath);
+            }
+
+            deviceFile = File.Open(interfaceNameOrPath, FileMode.Open, FileAccess.ReadWrite);
+
             // let's find out to what interface the character device file belongs
-            var deviceType = new UnixFileInfo(device).DeviceType;
+            var deviceType = new UnixFileInfo(interfaceNameOrPath).DeviceType;
             var majorNumber = deviceType >> 24;
             var minorNumber = deviceType & 0xFFFFFF;
             if(majorNumber != ExpectedMajorNumber)
@@ -43,6 +56,10 @@ namespace Emul8.HostInterfaces.Network
 
         public void ReceiveFrame(EthernetFrame frame)
         {
+            if(deviceFile == null)
+            {
+                return;
+            }
             var bytes = frame.Bytes;
             try
             {
@@ -71,12 +88,20 @@ namespace Emul8.HostInterfaces.Network
 
         public void Pause()
         {
+            if(deviceFile == null)
+            {
+                return;
+            }
             cts.Cancel();
             readerTask.Wait();
         }
 
         public void Resume()
         {
+            if(deviceFile == null)
+            {
+                return;
+            }
             cts = new CancellationTokenSource();
             readerTask = Task.Run(ReadPacketAsync);
             readerTask.ContinueWith(x => 
@@ -85,7 +110,10 @@ namespace Emul8.HostInterfaces.Network
 
         public void Dispose()
         {
-            deviceFile.Close();
+            if(deviceFile != null)
+            {
+                deviceFile.Close();
+            }
         }
 
         public NetworkLink Link { get; private set; }
