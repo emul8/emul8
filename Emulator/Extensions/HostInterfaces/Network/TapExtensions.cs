@@ -25,11 +25,6 @@ namespace Emul8.HostInterfaces.Network
                 {
                     throw new RecoverableException("Persitent TAP is not available on OS X.");
                 }
-                if(!File.Exists(hostInterfaceName))
-                {
-                    var tapDevicePath = ConfigurationManager.Instance.Get<string>("tap", "tap-device-path", Environment.GetFolderPath(Environment.SpecialFolder.UserProfile));
-                    hostInterfaceName = Path.Combine(tapDevicePath, hostInterfaceName);
-                }
                 result = new OsXTapInterface(hostInterfaceName);
             }
             else
@@ -45,6 +40,5 @@ namespace Emul8.HostInterfaces.Network
             CreateAndGetTap(emulation, hostInterfaceName, name, persistent);
         }
     }
-
 }
 
