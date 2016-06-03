@@ -19,8 +19,7 @@ namespace Emul8.HostInterfaces.Network
         public static IMACInterface CreateAndGetTap(this Emulation emulation, string hostInterfaceName, string name, bool persistent = false)
         {
             ITapInterface result;
-            var onOsX = Misc.IsOnOsX;
-            if(onOsX)
+            if(Misc.IsOnOsX)
             {
                 if(persistent)
                 {
