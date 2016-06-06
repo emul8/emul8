@@ -125,6 +125,14 @@ namespace Emul8.Bootstrap
             return builder.ToString();
         }
 
+        public IEnumerable<Project> Projects
+        {
+            get
+            {
+                return projects; 
+            }
+        }
+
         private static IEnumerable<Project> GenerateAllReferences(IEnumerable<Project> projects)
         {
             var result = new HashSet<Project>();
