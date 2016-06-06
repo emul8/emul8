@@ -17,27 +17,6 @@ test_projects = map(os.path.abspath, [
         "./../../Emulator/Extensions/MonitorTests/MonitorTests.csproj",
 ])
 
-def get_project(project_id):
-    """Tries to convert project argument into the supported path.
-Argument can be either a part of path or a number from the list.
-If the argument is a part of path and matches against more than one candidate
-an exception is thrown.
-"""
-    try:
-        #id argument is numerical, try to get it from the project list
-        project_id = int(project_id)
-        return test_projects[project_id]
-    except ValueError:
-        #arugment wasn't numerical, so we check if the name is in supported projects
-        pass
-    candidates = [ (num,candidate) for (num,candidate) in enumerate(test_projects) if project_id in candidate]
-    if len(candidates) == 0:
-        raise LookupError("`{0}` is an invalid project name.".format(project_id))
-    if len(candidates) > 1:
-        candidate_numbers = list(zip(*candidates))[0]
-        raise LookupError("`{0}` is an ambiguous candidate for project numbers: {1}.".format(project_id, candidate_numbers))
-    return candidates[0][1]
-
 def build_project(path):
     """
 Tries to build a project at given path. Because of a bug in xbuild which sometimes crashes after build we retry it, up to 5 times, if received code is 134 (abort).
@@ -64,7 +43,6 @@ def report_signal_handler(singnum, frame):
 parser = argparse.ArgumentParser()
 parser.add_argument("-f", "--fixture", dest="fixture", help="Fixture to test", metavar="FIXTURE")
 parser.add_argument("-n", "--repeat", dest="repeat_count", nargs="?", type=int, const=0, default=1, help="Repeat tests a number of times (no-flag: 1, no-value: infinite)")
-parser.add_argument("-p", "--project", dest="projects", nargs="*", help="Use only specified projects (no-flag: all projects, no-value: project listing).")
 parser.add_argument("-d", "--debug", dest="debug_mode", action="store_true", default=False, help="Debug mode")
 parser.add_argument("-o", "--output", dest="output", action="store", default=None, help="Output file, default STDOUT.")
 parser.add_argument("-b", "--buildbot", dest="buildbot", action="store_true", default=False, help="Buildbot mode. Before running tests prepare environment, i.e., create tap0 interface.")
@@ -88,24 +66,7 @@ if 'FIXTURE' in os.environ:
 if options.fixture:
     print("Testing fixture: " + options.fixture)
 if options.tests != None:
-   test_projects = [line.rstrip() for line in open(options.tests)]
-if options.projects != None:
-    #tries to convert passed arguments to project paths
-    failed = False
-    try:
-        used_projects = []
-        for project in options.projects:
-            used_projects.append(get_project(project))
-    except Exception as e:
-        print("Error setting up project list: {0}".format(e))
-        failed = True
-    if failed or len(options.projects) == 0:
-        print("Valid projects and their numerical mapping are: ")
-        for (num, name) in enumerate(test_projects):
-            print("{} - {}".format(num,name))
-        exit(1)
-else:
-    used_projects = test_projects
+   used_tests = [line.rstrip() for line in open(options.tests)]
 
 #set stdout as default
 output = sys.stdout
