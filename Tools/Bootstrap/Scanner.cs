@@ -5,7 +5,7 @@
 // This file is part of the Emul8 project.
 // Full license details are defined in the 'LICENSE' file.
 //
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -27,12 +27,15 @@ namespace Emul8.Bootstrap
         {
             try
             {
-                foreach(var file in Directory.GetFiles(directory, "*.csproj", SearchOption.AllDirectories))
+                foreach(var interestingElement in interestingElements)
                 {
-                    Project project;
-                    if(Project.TryLoadFromFile(Path.GetFullPath(file), out project))
+                    foreach(var file in Directory.EnumerateFiles(directory,string.Format("*.{0}", interestingElement.Key), SearchOption.AllDirectories))
                     {
-                        Projects.Add(project);
+                        IInterestingElement element;
+                        if(interestingElement.Value(Path.GetFullPath(file), out element))
+                        {
+                            Elements.Add(element);
+                        }
                     }
                 }
             }
@@ -55,13 +58,29 @@ namespace Emul8.Bootstrap
             
             throw new NotImplementedException();
         }
-        
+
+        public HashSet<Project> Projects
+        {
+            get
+            {
+                return new HashSet<Project>(Elements.OfType<Project>());
+            }
+        }
+
+        public List<IInterestingElement> Elements { get; private set; }
+
         private Scanner()
         {
-            Projects = new HashSet<Project>();
+            Elements = new List<IInterestingElement>();
         }
-        
-        public HashSet<Project> Projects { get; private set; }
+
+        private static Dictionary<string, TryCreateElementDelegate> interestingElements = new Dictionary<string, TryCreateElementDelegate>
+        {
+            { "csproj", Project.TryLoadFromFile },
+            { "robot", RobotTestSuite.TryCreate }
+        };
     }
+
+    public delegate bool TryCreateElementDelegate(string path, out IInterestingElement result);
 }
 
