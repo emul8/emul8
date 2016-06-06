@@ -8,6 +8,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using Emul8.Bootstrap.Elements;
+using Emul8.Bootstrap.Elements.Projects;
 
 namespace Emul8.Bootstrap
 {

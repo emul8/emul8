@@ -11,6 +11,9 @@ using System.Linq;
 using System.IO;
 using System.Diagnostics;
 using Antmicro.OptionsParser;
+using Emul8.Bootstrap.Elements;
+using Emul8.Bootstrap.Paging.Steps;
+using Emul8.Bootstrap.Elements.Projects;
 
 namespace Emul8.Bootstrap
 {

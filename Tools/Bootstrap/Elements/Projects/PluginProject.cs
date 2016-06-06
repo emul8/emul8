@@ -9,7 +9,7 @@
 using System.Xml.XPath;
 using System.Linq;
 
-namespace Emul8.Bootstrap
+namespace Emul8.Bootstrap.Elements.Projects
 {
     public class PluginProject : Project
     {
