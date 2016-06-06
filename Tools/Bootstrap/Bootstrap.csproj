@@ -67,7 +67,7 @@
     <Compile Include="Projects\Project.cs" />
     <Compile Include="Projects\CpuCoreProject.cs" />
     <Compile Include="Paging\Steps\PluginStep.cs" />
-    <Compile Include="Projects\UnknownProject.cs" />
+    <Compile Include="IInterestingElement.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ProjectExtensions>
