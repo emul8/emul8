@@ -17,7 +17,7 @@ namespace Emul8.UserInterface.Commands
     {
         [Runnable]
         public void Run(ICommandInteraction writer)
-        {         
+        {
             writer.WriteLine(VersionString);
         }
 
@@ -29,8 +29,7 @@ namespace Emul8.UserInterface.Commands
                 var name = ((AssemblyTitleAttribute)assembly.GetCustomAttributes(typeof(AssemblyTitleAttribute), false)[0]).Title;
                 var version = assembly.GetName().Version;
                 var gitVersion = ((AssemblyInformationalVersionAttribute)assembly.GetCustomAttributes(typeof(AssemblyInformationalVersionAttribute), false)[0]).InformationalVersion;
-                var copyright = ((AssemblyCopyrightAttribute)assembly.GetCustomAttributes(typeof(AssemblyCopyrightAttribute), false)[0]).Copyright;
-                return string.Format("{0}, version {1} ({2})\r\nCopyright {3}", name, version, gitVersion, copyright.Replace("\n", "\r\n"));
+                return string.Format("{0}, version {1} ({2})", name, version, gitVersion);
             }
         }
 
