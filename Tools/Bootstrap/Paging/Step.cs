@@ -39,7 +39,9 @@
             
             return result;
         }
-        
+
+        public T Dialog { get; private set; }
+
         protected Step(string message)
         {
             this.message = message;
@@ -49,14 +51,12 @@
         {
             return true;
         }
-        
-        protected abstract T CreateDialog();
-        
+
         protected virtual void OnSuccess()
         {
         }
-        
-        public T Dialog { get; private set; }
+
+        protected abstract T CreateDialog();
 
         protected readonly string message;
     }
