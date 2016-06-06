@@ -1492,8 +1492,12 @@ namespace Emul8.Peripherals.CPU
                 guard.Value = null;                
             }
 
+            [Constructor]
             private readonly ThreadLocal<object> guard;
+
+            [Constructor]
             private readonly ThreadLocal<bool> blockRestartReached;
+
             private readonly TranslationCPU parent;
         }
 
