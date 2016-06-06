@@ -40,6 +40,11 @@
             return result;
         }
         
+        protected Step(string message)
+        {
+            this.message = message;
+        }
+
         protected virtual bool ShouldBeShown(StepManager m)
         {
             return true;
@@ -52,6 +57,8 @@
         }
         
         public T Dialog { get; private set; }
+
+        protected readonly string message;
     }
 }
 

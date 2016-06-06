@@ -16,7 +16,7 @@ namespace Emul8.Bootstrap
     {
         public IEnumerable<Project> AdditionalProjects { get; protected set; }
         
-        protected ProjectsListStep()
+        protected ProjectsListStep(string message) : base(message)
         {
             AdditionalProjects = new Project[0];
         }
@@ -24,9 +24,8 @@ namespace Emul8.Bootstrap
     
     public class ProjectsListStep<T> : ProjectsListStep where T : Project
     {
-        public ProjectsListStep(string message, PathHelper pathHelper)
+        public ProjectsListStep(string message, PathHelper pathHelper) : base(message)
         {
-            this.message = message;
             this.pathHelper = pathHelper;
         }
         
@@ -65,7 +64,6 @@ namespace Emul8.Bootstrap
         protected HashSet<Project> ScannedProjects;
         
         private List<string> selectedKeys;
-        private readonly string message;
         private readonly PathHelper pathHelper;
     }
 }

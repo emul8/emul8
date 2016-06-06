@@ -15,7 +15,7 @@ namespace Emul8.Bootstrap
 {
     public class UiStep : Step<RadiolistDialog>
     {
-        public UiStep(PathHelper pathHelper)
+        public UiStep(PathHelper pathHelper) : base(null)
         {
             this.pathHelper = pathHelper;
             uiProjects = Scanner.Instance.Projects.OfType<UiProject>();
