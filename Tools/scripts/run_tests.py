@@ -7,6 +7,7 @@ import argparse
 import subprocess
 import signal
 
+this_path = os.path.abspath(os.path.dirname(__file__))
 nunit_path = os.path.abspath(os.path.join(os.path.dirname(__file__), './../../External/Tools/nunit-console.exe'))
 bin_directory = os.path.abspath(os.path.join(os.path.dirname(__file__), 'tests'))
 
@@ -23,7 +24,7 @@ Tries to build a project at given path. Because of a bug in xbuild which sometim
 """
     print("\t Building {0}".format(path))
     for i in range(5):
-        ret_code = subprocess.call(['xbuild', '/p:OutputPath={0}'.format(bin_directory), '/nologo', '/verbosity:quiet', '/p:OutputDir=tests_output', '/p:Configuration={0}'.format('Debug' if options.debug_mode else 'Release'), path])
+        ret_code = subprocess.call(['xbuild', '/p:OutputPath={0}'.format(bin_directory), '/nologo', '/verbosity:quiet', '/p:OutputDir=tests_output', '/p:Configuration={0}'.format(configuration), path])
         if ret_code == 0:
             return
         elif ret_code != 134:
@@ -38,6 +39,18 @@ def ignore_sig():
 def report_signal_handler(singnum, frame):
     print("Test iteration {0}, currently on project `{1}`.".format(counter, project))
 
+
+def run(args):
+    process = subprocess.Popen(args, cwd=bin_directory, bufsize = 1, preexec_fn = ignore_sig, stdout =
+                subprocess.PIPE, stderr = subprocess.STDOUT)
+    while True:
+        line = process.stdout.readline()
+        ret = process.poll()
+        if ret is not None:
+            return ret == 0
+        else:
+            if line and not line.isspace() and 'GLib-GObject-CRITICAL' not in line and 'GLib-CRITICAL' not in line:
+                output.write(line)
 
 # parsing cmd-line arguments
 parser = argparse.ArgumentParser()
@@ -69,6 +82,8 @@ if options.fixture:
 if options.tests_file != None:
     options.tests.extend([line.rstrip() for line in open(options.tests_file)])
 
+configuration = 'Debug' if options.debug_mode else 'Release'
+
 #set stdout as default
 output = sys.stdout
 if not options.output is None:
@@ -83,7 +98,8 @@ signal.signal(signal.SIGTSTP, report_signal_handler)
 
 print("Building projects.")
 for project in options.tests:
-    build_project(project)
+    if project.endswith('csproj'):
+        build_project(project)
 
 print("Starting tests. Use STOP signal (default: Ctrl+Z) to check progress.")
 
@@ -93,25 +109,40 @@ counter = 0
 while options.repeat_count == 0 or counter < options.repeat_count:
     counter += 1
 
+    robot_tests = []
     for project in options.tests:
-        filename = os.path.split(project)[1]
-        subprocess.call(['bash', '-c', 'cp -r ' + os.path.dirname(nunit_path) + '/* ' + bin_directory + ''])
-        copied_nunit_path = bin_directory + "/nunit-console.exe"
-        args = ['mono', copied_nunit_path, '-noshadow', '-nologo', '-labels', '-domain:None', filename.replace("csproj", "dll")]
-        if options.fixture:
-            args.append('-run:' + options.fixture)
-        process = subprocess.Popen(args, cwd=bin_directory, bufsize = 1, preexec_fn = ignore_sig, stdout =
-                subprocess.PIPE, stderr = subprocess.STDOUT)
-        while True:
-            line = process.stdout.readline()
-            ret = process.poll()
-            if ret is not None:
-                if ret != 0:
-                    fail_count += 1
-                break
-            else:
-                if line and not line.isspace() and 'GLib-GObject-CRITICAL' not in line and 'GLib-CRITICAL' not in line:
-                    output.write(line)
+        if project.endswith('csproj'):
+            filename = os.path.split(project)[1]
+            subprocess.call(['bash', '-c', 'cp -r ' + os.path.dirname(nunit_path) + '/* ' + bin_directory + ''])
+            copied_nunit_path = bin_directory + "/nunit-console.exe"
+            args = ['mono', copied_nunit_path, '-noshadow', '-nologo', '-labels', '-domain:None', filename.replace("csproj", "dll")]
+            if options.fixture:
+                args.append('-run:' + options.fixture)
+        elif project.endswith('robot'):
+            robot_tests.append(project)
+            continue
+
+        if not run(args):
+            fail_count += 1
+
+    if any(robot_tests):
+
+        emul8_robot_frontend_binary_folder = os.path.join(this_path, '../../output/{0}'.format(configuration))
+        emul8_robot_frontend_binary = os.path.join(emul8_robot_frontend_binary_folder, 'RobotFrontend.exe')
+
+        emul8_robot_frontend_process = subprocess.Popen(['mono', emul8_robot_frontend_binary, '9999'], cwd=emul8_robot_frontend_binary_folder, bufsize=1)
+
+        args = ['robot', '-N', 'Emul8_Suite', '-C', 'on', '-v', 'SKIP_RUNNING_SERVER:True']
+        if(options.debug_mode):
+            args.append('-v')
+            args.append('CONFIGURATION:Debug')
+        args.extend(robot_tests)
+
+        if not run(args):
+            fail_count += 1
+
+        os.kill(emul8_robot_frontend_process.pid, 15)
+        emul8_robot_frontend_process.wait()
 
 output.flush()
 if not output is sys.stdout:
