@@ -44,7 +44,7 @@ namespace Emul8.Bootstrap
                 Cleaner.Clean(options.OutputDirectory);
                 break;
             case Operation.GenerateSolution:
-                HandleGenerateSolution(options.MainProject, options.BinariesDirectory, options.AdditionalProjects, options.OutputDirectory, options.GenerateEntryProject);
+                HandleGenerateSolution(options.MainProject, options.BinariesDirectory, options.AdditionalProjects, options.RobotTests, options.OutputDirectory, options.GenerateEntryProject);
                 break;
             case Operation.Scan:
                 HandleScan(options.Type, options.Directories);
@@ -72,7 +72,7 @@ namespace Emul8.Bootstrap
                       stepManager.GetSteps<ProjectsListStep>().SelectMany(x => x.AdditionalProjects).Union(stepManager.GetStep<UiStep>().UIProject.GetAllReferences()));
         }
 
-        private static void HandleGenerateSolution(string mainProjectPath, string binariesPath, IEnumerable<string> additionalProjectsPaths, string output, bool generateEntryProject)
+        private static void HandleGenerateSolution(string mainProjectPath, string binariesPath, IEnumerable<string> additionalProjectsPaths, IEnumerable<string> robotTests, string output, bool generateEntryProject)
         {
             Project mainProject;
             if(!Project.TryLoadFromFile(mainProjectPath, out mainProject))

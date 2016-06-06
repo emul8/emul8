@@ -35,6 +35,9 @@ namespace Emul8.Bootstrap
 
         [Name("generate-entry-project"), Description("Generates entry project. Cannot be used without setting `output-directory`."), DefaultValue(false)]
         public bool GenerateEntryProject { get; set; }
+
+        [Name("robot-tests"), Description("List of files with robot framework test suites")]
+        public string[] RobotTests { get; set; }
         
         [PositionalArgument(0), DefaultValue(Operation.None)]
         public Operation Action { get; set; }
