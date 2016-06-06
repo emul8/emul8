@@ -5,7 +5,6 @@
 // This file is part of the Emul8 project.
 // Full license details are defined in the 'LICENSE' file.
 //
-﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -18,9 +17,10 @@ namespace Emul8.Bootstrap
             steps = new List<IStep>();
         }
         
-        public void AddStep(IStep step)
+        public StepManager AddStep(IStep step)
         {
             steps.Add(step);
+            return this;
         }
         
         public T GetStep<T>()
