@@ -61,6 +61,7 @@
     <Compile Include="Paging\Steps\PluginStep.cs" />
     <Compile Include="IInterestingElement.cs" />
     <Compile Include="Elements\RobotTestSuite.cs" />
+    <Compile Include="Paging\Steps\RobotTestsStep.cs" />
     <Compile Include="Elements\Project.cs" />
     <Compile Include="Elements\Projects\CpuCoreProject.cs" />
     <Compile Include="Elements\Projects\EntryProject.cs" />
