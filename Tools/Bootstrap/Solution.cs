@@ -10,6 +10,8 @@ using System.IO;
 using System.Text;
 using System.Linq;
 using System;
+using Emul8.Bootstrap.Elements;
+using Emul8.Bootstrap.Elements.Projects;
 
 namespace Emul8.Bootstrap
 {

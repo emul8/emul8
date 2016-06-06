@@ -5,13 +5,11 @@
 // This file is part of the Emul8 project.
 // Full license details are defined in the 'LICENSE' file.
 //
-﻿using System;
-
-namespace Emul8.Bootstrap
+namespace Emul8.Bootstrap.Elements.Projects
 {
-    public class UnknownProject : Project
+    public class TestsProject : Project
     {
-        public UnknownProject(string name, string path) : base(name, path)
+        public TestsProject(string name, string path) : base(name, path)
         {
         }
     }

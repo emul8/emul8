@@ -5,7 +5,7 @@
 // This file is part of the Emul8 project.
 // Full license details are defined in the 'LICENSE' file.
 //
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Linq;
@@ -13,17 +13,26 @@ using System.Xml.XPath;
 using System.Linq;
 using System.IO;
 using System.Diagnostics;
+using Emul8.Bootstrap.Elements.Projects;
 
-namespace Emul8.Bootstrap
+namespace Emul8.Bootstrap.Elements
 {
     [DebuggerDisplay("Name = {Name}")]
-    public class Project
+    public class Project : IInterestingElement
     {
         static Project()
         {
             var namespaceManager = new XmlNamespaceManager(new NameTable());
             namespaceManager.AddNamespace("x", @"http://schemas.microsoft.com/developer/msbuild/2003");
             NamespaceManager = namespaceManager;
+        }
+
+        public static bool TryLoadFromFile(string path, out IInterestingElement project)
+        {
+            Project element;
+            var result = TryLoadFromFile(path, out element);
+            project = element;
+            return result;
         }
 
         public static bool TryLoadFromFile(string path, out Project project)
@@ -84,7 +93,7 @@ namespace Emul8.Bootstrap
 
         public static Project CreateEntryProject(Project mainProject, string outputPath, IEnumerable<Project> additionalProjects)
         {
-            return new CustomProject(mainProject.StartupObject, outputPath, new [] { mainProject }.Union(additionalProjects));
+            return new EntryProject(mainProject.StartupObject, outputPath, new [] { mainProject }.Union(additionalProjects));
         }
 
         protected static readonly IXmlNamespaceResolver NamespaceManager;

@@ -5,9 +5,11 @@
 // This file is part of the Emul8 project.
 // Full license details are defined in the 'LICENSE' file.
 //
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using System;
+using Emul8.Bootstrap.Elements;
+using Emul8.Bootstrap.Elements.Projects;
 
 namespace Emul8.Bootstrap
 {
