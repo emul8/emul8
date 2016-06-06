@@ -19,6 +19,8 @@ using System.Linq;
 using Emul8.Utilities;
 using Mono.Unix;
 using Emul8.Exceptions;
+using Antmicro.Migrant.Hooks;
+using Antmicro.Migrant;
 
 namespace Emul8.HostInterfaces.Network
 {
@@ -27,31 +29,8 @@ namespace Emul8.HostInterfaces.Network
         public OsXTapInterface(string interfaceNameOrPath)
         {
             Link = new NetworkLink(this);
-
-            if(!Directory.Exists("/Library/Extensions/tap.kext/"))
-            {
-                this.Log(LogLevel.Warning, "No TUNTAP kernel extension found, running in dummy mode.");
-                MAC = EmulationManager.Instance.CurrentEmulation.MACRepository.GenerateUniqueMAC();
-                return;
-            }
-            if(!File.Exists(interfaceNameOrPath))
-            {
-                var tapDevicePath = ConfigurationManager.Instance.Get<string>("tap", "tap-device-path", Environment.GetFolderPath(Environment.SpecialFolder.UserProfile));
-                interfaceNameOrPath = Path.Combine(tapDevicePath, interfaceNameOrPath);
-            }
-
-            deviceFile = File.Open(interfaceNameOrPath, FileMode.Open, FileAccess.ReadWrite);
-
-            // let's find out to what interface the character device file belongs
-            var deviceType = new UnixFileInfo(interfaceNameOrPath).DeviceType;
-            var majorNumber = deviceType >> 24;
-            var minorNumber = deviceType & 0xFFFFFF;
-            if(majorNumber != ExpectedMajorNumber)
-            {
-                throw new ConstructionException(string.Format("Unexpected major device number for OS X's tap: {0}.", majorNumber));
-            }
-            networkInterface = NetworkInterface.GetAllNetworkInterfaces().Single(x => x.Name == "tap" + minorNumber);
-            MAC = (MACAddress)networkInterface.GetPhysicalAddress();
+            originalInterfaceNameOrPath = interfaceNameOrPath;
+            Init();
         }
 
         public void ReceiveFrame(EthernetFrame frame)
@@ -118,6 +97,7 @@ namespace Emul8.HostInterfaces.Network
 
         public NetworkLink Link { get; private set; }
 
+        [field: Transient]
         public MACAddress MAC { get; set; }
 
         public string InterfaceName 
@@ -158,10 +138,49 @@ namespace Emul8.HostInterfaces.Network
             }
         }
 
+        [PostDeserialization]
+        private void Init()
+        {
+            var interfaceNameOrPath = originalInterfaceNameOrPath;
+            if(!Directory.Exists("/Library/Extensions/tap.kext/"))
+            {
+                this.Log(LogLevel.Warning, "No TUNTAP kernel extension found, running in dummy mode.");
+                MAC = EmulationManager.Instance.CurrentEmulation.MACRepository.GenerateUniqueMAC();
+                return;
+            }
+            if(!File.Exists(interfaceNameOrPath))
+            {
+                var tapDevicePath = ConfigurationManager.Instance.Get<string>("tap", "tap-device-path", Environment.GetFolderPath(Environment.SpecialFolder.UserProfile));
+                interfaceNameOrPath = Path.Combine(tapDevicePath, interfaceNameOrPath);
+            }
+
+            deviceFile = File.Open(interfaceNameOrPath, FileMode.Open, FileAccess.ReadWrite);
+
+            // let's find out to what interface the character device file belongs
+            var deviceType = new UnixFileInfo(interfaceNameOrPath).DeviceType;
+            var majorNumber = deviceType >> 24;
+            var minorNumber = deviceType & 0xFFFFFF;
+            if(majorNumber != ExpectedMajorNumber)
+            {
+                throw new ConstructionException(string.Format("Unexpected major device number for OS X's tap: {0}.", majorNumber));
+            }
+            networkInterface = NetworkInterface.GetAllNetworkInterfaces().Single(x => x.Name == "tap" + minorNumber);
+            MAC = (MACAddress)networkInterface.GetPhysicalAddress();
+        }
+
+        [Transient]
         private Task readerTask;
+
+        [Transient]
         private CancellationTokenSource cts;
-        private readonly FileStream deviceFile;
-        private readonly NetworkInterface networkInterface;
+
+        [Transient]
+        private FileStream deviceFile;
+
+        [Transient]
+        private NetworkInterface networkInterface;
+
+        private readonly string originalInterfaceNameOrPath;
 
         private static readonly TimeSpan GracePeriod = TimeSpan.FromSeconds(1);
         private const int Mtu = 1500;
