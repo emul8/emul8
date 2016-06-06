@@ -11,13 +11,6 @@ this_path = os.path.abspath(os.path.dirname(__file__))
 nunit_path = os.path.abspath(os.path.join(os.path.dirname(__file__), './../../External/Tools/nunit-console.exe'))
 bin_directory = os.path.abspath(os.path.join(os.path.dirname(__file__), 'tests'))
 
-test_projects = map(os.path.abspath, [
-        "./../../Emulator/Main/Tests/SystemTests/SystemTests.csproj",
-        "./../../Emulator/Main/Tests/UnitTests/UnitTests.csproj",
-        "./../../Emulator/Peripherals/Test/PeripheralsTests/PeripheralsTests.csproj",
-        "./../../Emulator/Extensions/MonitorTests/MonitorTests.csproj",
-])
-
 def build_project(path):
     """
 Tries to build a project at given path. Because of a bug in xbuild which sometimes crashes after build we retry it, up to 5 times, if received code is 134 (abort).
