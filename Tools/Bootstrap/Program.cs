@@ -36,9 +36,8 @@ namespace Emul8.Bootstrap
             switch(options.Action)
             {
             case Operation.GenerateAll:
-                var solution = GenerateAllProjects(options.BinariesDirectory, options.GenerateEntryProject, options.Directories);
-                solution.Save(options.OutputDirectory);
-                solution.SaveTestsFile(Path.Combine(options.OutputDirectory, testsFileName));
+                var conf = GenerateAllProjects(options.BinariesDirectory, options.GenerateEntryProject, options.Directories);
+                conf.Save(options.OutputDirectory);
                 break;
             case Operation.Clean:
                 Cleaner.Clean(options.OutputDirectory);
@@ -54,22 +53,32 @@ namespace Emul8.Bootstrap
             return 0;
         }
 
-        private static Solution HandleCustomSolution(string outputPath, bool generateEntryProject, IEnumerable<string> directories)
+        private static Configuration HandleCustomSolution(string outputPath, bool generateEntryProject, IEnumerable<string> directories)
         {
             var stepManager = new StepManager();
             var pathHelper = new PathHelper(directories.Select(Path.GetFullPath));
 
-            stepManager.AddStep(new UiStep(pathHelper));
-            stepManager.AddStep(new ProjectsListStep<CpuCoreProject>("Choose supported architectures:", pathHelper));
-            stepManager.AddStep(new ProjectsListStep<ExtensionProject>("Choose extensions libraries:", pathHelper));
-            stepManager.AddStep(new PluginStep("Choose plugins:", pathHelper));
-            stepManager.AddStep(new ProjectsListStep<TestsProject>("Choose tests:", pathHelper));
-            stepManager.AddStep(new ProjectsListStep<UnknownProject>("Choose other projects:", pathHelper));
+            var uiSelectionStep = new UiStep(pathHelper);
+            var robotTestsStep = new RobotTestsStep("Choose robot tests:", pathHelper);
+            stepManager
+                .AddStep(uiSelectionStep)
+                .AddStep(new ProjectsListStep<CpuCoreProject>("Choose supported architectures:", pathHelper))
+                .AddStep(new ProjectsListStep<ExtensionProject>("Choose extensions libraries:", pathHelper))
+                .AddStep(new PluginStep("Choose plugins:", pathHelper))
+                .AddStep(new ProjectsListStep<TestsProject>("Choose tests:", pathHelper))
+                .AddStep(robotTestsStep)
+                .AddStep(new ProjectsListStep<UnknownProject>("Choose other projects:", pathHelper))
+                .Run();
+            
+            if(stepManager.IsCancelled)
+            {
+                return null;
+            }
 
-            stepManager.Run();
-            return stepManager.IsCancelled ? null
-                      : SolutionGenerator.Generate(stepManager.GetStep<UiStep>().UIProject, generateEntryProject, outputPath,
-                      stepManager.GetSteps<ProjectsListStep>().SelectMany(x => x.AdditionalProjects).Union(stepManager.GetStep<UiStep>().UIProject.GetAllReferences()));
+            return new Configuration(
+                SolutionGenerator.Generate(uiSelectionStep.UIProject, generateEntryProject, outputPath,
+                    stepManager.GetSteps<ProjectsListStep>().SelectMany(x => x.AdditionalProjects).Union(uiSelectionStep.UIProject.GetAllReferences())),
+                robotTestsStep.SelectedTests);
         }
 
         private static void HandleGenerateSolution(string mainProjectPath, string binariesPath, IEnumerable<string> additionalProjectsPaths, IEnumerable<string> robotTests, string output, bool generateEntryProject)
@@ -100,8 +109,8 @@ namespace Emul8.Bootstrap
             }
             else
             {
-                solution.Save(output);
-                solution.SaveTestsFile(Path.Combine(output, testsFileName));
+                var confiugration = new Configuration(solution, robotTests.Select(x => new RobotTestSuite(x)));
+                confiugration.Save(output);
             }
         }
 
@@ -147,7 +156,6 @@ namespace Emul8.Bootstrap
                 return ErrorResultCode;
             }
 
-            Solution solution = null;
             var infobox = new Infobox("Scanning directories...");
             infobox.Show();
 
@@ -170,16 +178,17 @@ namespace Emul8.Bootstrap
                 return CancelResultCode;
             }
 
+            Configuration configuration;
             try
             {
                 var key = actionDialog.SelectedKeys.First();
                 switch(key)
                 {
                 case "All":
-                    solution = GenerateAllProjects(binariesDirectory, generateEntryProject, directories);
+                    configuration = GenerateAllProjects(binariesDirectory, generateEntryProject, directories);
                     break;
                 case "Custom":
-                    solution = HandleCustomSolution(binariesDirectory, generateEntryProject, directories);
+                    configuration = HandleCustomSolution(binariesDirectory, generateEntryProject, directories);
                     break;
                 case "Clean":
                     Cleaner.Clean(outputDirectory);
@@ -192,7 +201,7 @@ namespace Emul8.Bootstrap
                         new MessageDialog("Bootstrap failure", string.Format("Could not load {0} project. Exiting", key)).Show();
                         return ErrorResultCode;
                     }
-                    solution = SolutionGenerator.GenerateWithAllReferences(mainProject, generateEntryProject, binariesDirectory);
+                    configuration = new Configuration(SolutionGenerator.GenerateWithAllReferences(mainProject, generateEntryProject, binariesDirectory), null);
                     break;
                 }
             }
@@ -202,20 +211,13 @@ namespace Emul8.Bootstrap
                 return ErrorResultCode;
             }
 
-            if(solution == null)
-            {
-                new MessageDialog("Bootstrap failure", "Couldn't generate the solution file: no project file found in the directories provided. Exiting").Show();
-                return ErrorResultCode;
-            }
-
             var confirmDialog = new YesNoDialog(Title, "Are you sure you want to create the solution file?");
             if(confirmDialog.Show() != DialogResult.Ok)
             {
                 return CancelResultCode;
             }
 
-            solution.Save(outputDirectory);
-            solution.SaveTestsFile(Path.Combine(outputDirectory, testsFileName));
+            configuration.Save(outputDirectory);
 
             new MessageDialog(Title, "Solution file created successfully!").Show();
             return 0;
@@ -236,9 +238,9 @@ namespace Emul8.Bootstrap
             }
         }
 
-        private static Solution GenerateAllProjects(string binariesPath, bool generateEntryProject, IEnumerable<string> paths)
+        private static Configuration GenerateAllProjects(string binariesPath, bool generateEntryProject, IEnumerable<string> paths)
         {
-            var fullPaths = paths.Select(Path.GetFullPath).ToArray();
+            var fullPaths = paths.Select(Path.GetFullPath);
             Scanner.Instance.ScanDirectories(fullPaths);
 
             var mainProject = Scanner.Instance.Projects.OfType<UiProject>().FirstOrDefault();
@@ -247,7 +249,11 @@ namespace Emul8.Bootstrap
                 Console.Error.WriteLine("No UI project found. Exiting");
                 Environment.Exit(ErrorResultCode);
             }
-            return SolutionGenerator.GenerateWithAllReferences(mainProject, generateEntryProject, binariesPath, Scanner.Instance.Projects.Where(x => !(x is UnknownProject)));
+
+            return new Configuration(
+                SolutionGenerator.GenerateWithAllReferences(mainProject, generateEntryProject, binariesPath, 
+                    Scanner.Instance.Projects.Where(x => !(x is UnknownProject))),
+                Scanner.Instance.Elements.OfType<RobotTestSuite>());
         }
 
         private const int CancelResultCode = 1;
@@ -255,6 +261,5 @@ namespace Emul8.Bootstrap
         private const int CleanedResultCode = 3;
 
         public const string Title = "Emul8 bootstrap";
-        private const string testsFileName = "tests.txt";
     }
 }

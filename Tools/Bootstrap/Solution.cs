@@ -6,7 +6,6 @@
 // Full license details are defined in the 'LICENSE' file.
 //
 using System.Collections.Generic;
-using System.IO;
 using System.Text;
 using System.Linq;
 using System;
@@ -20,22 +19,6 @@ namespace Emul8.Bootstrap
         public Solution(IEnumerable<Project> projects)
         {
             this.projects = projects;
-        }
-
-        public void Save(string directory)
-        {
-            Directory.CreateDirectory(directory);
-            var mainProject = projects.OfType<CustomProject>().SingleOrDefault();
-            if(mainProject != null)
-            {
-                mainProject.Save(directory);
-            }
-            File.WriteAllText(Path.Combine(directory, solutionName), ToString());
-        }
-
-        public void SaveTestsFile(string path)
-        {
-            File.WriteAllLines(path, projects.OfType<TestsProject>().Select(x => x.Path));
         }
 
         public override string ToString()
@@ -157,7 +140,6 @@ namespace Emul8.Bootstrap
         }
 
         private readonly IEnumerable<Project> projects;
-        private const string solutionName = "Emul8.sln";
     }
 }
 
