@@ -41,12 +41,13 @@ def report_signal_handler(singnum, frame):
 
 # parsing cmd-line arguments
 parser = argparse.ArgumentParser()
+parser.add_argument("tests", help="List of test files", nargs='*')
 parser.add_argument("-f", "--fixture", dest="fixture", help="Fixture to test", metavar="FIXTURE")
 parser.add_argument("-n", "--repeat", dest="repeat_count", nargs="?", type=int, const=0, default=1, help="Repeat tests a number of times (no-flag: 1, no-value: infinite)")
 parser.add_argument("-d", "--debug", dest="debug_mode", action="store_true", default=False, help="Debug mode")
 parser.add_argument("-o", "--output", dest="output", action="store", default=None, help="Output file, default STDOUT.")
 parser.add_argument("-b", "--buildbot", dest="buildbot", action="store_true", default=False, help="Buildbot mode. Before running tests prepare environment, i.e., create tap0 interface.")
-parser.add_argument("-t", "--tests", dest="tests", action="store", default=None, help="Path to a file with a list of assemblies with tests to run.")
+parser.add_argument("-t", "--tests", dest="tests_file", action="store", default=None, help="Path to a file with a list of assemblies with tests to run.")
 options  = parser.parse_args()
 
 if options.buildbot:
@@ -65,8 +66,8 @@ if 'FIXTURE' in os.environ:
     options.fixture = os.environ['FIXTURE']
 if options.fixture:
     print("Testing fixture: " + options.fixture)
-if options.tests != None:
-   used_tests = [line.rstrip() for line in open(options.tests)]
+if options.tests_file != None:
+    options.tests.extend([line.rstrip() for line in open(options.tests_file)])
 
 #set stdout as default
 output = sys.stdout
@@ -81,7 +82,7 @@ signal.signal(signal.SIGUSR1, report_signal_handler)
 signal.signal(signal.SIGTSTP, report_signal_handler)
 
 print("Building projects.")
-for project in used_projects:
+for project in options.tests:
     build_project(project)
 
 print("Starting tests. Use STOP signal (default: Ctrl+Z) to check progress.")
@@ -92,7 +93,7 @@ counter = 0
 while options.repeat_count == 0 or counter < options.repeat_count:
     counter += 1
 
-    for project in used_projects:
+    for project in options.tests:
         filename = os.path.split(project)[1]
         subprocess.call(['bash', '-c', 'cp -r ' + os.path.dirname(nunit_path) + '/* ' + bin_directory + ''])
         copied_nunit_path = bin_directory + "/nunit-console.exe"
