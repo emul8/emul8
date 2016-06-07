@@ -896,6 +896,12 @@ namespace Emul8.Utilities
             }
             return a;
         }
+
+        public static string[] Split(this string value, int size)
+        {
+            var ind = 0;
+            return value.GroupBy(x => ind++ / size).Select(x => string.Join("", x)).ToArray();
+        }
     }
 }
 

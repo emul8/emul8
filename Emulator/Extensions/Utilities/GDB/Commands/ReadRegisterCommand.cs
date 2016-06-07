@@ -7,7 +7,7 @@
 using System;
 using System.Linq;
 using Emul8.Peripherals.CPU;
-using ELFSharp.ELF;
+using System.Text;
 
 namespace Emul8.Utilities.GDB.Commands
 {
@@ -33,13 +33,14 @@ namespace Emul8.Utilities.GDB.Commands
                 throw new ArgumentException("Could not parse register number");
             }
 
+            var content = new StringBuilder();
             var value = cpu.GetRegisters().Contains(registerNumber) ? cpu.GetRegisterUnsafe(registerNumber) : 0;
-            if(cpu.Endianness == Endianess.LittleEndian)
+            foreach(var b in BitConverter.GetBytes(value))
             {
-                value = Helpers.SwapBytes(value);
+                content.AppendFormat("{0:x2}", b);
             }
 
-            return new PacketData(string.Format("{0:x8}", value));
+            return new PacketData(content.ToString());
         }
 
         private readonly IControllableCPU cpu;

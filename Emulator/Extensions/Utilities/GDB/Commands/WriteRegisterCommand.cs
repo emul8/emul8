@@ -5,7 +5,6 @@
 // Full license details are defined in the 'LICENSE' file.
 //
 using System;
-using ELFSharp.ELF;
 using Emul8.Peripherals.CPU;
 
 namespace Emul8.Utilities.GDB.Commands
@@ -32,15 +31,13 @@ namespace Emul8.Utilities.GDB.Commands
                 throw new ArgumentException("Could not parse register number");
             }
 
+            // due to endianess we have to reverse bytes
+            var splittedBytes = splittedArguments[1].Split(2);
+            Array.Reverse(splittedBytes);
             uint value;
-            if(!uint.TryParse(splittedArguments[1], System.Globalization.NumberStyles.HexNumber, null, out value))
+            if(!uint.TryParse(string.Join("", splittedBytes), System.Globalization.NumberStyles.HexNumber, null, out value))
             {
                 throw new ArgumentException("Could not parse value");
-            }
-
-            if(cpu.Endianness == Endianess.LittleEndian)
-            {
-                value = Helpers.SwapBytes(value);
             }
 
             cpu.SetRegisterUnsafe(registerNumber, value);
