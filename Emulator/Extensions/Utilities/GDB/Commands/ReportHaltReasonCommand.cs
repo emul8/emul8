@@ -6,12 +6,9 @@
 //
 namespace Emul8.Utilities.GDB.Commands
 {
+    [Mnemonic("?")]
     internal class ReportHaltReasonCommand : Command
     {
-        public ReportHaltReasonCommand() : base("?")
-        {
-        }
-
         protected override PacketData HandleInner(Packet packet)
         {
             return PacketData.StopReply(0);

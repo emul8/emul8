@@ -9,9 +9,10 @@ using Emul8.Peripherals.CPU;
 
 namespace Emul8.Utilities.GDB.Commands
 {
+    [Mnemonic("c")]
     internal class ContinueCommand : Command
     {
-        public ContinueCommand(TranslationCPU cpu) : base("c")
+        public ContinueCommand(TranslationCPU cpu)
         {
             this.cpu = cpu;
         }

@@ -10,9 +10,10 @@ using Emul8.Core;
 
 namespace Emul8.Utilities.GDB.Commands
 {
+    [Mnemonic("m")]
     internal class ReadMemoryCommand : Command
     {
-        public ReadMemoryCommand(Machine machine) : base("m")
+        public ReadMemoryCommand(Machine machine)
         {
             this.machine = machine;
         }

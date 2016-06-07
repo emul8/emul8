@@ -6,6 +6,7 @@
 //
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 
 namespace Emul8.Utilities.GDB
 {
@@ -13,21 +14,22 @@ namespace Emul8.Utilities.GDB
     {
         public CommandsManager()
         {
-            commands = new List<Command>();
+            commands = new Dictionary<string, Command>();
         }
 
         public void Register(Command cmd)
         {
-            commands.Add(cmd);
+            var mnemonicAttribute = cmd.GetType().GetCustomAttribute<MnemonicAttribute>();
+            commands.Add(mnemonicAttribute.Mnemonic, cmd);
         }
 
         public bool TryGetCommand(string packet, out Command command)
         {
-            command = commands.FirstOrDefault(x => packet.StartsWith(x.Mnemonic, System.StringComparison.Ordinal));
+            command = commands.FirstOrDefault(x => packet.StartsWith(x.Key, System.StringComparison.Ordinal)).Value;
             return command != null;
         }
 
-        private readonly List<Command> commands;
+        private readonly Dictionary<string, Command> commands;
     }
 }
 

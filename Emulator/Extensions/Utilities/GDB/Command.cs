@@ -5,6 +5,7 @@
 // Full license details are defined in the 'LICENSE' file.
 //
 using System;
+using System.Reflection;
 using Emul8.Logging;
 
 namespace Emul8.Utilities.GDB
@@ -24,16 +25,10 @@ namespace Emul8.Utilities.GDB
             }
         }
 
-        public string Mnemonic { get; private set; }
-
-        protected Command(string mnemonic)
-        {
-            Mnemonic = mnemonic;
-        }
-
         protected string[] GetCommandArguments(PacketData data, char[] separators = null, int count = 1)
         {
-            var arguments = data.DataAsString.Substring(Mnemonic.Length);
+            var mnemonicLength = GetType().GetCustomAttribute<MnemonicAttribute>().Mnemonic.Length;
+            var arguments = data.DataAsString.Substring(mnemonicLength);
             if(separators == null)
             {
                 return new [] { arguments };

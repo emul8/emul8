@@ -12,9 +12,10 @@ using System.Collections.Generic;
 
 namespace Emul8.Utilities.GDB.Commands
 {
+    [Mnemonic("Z")]
     internal class InsertBreakpointCommand : BreakpointCommandBase
     {
-        public InsertBreakpointCommand(IControllableCPU cpu, SystemBus bus, WatchpointsContext context) : base(cpu, bus, context, "Z")
+        public InsertBreakpointCommand(IControllableCPU cpu, SystemBus bus, WatchpointsContext context) : base(cpu, bus, context)
         {
         }
 
@@ -63,9 +64,10 @@ namespace Emul8.Utilities.GDB.Commands
         }
     }
 
+    [Mnemonic("z")]
     internal class RemoveBreakpointCommand : BreakpointCommandBase
     {
-        public RemoveBreakpointCommand(IControllableCPU cpu, SystemBus bus, WatchpointsContext context) : base(cpu, bus, context, "z")
+        public RemoveBreakpointCommand(IControllableCPU cpu, SystemBus bus, WatchpointsContext context) : base(cpu, bus, context)
         {
         }
 
@@ -116,7 +118,7 @@ namespace Emul8.Utilities.GDB.Commands
 
     internal abstract class BreakpointCommandBase : Command
     {
-        protected BreakpointCommandBase(IControllableCPU cpu, SystemBus bus, WatchpointsContext context, string mnemonic) : base(mnemonic)
+        protected BreakpointCommandBase(IControllableCPU cpu, SystemBus bus, WatchpointsContext context)
         {
             this.cpu = cpu;
             systemBus = bus;

@@ -10,9 +10,10 @@ using Emul8.Core;
 
 namespace Emul8.Utilities.GDB.Commands
 {
+    [Mnemonic("M")]
     internal class WriteDataToMemoryCommand : WriteDataToMemoryCommandBase
     {
-        public WriteDataToMemoryCommand(Machine machine) : base("M", machine)
+        public WriteDataToMemoryCommand(Machine machine) : base(machine)
         {
         }
 
@@ -36,9 +37,10 @@ namespace Emul8.Utilities.GDB.Commands
         }
     }
 
+    [Mnemonic("X")]
     internal class WriteBinaryDataToMemoryCommand : WriteDataToMemoryCommandBase
     {
-        public WriteBinaryDataToMemoryCommand(Machine machine) : base("X", machine)
+        public WriteBinaryDataToMemoryCommand(Machine machine) : base(machine)
         {       
         }
 
@@ -57,7 +59,7 @@ namespace Emul8.Utilities.GDB.Commands
 
     internal abstract class WriteDataToMemoryCommandBase : Command
     {
-        protected WriteDataToMemoryCommandBase(string mnemonic, Machine machine) : base(mnemonic)
+        protected WriteDataToMemoryCommandBase(Machine machine)
         {
             this.machine = machine;
         }
