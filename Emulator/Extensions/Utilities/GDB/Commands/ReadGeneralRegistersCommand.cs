@@ -4,8 +4,8 @@
 // This file is part of the Emul8 project.
 // Full license details are defined in the 'LICENSE' file.
 //
+using System;
 using System.Text;
-using ELFSharp.ELF;
 using Emul8.Peripherals.CPU;
 
 namespace Emul8.Utilities.GDB.Commands
@@ -24,12 +24,10 @@ namespace Emul8.Utilities.GDB.Commands
             foreach(var i in cpu.GetRegisters())
             {
                 var value = cpu.GetRegisterUnsafe(i);
-                if(cpu.Endianness == Endianess.LittleEndian)
+                foreach(var b in BitConverter.GetBytes(value))
                 {
-                    value = Helpers.SwapBytes(value);
+                    registers.AppendFormat("{0:x2}", b);
                 }
-
-                registers.AppendFormat("{0:x8}", value);
             }
 
             return new PacketData(registers.ToString());

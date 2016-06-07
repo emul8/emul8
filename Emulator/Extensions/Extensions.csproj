@@ -144,7 +144,6 @@
     <Compile Include="Utilities\GDB\PacketBuilder.cs" />
     <Compile Include="Utilities\GDB\Commands\ContinueCommand.cs" />
     <Compile Include="Utilities\GDB\Commands\SingleStepCommand.cs" />
-    <Compile Include="Utilities\GDB\Helpers.cs" />
     <Compile Include="Utilities\GDB\Commands\ReportHaltReasonCommand.cs" />
     <Compile Include="Utilities\GDB\BreakpointTypeExtensions.cs" />
     <Compile Include="Utilities\GDB\Commands\KillCommand.cs" />
