@@ -39,9 +39,6 @@ namespace Emul8.Utilities.GDB.Commands
             }
 
             var content = new StringBuilder();
-
-            // ReadBytes returns data in original endianess, thus
-            // no processing is needed here
             foreach(var b in machine.SystemBus.ReadBytes(address, size))
             {
                 content.AppendFormat("{0:x2}", b);
