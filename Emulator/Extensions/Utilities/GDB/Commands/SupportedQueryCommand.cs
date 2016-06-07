@@ -6,15 +6,17 @@
 //
 namespace Emul8.Utilities.GDB.Commands
 {
+    [Mnemonic("q")]
     internal class SupportedQueryCommand : Command
     {
-        public SupportedQueryCommand() : base("qSupported")
-        {
-        }
-
         protected override PacketData HandleInner(Packet packet)
         {
-            return new PacketData(string.Format("PacketSize={0:x4}", 4096));
+            if(packet.Data.DataAsString.StartsWith("qSupported", System.StringComparison.Ordinal))
+            {
+                return new PacketData(string.Format("PacketSize={0:x4}", 4096));
+            }
+
+            return PacketData.Empty;
         }
     }
 }

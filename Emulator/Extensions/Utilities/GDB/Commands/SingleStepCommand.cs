@@ -9,9 +9,10 @@ using Emul8.Peripherals.CPU;
 
 namespace Emul8.Utilities.GDB.Commands
 {
+    [Mnemonic("s")]
     internal class SingleStepCommand : Command
     {
-        public SingleStepCommand(TranslationCPU cpu) : base("s")
+        public SingleStepCommand(TranslationCPU cpu)
         {
             this.cpu = cpu;
         }

@@ -148,6 +148,7 @@
     <Compile Include="Utilities\GDB\Commands\ReportHaltReasonCommand.cs" />
     <Compile Include="Utilities\GDB\BreakpointTypeExtensions.cs" />
     <Compile Include="Utilities\GDB\Commands\KillCommand.cs" />
+    <Compile Include="Utilities\GDB\MnemonicAttribute.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

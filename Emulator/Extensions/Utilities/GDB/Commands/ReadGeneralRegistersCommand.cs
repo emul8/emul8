@@ -10,9 +10,10 @@ using Emul8.Peripherals.CPU;
 
 namespace Emul8.Utilities.GDB.Commands
 {
+    [Mnemonic("g")]
     internal class ReadGeneralRegistersCommand : Command
     {
-        public ReadGeneralRegistersCommand(IControllableCPU cpu) : base("g")
+        public ReadGeneralRegistersCommand(IControllableCPU cpu)
         {
             this.cpu = cpu;
         }

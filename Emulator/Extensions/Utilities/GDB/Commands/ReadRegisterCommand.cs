@@ -11,9 +11,10 @@ using ELFSharp.ELF;
 
 namespace Emul8.Utilities.GDB.Commands
 {
+    [Mnemonic("p")]
     internal class ReadRegisterCommand : Command
     {
-        public ReadRegisterCommand(IControllableCPU cpu) : base("p")
+        public ReadRegisterCommand(IControllableCPU cpu)
         {
             this.cpu = cpu;
         }

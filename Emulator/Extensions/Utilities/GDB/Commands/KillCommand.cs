@@ -7,9 +7,10 @@
 
 namespace Emul8.Utilities.GDB.Commands
 {
+    [Mnemonic("k")]
     internal class KillCommand : Command
     {
-        public KillCommand() : base("k")
+        public KillCommand()
         {
         }
 
