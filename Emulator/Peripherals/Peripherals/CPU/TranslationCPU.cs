@@ -359,21 +359,31 @@ namespace Emul8.Peripherals.CPU
             FreeState();
         }
 
-        public void SetSingleStepMode(bool on)
-        {
-            lock(pauseLock)
+        public ExecutionMode ExecutionMode 
+        { 
+            get 
             {
-                if(on == stepMode)
-                {
-                    return;
-                }
+                return executionMode;
+            }
 
-                stepMode = on;
-                stepEvent.Reset();
-                blockSizeNeedsAdjustment = true;
+            set 
+            {
+                lock(pauseLock) 
+                {
+                    if(executionMode == value) 
+                    {
+                        return;
+                    }
+
+                    executionMode = value;
+                    stepEvent.Reset();
+                    blockSizeNeedsAdjustment = true;
+                }
             }
         }
 
+        [Transient]
+        private ExecutionMode executionMode;
         private bool blockSizeNeedsAdjustment;
 
         private void AdjustBlockSize()
@@ -386,21 +396,24 @@ namespace Emul8.Peripherals.CPU
             blockSizeNeedsAdjustment = false;
 
             // to avoid locking, step mode must be checked just once
-            if(stepMode)
+            switch(executionMode)
             {
-                if(oldMaximumBlockSize == -1) 
+            case ExecutionMode.SingleStep:
+                if(oldMaximumBlockSize == -1)
                 {
                     oldMaximumBlockSize = MaximumBlockSize;
                     SetMaximumBlockSize(1, true);
                 }
-            }
-            else
-            {
+                break;
+            case ExecutionMode.Continuous:
                 if(oldMaximumBlockSize != -1)
                 {
                     SetMaximumBlockSize((uint)oldMaximumBlockSize, true);
                     oldMaximumBlockSize = -1;
                 }
+                break;
+            default:
+                throw new ArgumentException("Unsupported execution mode");
             }
         }
 
@@ -512,7 +525,7 @@ namespace Emul8.Peripherals.CPU
                     CheckIfOnSynchronizedThread();
                 }
                 this.NoisyLog("IRQ {0}, value {1}", number, value);
-                if(started && !(DisableInterruptsWhileStepping && stepMode))
+                if(started && !(DisableInterruptsWhileStepping && executionMode == ExecutionMode.SingleStep))
                 {
                     TlibSetIrq((int)decodedInterrupt, value ? 1 : 0);
                 }
@@ -811,7 +824,7 @@ namespace Emul8.Peripherals.CPU
                         info = "- " + info;
                 }
                 //this.NoisyLog("Entered iteration @ 0x{0:x8} {1}", PC,info);
-                if(!(DisableInterruptsWhileStepping && stepMode) && TlibIsIrqSet() == 0 && interruptEvents.Any(x => x.WaitOne(0)))
+                if(!(DisableInterruptsWhileStepping && executionMode == ExecutionMode.SingleStep) && TlibIsIrqSet() == 0 && interruptEvents.Any(x => x.WaitOne(0)))
                 {
                     for(var i = 0; i < interruptEvents.Length; i++)
                     {
@@ -923,7 +936,7 @@ namespace Emul8.Peripherals.CPU
             if(setSingleStepAndResume)
             {
                 setSingleStepAndResume = false;
-                SetSingleStepMode(true);
+                ExecutionMode = ExecutionMode.SingleStep;
                 Resume();
                 Monitor.Exit(pauseLock);
             }
@@ -947,7 +960,7 @@ namespace Emul8.Peripherals.CPU
 
         private void HandleStepping()
         {
-            if(stepMode)
+            if(executionMode == ExecutionMode.SingleStep)
             {
                 if(lastIncarnation == incarnation)
                 {
@@ -1286,7 +1299,7 @@ namespace Emul8.Peripherals.CPU
         [Export]
         private uint IsBlockBeginEventEnabled()
         {
-            return (blockBeginHook != null || stepMode || inactiveHooks.Count > 0) ? 1u : 0u;
+            return (blockBeginHook != null || executionMode == ExecutionMode.SingleStep || inactiveHooks.Count > 0) ? 1u : 0u;
         }
       
         private List<uint>breakpoints;
@@ -1297,7 +1310,6 @@ namespace Emul8.Peripherals.CPU
         [Transient]
         private ActionUInt32 onTranslationBlockFetch;
         private string cpuType;
-        private bool stepMode;
         private byte[] cpuState;
         private int instructionCountResiduum;
         private bool isHalted;

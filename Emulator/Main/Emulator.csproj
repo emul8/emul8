@@ -368,6 +368,7 @@
     <Compile Include="Peripherals\InterruptHandler.cs" />
     <Compile Include="Peripherals\CPU\BreakpointType.cs" />
     <Compile Include="Peripherals\CPU\HaltArguments.cs" />
+    <Compile Include="Peripherals\CPU\ExecutionMode.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup />

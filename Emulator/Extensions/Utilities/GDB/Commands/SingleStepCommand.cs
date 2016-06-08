@@ -25,7 +25,7 @@ namespace Emul8.Utilities.GDB.Commands
                 throw new InvalidOperationException("Stepping to address is not supported yet.");
             }
 
-            cpu.SetSingleStepMode(true);
+            cpu.ExecutionMode = ExecutionMode.SingleStep;
             cpu.Step();
             return null;
         }
