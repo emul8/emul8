@@ -56,7 +56,7 @@ namespace Emul8.Utilities
         public object CreatePlugin()
         {
             var type = TypeManager.Instance.GetTypeByName(ThisType.FullName);
-            return ObjectCreator.Spawn(type);
+            return ObjectCreator.Instance.Spawn(type);
         }
 
         public override bool Equals(object obj)

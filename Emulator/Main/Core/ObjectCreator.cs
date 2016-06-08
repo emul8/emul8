@@ -11,26 +11,23 @@ using System.Linq;
 
 namespace Emul8.Core
 {
-    public static class ObjectCreator
+    public class ObjectCreator
     {
-        public static Context OpenContext()
+        static ObjectCreator()
         {
-            var context = new Context();
+            Instance = new ObjectCreator();
+        }
+
+        public static ObjectCreator Instance { get; private set; }
+
+        public Context OpenContext()
+        {
+            var context = new Context(this);
             contexts.Push(context);
             return context;
         }
 
-        private static void CloseContext(Context context)
-        {
-            if(context != contexts.Peek())
-            {
-                throw new ArgumentException();
-            }
-
-            contexts.Pop();
-        }
-
-        public static object Spawn(Type type)
+        public object Spawn(Type type)
         {
             foreach(var constructor in type.GetConstructors())
             {
@@ -63,20 +60,41 @@ namespace Emul8.Core
                 string.Join("\n", contexts.SelectMany(x => x.Types).Distinct().Select(x => x.FullName))));
         }
 
-        public static T GetSurrogate<T>()
+        public T GetSurrogate<T>()
         {
             return (T)GetSurrogate(typeof(T));
         }
 
-        public static object GetSurrogate(Type type)
+        public object GetSurrogate(Type type)
         {
             return contexts.Select(x => x.GetSurrogate(type)).FirstOrDefault(x => x != null);
         }
 
-        private static readonly Stack<Context> contexts = new Stack<Context>();
+        protected ObjectCreator()
+        {
+            contexts = new Stack<Context>();
+        }
+
+        private void CloseContext(Context context)
+        {
+            if(context != contexts.Peek())
+            {
+                throw new ArgumentException();
+            }
+
+            contexts.Pop();
+        }
+
+        private readonly Stack<Context> contexts;
 
         public class Context : IDisposable
         {
+            public Context(ObjectCreator creator)
+            {
+                objectCreator = creator;
+                surrogates = new Dictionary<Type, object>();
+            }
+            
             public void RegisterSurrogate(Type type, object obj)
             {
                 surrogates.Add(type, obj);
@@ -91,7 +109,7 @@ namespace Emul8.Core
 
             public void Close()
             {
-                ObjectCreator.CloseContext(this);
+                objectCreator.CloseContext(this);
             }
 
             public void Dispose()
@@ -101,7 +119,8 @@ namespace Emul8.Core
 
             public IEnumerable<Type> Types { get { return surrogates.Keys; } }
 
-            private readonly Dictionary<Type, object> surrogates = new Dictionary<Type, object>();
+            private readonly ObjectCreator objectCreator;
+            private readonly Dictionary<Type, object> surrogates;
         }
     }
 }
