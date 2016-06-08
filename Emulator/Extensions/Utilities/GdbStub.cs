@@ -85,7 +85,7 @@ namespace Emul8.Utilities
             commands.Register(new KillCommand());
 
             cpu.Halted += OnHalted;
-            cpu.SetSingleStepMode(true);
+            cpu.ExecutionMode = ExecutionMode.SingleStep;
         }
 
         private void OnHalted(HaltArguments args)
@@ -144,7 +144,7 @@ namespace Emul8.Utilities
             if(result.Interrupt)
             {
                 cpu.Log(LogLevel.Debug, "GDB CTRL-C occured - pausing CPU");
-                cpu.SetSingleStepMode(true);
+                cpu.ExecutionMode = ExecutionMode.SingleStep;
                 return;
             }
             if(result.CorruptedPacket)

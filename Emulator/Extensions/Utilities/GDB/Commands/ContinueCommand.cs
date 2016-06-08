@@ -25,7 +25,7 @@ namespace Emul8.Utilities.GDB.Commands
                 throw new InvalidOperationException("Continuing at address is not supported yet.");
             }
 
-            cpu.SetSingleStepMode(false);
+            cpu.ExecutionMode = ExecutionMode.Continuous;
             cpu.Step();
 
             return null;

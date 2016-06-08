@@ -21,8 +21,6 @@ namespace Emul8.Peripherals.CPU
 
         string[,] GetRegistersValues();
 
-        void SetSingleStepMode(bool on);
-
         void WaitForStepDone();
 
         void Step(int count);
@@ -38,6 +36,8 @@ namespace Emul8.Peripherals.CPU
         event Action<HaltArguments> Halted;
 
         Endianess Endianness { get; }
+
+        ExecutionMode ExecutionMode { get; set; }
     }
 }
 
