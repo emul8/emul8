@@ -8,6 +8,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 
 namespace Emul8.Core
 {
@@ -27,7 +28,7 @@ namespace Emul8.Core
             return context;
         }
 
-        public object Spawn(Type type)
+        public object Spawn(Type type, Func<ParameterInfo, object> argumentResolver = null)
         {
             foreach(var constructor in type.GetConstructors())
             {
@@ -37,6 +38,13 @@ namespace Emul8.Core
                 for(int i = 0; i < args.Length; i++)
                 {
                     var surrogate = GetSurrogate(@params[i].ParameterType);
+                    if(surrogate == null)
+                    {
+                        if(argumentResolver != null)
+                        {
+                            surrogate = argumentResolver(@params[i]);
+                        }
+                    }
                     if(surrogate == null)
                     {
                         success = false;
