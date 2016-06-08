@@ -855,7 +855,7 @@ namespace Emul8.Peripherals.CPU
                 {
                     this.DebugLog("Hook @ PC=0x{0:X8}", PC);
                     hooks[PC](PC);
-                    if (!breakpoints.Contains(PC)) 
+                    if(!breakpoints.Contains(PC)) 
                     {
                         // temporarily remove this hook
                         TlibRemoveBreakpoint(PC);
