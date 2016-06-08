@@ -13,7 +13,7 @@ namespace Emul8.Utilities.GDB
         public static bool TryCreate(byte[] data, byte checksum, out Packet p)
         {
             p = new Packet(new PacketData(data));
-            return p.CRC() == checksum;
+            return p.CalculateChecksum() == checksum;
         }
 
         public Packet(PacketData data)
@@ -23,10 +23,10 @@ namespace Emul8.Utilities.GDB
 
         public byte[] GetCompletePacket()
         {
-            return Encoding.ASCII.GetBytes(string.Format("${0}#{1:x2}", Data.DataAsString, CRC()));
+            return Encoding.ASCII.GetBytes(string.Format("${0}#{1:x2}", Data.DataAsString, CalculateChecksum()));
         }
 
-        public byte CRC()
+        public byte CalculateChecksum()
         {
             uint result = 0;
             foreach(var b in Data.DataAsBinary)
