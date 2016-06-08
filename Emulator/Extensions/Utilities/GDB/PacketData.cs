@@ -34,16 +34,14 @@ namespace Emul8.Utilities.GDB
 
         public PacketData(string data)
         {
-            var encoder = new UTF8Encoding();
             DataAsString = data;
-            DataAsBinary = encoder.GetBytes(data);
+            DataAsBinary = Encoding.UTF8.GetBytes(data);
         }
 
         public PacketData(byte[] data)
         {
-            var encoder = new UTF8Encoding();
             DataAsBinary = data;
-            DataAsString = encoder.GetString(data);
+            DataAsString = Encoding.UTF8.GetString(data);
         }
 
         public static PacketData Success { get; private set; }
