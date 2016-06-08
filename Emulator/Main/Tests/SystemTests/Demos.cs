@@ -47,7 +47,7 @@ namespace Emul8.SystemTests
             monitor = new Monitor { Interaction = new DummyCommandInteraction() };
             monitor.UseConsole = false;
 
-            context = ObjectCreator.OpenContext();
+            context = ObjectCreator.Instance.OpenContext();
             context.RegisterSurrogate(typeof(Monitor), monitor);
 
             InitializePluginManager();

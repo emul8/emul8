@@ -33,7 +33,7 @@ namespace Emul8.CLI
                 return;
             }
 
-            using(var context = ObjectCreator.OpenContext())
+            using(var context = ObjectCreator.Instance.OpenContext())
             {
                 var monitor = new Emul8.UserInterface.Monitor();
                 context.RegisterSurrogate(typeof(Emul8.UserInterface.Monitor), monitor);
