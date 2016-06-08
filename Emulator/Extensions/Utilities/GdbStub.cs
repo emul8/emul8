@@ -103,7 +103,7 @@ namespace Emul8.Utilities
                         commandsCounter++;
                         if(commandsCounter > 15)
                         {
-                            throw new RecoverableException("Expected step command after watchpoint. Further debugging might not work properely");
+                            throw new RecoverableException("Expected step command after watchpoint. Further debugging might not work properly");
                         }
                         if((cmd is SingleStepCommand))
                         {
