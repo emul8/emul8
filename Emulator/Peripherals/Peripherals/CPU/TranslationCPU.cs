@@ -512,7 +512,7 @@ namespace Emul8.Peripherals.CPU
                     CheckIfOnSynchronizedThread();
                 }
                 this.NoisyLog("IRQ {0}, value {1}", number, value);
-                if(started)
+                if(started && !(DisableInterruptsWhileStepping && stepMode))
                 {
                     TlibSetIrq((int)decodedInterrupt, value ? 1 : 0);
                 }
