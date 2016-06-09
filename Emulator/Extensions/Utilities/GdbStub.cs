@@ -68,21 +68,8 @@ namespace Emul8.Utilities
 
             pcktBuilder = new PacketBuilder();
 
-            commands = new CommandsManager();
-            commands.Register(new ReadMemoryCommand(machine));
-            commands.Register(new SupportedQueryCommand());
-            commands.Register(new ReportHaltReasonCommand());
-            commands.Register(new ReadGeneralRegistersCommand(cpu));
-            commands.Register(new ContinueCommand((TranslationCPU)cpu));
-            commands.Register(new WriteDataToMemoryCommand(machine));
-            commands.Register(new WriteBinaryDataToMemoryCommand(machine));
-            commands.Register(new WriteRegisterCommand(cpu));
-            commands.Register(new ReadRegisterCommand(cpu));
-            commands.Register(new SingleStepCommand((TranslationCPU)cpu));
-            var watchpointsContext = new WatchpointsContext(cpu);
-            commands.Register(new InsertBreakpointCommand(cpu, machine.SystemBus, watchpointsContext));
-            commands.Register(new RemoveBreakpointCommand(cpu, machine.SystemBus, watchpointsContext));
-            commands.Register(new KillCommand());
+            commands = new CommandsManager((TranslationCPU)cpu);
+            TypeManager.Instance.AutoLoadedType += t => commands.Register(t);
 
             cpu.Halted += OnHalted;
             cpu.ExecutionMode = ExecutionMode.SingleStep;
@@ -161,7 +148,7 @@ namespace Emul8.Utilities
 
             PacketData packetData = null;
             Command command;
-            if(!commands.TryGetCommand(result.Packet.Data.DataAsString, out command))
+            if(!commands.TryGetCommand(result.Packet, out command))
             {
                 cpu.Log(LogLevel.Warning, "Unsupported GDB command: {0}", result.Packet.Data.DataAsString);
                 SendPacket(new Packet(PacketData.Empty));
@@ -173,7 +160,7 @@ namespace Emul8.Utilities
                 {
                     return;
                 }
-                packetData = command.Handle(result.Packet);
+                packetData = Command.Execute(command, result.Packet);
                 // null means that we will response later with Stop Reply Response
                 if(packetData != null)
                 {

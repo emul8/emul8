@@ -9,244 +9,154 @@ using Emul8.Peripherals.CPU;
 using Emul8.Peripherals.Bus;
 using Width = Emul8.Peripherals.Bus.Width;
 using System.Collections.Generic;
+using Emul8.Logging;
 
 namespace Emul8.Utilities.GDB.Commands
 {
-    [Mnemonic("Z")]
-    internal class InsertBreakpointCommand : BreakpointCommandBase
+    internal class BreakpointCommand : Command
     {
-        public InsertBreakpointCommand(IControllableCPU cpu, SystemBus bus, WatchpointsContext context) : base(cpu, bus, context)
+        public BreakpointCommand(CommandsManager manager) : base(manager)
         {
+            watchpoints = new Dictionary<WatchpointDescriptor, int>();
         }
 
-        protected override void Action(BreakpointType btype, uint address, uint kind)
+        [Execute("Z")]
+        public PacketData InsertBreakpoint(
+            [Argument(Separator = ',')]BreakpointType type,
+            [Argument(Separator = ',', Encoding = ArgumentAttribute.ArgumentEncoding.HexNumber)]uint address,
+            [Argument(Separator = ';', Encoding = ArgumentAttribute.ArgumentEncoding.HexNumber)]uint kind)
         {
-            switch(btype)
+            switch(type)
             {
-            case BreakpointType.MemoryBreakpoint:
-            case BreakpointType.HardwareBreakpoint:
-                cpu.AddBreakpoint(address);
-                break;
-            case BreakpointType.AccessWatchpoint:
-                AddWatchpointsCoveringMemoryArea(address, kind, Access.ReadAndWrite, true, watchpointsContext.AccessWatchpointHook);
-                break;
-            case BreakpointType.ReadWatchpoint:
-                AddWatchpointsCoveringMemoryArea(address, kind, Access.Read, true, watchpointsContext.ReadWatchpointHook);
-                break;
-            case BreakpointType.WriteWatchpoint:
-                AddWatchpointsCoveringMemoryArea(address, kind, Access.Write, true, watchpointsContext.WriteWatchpointHook);
-                break;
-            default:
-                throw new ArgumentException("Breakpoint type not supported");
+                case BreakpointType.MemoryBreakpoint:
+                case BreakpointType.HardwareBreakpoint:
+                    manager.Cpu.AddBreakpoint(address);
+                    break;
+                case BreakpointType.AccessWatchpoint:
+                    AddWatchpointsCoveringMemoryArea(address, kind, Access.ReadAndWrite, AccessWatchpointHook);
+                    break;
+                case BreakpointType.ReadWatchpoint:
+                    AddWatchpointsCoveringMemoryArea(address, kind, Access.Read, ReadWatchpointHook);
+                    break;
+                case BreakpointType.WriteWatchpoint:
+                    AddWatchpointsCoveringMemoryArea(address, kind, Access.Write, WriteWatchpointHook);
+                    break;
+                default:
+                    Logger.LogAs(this, LogLevel.Warning, "Unsupported breakpoint type: {0}, not inserting.", type);
+                    return PacketData.ErrorReply(0);
             }
+
+            return PacketData.Success;
         }
 
-        private void AddWatchpointsCoveringMemoryArea(long address, uint kind, Access access, bool updateContext, Action<long, Width> hook)
+        [Execute("z")]
+        public PacketData RemoveBreakpoint(
+            [Argument(Separator = ',')]BreakpointType type,
+            [Argument(Separator = ',', Encoding = ArgumentAttribute.ArgumentEncoding.HexNumber)]uint address,
+            [Argument(Separator = ';', Encoding = ArgumentAttribute.ArgumentEncoding.HexNumber)]uint kind)
+        {
+            switch(type)
+            {
+                case BreakpointType.MemoryBreakpoint:
+                case BreakpointType.HardwareBreakpoint:
+                    manager.Cpu.RemoveBreakpoint(address);
+                    break;
+                case BreakpointType.AccessWatchpoint:
+                    RemoveWatchpointsCoveringMemoryArea(address, kind, Access.ReadAndWrite, AccessWatchpointHook);
+                    break;
+                case BreakpointType.ReadWatchpoint:
+                    RemoveWatchpointsCoveringMemoryArea(address, kind, Access.Read, ReadWatchpointHook);
+                    break;
+                case BreakpointType.WriteWatchpoint:
+                    RemoveWatchpointsCoveringMemoryArea(address, kind, Access.Write, WriteWatchpointHook);
+                    break;
+                default:
+                    Logger.LogAs(this, LogLevel.Warning, "Unsupported breakpoint type: {0}, not removing.", type);
+                    return PacketData.ErrorReply(0);
+            }
+
+            return PacketData.Success;
+        }
+
+        private void AccessWatchpointHook(long address, Width width)
+        {
+            manager.Cpu.HaltOnWatchpoint(new HaltArguments(HaltReason.Breakpoint, checked((uint)address), BreakpointType.AccessWatchpoint));
+        }
+
+        private void WriteWatchpointHook(long address, Width width)
+        {
+            manager.Cpu.HaltOnWatchpoint(new HaltArguments(HaltReason.Breakpoint, checked((uint)address), BreakpointType.WriteWatchpoint));
+        }
+
+        private void ReadWatchpointHook(long address, Width width)
+        {
+            manager.Cpu.HaltOnWatchpoint(new HaltArguments(HaltReason.Breakpoint, checked((uint)address), BreakpointType.ReadWatchpoint));
+        }
+
+        private void AddWatchpointsCoveringMemoryArea(long address, uint kind, Access access, Action<long, Width> hook)
         {
             // we need to register hooks for all possible access widths convering memory fragment
             // [address, address + kind) referred by GDB
-            foreach(var range in CalculateAllCoveringAddressess(address, kind))
+            foreach(var descriptor in CalculateAllCoveringAddressess(address, kind, access, hook))
             {
-                var descriptor = new WatchpointsContext.WatchpointDescriptor
+                lock(watchpoints)
                 {
-                    Address = range.Item2,
-                    Width = range.Item1,
-                    Access = access,
-                    UpdateContext = updateContext,
-                    Hook = hook
-                };
-
-                if(watchpointsContext.AddWatchpoint(descriptor))
-                {
-                    systemBus.AddWatchpointHook(range.Item2, range.Item1, access, updateContext, hook);
+                    if(watchpoints.ContainsKey(descriptor))
+                    {
+                        watchpoints[descriptor]++;
+                    }
+                    else
+                    {
+                        watchpoints.Add(descriptor, 1);
+                        manager.Machine.SystemBus.AddWatchpointHook(descriptor.Address, descriptor.Width, access, true, hook);
+                    }
                 }
             }
         }
-    }
 
-    [Mnemonic("z")]
-    internal class RemoveBreakpointCommand : BreakpointCommandBase
-    {
-        public RemoveBreakpointCommand(IControllableCPU cpu, SystemBus bus, WatchpointsContext context) : base(cpu, bus, context)
+        private void RemoveWatchpointsCoveringMemoryArea(long address, uint kind, Access access, Action<long, Width> hook)
         {
-        }
-
-        protected override void Action(BreakpointType btype, uint address, uint kind)
-        {
-            switch(btype)
-            {
-            case BreakpointType.MemoryBreakpoint:
-            case BreakpointType.HardwareBreakpoint:
-                cpu.RemoveBreakpoint(address);
-                break;
-            case BreakpointType.AccessWatchpoint:
-                RemoveWatchpointsCoveringMemoryArea(address, kind, Access.ReadAndWrite, true, watchpointsContext.AccessWatchpointHook);
-                break;
-            case BreakpointType.ReadWatchpoint:
-                RemoveWatchpointsCoveringMemoryArea(address, kind, Access.Read, true, watchpointsContext.ReadWatchpointHook);
-                break;
-            case BreakpointType.WriteWatchpoint:
-                RemoveWatchpointsCoveringMemoryArea(address, kind, Access.Write, true, watchpointsContext.WriteWatchpointHook);
-                break;
-            default:
-                throw new ArgumentException("Breakpoint type not supported");
-            }
-        }
-
-        private void RemoveWatchpointsCoveringMemoryArea(long address, uint kind, Access access, bool updateContext, Action<long, Width> hook)
-        {
-            // we need to register hooks for all possible access widths convering memory fragment 
+            // we need to unregister hooks from all possible access widths convering memory fragment 
             // [address, address + kind) referred by GDB
-            foreach(var range in CalculateAllCoveringAddressess(address, kind))
+            foreach(var descriptor in CalculateAllCoveringAddressess(address, kind, access, hook))
             {
-                var descriptor = new WatchpointsContext.WatchpointDescriptor
+                lock(watchpoints)
                 {
-                    Address = range.Item2,
-                    Width = range.Item1,
-                    Access = access,
-                    UpdateContext = updateContext,
-                    Hook = hook
-                };
-
-                if(watchpointsContext.RemoveWatchpoint(descriptor))
-                {
-                    systemBus.RemoveWatchpointHook(range.Item2, hook);
+                    if(watchpoints[descriptor] > 1)
+                    {
+                        watchpoints[descriptor]--;
+                    }
+                    else
+                    {
+                        watchpoints.Remove(descriptor);
+                        manager.Machine.SystemBus.RemoveWatchpointHook(descriptor.Address, hook);
+                    }
                 }
             }
         }
-    }
 
-    internal abstract class BreakpointCommandBase : Command
-    {
-        protected BreakpointCommandBase(IControllableCPU cpu, SystemBus bus, WatchpointsContext context)
-        {
-            this.cpu = cpu;
-            systemBus = bus;
-            watchpointsContext = context;
-        }
-
-        protected static IEnumerable<Tuple<Width, long>> CalculateAllCoveringAddressess(long address, uint kind)
+        private static IEnumerable<WatchpointDescriptor> CalculateAllCoveringAddressess(long address, uint kind, Access access, Action<long, Width> hook)
         {
             foreach(Width width in Enum.GetValues(typeof(Width)))
             {
                 for(var offset = -(address % (int)width); offset < kind; offset += (int)width)
                 {
-                    yield return Tuple.Create(width, address + offset);
+                    yield return new WatchpointDescriptor(address + offset, width, access, hook);
                 }
             }
         }
 
-        protected override PacketData HandleInner(Packet packet)
-        {
-            var splittedArguments = GetCommandArguments(packet.Data, Separators, 3);
-            if(splittedArguments.Length < 3)
-            {
-                throw new ArgumentException("Expected at least 3 arguments");
-            }
-
-            int typeAsInt;
-            if(!int.TryParse(splittedArguments[0], out typeAsInt) || typeAsInt < 0 || typeAsInt > 4)
-            {
-                throw new ArgumentException("Could not parse breakpoint type");
-            }
-            var type = (BreakpointType)typeAsInt;
-
-            uint address;
-            if(!uint.TryParse(splittedArguments[1], System.Globalization.NumberStyles.HexNumber, null, out address))
-            {
-                throw new ArgumentException("Could not parse address");
-            }
-
-            uint kind;
-            if(!uint.TryParse(splittedArguments[2], System.Globalization.NumberStyles.HexNumber, null, out kind))
-            {
-                throw new ArgumentException("Could not parse kind");
-            }
-
-            // we do not support cond_list yet!
-            Action(type, address, kind);
-
-            return PacketData.Success;
-        }
-
-        protected abstract void Action(BreakpointType btype, uint address, uint kind);
-
-        protected readonly IControllableCPU cpu;
-        protected readonly SystemBus systemBus;
-        protected readonly WatchpointsContext watchpointsContext;
-
-        private static readonly char[] Separators = { ',', ';' };
-    }
-
-    internal class WatchpointsContext
-    {
-        public WatchpointsContext(IControllableCPU cpu)
-        {
-            var translationCpu = cpu as TranslationCPU;
-            if(translationCpu == null)
-            {
-                throw new ArgumentException("Watchpoints are supported on TranslationCPU only");
-            }
-
-            this.cpu = translationCpu;
-            watchpoints = new Dictionary<WatchpointDescriptor, int>();
-        }
-
-        public bool AddWatchpoint(WatchpointDescriptor descriptor)
-        {
-            lock(watchpoints)
-            {
-                if(watchpoints.ContainsKey(descriptor))
-                {
-                    watchpoints[descriptor]++;
-                    return false;
-                }
-
-                watchpoints.Add(descriptor, 1);
-                return true;
-            }
-        }
-
-        public bool RemoveWatchpoint(WatchpointDescriptor descriptor)
-        {
-            lock(watchpoints)
-            {
-                if(watchpoints[descriptor] > 1)
-                {
-                    watchpoints[descriptor]--;
-                    return false;
-                }
-
-                watchpoints.Remove(descriptor);
-                return true;
-            }
-        }
-
-        public void AccessWatchpointHook(long address, Width width)
-        {
-            cpu.HaltOnWatchpoint(new HaltArguments(HaltReason.Breakpoint, checked((uint)address), BreakpointType.AccessWatchpoint));
-        }
-
-        public void WriteWatchpointHook(long address, Width width)
-        {
-            cpu.HaltOnWatchpoint(new HaltArguments(HaltReason.Breakpoint, checked((uint)address), BreakpointType.WriteWatchpoint));
-        }
-
-        public void ReadWatchpointHook(long address, Width width)
-        {
-            cpu.HaltOnWatchpoint(new HaltArguments(HaltReason.Breakpoint, checked((uint)address), BreakpointType.ReadWatchpoint));
-        }
-
-        private readonly TranslationCPU cpu;
         private readonly Dictionary<WatchpointDescriptor, int> watchpoints;
 
-        public class WatchpointDescriptor
+        private class WatchpointDescriptor
         {
-            public long Address;
-            public Width Width;
-            public Access Access;
-            public bool UpdateContext;
-            public Action<long, Width> Hook;
+            public WatchpointDescriptor(long address, Width width, Access access, Action<long, Width> hook)
+            {
+                Address = address;
+                Width = width;
+                Access = access;
+                Hook = hook;
+            }
 
             public override bool Equals(object obj)
             {
@@ -259,18 +169,21 @@ namespace Emul8.Utilities.GDB.Commands
                 return objAsBreakpointDescriptor.Address == Address
                         && objAsBreakpointDescriptor.Width == Width
                         && objAsBreakpointDescriptor.Access == Access
-                        && objAsBreakpointDescriptor.UpdateContext == UpdateContext
                         && objAsBreakpointDescriptor.Hook == Hook;
             }
 
             public override int GetHashCode()
             {
-                return 17 * (int)Address 
-                    + 23 * (int)Width 
-                    + 17 * (int)Access 
-                    + (UpdateContext ? 0 : 23) 
+                return 17 * (int)Address
+                    + 23 * (int)Width
+                    + 17 * (int)Access
                     + 17 * Hook.GetHashCode();
             }
+
+            public readonly long Address;
+            public readonly Width Width;
+            public readonly Access Access;
+            public readonly Action<long, Width> Hook;
         }
     }
 }

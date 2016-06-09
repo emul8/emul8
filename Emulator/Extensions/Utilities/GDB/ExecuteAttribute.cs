@@ -7,10 +7,10 @@
 using System;
 namespace Emul8.Utilities.GDB
 {
-    [AttributeUsage(AttributeTargets.Class)]
-    public class MnemonicAttribute : Attribute
+    [AttributeUsage(AttributeTargets.Method)]
+    public class ExecuteAttribute : Attribute
     {
-        public MnemonicAttribute(string mnemonic)
+        public ExecuteAttribute(string mnemonic)
         {
             Mnemonic = mnemonic;
         }
