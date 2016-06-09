@@ -21,8 +21,6 @@ namespace Emul8.Peripherals.CPU
 
         string[,] GetRegistersValues();
 
-        void WaitForStepDone();
-
         void Step(int count);
 
         void AddBreakpoint(uint addr);
