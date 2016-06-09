@@ -7,14 +7,14 @@
 
 namespace Emul8.Utilities.GDB.Commands
 {
-    [Mnemonic("k")]
     internal class KillCommand : Command
     {
-        public KillCommand()
+        public KillCommand(CommandsManager manager) : base(manager)
         {
         }
 
-        protected override PacketData HandleInner(Packet packet)
+        [Execute("k")]
+        public PacketData Execute()
         {
             Emulator.Exit();
             return PacketData.Success;

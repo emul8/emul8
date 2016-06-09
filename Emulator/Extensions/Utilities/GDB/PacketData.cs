@@ -17,6 +17,11 @@ namespace Emul8.Utilities.GDB
             Empty = new PacketData(string.Empty);
         }
 
+        public static PacketData ErrorReply(int errNo)
+        {
+            return new PacketData(string.Format("E{0:X2}", errNo));
+        }
+
         public static PacketData AbortReply(int signal)
         {
             return new PacketData(string.Format("X{0:X2}", signal));

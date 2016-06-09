@@ -6,24 +6,22 @@
 //
 using System;
 using System.Text;
-using Emul8.Peripherals.CPU;
 
 namespace Emul8.Utilities.GDB.Commands
 {
-    [Mnemonic("g")]
     internal class ReadGeneralRegistersCommand : Command
     {
-        public ReadGeneralRegistersCommand(IControllableCPU cpu)
+        public ReadGeneralRegistersCommand(CommandsManager manager) : base(manager)
         {
-            this.cpu = cpu;
         }
 
-        protected override PacketData HandleInner(Packet packet)
+        [Execute("g")]
+        public PacketData Execute()
         {
             var registers = new StringBuilder();
-            foreach(var i in cpu.GetRegisters())
+            foreach(var i in manager.Cpu.GetRegisters())
             {
-                var value = cpu.GetRegisterUnsafe(i);
+                var value = manager.Cpu.GetRegisterUnsafe(i);
                 foreach(var b in BitConverter.GetBytes(value))
                 {
                     registers.AppendFormat("{0:x2}", b);
@@ -32,8 +30,6 @@ namespace Emul8.Utilities.GDB.Commands
 
             return new PacketData(registers.ToString());
         }
-
-        private readonly IControllableCPU cpu;
     }
 }
 
