@@ -18,8 +18,6 @@ namespace Emul8.Utilities.GDB.Commands
         public PacketData Execute()
         {
             manager.Cpu.ExecutionMode = ExecutionMode.Continuous;
-            manager.Cpu.Step();
-
             return null;
         }
     }

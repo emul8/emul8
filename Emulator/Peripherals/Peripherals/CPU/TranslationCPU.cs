@@ -375,9 +375,25 @@ namespace Emul8.Peripherals.CPU
                         return;
                     }
 
-                    executionMode = value;
-                    stepEvent.Reset();
                     blockSizeNeedsAdjustment = true;
+                    executionMode = value;
+                    switch(executionMode)
+                    {
+                        case ExecutionMode.SingleStep:
+                            for(var i = stepEvent.CurrentCount; i > 0; i--)
+                            {
+                                stepEvent.Wait(0);
+                            }
+                            stepDoneEvent.Reset(0);
+                            break;
+                        case ExecutionMode.Continuous:
+                            stepDoneEvent.Reset(1);
+                            stepEvent.Release();
+                            break;
+                        default:
+                            throw new ArgumentException("Unsupported execution mode");
+                    }
+
                 }
             }
         }
@@ -466,16 +482,19 @@ namespace Emul8.Peripherals.CPU
             lock(pauseLock)
             {
                 PauseEvent.Set();
-                stepEvent.Set();
                 TlibSetPaused();
 
                 if(Thread.CurrentThread.ManagedThreadId != cpuThread.ManagedThreadId)
                 {
                     this.NoisyLog("Waiting for thread to pause.");
+                    stepDoneEvent.Reset(1);
+                    stepEvent.Release();
                     cpuThread.Join();
                     this.NoisyLog("Paused.");
                     cpuThread = null;
                     TlibClearPaused();
+                    stepEvent.Wait(0);
+                    stepDoneEvent.Reset(0);
                 }
                 else
                 {
@@ -883,8 +902,8 @@ namespace Emul8.Peripherals.CPU
                     this.DebugLog("Breakpoint at PC=0x{0:X8}, pausing", PC);
                     InvokeHalted(new HaltArguments(HaltReason.Breakpoint, breakpointType: BreakpointType.HardwareBreakpoint));
                     lastIncarnation = incarnation;
-                    stepEvent.WaitOne();
-                    stepDoneEvent.Set();
+                    stepEvent.Wait();
+                    stepDoneEvent.Signal();
                 }
                 else
                 {
@@ -975,8 +994,8 @@ namespace Emul8.Peripherals.CPU
                 }
                 this.NoisyLog("Waiting for another step (PC=0x{0:X8}).", PC);
                 InvokeHalted(new HaltArguments(HaltReason.Step));
-                stepEvent.WaitOne();
-                stepDoneEvent.Set();
+                stepEvent.Wait();
+                stepDoneEvent.Signal();
             }
         }
 
@@ -1078,11 +1097,14 @@ namespace Emul8.Peripherals.CPU
         {
             lock(pauseLock)
             {
-                for(var i = 0; i < count; i++)
+                if(executionMode != ExecutionMode.SingleStep)
                 {
-                    stepEvent.Set();
-                    stepDoneEvent.WaitOne();
+                    throw new RecoverableException("Stepping is available in single step execution mode only.");
                 }
+
+                stepDoneEvent.Reset(count);
+                stepEvent.Release(count);
+                stepDoneEvent.Wait();
             }
         }
 
@@ -1147,12 +1169,7 @@ namespace Emul8.Peripherals.CPU
         }
 
         private readonly object pauseLock = new object();
-
-        public void WaitForStepDone()
-        {
-            stepDoneEvent.WaitOne();
-        }
-     
+             
         public string Model
         {
             get
@@ -1227,8 +1244,8 @@ namespace Emul8.Peripherals.CPU
             hooks = hooks ?? new Dictionary<uint, Action<uint>>();
             inactiveHooks = inactiveHooks ?? new List<uint>();
             pauseFinishedEvent = new ManualResetEventSlim(false);
-            stepDoneEvent = new AutoResetEvent(false);
-            stepEvent = new AutoResetEvent(false);
+            stepDoneEvent = new CountdownEvent(0);
+            stepEvent = new SemaphoreSlim(0);
             haltedFinishedEvent = new AutoResetEvent(false);
             waitHandles = interruptEvents.Cast<WaitHandle>().Union(new EventWaitHandle[] { PauseEvent, haltedFinishedEvent }).ToArray();
 
@@ -1330,10 +1347,10 @@ namespace Emul8.Peripherals.CPU
         private string libraryFile;
 
         [Transient]
-        private AutoResetEvent stepEvent;
+        private SemaphoreSlim stepEvent;
 
         [Transient]
-        private AutoResetEvent stepDoneEvent;
+        private CountdownEvent stepDoneEvent;
 
         private int translationCacheSize;
         private readonly object translationCacheSync;
