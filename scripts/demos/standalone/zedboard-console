@@ -16,7 +16,7 @@ sysbus Redirect 0xC0000000 0x0 0x10000000
 showAnalyzer sysbus.uart1
 
 emulation CreateSwitch "switch"
-emulation CreateTAP "tap69" "tap"
+emulation CreateTap "tap0" "tap"
 connector Connect host.tap switch
 connector Connect gem0 switch
 

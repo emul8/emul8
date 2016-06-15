@@ -27,24 +27,10 @@ using Antmicro.Migrant;
 
 namespace Emul8.HostInterfaces.Network
 {
-    public static class TAPExtensions
-    {
-        public static TAPInterface CreateAndGetTAP(this Emulation emulation, string hostInterfaceName, string name, bool persistent = false)
-        {
-            var result = new TAPInterface(hostInterfaceName, persistent);
-            emulation.HostMachine.AddHostMachineElement(result, name);
-            return result;
-        }
 
-        public static void CreateTAP(this Emulation emulation, string hostInterfaceName, string name, bool persistent = false)
-        {
-            CreateAndGetTAP(emulation, hostInterfaceName, name, persistent);
-        }
-    }
-
-    public class TAPInterface : IMACInterface, IHasOwnLife, IDisposable, IHostMachineElement
+    public sealed class LinuxTapInterface : ITapInterface, IHasOwnLife, IDisposable
     {
-        public TAPInterface(string name, bool persistent)
+        public LinuxTapInterface(string name, bool persistent)
         {
             backupMAC = EmulationManager.Instance.CurrentEmulation.MACRepository.GenerateUniqueMAC();
             Link = new NetworkLink(this);
@@ -276,4 +262,3 @@ namespace Emul8.HostInterfaces.Network
         private Thread thread;
     }
 }
-
