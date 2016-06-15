@@ -861,12 +861,14 @@ namespace Emul8.Peripherals.CPU
                     }
                     if(doIteration)
                     {
+                        pauseGuard.Enter();
                         tlibResult = TlibExecute();
                         incarnation++;
                         if(CheckIfPaused())
                         {
                             break;
                         }
+                        pauseGuard.Leave();
                     }
                 }
                 catch(CpuAbortException)
@@ -1580,6 +1582,16 @@ namespace Emul8.Peripherals.CPU
                 this.parent = parent;
             }
 
+            public void Enter()
+            {
+                active = true;
+            }
+
+            public void Leave()
+            {
+                active = false;
+            }
+
             public void Initialize(bool forReading, long address)
             {
                 guard.Value = new object();
@@ -1610,7 +1622,7 @@ namespace Emul8.Peripherals.CPU
 
             public void OrderPause()
             {
-                if(guard.Value == null)
+                if(active && guard.Value == null)
                 {
                     throw new InvalidOperationException("Trying to order pause without prior guard initialization on this thread.");
                 }
@@ -1628,6 +1640,7 @@ namespace Emul8.Peripherals.CPU
             private readonly ThreadLocal<bool> blockRestartReached;
 
             private readonly TranslationCPU parent;
+            private bool active;
         }
 
         protected enum Interrupt
