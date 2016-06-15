@@ -131,7 +131,10 @@ namespace Emul8.Utilities
             if(result.Interrupt)
             {
                 cpu.Log(LogLevel.Debug, "GDB CTRL-C occured - pausing CPU");
+                // we need to pause CPU in order to escape infinite loops
+                cpu.Pause();
                 cpu.ExecutionMode = ExecutionMode.SingleStep;
+                cpu.Resume();
                 return;
             }
             if(result.CorruptedPacket)
