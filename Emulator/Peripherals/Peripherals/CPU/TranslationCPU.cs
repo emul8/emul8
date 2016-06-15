@@ -368,32 +368,29 @@ namespace Emul8.Peripherals.CPU
 
             set 
             {
-                lock(pauseLock) 
+                if(executionMode == value) 
                 {
-                    if(executionMode == value) 
-                    {
-                        return;
-                    }
+                    return;
+                }
 
-                    blockSizeNeedsAdjustment = true;
-                    executionMode = value;
-                    switch(executionMode)
-                    {
-                        case ExecutionMode.SingleStep:
-                            for(var i = stepEvent.CurrentCount; i > 0; i--)
-                            {
-                                stepEvent.Wait(0);
-                            }
-                            stepDoneEvent.Reset(0);
-                            break;
-                        case ExecutionMode.Continuous:
-                            stepDoneEvent.Reset(1);
-                            stepEvent.Release();
-                            break;
-                        default:
-                            throw new ArgumentException("Unsupported execution mode");
-                    }
-
+                executionModeGuard.Wait();
+                executionMode = value;
+                blockSizeNeedsAdjustment = true;
+                switch(executionMode)
+                {
+                    case ExecutionMode.SingleStep:
+                        for(var i = stepEvent.CurrentCount; i > 0; i--)
+                        {
+                            stepEvent.Wait(0);
+                        }
+                        stepDoneEvent.Reset(0);
+                        break;
+                    case ExecutionMode.Continuous:
+                        stepDoneEvent.Reset(1);
+                        stepEvent.Release();
+                        break;
+                    default:
+                        throw new ArgumentException("Unsupported execution mode");
                 }
             }
         }
@@ -431,6 +428,7 @@ namespace Emul8.Peripherals.CPU
             default:
                 throw new ArgumentException("Unsupported execution mode");
             }
+            executionModeGuard.Release();
         }
 
         public bool OnPossessedThread
@@ -1907,6 +1905,9 @@ namespace Emul8.Peripherals.CPU
         // As a result, it is executed twice for the first block.To avoid it we have special flag 
         // skipNextStepping which is set to true after(1) and cleared after first(2).
         private bool skipNextStepping;
+
+        [Constructor(1)]
+        private readonly SemaphoreSlim executionModeGuard = new SemaphoreSlim(1);
 
         protected static readonly Exception InvalidInterruptNumberException = new InvalidOperationException("Invalid interrupt number.");
 
