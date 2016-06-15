@@ -8,7 +8,7 @@ namespace Emul8.Peripherals.CPU
 {
     public class HaltArguments
     {
-        public HaltArguments(HaltReason reason, long address = 0, BreakpointType? breakpointType = null)
+        public HaltArguments(HaltReason reason, long address = -1, BreakpointType? breakpointType = null)
         {
             Reason = reason;
             Address = address;

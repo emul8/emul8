@@ -34,7 +34,8 @@ namespace Emul8.Utilities.GDB
 
         public static PacketData StopReply(BreakpointType reason, long address)
         {
-            return new PacketData(string.Format("T05{0}:{1:X2};", reason.GetStopReason(), address));
+            return new PacketData(string.Format("T05{0}:{1};", reason.GetStopReason(),
+                                                address == -1 ? string.Empty : string.Format("{0:X2}", address)));
         }
 
         public PacketData(string data)
