@@ -842,7 +842,6 @@ namespace Emul8.Peripherals.CPU
                     if(info != string.Empty)
                         info = "- " + info;
                 }
-                //this.NoisyLog("Entered iteration @ 0x{0:x8} {1}", PC,info);
                 if(!(DisableInterruptsWhileStepping && executionMode == ExecutionMode.SingleStep) && TlibIsIrqSet() == 0 && interruptEvents.Any(x => x.WaitOne(0)))
                 {
                     for(var i = 0; i < interruptEvents.Length; i++)
@@ -1275,7 +1274,7 @@ namespace Emul8.Peripherals.CPU
         [Export]
         private uint IsBlockBeginEventEnabled()
         {
-            return (blockBeginHook != null || executionMode == ExecutionMode.SingleStep /*|| inactiveHooks.Count > 0*/) ? 1u : 0u;
+            return (blockBeginHook != null || executionMode == ExecutionMode.SingleStep) ? 1u : 0u;
         }
 
         private int oldMaximumBlockSize;
