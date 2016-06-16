@@ -1237,11 +1237,6 @@ namespace Emul8.Peripherals.CPU
             EmulSetCountThreshold(currentCountThreshold);
         }
 
-        private void InvokeHalted(HaltReason reason)
-        {
-            InvokeHalted(new HaltArguments(reason));
-        }
-
         private void InvokeHalted(HaltArguments arguments)
         {
             var halted = Halted;
