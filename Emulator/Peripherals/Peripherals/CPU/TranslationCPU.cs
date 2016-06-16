@@ -1124,7 +1124,7 @@ namespace Emul8.Peripherals.CPU
             }
         }
 
-        public void HaltOnWatchpoint(HaltArguments args)
+        public void EnterSingleStepModeSafely(HaltArguments args)
         {
             // this method should only be called from CPU thread,
             // but we should check it anyway

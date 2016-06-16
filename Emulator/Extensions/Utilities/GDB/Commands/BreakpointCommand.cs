@@ -80,22 +80,22 @@ namespace Emul8.Utilities.GDB.Commands
 
         private void BreakpointHook(uint address)
         {
-            manager.Cpu.HaltOnWatchpoint(new HaltArguments(HaltReason.Breakpoint, breakpointType: BreakpointType.HardwareBreakpoint));
+            manager.Cpu.EnterSingleStepModeSafely(new HaltArguments(HaltReason.Breakpoint, breakpointType: BreakpointType.HardwareBreakpoint));
         }
 
         private void AccessWatchpointHook(long address, Width width)
         {
-            manager.Cpu.HaltOnWatchpoint(new HaltArguments(HaltReason.Breakpoint, checked((uint)address), BreakpointType.AccessWatchpoint));
+            manager.Cpu.EnterSingleStepModeSafely(new HaltArguments(HaltReason.Breakpoint, address, BreakpointType.AccessWatchpoint));
         }
 
         private void WriteWatchpointHook(long address, Width width)
         {
-            manager.Cpu.HaltOnWatchpoint(new HaltArguments(HaltReason.Breakpoint, checked((uint)address), BreakpointType.WriteWatchpoint));
+            manager.Cpu.EnterSingleStepModeSafely(new HaltArguments(HaltReason.Breakpoint, address, BreakpointType.WriteWatchpoint));
         }
 
         private void ReadWatchpointHook(long address, Width width)
         {
-            manager.Cpu.HaltOnWatchpoint(new HaltArguments(HaltReason.Breakpoint, checked((uint)address), BreakpointType.ReadWatchpoint));
+            manager.Cpu.EnterSingleStepModeSafely(new HaltArguments(HaltReason.Breakpoint, address, BreakpointType.ReadWatchpoint));
         }
 
         private void AddWatchpointsCoveringMemoryArea(long address, uint kind, Access access, Action<long, Width> hook)
