@@ -642,12 +642,12 @@ namespace Emul8.Peripherals.CPU
 
         protected abstract Interrupt DecodeInterrupt(int number);
 
-        protected void ClearHookAtBlockBegin()
+        public void ClearHookAtBlockBegin()
         {
             SetHookAtBlockBegin(null);
         }
 
-        protected void SetHookAtBlockBegin(Action<uint, uint> hook)
+        public void SetHookAtBlockBegin(Action<uint, uint> hook)
         {
             using(machine.ObtainPausedState())
             {
@@ -1087,7 +1087,7 @@ namespace Emul8.Peripherals.CPU
             }
         }
 
-        public void RemoveAllAt(uint addr)
+        public void RemoveHooksAt(uint addr)
         {
             lock(hooks)
             {
@@ -1926,7 +1926,7 @@ namespace Emul8.Peripherals.CPU
             }
         }
 
-        internal void RemoveAllHooks()
+        public void RemoveAllHooks()
         {
             lock(hooks)
             {

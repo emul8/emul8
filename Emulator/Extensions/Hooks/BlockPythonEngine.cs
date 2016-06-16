@@ -16,7 +16,7 @@ namespace Emul8.Hooks
 {
     public sealed class BlockPythonEngine : PythonEngine
     {
-        public BlockPythonEngine(Machine mach, ICPUWithBlockBeginHook cpu, string script)
+        public BlockPythonEngine(Machine mach, ICPUWithHooks cpu, string script)
         {
             Script = script;
             CPU = cpu;
@@ -54,7 +54,7 @@ namespace Emul8.Hooks
         [Transient]
         private Lazy<ScriptSource> Source;
         private readonly string Script;
-        private readonly ICPUWithBlockBeginHook CPU;
+        private readonly ICPUWithHooks CPU;
         private readonly Machine Machine;
     }
 }
