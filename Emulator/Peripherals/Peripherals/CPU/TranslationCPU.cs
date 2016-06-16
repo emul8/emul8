@@ -829,6 +829,8 @@ namespace Emul8.Peripherals.CPU
                 }
             }
 
+            HandleStepping();
+            skipNextStepping = true;
             while(true)
             {
                 AdjustBlockSize();
@@ -863,12 +865,9 @@ namespace Emul8.Peripherals.CPU
                     {
                         pauseGuard.Enter();
                         tlibResult = TlibExecute();
-                        incarnation++;
-                        if(CheckIfPaused())
-                        {
-                            break;
-                        }
                         pauseGuard.Leave();
+
+                        skipNextStepping = false;
                     }
                 }
                 catch(CpuAbortException)
@@ -884,35 +883,9 @@ namespace Emul8.Peripherals.CPU
                     break;
                 }
 
-                // hooks handling
-                if(hooks.ContainsKey(PC)) 
+                if(tlibResult == BreakpointResult)
                 {
-                    this.DebugLog("Hook @ PC=0x{0:X8}", PC);
-                    hooks[PC](PC);
-                    if(!breakpoints.Contains(PC)) 
-                    {
-                        // temporarily remove this hook
-                        TlibRemoveBreakpoint(PC);
-                        inactiveHooks.Add(PC);
-                    }
-                }
-
-                // this is EXCP_DEBUG reported when exiting
-                // TlibExecute as a result of a breakpoint
-                if(tlibResult == BreakpointResult && breakpoints.Contains(PC))
-                {
-                    this.DebugLog("Breakpoint at PC=0x{0:X8}, pausing", PC);
-                    InvokeHalted(new HaltArguments(HaltReason.Breakpoint, breakpointType: BreakpointType.HardwareBreakpoint));
-                    lastIncarnation = incarnation;
-                    stepEvent.Wait();
-                    stepDoneEvent.Signal();
-                }
-                else
-                {
-                    // this is needed for GDB and infinite loops
-                    // as in such case `OnBlockBegin` callback
-                    // might not be called
-                    HandleStepping();
+                    ExecuteHooks(PC);
                 }
 
                 if(CheckIfPaused())
@@ -954,6 +927,9 @@ namespace Emul8.Peripherals.CPU
                 }
             }
 
+            // it is possible to exit the loop before finishing adjusting block size
+            // in such case we need to do that before next execution mode change
+            AdjustBlockSize();
             if(setSingleStepAndResume)
             {
                 setSingleStepAndResume = false;
@@ -981,40 +957,25 @@ namespace Emul8.Peripherals.CPU
 
         private void HandleStepping()
         {
-            if(executionMode == ExecutionMode.SingleStep)
+            AdjustBlockSize();
+            
+            if(executionMode != ExecutionMode.SingleStep || skipNextStepping)
             {
-                if(lastIncarnation == incarnation)
-                {
-                    // this `if` is needed when handling a breakpoint that executes a single step;
-                    // as a result `stepMode` is set and next `CpuLoop` iteration is started;
-                    // at the beginning `OnBlockBegin` is called and this code is executed;
-                    // as a result we wait on `stepEvent` even though we are at the same PC as the breakpoint
-                    //
-                    // todo: better solution needed
-                    lastIncarnation = -1;
-                    return;
-                }
-                this.NoisyLog("Waiting for another step (PC=0x{0:X8}).", PC);
-                InvokeHalted(new HaltArguments(HaltReason.Step));
-                stepEvent.Wait();
-                stepDoneEvent.Signal();
+                return;
             }
+
+            this.NoisyLog("Waiting for another step (PC=0x{0:X8}).", PC);
+            InvokeHalted(new HaltArguments(HaltReason.Step));
+            stepEvent.Wait();
+            stepDoneEvent.Signal();
         }
 
         [Export]
         private void OnBlockBegin(uint address, uint size)
         {
             HandleStepping();
+            skipNextStepping = false;
 
-            // add missing hooks
-            foreach(var hook in inactiveHooks)
-            {
-                if(hooks.ContainsKey(hook))
-                {
-                    TlibAddBreakpoint(hook);
-                }
-            }
-            inactiveHooks.Clear();
             var bbHook = blockBeginHook;
             if(bbHook == null)
             {
@@ -1062,10 +1023,6 @@ namespace Emul8.Peripherals.CPU
                 if (info != string.Empty) info = "- " + info;
                 return string.Format("Fetching block @ 0x{0:X8} {1}", offset, info);
             });
-            if(hooks.ContainsKey(PC)) {
-                  this.DebugLog("Hook @ PC=0x{0:X8} [issued from LogOffset]", this.PC);
-                hooks[PC](PC); // TODO: will it happen two times sometimes ?
-            }
         }
             
         private IntPtr DoLookupSymbol(uint offset)
@@ -1110,39 +1067,47 @@ namespace Emul8.Peripherals.CPU
             }
         }
 
-        public void AddBreakpoint(uint addr)
-        {
-            breakpoints.Add(addr);
-            TlibAddBreakpoint(addr);
-        }
-
-        public void RemoveBreakpoint(uint addr)
-        {
-            breakpoints.Remove(addr);
-            if (!hooks.ContainsKey(addr)) {
-                    TlibRemoveBreakpoint(addr);
-            }
-        }
-
         public void AddHook(uint addr, Action<uint> hook)
         {
-            // TODO: use hook
-            this.DebugLog("Added hook @0x{0:X}'", addr);
-            if(hooks.ContainsKey(addr))
+            lock(hooks)
             {
-                hooks.Remove(addr);
-                TlibRemoveBreakpoint(addr);
+                if(!hooks.ContainsKey(addr))
+                {
+                    hooks[addr] = new HashSet<Action<uint>>();
+                    TlibAddBreakpoint(addr);
+                }
+
+                hooks[addr].Add(hook);
+                this.DebugLog("Added hook @ 0x{0:X}", addr);
             }
-            hooks.Add(addr, hook);
-            TlibAddBreakpoint(addr);
         }
 
-        public void RemoveHook(uint addr)
+        public void RemoveHook(uint addr, Action<uint> hook)
         {
-            hooks.Remove(addr);
-            if(!breakpoints.Contains(addr))
+            lock(hooks)
             {
-                TlibRemoveBreakpoint(addr);
+                HashSet<Action<uint>> callbacks;
+                if(!hooks.TryGetValue(addr, out callbacks)|| !callbacks.Remove(hook))
+                {
+                    this.Log(LogLevel.Warning, "Tried to remove not existing hook from address 0x{0:x}", addr);
+                    return;
+                }
+                if(!callbacks.Any())
+                {
+                    hooks.Remove(addr);
+                    TlibRemoveBreakpoint(addr);
+                }
+            }
+        }
+
+        public void RemoveAllAt(uint addr)
+        {
+            lock(hooks)
+            {
+                if(hooks.Remove(addr))
+                {
+                    TlibRemoveBreakpoint(addr);
+                }
             }
         }
 
@@ -1204,7 +1169,7 @@ namespace Emul8.Peripherals.CPU
             {
                 this.NoisyLog("Disposing translation library.");
             }
-            RemoveAllBreakpoints();
+            RemoveAllHooks();
             TlibDispose();
             EmulFreeHostBlocks();
             binder.Dispose();
@@ -1242,9 +1207,7 @@ namespace Emul8.Peripherals.CPU
         {
             memoryManager = new SimpleMemoryManager(this);
             PauseEvent = new ManualResetEvent(true);
-            breakpoints = breakpoints ?? new List<uint>();
-            hooks = hooks ?? new Dictionary<uint, Action<uint>>();
-            inactiveHooks = inactiveHooks ?? new List<uint>();
+            hooks = hooks ?? new Dictionary<uint, HashSet<Action<uint>>>();
             pauseFinishedEvent = new ManualResetEventSlim(false);
             stepDoneEvent = new CountdownEvent(0);
             stepEvent = new SemaphoreSlim(0);
@@ -1275,10 +1238,6 @@ namespace Emul8.Peripherals.CPU
                 AfterLoad(statePtr);
             }
             HandleRamSetup();
-            foreach(var bpoint in breakpoints)
-            {
-                TlibAddBreakpoint(bpoint);
-            }
             foreach(var hook in hooks)
             {
                 TlibAddBreakpoint(hook.Key);
@@ -1318,12 +1277,9 @@ namespace Emul8.Peripherals.CPU
         [Export]
         private uint IsBlockBeginEventEnabled()
         {
-            return (blockBeginHook != null || executionMode == ExecutionMode.SingleStep || inactiveHooks.Count > 0) ? 1u : 0u;
+            return (blockBeginHook != null || executionMode == ExecutionMode.SingleStep /*|| inactiveHooks.Count > 0*/) ? 1u : 0u;
         }
-      
-        private List<uint>breakpoints;
-        private Dictionary<uint, Action<uint>>hooks;
-        private List<uint>inactiveHooks;
+
         private int oldMaximumBlockSize;
 
         [Transient]
@@ -1434,16 +1390,6 @@ namespace Emul8.Peripherals.CPU
             {
                 cpu.TlibInvalidateTranslationBlocks(start, end);
             }
-        }
-
-        private void RemoveAllBreakpoints()
-        {
-            foreach(var breakpoint in breakpoints.Union(hooks.Select(x => x.Key)))
-            {
-                TlibRemoveBreakpoint(breakpoint);
-            }
-            breakpoints.Clear();
-            hooks.Clear();
         }
 
         private CpuThreadPauseGuard ObtainPauseGuard(bool forReading, long address)
@@ -1924,13 +1870,81 @@ namespace Emul8.Peripherals.CPU
 
         private bool advanceShouldBeRestarted;
 
-        private int incarnation = 0;
-        private int lastIncarnation = -1;
+        // Execution of a code in CPU is performed by tlib (implemented in C) that is called 
+        // from C# in TranslationCPU.CpuLoop using TlibExecute method. For better performance, 
+        // tlib groups instructions in so-called blocks that are executed atomically from C# code 
+        // perspective (with some exceptions regarding hooks, of course). Sometimes it is even 
+        // possible for multiple blocks to be executed one-by-one without leaving single TlibExecute call.
+        //
+        // In order to achieve code execution with precision up to a single instruction, maximum 
+        // block size must be set to one.This, however, does not prevent block chaining from happening.
+        // As a result, there is still no guarantee that TlibExecute finishes after each instruction, 
+        // even with minimal possible block size.
+        //
+        // Fortunately, there is OnBlockBegin hook that is called before executing instructions from
+        // each block - as a result, C# is notified about each block even when chaining is active.
+        //
+        // SingleStepping and halting on Hooks (both watchpoints and breakpoints) is achieved by 
+        // blocking CpuLoop on stepEvent semaphore located in OnBlockBegin hook.Thanks to that we are 
+        // able to control an execution of CPU precisely with block chaining being active.
+        //
+        // Unfortunately, there is one problem with this approach when it comes to breakpoints. 
+        // When it is inserted, the whole instruction block is re-translated in such a way that it ends 
+        // with special trap instruction generated at the breakpoint's address. As a result, it is naturally 
+        // guaranteed to leave C-code when hitting it. Removing breakpoint requires another retranslation 
+        // to remove this trap instruction.
+        //
+        // Adding/removing breakpoints when tlib is not executing is safe and works well, but problems 
+        // arise when managing them from within hooks.As mentioned earlier, CpuLoop is halted on 
+        // OnBlockBegin hook, which means that the block is already executing. As a result removing
+        // breakpoint at this moment will not prevent executing trap instruction in this block again 
+        // leading to breaking on non-existing breakpoint.
+        //
+        // To solve this problem method HandleStepping is executed two times: 
+        //   (1) before entering tlib code (to handle breakpoints) 
+        //   (2) at the beginning of each block (to handle stepping)
+        //
+        // As a result, it is executed twice for the first block.To avoid it we have special flag 
+        // skipNextStepping which is set to true after(1) and cleared after first(2).
+        private bool skipNextStepping;
 
         protected static readonly Exception InvalidInterruptNumberException = new InvalidOperationException("Invalid interrupt number.");
 
         private const int DefaultMaximumBlockSize = 0x7FF;
         private const int BreakpointResult = 0x10002;
+        private const int HaltedResult = 0x10003;
+
+        private void ExecuteHooks(uint address)
+        {
+            lock(hooks)
+            {
+                HashSet<Action<uint>> callbacks;
+                if(!hooks.TryGetValue(address, out callbacks))
+                {
+                    return;
+                }
+
+                this.DebugLog("Executing hooks registered at address 0x{0:X8}", address);
+                foreach(var hook in callbacks)
+                {
+                    hook(address);
+                }
+            }
+        }
+
+        internal void RemoveAllHooks()
+        {
+            lock(hooks)
+            {
+                foreach(var hook in hooks)
+                {
+                    TlibRemoveBreakpoint(hook.Key);
+                }
+                hooks.Clear();
+            }
+        }
+
+        private Dictionary<uint, HashSet<Action<uint>>> hooks;
     }
 }
 

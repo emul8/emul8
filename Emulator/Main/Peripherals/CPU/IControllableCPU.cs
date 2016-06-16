@@ -23,10 +23,6 @@ namespace Emul8.Peripherals.CPU
 
         void Step(int count);
 
-        void AddBreakpoint(uint addr);
-
-        void RemoveBreakpoint(uint addr);
-
         void InitFromElf(ELF<uint> elf);
 
         void InitFromUImage(UImage uImage);

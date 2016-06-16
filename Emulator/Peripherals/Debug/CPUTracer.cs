@@ -152,10 +152,11 @@ namespace Emul8.Debug
             if(registeredCallbacks.TryGetValue(name, out addresses))
             {
                 cpu.Log(LogLevel.Info, "Removing trace from function '{0}'.", name);
-                cpu.RemoveHook(addresses.Item1);
+                // todo: this is potentially dangerous as it may remove other hooks/breakpoints from this address as well!
+                cpu.RemoveAllAt(addresses.Item1);
                 if(addresses.Item2.HasValue)
                 {
-                    cpu.RemoveHook(addresses.Item2.Value);
+                    cpu.RemoveAllAt(addresses.Item2.Value);
                 }
             }
             else
