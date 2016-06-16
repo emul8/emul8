@@ -9,11 +9,15 @@ using System;
 
 namespace Emul8.Peripherals.CPU
 {
-    public interface ICPUWithBlockBeginHook : ICPU
+    public interface ICPUWithHooks : ICPU
     {
         void ClearHookAtBlockBegin();
         void SetHookAtBlockBegin(Action<uint, uint> hook);
+
         void AddHook(uint addr, Action<uint> hook);
+        void RemoveHook(uint addr, Action<uint> hook);
+        void RemoveHooksAt(uint addr);
+        void RemoveAllHooks();
     }
 }
 

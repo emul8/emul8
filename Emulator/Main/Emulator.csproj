@@ -217,7 +217,7 @@
     <Compile Include="Network\EtherType.cs" />
     <Compile Include="Peripherals\Bus\Wrappers\RegisterMapper.cs" />
     <Compile Include="Network\EthernetFrame.cs" />
-    <Compile Include="Peripherals\CPU\ICPUWithBlockBeginHook.cs" />
+    <Compile Include="Peripherals\CPU\ICPUWithHooks.cs" />
     <Compile Include="Utilities\AutoParameterAttribute.cs" />
     <Compile Include="Peripherals\CPU\HaltReason.cs" />
     <Compile Include="Peripherals\IMemory.cs" />
