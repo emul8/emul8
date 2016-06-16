@@ -18,7 +18,7 @@ namespace Emul8.Utilities
 {
     public static class GdbExtensions
     {
-        public static void StartGDBServer(this IControllableCPU cpu, [AutoParameter] Machine machine, int port)
+        public static void StartGDBServer(this ICpuSupportingGdb cpu, [AutoParameter] Machine machine, int port)
         {
             var stub = GdbStub.CreateAndListenOnPort(port, cpu, machine);
             EmulationManager.Instance.CurrentEmulation.ExternalsManager.AddExternal(stub, "GDBServer");
@@ -27,7 +27,7 @@ namespace Emul8.Utilities
 
     public class GdbStub : IDisposable, IExternal
     {
-        public static GdbStub CreateAndListenOnPort(int port, IControllableCPU cpu, Machine machine)
+        public static GdbStub CreateAndListenOnPort(int port, ICpuSupportingGdb cpu, Machine machine)
         {
             lock(gdbs)
             {
@@ -57,7 +57,7 @@ namespace Emul8.Utilities
 
         public int Port { get; private set; }
 
-        private GdbStub(int port, IControllableCPU cpu, Machine machine)
+        private GdbStub(int port, ICpuSupportingGdb cpu, Machine machine)
         {
             this.cpu = cpu;
             Port = port;
@@ -68,7 +68,7 @@ namespace Emul8.Utilities
 
             pcktBuilder = new PacketBuilder();
 
-            commands = new CommandsManager((TranslationCPU)cpu);
+            commands = new CommandsManager(cpu);
             TypeManager.Instance.AutoLoadedType += t => commands.Register(t);
 
             cpu.Halted += OnHalted;
@@ -181,13 +181,13 @@ namespace Emul8.Utilities
             }
         }
 
-        private static readonly Dictionary<IControllableCPU, GdbStub> gdbs = new Dictionary<IControllableCPU, GdbStub>();
+        private static readonly Dictionary<ICpuSupportingGdb, GdbStub> gdbs = new Dictionary<ICpuSupportingGdb, GdbStub>();
 
         private int commandsCounter;
         private Func<Command, bool> beforeCommand;
 
         private readonly PacketBuilder pcktBuilder;
-        private readonly IControllableCPU cpu;
+        private readonly ICpuSupportingGdb cpu;
         private readonly SocketServerProvider terminal;
         private readonly CommandsManager commands;
 

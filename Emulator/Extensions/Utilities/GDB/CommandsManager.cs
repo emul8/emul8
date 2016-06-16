@@ -16,7 +16,7 @@ namespace Emul8.Utilities.GDB
 {
     internal class CommandsManager
     {
-        public CommandsManager(TranslationCPU cpu)
+        public CommandsManager(ICpuSupportingGdb cpu)
         {
             availableCommands = new HashSet<CommandDescriptor>();
             activeCommands = new HashSet<Command>();
@@ -61,7 +61,7 @@ namespace Emul8.Utilities.GDB
         }
 
         public Machine Machine { get; private set; }
-        public TranslationCPU Cpu { get; private set; }
+        public ICpuSupportingGdb Cpu { get; private set; }
 
         private Command GetOrCreateCommand(Type t)
         {
