@@ -307,5 +307,37 @@
     {
         "nvic": [90]
     }
-  }
+  },
+  "I2C1":
+  {
+    "_type":"I2C.STM32F7_I2C",
+    "_connection":
+    {
+        "sysbus": { "address": 0x40005400 }
+    },
+  },
+  "I2C2":
+  {
+    "_type":"I2C.STM32F7_I2C",
+    "_connection":
+    {
+        "sysbus": { "address": 0x40005800 }
+    },
+  },
+  "I2C3":
+  {
+    "_type":"I2C.STM32F7_I2C",
+    "_connection":
+    {
+        "sysbus": { "address": 0x40005C00 }
+    },
+  },
+  "I2C4":
+  {
+    "_type":"I2C.STM32F7_I2C",
+    "_connection":
+    {
+        "sysbus": { "address": 0x40006000 }
+    },
+  },
 }
