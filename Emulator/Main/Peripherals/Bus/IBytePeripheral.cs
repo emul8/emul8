@@ -6,12 +6,12 @@
 // Full license details are defined in the 'LICENSE' file.
 //
 
-
 namespace Emul8.Peripherals.Bus
 {
-	public interface IBytePeripheral : IBusPeripheral
-	{
-		byte ReadByte(long offset);
-		void WriteByte(long offset, byte value);		
-	}
+    public interface IBytePeripheral : IBusPeripheral
+    {
+        byte ReadByte(long offset);
+
+        void WriteByte(long offset, byte value);
+    }
 }
