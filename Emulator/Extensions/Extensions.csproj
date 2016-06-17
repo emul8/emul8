@@ -108,7 +108,7 @@
     <Compile Include="UserInterface\Commands\MachCommand.cs" />
     <Compile Include="UserInterface\MonitorPythonEngine.cs" />
     <Compile Include="UserInterface\Commands\VerboseCommand.cs" />
-    <Compile Include="Hooks\BlockBeginExtensions.cs" />
+    <Compile Include="Hooks\CpuHooksExtensions.cs" />
     <Compile Include="Hooks\BlockPythonEngine.cs" />
     <Compile Include="UserInterface\Exceptions\ParametersMismatchException.cs" />
     <Compile Include="UserInterface\Commands\ShowBackendAnalyzerCommand.cs" />
