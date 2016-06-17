@@ -23,29 +23,44 @@ namespace Emul8.Utilities
             var stub = GdbStub.CreateAndListenOnPort(port, cpu, machine);
             EmulationManager.Instance.CurrentEmulation.ExternalsManager.AddExternal(stub, "GDBServer");
         }
+
+        public static void StopGdbServer(this ICpuSupportingGdb cpu)
+        {
+            GdbStub.Stop(cpu);
+        }
     }
 
     public class GdbStub : IDisposable, IExternal
     {
         public static GdbStub CreateAndListenOnPort(int port, ICpuSupportingGdb cpu, Machine machine)
         {
-            lock(gdbs)
+            lock(activeGdbStubs)
             {
-                if(gdbs.ContainsKey(cpu))
+                if(activeGdbStubs.ContainsKey(cpu))
                 {
-                    throw new RecoverableException(string.Format("GDB server already started for this cpu on port: {0}", gdbs[cpu].Port));
+                    throw new RecoverableException(string.Format("GDB server already started for this cpu on port: {0}", activeGdbStubs[cpu].Port));
                 }
 
                 try
                 {
                     var stub = new GdbStub(port, cpu, machine);
-                    gdbs.Add(cpu, stub);
+                    activeGdbStubs.Add(cpu, stub);
                     return stub;
                 }
                 catch(SocketException e)
                 {
                     throw new RecoverableException(string.Format("Could not start GDB server: {0}", e.Message));
                 }
+            }
+        }
+
+        public static void Stop(ICpuSupportingGdb cpu)
+        {
+            GdbStub stub;
+            if(activeGdbStubs.TryGetValue(cpu, out stub))
+            {
+                activeGdbStubs.Remove(cpu);
+                stub.Dispose();
             }
         }
 
@@ -181,7 +196,7 @@ namespace Emul8.Utilities
             }
         }
 
-        private static readonly Dictionary<ICpuSupportingGdb, GdbStub> gdbs = new Dictionary<ICpuSupportingGdb, GdbStub>();
+        private static readonly Dictionary<ICpuSupportingGdb, GdbStub> activeGdbStubs = new Dictionary<ICpuSupportingGdb, GdbStub>();
 
         private int commandsCounter;
         private Func<Command, bool> beforeCommand;
