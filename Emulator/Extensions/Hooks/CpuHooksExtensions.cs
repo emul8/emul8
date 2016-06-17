@@ -12,13 +12,14 @@ using Emul8.Utilities;
 
 namespace Emul8.Hooks
 {
-    public static class BlockBeginExtensions
+    public static class CpuHooksExtensions
     {
         public static void SetHookAtBlockBegin(this ICPUWithHooks cpu, [AutoParameter]Machine m, string pythonScript)
         {
             var engine = new BlockPythonEngine(m, cpu, pythonScript);
             cpu.SetHookAtBlockBegin(engine.HookWithSize);
         }
+
         public static void AddHook(this ICPUWithHooks cpu, [AutoParameter]Machine m, uint addr, string pythonScript)
         {
             var engine = new BlockPythonEngine(m, cpu, pythonScript);
