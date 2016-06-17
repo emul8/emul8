@@ -87,7 +87,6 @@ namespace Emul8.Core.Structure.Registers
                 register.Write(offset, value);
                 return true;
             }
-            parent.LogUnhandledWrite(offset, value);
             return false;
         }
 
@@ -182,7 +181,6 @@ namespace Emul8.Core.Structure.Registers
                 register.Write(offset, value);
                 return true;
             }
-            parent.LogUnhandledWrite(offset, value);
             return false;
         }
 
@@ -277,7 +275,6 @@ namespace Emul8.Core.Structure.Registers
                 register.Write(offset, value);
                 return true;
             }
-            parent.LogUnhandledWrite(offset, value);
             return false;
         }
 

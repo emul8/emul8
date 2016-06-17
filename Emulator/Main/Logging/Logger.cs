@@ -124,12 +124,12 @@ namespace Emul8.Logging
 
         public static void LogUnhandledRead(this IPeripheral peripheral, long offset)
         {
-            peripheral.Log(LogLevel.Warning, "Unhandled read from 0x{0:X}.", offset);
+            peripheral.Log(LogLevel.Warning, "Unhandled read from offset 0x{0:X}.", offset);
         }
 
         public static void LogUnhandledWrite(this IPeripheral peripheral, long offset, long value)
         {
-            peripheral.Log(LogLevel.Warning, "Unhandled write to 0x{0:X}, value 0x{1:X}.", offset, value);
+            peripheral.Log(LogLevel.Warning, "Unhandled write to offset 0x{0:X}, value 0x{1:X}.", offset, value);
         }
 
         public static bool PrintFullName { get; set; }

@@ -395,7 +395,7 @@ namespace Emul8.Core.Structure.Registers
         {
             var tagsAffected = tags.Select(x => new {Name = x.Name, Value = BitHelper.GetValue(value, x.Position, x.Width)})
                 .Where(x => x.Value != 0);
-            return "Unhandled write to offset 0x{2}. Unhandled bits: [{1}] when writing  value 0x{3}.{0}"
+            return "Unhandled write to offset 0x{2:X}. Unhandled bits: [{1}] when writing value 0x{3:X}.{0}"
                 .FormatWith(tagsAffected.Any() ? " Tags: {0}.".FormatWith(
                     tagsAffected.Select(x => "{0} (0x{1:X})".FormatWith(x.Name, x.Value)).Stringify(", ")) : String.Empty,
                     BitHelper.GetSetBitsPretty(value),
