@@ -363,7 +363,10 @@ namespace Emul8.Peripherals.CPU
         { 
             get 
             {
-                return executionMode;
+                lock(sync.Guard)
+                {
+                    return executionMode;
+                }
             }
 
             set 
@@ -373,24 +376,12 @@ namespace Emul8.Peripherals.CPU
                     return;
                 }
 
-                lock(executionModeGuard)
+                lock(sync.Guard)
                 {
                     executionMode = value;
-                    switch(executionMode)
+                    if(executionMode == ExecutionMode.Continuous)
                     {
-                        case ExecutionMode.SingleStep:
-                            for(var i = stepEvent.CurrentCount; i > 0; i--)
-                            {
-                                stepEvent.Wait(0);
-                            }
-                            stepDoneEvent.Reset(0);
-                            break;
-                        case ExecutionMode.Continuous:
-                            stepDoneEvent.Reset(1);
-                            stepEvent.Release();
-                            break;
-                        default:
-                            throw new ArgumentException("Unsupported execution mode");
+                        sync.Pass();
                     }
                     InvokeInCpuThreadSafely(AdjustBlockSize);
                 }
@@ -478,14 +469,11 @@ namespace Emul8.Peripherals.CPU
                 if(Thread.CurrentThread.ManagedThreadId != cpuThread.ManagedThreadId)
                 {
                     this.NoisyLog("Waiting for thread to pause.");
-                    stepDoneEvent.Reset(1);
-                    stepEvent.Release();
+                    sync.Pass();
                     cpuThread.Join();
                     this.NoisyLog("Paused.");
                     cpuThread = null;
                     TlibClearPaused();
-                    stepEvent.Wait(0);
-                    stepDoneEvent.Reset(0);
                 }
                 else
                 {
@@ -935,15 +923,17 @@ namespace Emul8.Peripherals.CPU
 
         private void HandleStepping(bool force = false)
         {
-            if(executionMode != ExecutionMode.SingleStep || (!force && skipNextStepping))
+            lock(sync.Guard)
             {
-                return;
-            }
+                if(ExecutionMode != ExecutionMode.SingleStep || (!force && skipNextStepping))
+                {
+                    return;
+                }
 
-            this.NoisyLog("Waiting for another step (PC=0x{0:X8}).", PC);
-            InvokeHalted(new HaltArguments(HaltReason.Step));
-            stepEvent.Wait();
-            stepDoneEvent.Signal();
+                this.NoisyLog("Waiting for another step (PC=0x{0:X8}).", PC);
+                InvokeHalted(new HaltArguments(HaltReason.Step));
+                sync.SignalAndWait();
+            }
         }
 
         [Export]
@@ -1030,16 +1020,14 @@ namespace Emul8.Peripherals.CPU
 
         public void Step(int count = 1)
         {
-            lock(pauseLock)
+            lock(sync.Guard)
             {
-                if(executionMode != ExecutionMode.SingleStep)
+                if(ExecutionMode != ExecutionMode.SingleStep)
                 {
                     throw new RecoverableException("Stepping is available in single step execution mode only.");
                 }
 
-                stepDoneEvent.Reset(count);
-                stepEvent.Release(count);
-                stepDoneEvent.Wait();
+                sync.PassAndWait(count);
             }
         }
 
@@ -1189,8 +1177,7 @@ namespace Emul8.Peripherals.CPU
             memoryManager = new SimpleMemoryManager(this);
             PauseEvent = new ManualResetEvent(true);
             hooks = hooks ?? new Dictionary<uint, HashSet<Action<uint>>>();
-            stepDoneEvent = new CountdownEvent(0);
-            stepEvent = new SemaphoreSlim(0);
+            sync = new Synchronizer();
             haltedFinishedEvent = new AutoResetEvent(false);
             waitHandles = interruptEvents.Cast<WaitHandle>().Union(new EventWaitHandle[] { PauseEvent, haltedFinishedEvent }).ToArray();
 
@@ -1277,10 +1264,7 @@ namespace Emul8.Peripherals.CPU
         private string libraryFile;
 
         [Transient]
-        private SemaphoreSlim stepEvent;
-
-        [Transient]
-        private CountdownEvent stepDoneEvent;
+        private Synchronizer sync;
 
         private int translationCacheSize;
         private readonly object translationCacheSync;
@@ -1857,7 +1841,7 @@ namespace Emul8.Peripherals.CPU
         // each block - as a result, C# is notified about each block even when chaining is active.
         //
         // SingleStepping and halting on Hooks (both watchpoints and breakpoints) is achieved by 
-        // blocking CpuLoop on stepEvent semaphore located in OnBlockBegin hook.Thanks to that we are 
+        // blocking CpuLoop on sync guard located in OnBlockBegin hook. Thanks to that we are 
         // able to control an execution of CPU precisely with block chaining being active.
         //
         // Unfortunately, there is one problem with this approach when it comes to breakpoints. 
@@ -1879,8 +1863,6 @@ namespace Emul8.Peripherals.CPU
         // As a result, it is executed twice for the first block.To avoid it we have special flag 
         // skipNextStepping which is set to true after(1) and cleared after first(2).
         private bool skipNextStepping;
-
-        private readonly object executionModeGuard = new object();
 
         protected static readonly Exception InvalidInterruptNumberException = new InvalidOperationException("Invalid interrupt number.");
 
@@ -1919,6 +1901,77 @@ namespace Emul8.Peripherals.CPU
         }
 
         private Dictionary<uint, HashSet<Action<uint>>> hooks;
+
+        private class Synchronizer
+        {
+            public Synchronizer()
+            {
+                guard = new object();
+            }
+
+            public void SignalAndWait()
+            {
+                lock(guard)
+                {
+                    if(counter > 0) 
+                    {
+                        counter--;
+                    }
+                    if(counter == 0) 
+                    {
+                        Monitor.Pulse(guard);
+                    }
+                    do
+                    {
+                        Monitor.Wait(guard);
+                    }
+                    while(counter == 0);
+                }
+            }
+
+            public void PassAndWait(int steps = 1)
+            {
+                lock(guard)
+                {
+                    counter = steps;
+                    Monitor.Pulse(guard);
+
+                    do
+                    {
+                        Monitor.Wait(guard);
+                    }
+                    while(counter > 0);
+                }
+            }
+
+            public void Pass()
+            {
+                lock(guard)
+                {
+                    counter = 1;
+                    Monitor.Pulse(guard);
+                }
+            }
+
+            public void Wait()
+            {
+                lock(guard)
+                {
+                    Monitor.Wait(guard);
+                }
+            }
+
+            public object Guard
+            {
+                get
+                {
+                    return guard;
+                }
+            }
+
+            private int counter;
+            private readonly object guard;
+        }
     }
 }
 
