@@ -18,7 +18,7 @@ namespace Emul8.Utilities
 {
     public static class GdbExtensions
     {
-        public static void StartGDBServer(this ICpuSupportingGdb cpu, [AutoParameter] Machine machine, int port)
+        public static void StartGdbServer(this ICpuSupportingGdb cpu, [AutoParameter] Machine machine, int port)
         {
             string cpuName;
             machine.TryGetLocalName(cpu, out cpuName);
