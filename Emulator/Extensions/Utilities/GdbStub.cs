@@ -166,7 +166,6 @@ namespace Emul8.Utilities
             // send ACK
             terminal.SendByte((byte)'+');
 
-            PacketData packetData = null;
             Command command;
             if(!commands.TryGetCommand(result.Packet, out command))
             {
@@ -180,7 +179,7 @@ namespace Emul8.Utilities
                 {
                     return;
                 }
-                packetData = Command.Execute(command, result.Packet);
+                var packetData = Command.Execute(command, result.Packet);
                 // null means that we will response later with Stop Reply Response
                 if(packetData != null)
                 {
