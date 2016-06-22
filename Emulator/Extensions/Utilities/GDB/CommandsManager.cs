@@ -37,7 +37,7 @@ namespace Emul8.Utilities.GDB
             var interestingMethods = Command.GetExecutingMethods(t);
             if(interestingMethods.Length == 0)
             {
-                Logger.Log(LogLevel.Warning, string.Format("No executing methods found in type {0}", t.Name));
+                Logger.Log(LogLevel.Error, string.Format("No proper constructor or executing methods found in type {0}", t.Name));
                 return;
             }
 
