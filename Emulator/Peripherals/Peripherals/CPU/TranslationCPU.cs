@@ -793,17 +793,6 @@ namespace Emul8.Peripherals.CPU
             PC = entryPoint;
         }
 
-        private bool CheckIfPaused()
-        {
-            if(PauseEvent.WaitOne(0))
-            {
-                this.NoisyLog("Pause set, exiting loop.");
-                pauseFinishedEvent.Set();
-                return true;
-            }
-            return false;
-        }
-
         private void InvokeInCpuThreadSafely(Action a)
         {
             actionsToExecuteInCpuThread.Enqueue(a);
@@ -888,7 +877,7 @@ namespace Emul8.Peripherals.CPU
                     ExecuteHooks(PC);
                 }
 
-                if(CheckIfPaused())
+                if(PauseEvent.WaitOne(0))
                 {
                     break;
                 }
@@ -1200,7 +1189,6 @@ namespace Emul8.Peripherals.CPU
             memoryManager = new SimpleMemoryManager(this);
             PauseEvent = new ManualResetEvent(true);
             hooks = hooks ?? new Dictionary<uint, HashSet<Action<uint>>>();
-            pauseFinishedEvent = new ManualResetEventSlim(false);
             stepDoneEvent = new CountdownEvent(0);
             stepEvent = new SemaphoreSlim(0);
             haltedFinishedEvent = new AutoResetEvent(false);
@@ -1284,9 +1272,6 @@ namespace Emul8.Peripherals.CPU
 
         [Transient]
         protected ManualResetEvent PauseEvent;
-
-        [Transient]
-        private ManualResetEventSlim pauseFinishedEvent;
 
         [Transient]
         private string libraryFile;
