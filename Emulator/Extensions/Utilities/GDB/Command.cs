@@ -25,10 +25,24 @@ namespace Emul8.Utilities.GDB
 
         public static MethodInfo[] GetExecutingMethods(Type t)
         {
-            return t.GetMethods().Where(x => x.GetCustomAttribute<ExecuteAttribute>() != null).ToArray();
+            if(t.GetConstructor(new[] { typeof(CommandsManager) }) == null)
+            {
+                return new MethodInfo[0];
+            }
+            
+            return t.GetMethods().Where(x => 
+                x.GetCustomAttribute<ExecuteAttribute>() != null &&
+                x.GetParameters().All(y => y.GetCustomAttribute<ArgumentAttribute>() != null)).ToArray();
         }
 
-        public static MethodInfo GetExecutingMethod(Command command, Packet packet)
+        protected Command(CommandsManager manager)
+        {
+            this.manager = manager;
+        }
+
+        protected readonly CommandsManager manager;
+
+        private static MethodInfo GetExecutingMethod(Command command, Packet packet)
         {
             var interestingMethods = GetExecutingMethods(command.GetType());
             if(!interestingMethods.Any())
@@ -38,13 +52,6 @@ namespace Emul8.Utilities.GDB
 
             return interestingMethods.SingleOrDefault(x => packet.Data.DataAsString.StartsWith(x.GetCustomAttribute<ExecuteAttribute>().Mnemonic, StringComparison.Ordinal));
         }
-
-        protected Command(CommandsManager manager)
-        {
-            this.manager = manager;
-        }
-
-        protected readonly CommandsManager manager;
 
         private static object HandleArgumentNotResolved(ParsingContext context, ParameterInfo parameterInfo)
         {
