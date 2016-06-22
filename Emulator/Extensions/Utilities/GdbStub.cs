@@ -79,10 +79,6 @@ namespace Emul8.Utilities
             this.cpu = cpu;
             Port = port;
 
-            terminal = new SocketServerProvider();
-            terminal.DataReceived += OnByteWritten;
-            terminal.Start(port);
-
             pcktBuilder = new PacketBuilder();
 
             commands = new CommandsManager(cpu);
@@ -90,6 +86,10 @@ namespace Emul8.Utilities
 
             cpu.Halted += OnHalted;
             cpu.ExecutionMode = ExecutionMode.SingleStep;
+
+            terminal = new SocketServerProvider();
+            terminal.DataReceived += OnByteWritten;
+            terminal.Start(port);
         }
 
         private void OnHalted(HaltArguments args)
