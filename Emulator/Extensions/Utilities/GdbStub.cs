@@ -20,8 +20,10 @@ namespace Emul8.Utilities
     {
         public static void StartGDBServer(this ICpuSupportingGdb cpu, [AutoParameter] Machine machine, int port)
         {
-            var stub = GdbStub.CreateAndListenOnPort(port, cpu, machine);
-            EmulationManager.Instance.CurrentEmulation.ExternalsManager.AddExternal(stub, "GDBServer");
+            string cpuName;
+            machine.TryGetLocalName(cpu, out cpuName);
+            var stub = GdbStub.CreateAndListenOnPort(port, cpu);
+            EmulationManager.Instance.CurrentEmulation.ExternalsManager.AddExternal(stub, string.Format("GdbStub-{0}", cpuName));
         }
 
         public static void StopGdbServer(this ICpuSupportingGdb cpu)
@@ -32,7 +34,7 @@ namespace Emul8.Utilities
 
     public class GdbStub : IDisposable, IExternal
     {
-        public static GdbStub CreateAndListenOnPort(int port, ICpuSupportingGdb cpu, Machine machine)
+        public static GdbStub CreateAndListenOnPort(int port, ICpuSupportingGdb cpu)
         {
             lock(activeGdbStubs)
             {
@@ -43,7 +45,7 @@ namespace Emul8.Utilities
 
                 try
                 {
-                    var stub = new GdbStub(port, cpu, machine);
+                    var stub = new GdbStub(port, cpu);
                     activeGdbStubs.Add(cpu, stub);
                     return stub;
                 }
@@ -72,7 +74,7 @@ namespace Emul8.Utilities
 
         public int Port { get; private set; }
 
-        private GdbStub(int port, ICpuSupportingGdb cpu, Machine machine)
+        private GdbStub(int port, ICpuSupportingGdb cpu)
         {
             this.cpu = cpu;
             Port = port;
