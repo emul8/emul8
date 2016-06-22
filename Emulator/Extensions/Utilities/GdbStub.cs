@@ -82,7 +82,7 @@ namespace Emul8.Utilities
             pcktBuilder = new PacketBuilder();
 
             commands = new CommandsManager(cpu);
-            TypeManager.Instance.AutoLoadedType += t => commands.Register(t);
+            TypeManager.Instance.AutoLoadedType += commands.Register;
 
             cpu.Halted += OnHalted;
             cpu.ExecutionMode = ExecutionMode.SingleStep;
