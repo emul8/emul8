@@ -114,7 +114,7 @@ namespace Emul8.Utilities
                             // To prevent this situation we wait for `step` and ignore it, but
                             // only in small time window (15 - instructions, value choosen at random)
                             // and only after sending watchpoint-related stop reply.
-                            throw new RecoverableException("Expected step command after watchpoint. Further debugging might not work properly");
+                            this.Log(LogLevel.Error, "Expected step command after watchpoint. Further debugging might not work properly");
                         }
                         if((cmd is SingleStepCommand))
                         {
