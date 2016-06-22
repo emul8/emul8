@@ -107,6 +107,13 @@ namespace Emul8.Utilities
                         commandsCounter++;
                         if(commandsCounter > 15)
                         {
+                            // this is a hack!
+                            // I noticed that GDB will send `step` command after receiving
+                            // information about watchpoint being hit.
+                            // As a result cpu would execute next instruction and stop again.
+                            // To prevent this situation we wait for `step` and ignore it, but
+                            // only in small time window (15 - instructions, value choosen at random)
+                            // and only after sending watchpoint-related stop reply.
                             throw new RecoverableException("Expected step command after watchpoint. Further debugging might not work properly");
                         }
                         if((cmd is SingleStepCommand))
