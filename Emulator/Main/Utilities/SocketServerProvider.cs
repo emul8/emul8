@@ -46,7 +46,10 @@ namespace Emul8.Utilities
             queueCancellationToken.Cancel();
             listenerThreadStopped = true;
             server.Dispose();
-            listenerThread.Join();
+            if(Thread.CurrentThread != readerThread && Thread.CurrentThread != writerThread) 
+            {
+                listenerThread.Join();
+            }
         }
 
         public void Dispose()
@@ -135,12 +138,12 @@ namespace Emul8.Utilities
                     connectionAccepted(stream);
                 }
 
-                var writerThread = new Thread(() => WriterThreadBody(stream)) {
+                writerThread = new Thread(() => WriterThreadBody(stream)) {
                     Name = GetType().Name + "_WriterThread",
                     IsBackground = true
                 };
 
-                var readerThread = new Thread(() => ReaderThreadBody(stream)) {
+                readerThread = new Thread(() => ReaderThreadBody(stream)) {
                     Name = GetType().Name + "_ReaderThread",
                     IsBackground = true
                 };
@@ -150,6 +153,9 @@ namespace Emul8.Utilities
 
                 writerThread.Join();
                 readerThread.Join();
+
+                writerThread = null;
+                readerThread = null;
             }
         }
 
@@ -158,6 +164,8 @@ namespace Emul8.Utilities
 
         private bool listenerThreadStopped;
         private Thread listenerThread;
+        private Thread readerThread;
+        private Thread writerThread;
         private Socket server;
         private Socket socket;
     }
