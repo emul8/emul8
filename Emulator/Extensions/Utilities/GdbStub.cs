@@ -115,6 +115,9 @@ namespace Emul8.Utilities
                             // only in small time window (15 - instructions, value choosen at random)
                             // and only after sending watchpoint-related stop reply.
                             this.Log(LogLevel.Error, "Expected step command after watchpoint. Further debugging might not work properly");
+                            beforeCommand = null;
+                            commandsCounter = 0;
+                            return false;
                         }
                         if((cmd is SingleStepCommand))
                         {
