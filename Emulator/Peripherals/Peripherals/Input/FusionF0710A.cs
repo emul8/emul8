@@ -51,7 +51,7 @@ namespace Emul8.Peripherals.Input
             PressAgainIfNeeded();           
         }
 
-        public byte[] Read()
+        public byte[] Read(int count)
         {
             byte[] returnValue;
             switch(lastCommand)
