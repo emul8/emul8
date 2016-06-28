@@ -276,6 +276,21 @@ namespace Emul8.Core.Structure.Registers
             return field;
         }
 
+        public void DefineReadCallback (Action<uint, uint> readCallback)
+        {
+            readCallbacks.Add (readCallback);
+        }
+
+        public void DefineWriteCallback (Action<uint, uint> writeCallback)
+        {
+            writeCallbacks.Add (writeCallback);
+        }
+
+        public void DefineChangeCallback (Action<uint, uint> changeCallback)
+        {
+            changeCallbacks.Add (changeCallback);
+        }
+
         protected PeripheralRegister(IPeripheral parent, uint resetValue, int maxLength)
         {
             this.parent = parent;
@@ -314,6 +329,15 @@ namespace Emul8.Core.Structure.Registers
             {
                 changedRegister.CallChangeHandler(baseValue, UnderlyingValue);
             }
+            foreach (var readCallback in readCallbacks) {
+                readCallback (baseValue, UnderlyingValue);
+            }
+            if (changedFields.Any ()) {
+                foreach (var changeCallback in changeCallbacks) {
+                    changeCallback (baseValue, UnderlyingValue);
+                }
+            }
+
             return valueToRead;
         }
 
@@ -372,6 +396,14 @@ namespace Emul8.Core.Structure.Registers
             foreach(var changedRegister in changedRegisters.Distinct())
             {
                 changedRegister.CallChangeHandler(baseValue, UnderlyingValue);
+            }
+            foreach (var writeCallback in writeCallbacks) {
+                writeCallback (baseValue, value);
+            }
+            if (changedRegisters.Any ()) { 
+                foreach (var changeCallback in changeCallbacks) {
+                    changeCallback (baseValue, UnderlyingValue);
+                }
             }
 
             var unhandledWrites = difference & ~definedFieldsMask;
@@ -440,6 +472,10 @@ namespace Emul8.Core.Structure.Registers
         }
 
         private List<RegisterField> registerFields = new List<RegisterField>();
+
+        private List<Action<uint, uint>> readCallbacks = new List<Action<uint, uint>>();
+        private List<Action<uint, uint>> writeCallbacks = new List<Action<uint, uint>>();
+        private List<Action<uint, uint>> changeCallbacks = new List<Action<uint, uint>>();
 
         private List<Tag> tags = new List<Tag>();
 
