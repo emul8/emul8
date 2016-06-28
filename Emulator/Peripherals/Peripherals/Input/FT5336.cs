@@ -69,7 +69,7 @@ namespace Emul8.Peripherals.Input
             }
         }
 
-        public byte[] Read()
+        public byte[] Read(int count)
         {
             return currentReturnValue;
         }

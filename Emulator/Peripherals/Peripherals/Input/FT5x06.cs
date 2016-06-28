@@ -126,7 +126,7 @@ namespace Emul8.Peripherals.Input
             }
         }
 
-        public byte[] Read ()
+        public byte[] Read (int count)
         {
             this.NoisyLog ("Read {0}", currentRetValue.Select(x=>x.ToString("X")).Aggregate((x,y)=>x+" "+y));
             //       throw new System.NotImplementedException ();

@@ -29,7 +29,7 @@ namespace Emul8.Peripherals.I2C
             this.Log (LogLevel.Noisy, "Write! {0}", data.Select (x=>"0x"+x.ToString("X2")).Aggregate((x,y)=>x+" "+y));
         }
 
-        public byte[] Read ()
+        public byte[] Read (int count)
         {
             this.Log (LogLevel.Noisy, "Read!");
             return new byte[]{0};
