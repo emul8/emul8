@@ -44,8 +44,7 @@
     "MaxY":272,
     "_irq":
     {
-        /*TODO: should be probably driven via gpio port*/
-        "sysbus.exti":[13]
+        "sysbus.gpioPortI":[13]
     }
   }
 }
