@@ -91,5 +91,23 @@ namespace Emul8.Core.Structure.Registers
             flagField = register.DefineFlagField(position, mode, readCallback, writeCallback, changeCallback, valueProviderCallback, name);
             return register;
         }
+
+        public static T WithReadCallback<T>(this T register, Action<uint, uint> readCallback) where T : PeripheralRegister
+        {
+            register.DefineReadCallback (readCallback);
+            return register;
+        }
+
+        public static T WithWriteCallback<T> (this T register, Action<uint, uint> writeCallback) where T : PeripheralRegister
+        {
+            register.DefineWriteCallback (writeCallback);
+            return register;
+        }
+
+        public static T WithChangeCallback<T> (this T register, Action<uint, uint> changeCallback) where T : PeripheralRegister
+        {
+            register.DefineChangeCallback (changeCallback);
+            return register;
+        }
     }
 }
