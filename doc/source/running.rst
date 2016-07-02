@@ -61,7 +61,6 @@ After running the CLI (see :ref:`running-emul8`) you will see the git branch and
 .. code-block:: sh
 
    Emul8 Framework, version X.X.X.X (branchname-xxxxxxxxxxxxxxxxxxxxx)
-   Copyright (c) Antmicro, Realtime Embedded
 
    (monitor)
 

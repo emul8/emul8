@@ -4,11 +4,11 @@ Threads and background operations
 Concept
 -------
 
-Most peripheral can be thought of as "slave" peripherals, that is not doing anything on their own but rather reacting to CPU events, e.g. a read from the bus they are attached to.
+Most peripherals can be thought of as "slave" peripherals, that is not doing anything on their own but rather reacting to CPU events, e.g. a read from the bus they are attached to.
 
 Sometimes, however, their underlying logic demands some non-slave activity.
 
-It can be polling a socket for input or drawing images with a defined framerate.
+It can be either polling a socket for input or drawing images with a defined framerate.
 
 This chapter deals with the means to achieve this.
 
