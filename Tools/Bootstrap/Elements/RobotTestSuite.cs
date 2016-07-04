@@ -4,6 +4,9 @@
 // This file is part of the Emul8 project.
 // Full license details are defined in the 'LICENSE' file.
 //
+using System.IO;
+using System.Text.RegularExpressions;
+
 namespace Emul8.Bootstrap.Elements
 {
     public class RobotTestSuite : IInterestingElement
@@ -11,15 +14,21 @@ namespace Emul8.Bootstrap.Elements
         public static bool TryCreate(string path, out IInterestingElement result)
         {
             result = new RobotTestSuite(path);
-            return true;
+            return !((RobotTestSuite)result).IsExcluded;
         }
 
         public RobotTestSuite(string path)
         {
             Path = System.IO.Path.GetFullPath(path);
+            using(var reader = File.OpenText(path))
+            {
+                var firstLine = reader.ReadLine();
+                IsExcluded = Regex.IsMatch(firstLine, @"#\s*[Ee]mul8:\s*[Ii]gnore\s+[Tt]est");
+            }
         }
 
         public string Path { get; private set; }
+        public bool IsExcluded { get; private set; }
     }
 }
 
