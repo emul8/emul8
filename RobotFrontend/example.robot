@@ -1,3 +1,5 @@
+# emul8: ignore test
+
 *** Settings ***
 Suite Setup     Setup
 Suite Teardown  Teardown
