@@ -22,4 +22,6 @@ Setup
 Teardown
     Run Keyword Unless  ${SKIP_RUNNING_SERVER}
     ...   Stop Remote Server
+
+    Run Keyword Unless  ${SKIP_RUNNING_SERVER}
     ...   Wait For Process
