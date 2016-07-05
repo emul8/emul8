@@ -69,7 +69,7 @@ namespace Emul8.Core.Structure.Registers
 
         /// <summary>
         /// Fluent API for enum field creation. For parameters see <see cref="PeripheralRegister.DefineValueField"/>.
-        /// /// This overload allows you to retrieve the created field via <c>enumFiled</c> parameter.
+        /// This overload allows you to retrieve the created field via <c>enumFiled</c> parameter.
         /// </summary>
         /// <returns>This register with a defined enum field.</returns>
         public static R WithEnumField<R, T>(this R register, int position, int width, out IEnumRegisterField<T> enumField, FieldMode mode = FieldMode.Read | FieldMode.Write, Action<T, T> readCallback = null,
@@ -92,19 +92,91 @@ namespace Emul8.Core.Structure.Registers
             return register;
         }
 
-        public static T WithReadCallback<T>(this T register, Action<uint, uint> readCallback) where T : PeripheralRegister
+        /// <summary>
+        /// Fluent API for read callback registration. For description see <see cref="DoubleWordRegister.DefineReadCallback"/>.
+        /// </summary>
+        /// <returns>This register with a defined callback.</returns>
+        public static DoubleWordRegister WithReadCallback(this DoubleWordRegister register, Action<uint, uint> readCallback)
         {
             register.DefineReadCallback (readCallback);
             return register;
         }
 
-        public static T WithWriteCallback<T> (this T register, Action<uint, uint> writeCallback) where T : PeripheralRegister
+        /// <summary>
+        /// Fluent API for write callback registration. For description see <see cref="DoubleWordRegister.DefineWriteCallback"/>.
+        /// </summary>
+        /// <returns>This register with a defined callback.</returns>
+        public static DoubleWordRegister WithWriteCallback (this DoubleWordRegister register, Action<uint, uint> writeCallback)
         {
             register.DefineWriteCallback (writeCallback);
             return register;
         }
 
-        public static T WithChangeCallback<T> (this T register, Action<uint, uint> changeCallback) where T : PeripheralRegister
+        /// <summary>
+        /// Fluent API for change callback registration. For description see <see cref="DoubleWordRegister.DefineChangeCallback"/>.
+        /// </summary>
+        /// <returns>This register with a defined callback.</returns>
+        public static DoubleWordRegister WithChangeCallback (this DoubleWordRegister register, Action<uint, uint> changeCallback)
+        {
+            register.DefineChangeCallback (changeCallback);
+            return register;
+        }
+
+        /// <summary>
+        /// Fluent API for read callback registration. For description see <see cref="WordRegister.DefineReadCallback"/>.
+        /// </summary>
+        /// <returns>This register with a defined callback.</returns>
+        public static WordRegister WithReadCallback (this WordRegister register, Action<ushort, ushort> readCallback)
+        {
+            register.DefineReadCallback (readCallback);
+            return register;
+        }
+
+        /// <summary>
+        /// Fluent API for write callback registration. For description see <see cref="WordRegister.DefineWriteCallback"/>.
+        /// </summary>
+        /// <returns>This register with a defined callback.</returns>
+        public static WordRegister WithWriteCallback (this WordRegister register, Action<ushort, ushort> writeCallback)
+        {
+            register.DefineWriteCallback (writeCallback);
+            return register;
+        }
+
+        /// <summary>
+        /// Fluent API for change callback registration. For description see <see cref="WordRegister.DefineChangeCallback"/>.
+        /// </summary>
+        /// <returns>This register with a defined callback.</returns>
+        public static WordRegister WithChangeCallback (this WordRegister register, Action<ushort, ushort> changeCallback)
+        {
+            register.DefineChangeCallback (changeCallback);
+            return register;
+        }
+
+        /// <summary>
+        /// Fluent API for read callback registration. For description see <see cref="ByteRegister.DefineReadCallback"/>.
+        /// </summary>
+        /// <returns>This register with a defined callback.</returns>
+        public static ByteRegister WithReadCallback (this ByteRegister register, Action<byte, byte> readCallback)
+        {
+            register.DefineReadCallback (readCallback);
+            return register;
+        }
+
+        /// <summary>
+        /// Fluent API for write callback registration. For description see <see cref="ByteRegister.DefineWriteCallback"/>.
+        /// </summary>
+        /// <returns>This register with a defined callback.</returns>
+        public static ByteRegister WithWriteCallback (this ByteRegister register, Action<byte, byte> writeCallback)
+        {
+            register.DefineWriteCallback (writeCallback);
+            return register;
+        }
+
+        /// <summary>
+        /// Fluent API for change callback registration. For description see <see cref="ByteRegister.DefineChangeCallback"/>.
+        /// </summary>
+        /// <returns>This register with a defined callback.</returns>
+        public static ByteRegister WithChangeCallback (this ByteRegister register, Action<byte, byte> changeCallback)
         {
             register.DefineChangeCallback (changeCallback);
             return register;
