@@ -8,7 +8,9 @@ using System;
 using System.Text;
 using AntShell.Commands;
 using Emul8.Core;
+using Emul8.Peripherals.UART;
 using Emul8.Robot;
+using Emul8.Testing;
 using Emul8.UserInterface;
 
 namespace Emul8.RobotFrontend
@@ -39,11 +41,12 @@ namespace Emul8.RobotFrontend
         }
 
         [RobotFrameworkKeyword]
-        public string ExecuteCommand(string command)
+        public string ExecuteCommand(string[] commands)
         {
+            var command = string.Join(" ", commands);
             if(!monitor.Parse(command))
             {
-                throw new KeywordException("Could not execute command: {0}", interaction.Error);
+                throw new KeywordException("Could not execute command '{0}': {1}", command, interaction.Error);
             }
 
             return interaction.Output;
@@ -66,6 +69,39 @@ namespace Emul8.RobotFrontend
             RobotFrontend.Shutdown();
         }
 
+        [RobotFrameworkKeyword]
+        public void CreateAnalyzer(string peripheralName)
+        {
+            IUART uart;
+            if(!monitor.Machine.TryGetByName(peripheralName, out uart))
+            {
+                throw new KeywordException("Peripheral not found or of wrong type: {0}", peripheralName);
+            }
+
+            tester = new TerminalTester(new TimeSpan(0, 0, 30));
+            tester.Terminal.AttachTo(uart);
+        }
+
+        [RobotFrameworkKeyword]
+        public void WaitForLine(string content)
+        {
+            tester.WaitUntilLine(x => x.Contains(content));
+        }
+
+        [RobotFrameworkKeyword]
+        public void WaitForPrompt(string prompt)
+        {
+            tester.NowPromptIs(prompt);
+            tester.WaitForPrompt();
+        }
+
+        [RobotFrameworkKeyword]
+        public void WriteLine(string content)
+        {
+            tester.WriteLine(content);
+        }
+
+        private TerminalTester tester;
         private readonly Monitor monitor;
         private readonly MemoryCommandInteraction interaction;
 
