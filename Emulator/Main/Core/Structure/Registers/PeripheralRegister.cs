@@ -209,7 +209,7 @@ namespace Emul8.Core.Structure.Registers
         /// <param name="readCallback">Method to be called whenever the containing register is read. The first parameter is the value of this field before read,
         /// the second parameter is the value after read. Note that it will also be called for unreadable fields.</param>
         /// <param name="writeCallback">Method to be called whenever the containing register is written to. The first parameter is the value of this field before write,
-        ///  the second parameter is the value written (without any modification). Note that it will also be called for unwrittable fields.</param>
+        /// the second parameter is the value written (without any modification). Note that it will also be called for unwrittable fields.</param>
         /// <param name="changeCallback">Method to be called whenever this field's value is changed, either due to read or write. The first parameter is the value of this field before change,
         /// the second parameter is the value after change. Note that it will also be called for unwrittable fields.</param>
         /// <param name="valueProviderCallback">Method to be called whenever this field is read. The value passed is the current field's value, that will be overwritten by
@@ -234,7 +234,7 @@ namespace Emul8.Core.Structure.Registers
         /// <param name="readCallback">Method to be called whenever the containing register is read. The first parameter is the value of this field before read,
         /// the second parameter is the value after read. Note that it will also be called for unreadable fields.</param>
         /// <param name="writeCallback">Method to be called whenever the containing register is written to. The first parameter is the value of this field before write,
-        ///  the second parameter is the value written (without any modification). Note that it will also be called for unwrittable fields.</param>
+        /// the second parameter is the value written (without any modification). Note that it will also be called for unwrittable fields.</param>
         /// <param name="changeCallback">Method to be called whenever this field's value is changed, either due to read or write. The first parameter is the value of this field before change,
         /// the second parameter is the value after change. Note that it will also be called for unwrittable fields.</param>
         /// <param name="valueProviderCallback">Method to be called whenever this field is read. The value passed is the current field's value, that will be overwritten by
@@ -259,7 +259,7 @@ namespace Emul8.Core.Structure.Registers
         /// <param name="readCallback">Method to be called whenever the containing register is read. The first parameter is the value of this field before read,
         /// the second parameter is the value after read. Note that it will also be called for unreadable fields.</param>
         /// <param name="writeCallback">Method to be called whenever the containing register is written to. The first parameter is the value of this field before write,
-        ///  the second parameter is the value written (without any modification). Note that it will also be called for unwrittable fields.</param>
+        /// the second parameter is the value written (without any modification). Note that it will also be called for unwrittable fields.</param>
         /// <param name="changeCallback">Method to be called whenever this field's value is changed, either due to read or write. The first parameter is the value of this field before change,
         /// the second parameter is the value after change. Note that it will also be called for unwrittable fields.</param>
         /// <param name="valueProviderCallback">Method to be called whenever this field is read. The value passed is the current field's value, that will be overwritten by
@@ -393,7 +393,7 @@ namespace Emul8.Core.Structure.Registers
         /// <param name="originalValue">The whole value written to the register.</param>
         private string TagLogger(long offset, uint value, uint originalValue)
         {
-            var tagsAffected = tags.Select(x => new {Name = x.Name, Value = BitHelper.GetValue(value, x.Position, x.Width)})
+            var tagsAffected = tags.Select(x => new { x.Name, Value = BitHelper.GetValue(value, x.Position, x.Width)})
                 .Where(x => x.Value != 0);
             return "Unhandled write to offset 0x{2:X}. Unhandled bits: [{1}] when writing value 0x{3:X}.{0}"
                 .FormatWith(tagsAffected.Any() ? " Tags: {0}.".FormatWith(
@@ -413,7 +413,7 @@ namespace Emul8.Core.Structure.Registers
             {
                 throw new ArgumentException("Field {0} does not fit in the register size.".FormatWith(name ?? "at {0} of {1} bits".FormatWith(position, width)));
             }
-            foreach(var field in registerFields.Select(x=> new {position = x.position, width = x.width}).Concat(tags.Select(x=>new {position = x.Position, width = x.Width})))
+            foreach(var field in registerFields.Select(x=> new { x.position, x.width}).Concat(tags.Select(x=>new {position = x.Position, width = x.Width})))
             {
                 var minEnd = Math.Min(position + width, field.position + field.width);
                 var maxStart = Math.Max(position, field.position);
