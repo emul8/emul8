@@ -70,6 +70,23 @@ namespace Emul8.Peripherals.CPU
         {
             return GetRegisterValue32(register);
         }
+        
+        public override int[] GetRegisters()
+        {
+            return new int[] {
+<#
+    foreach(var register in 
+        parser.Registers.Where(x => !x.IsIgnored).Select(x => x.Value)
+        .Union(parser.RegisterGroups.Where(x => !x.IsIgnored).SelectMany(x => x.IndexValueMap.Values))
+        .OrderBy(x => x))
+    {
+#>
+                <#=register#>,
+<#
+    }
+#>
+            };
+        }
 
 <#
     foreach(var register in parser.Registers.Where(x => !x.IsIgnored))

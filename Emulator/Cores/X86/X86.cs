@@ -5,6 +5,7 @@
 // This file is part of the Emul8 project.
 // Full license details are defined in the 'LICENSE' file.
 //
+using Endianess = ELFSharp.ELF.Endianess;
 using Emul8.Core;
 using Emul8.Utilities.Binding;
 
@@ -12,7 +13,7 @@ namespace Emul8.Peripherals.CPU
 {
     public partial class X86 : TranslationCPU
     {
-        const EndiannessEnum endianness = EndiannessEnum.LittleEndian;
+        const Endianess endianness = Endianess.LittleEndian;
 
         public X86(string cpuType, Machine machine): base(cpuType, machine, endianness) { }
 
