@@ -315,6 +315,10 @@
     {
         "sysbus": { "address": 0x40005400 }
     },
+    "_irq":
+    {
+        "nvic": [["EventInterrupt", 31], ["ErrorInterrupt", 32]]
+    }
   },
   "I2C2":
   {
@@ -323,6 +327,10 @@
     {
         "sysbus": { "address": 0x40005800 }
     },
+    "_irq":
+    {
+        "nvic": [["EventInterrupt", 33], ["ErrorInterrupt", 34]]
+    }
   },
   "I2C3":
   {
@@ -331,6 +339,10 @@
     {
         "sysbus": { "address": 0x40005C00 }
     },
+    "_irq":
+    {
+	"nvic": [["EventInterrupt", 72], ["ErrorInterrupt", 73]]
+    }
   },
   "I2C4":
   {
@@ -339,5 +351,9 @@
     {
         "sysbus": { "address": 0x40006000 }
     },
+    "_irq":
+    {
+	"nvic" : [["EventInterrupt", 95], ["ErrorInterrupt", 96]]
+    }
   },
 }
