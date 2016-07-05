@@ -75,7 +75,7 @@ All register field types can be defined using fluent functions on the register o
 These are namely ``WithFlag``, ``WithValueField``, ``WithEnumField`` and ``WithTag``.
 
 Also, to receive a read-write register with only one value field covering its whole length, a ``CreateRWRegister`` method is available.
-It is suitable only for the simplest registers, and differs only in the reset value.
+It is suitable only for the simplest registers that differ only in their reset value.
 
 Field access mode
 +++++++++++++++++
@@ -118,8 +118,8 @@ However, there is a limitation that only one "read" flag (:term:`Read` or :term:
         Writing *1* has no effect.
 
 
-Callbacks
-+++++++++
+Field callbacks
++++++++++++++++
 
 For each field four callbacks may be defined: ``readCallback``, ``writeCallback``, ``changeCallback`` and ``valueProviderCallback``.
 The developer can provide handler functions to every callback required.
@@ -157,6 +157,20 @@ Register.Write
 ``writeCallback`` is called for each field when a register is written, regardless of its field access flags.
 
 ``changeCallback`` is called for each field that has any write access flag set and its current value is affected by this write operation.
+
+Register callbacks
+++++++++++++++++++
+
+Similarly to field callbacks, the developer can register callbacks for the whole registers.
+There are three callback types available: ``readCallback``, ``writeCallback`` and ``changeCallback``.
+
+Their semantics is identical to their field counterparts.
+Read callbacks are called on each register read, write - on each register write, and change callbacks are called whenever there is any change to register value, regardless of the type of operation.
+
+Please note that fields' ``valueProviderCallbacks`` to not trigger register's ``changeCallback``.
+
+For each callback type there may be many registered functions.
+They are called in an undefined order.
 
 Unhandled fields
 ++++++++++++++++
