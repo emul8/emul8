@@ -131,6 +131,10 @@ namespace Emul8.Utilities
                 {
                     break;
                 }
+                catch(ObjectDisposedException)
+                {
+                    break;
+                }
 
                 var connectionAccepted = ConnectionAccepted;
                 if(connectionAccepted != null)
