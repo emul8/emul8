@@ -117,7 +117,7 @@
           <TextStylePolicy FileWidth="120" NoTabsAfterNonTabs="True" EolMarker="Unix" inheritsSet="VisualStudio" inheritsScope="text/plain" scope="text/plain" />
           <TextStylePolicy FileWidth="120" NoTabsAfterNonTabs="True" EolMarker="Unix" inheritsSet="VisualStudio" inheritsScope="text/plain" scope="application/json" />
           <TextStylePolicy FileWidth="120" NoTabsAfterNonTabs="True" EolMarker="Unix" inheritsSet="VisualStudio" inheritsScope="text/plain" scope="text/x-python" />
-          <StandardHeader Text="&#xA;Copyright (c) Antmicro&#xA;Copyright (c) Realtime Embedded&#xA;&#xA;This file is part of the Emul8 project.&#xA;Full license details are defined in the 'LICENSE' file.&#xA;" IncludeInNewFiles="True" />
+          <StandardHeader Text="&#xA;Copyright (c) Antmicro&#xA;&#xA;This file is part of the Emul8 project.&#xA;Full license details are defined in the 'LICENSE' file.&#xA;" IncludeInNewFiles="True" />
         </Policies>
       </Properties>
     </MonoDevelop>
