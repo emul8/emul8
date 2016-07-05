@@ -71,6 +71,8 @@ namespace Emul8.Peripherals.I2C
                         .WithTag("ERRIE", 7, 1).WithTag("DNF", 8, 4)
                         .WithTag("ANFOFF", 12, 1).WithTag("TXDMAEN", 14, 1).WithTag("RXDMAEN", 15, 1).WithTag("SBC", 16, 1).WithTag("NOSTRETCH", 17, 1).WithTag("GCEN", 19, 1)
                         .WithTag("SMBHEN", 20, 1).WithTag("SMBDEN", 21, 1).WithTag("ALERTEN", 22, 1).WithTag("PECEN", 23, 1)
+                        .WithChangeCallback((_,__)=>Update())
+
                 }, {
                     (long)Registers.Control2,
                     new DoubleWordRegister(this)
@@ -82,6 +84,7 @@ namespace Emul8.Peripherals.I2C
                         .WithValueField(16, 8, out bytesToTransfer, name: "NBYTES")
                         .WithFlag(24, out reload, name: "RELOAD")
                         .WithFlag(25, out autoEnd, name: "AUTOEND")
+                        .WithChangeCallback((_,__)=>Update())
                 }, {
                     (long)Registers.OwnAddress1, new DoubleWordRegister(this).WithTag("OA1", 0, 10).WithTag("OA1MODE", 10, 1).WithTag("OA1EN", 15, 1)
                 }, {
@@ -91,7 +94,7 @@ namespace Emul8.Peripherals.I2C
                 }, {
                     (long)Registers.InterruptAndStatus, new DoubleWordRegister(this, 1)
                         .WithFlag(0, FieldMode.Read, writeCallback: (_, value)=> {if(value) dataPacket.Clear();}, name: "TXE")
-                        .WithFlag(1, out transmitInterruptStatus, FieldMode.Set | FieldMode.Read, writeCallback: (_, value)=> {if(value) Update();}, name: "TXIS")
+                        .WithFlag(1, out transmitInterruptStatus, FieldMode.Set | FieldMode.Read, name: "TXIS")
                         .WithFlag(2, FieldMode.Read, valueProviderCallback: _ => dataPacket.Any() && isReadTransfer.Value, name: "RXNE")
                         .WithTag("ADDR", 3, 1).WithTag("NACKF", 4, 1)
                         .WithFlag(5, out stopDetection, FieldMode.Read, name: "STOPF")
@@ -99,17 +102,12 @@ namespace Emul8.Peripherals.I2C
                         .WithTag("ALERT", 13, 1).WithTag("BUSY", 15, 1).WithTag("DIR", 16, 1).WithTag("ADDCODE", 17, 7)
                         .WithFlag(6, out transferComplete, FieldMode.Read, name: "TC")
                         .WithFlag(7, out transferCompleteReload, FieldMode.Read, name: "TCR")
+                        .WithChangeCallback((_,__)=>Update())
                 }, {
                     (long)Registers.InterruptClear, new DoubleWordRegister(this, 0).WithTag("ADDRCF", 3, 1).WithTag("NACKCF", 4, 1)
-                        .WithFlag(5, FieldMode.WriteOneToClear, writeCallback: (_, value) =>
-                    {
-                        if(value)
-                        {
-                            stopDetection.Value = false;
-                            Update();
-                        }
-                    }, name: "STOPCF")
+                        .WithFlag(5, FieldMode.WriteOneToClear, writeCallback: (_, value) => stopDetection.Value = !value, name: "STOPCF")
                         .WithTag("BERRCF", 8, 1).WithTag("ARLOCF", 9, 1).WithTag("OVRCF", 10, 1).WithTag("PECCF", 11, 1).WithTag("TIMOUTCF", 12, 1).WithTag("ALERTCF", 13, 1)
+                        .WithChangeCallback((_,__)=>Update())
                 }, {
                     (long)Registers.ReceiveData, new DoubleWordRegister(this, 0).WithValueField(0, 8, FieldMode.Read, valueProviderCallback: ReceiveDataRead, name: "RXDATA")
                 }, {
@@ -128,7 +126,6 @@ namespace Emul8.Peripherals.I2C
                 transferCompleteReload.Value = false;
                 transmitInterruptStatus.Value = false;
             }
-            Update ();
         }
 
         private void StartWrite(bool oldValue, bool newValue)
@@ -150,7 +147,7 @@ namespace Emul8.Peripherals.I2C
 
                 if(isReadTransfer.Value)
                 {
-                    var data = currentSlave.Read();
+                    var data = currentSlave.Read((int)bytesToTransfer.Value);
                     foreach(var item in data)
                     {
                         dataPacket.Enqueue(item);
@@ -158,7 +155,6 @@ namespace Emul8.Peripherals.I2C
                     SetTransferCompleteFlags();
                 }
                 //We do not do anything for writes because we wait for data to be written to TXDATA.
-                Update();
             }
         }
 
@@ -176,7 +172,6 @@ namespace Emul8.Peripherals.I2C
 
         private void TransmitDataWrite(uint oldValue, uint newValue)
         {
-            //TODO: Set ISR stuff
             if(currentSlave == null)
             {
                 this.Log(LogLevel.Warning, "Trying to send byte {0} to an unknown slave with address {1}.", newValue, currentSlaveAddress);
@@ -202,9 +197,10 @@ namespace Emul8.Peripherals.I2C
             {
                 stopDetection.Value = true;
             }
-            if(reload.Value)
-            {
+            if (reload.Value) {
                 transferCompleteReload.Value = true;
+            } else {
+                transmitInterruptStatus.Value = false; //this is a guess based on a driver
             }
         }
 
