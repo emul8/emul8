@@ -18,66 +18,16 @@ namespace Emul8.UnitTests
         [Test]
         public void ShouldNotAcceptOutOfBoundsValues()
         {
-            var foundException = false;
-            try
-            {
-                enumRWField.Value = (TwoBitEnum)(1 << 2);
-            }
-            catch(ArgumentException)
-            {
-                foundException = true;
-            }
-            finally
-            {
-                Assert.IsTrue(foundException);
-            }
-
-            foundException = false;
-            try
-            {
-                valueRWField.Value = (1 << 4);
-            }
-            catch(ArgumentException)
-            {
-                foundException = true;
-            }
-            finally
-            {
-                Assert.IsTrue(foundException);
-            }
+            Assert.Catch<ArgumentException> (() => enumRWField.Value = (TwoBitEnum)(1 << 2));
+            Assert.Catch<ArgumentException> (() => valueRWField.Value = (1 << 4));
         }
 
         [Test]
         public void ShouldNotAcceptNegativeFields()
         {
-            var foundException = false;
             var localRegister = new DoubleWordRegister(null);
-            try
-            {
-                localRegister.DefineEnumField<TwoBitEnum>(0, -1); 
-            }
-            catch(ArgumentException)
-            {
-                foundException = true;
-            }
-            finally
-            {
-                Assert.IsTrue(foundException);
-            }
-
-            foundException = false;
-            try
-            {
-                localRegister.DefineValueField(0, -1); 
-            }
-            catch(ArgumentException)
-            {
-                foundException = true;
-            }
-            finally
-            {
-                Assert.IsTrue(foundException);
-            }
+            Assert.Catch<ArgumentException> (() => localRegister.DefineEnumField<TwoBitEnum> (0, -1));
+            Assert.Catch<ArgumentException> (() => localRegister.DefineValueField (0, -1));
         }
 
 
@@ -88,45 +38,21 @@ namespace Emul8.UnitTests
             {
                 { new DoubleWordRegister(null), 31 },
                 { new WordRegister(null), 15 },
-                { new ByteRegister(null), 7 },
+                { new ByteRegister(null), 7 }
             };
             foreach(var registerAndPosition in registersAndPositions)
             {
-                var foundException = false;
                 var localRegister = registerAndPosition.Key;
-                try
-                {
-                    localRegister.DefineEnumField<TwoBitEnum>(registerAndPosition.Value, 2);
-                }
-                catch(ArgumentException)
-                {
-                    foundException = true;
-                }
-                finally
-                {
-                    Assert.IsTrue(foundException);
-                }
+                Assert.Catch<ArgumentException> (() => localRegister.DefineEnumField<TwoBitEnum> (registerAndPosition.Value, 2));
             }
         }
 
         [Test]
         public void ShouldNotAllowIntersectingFields()
         {
-            var foundException = false;
             var localRegister = new DoubleWordRegister(null);
             localRegister.DefineValueField(1, 5);
-            try
-            {
-                localRegister.DefineValueField(0, 2);
-            }
-            catch(ArgumentException)
-            {
-                foundException = true;
-            }
-            finally
-            {
-                Assert.IsTrue(foundException);
-            }
+            Assert.Catch<ArgumentException> (() => localRegister.DefineValueField (0, 2));
         }
 
         [Test]
@@ -255,7 +181,7 @@ namespace Emul8.UnitTests
         }
 
         [Test]
-        public void ShouldCallWriteAndHandler()
+        public void ShouldCallWriteAndChangeHandler()
         {
             Assert.AreEqual(0, enumCallbacks);
             Assert.AreEqual(0, boolCallbacks);
