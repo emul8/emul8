@@ -10,7 +10,7 @@ using Emul8.Core;
 
 namespace Emul8.HostInterfaces.Network
 {
-    public interface ITapInterface : IMACInterface, IHostMachineElement
+    public interface ITapInterface : IMACInterface, IHostMachineElement, IDisposable
     {
         string InterfaceName { get; }
     }
