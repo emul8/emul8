@@ -54,6 +54,36 @@ namespace Emul8.Core.Structure.Registers
         }
 
         /// <summary>
+        /// Defines the read callback. This method is called once on each change, regardles of the number of defined register fields.
+        /// </summary>
+        /// <param name="readCallback">Method to be called whenever this register is read. The first parameter is the value of this register before read,
+        /// the second parameter is the value after read. Note that it will also be called for unreadable registers.</param>
+        public void DefineReadCallback (Action<uint, uint> readCallback)
+        {
+            readCallbacks.Add (readCallback);
+        }
+
+        /// <summary>
+        /// Defines the write callback. This method is called once on each change, regardles of the number of defined register fields.
+        /// </summary>
+        /// <param name="writeCallback">Method to be called whenever this register is written to. The first parameter is the value of this register before write,
+        /// the second parameter is the value written (without any modification). Note that it will also be called for unwrittable registers.</param>
+        public void DefineWriteCallback (Action<uint, uint> writeCallback)
+        {
+            writeCallbacks.Add (writeCallback);
+        }
+
+        /// <summary>
+        /// Defines the change callback. This method is called once on each change, regardles of the number of defined register fields.
+        /// </summary>
+        /// <param name="changeCallback">Method to be called whenever this register's value is changed, either due to read or write. The first parameter is the value of this register before change,
+        /// the second parameter is the value after change. Note that it will also be called for unwrittable registers.</param>
+        public void DefineChangeCallback (Action<uint, uint> changeCallback)
+        {
+            changeCallbacks.Add (changeCallback);
+        }
+
+        /// <summary>
         /// Gets the underlying value without any modification or reaction.
         /// </summary>
         public uint Value
@@ -63,6 +93,25 @@ namespace Emul8.Core.Structure.Registers
                 return UnderlyingValue;
             }
         }
+
+        protected override void CallChangeHandlers (uint oldValue, uint newValue)
+        {
+            CallHandlers (changeCallbacks, oldValue, newValue);
+        }
+
+        protected override void CallReadHandlers (uint oldValue, uint newValue)
+        {
+            CallHandlers (readCallbacks, (ushort)oldValue, newValue);
+        }
+
+        protected override void CallWriteHandlers (uint oldValue, uint newValue)
+        {
+            CallHandlers (writeCallbacks, oldValue, newValue);
+        }
+
+        private List<Action<uint, uint>> readCallbacks = new List<Action<uint, uint>> ();
+        private List<Action<uint, uint>> writeCallbacks = new List<Action<uint, uint>> ();
+        private List<Action<uint, uint>> changeCallbacks = new List<Action<uint, uint>> ();
     }
 
     /// <summary>
@@ -105,6 +154,36 @@ namespace Emul8.Core.Structure.Registers
         }
 
         /// <summary>
+        /// Defines the read callback. This method is called once on each change, regardles of the number of defined register fields.
+        /// </summary>
+        /// <param name="readCallback">Method to be called whenever this register is read. The first parameter is the value of this register before read,
+        /// the second parameter is the value after read. Note that it will also be called for unreadable registers.</param>
+        public void DefineReadCallback (Action<ushort, ushort> readCallback)
+        {
+            readCallbacks.Add (readCallback);
+        }
+
+        /// <summary>
+        /// Defines the write callback. This method is called once on each change, regardles of the number of defined register fields.
+        /// </summary>
+        /// <param name="writeCallback">Method to be called whenever this register is written to. The first parameter is the value of this register before write,
+        /// the second parameter is the value written (without any modification). Note that it will also be called for unwrittable registers.</param>
+        public void DefineWriteCallback (Action<ushort, ushort> writeCallback)
+        {
+            writeCallbacks.Add (writeCallback);
+        }
+
+        /// <summary>
+        /// Defines the change callback. This method is called once on each change, regardles of the number of defined register fields.
+        /// </summary>
+        /// <param name="changeCallback">Method to be called whenever this register's value is changed, either due to read or write. The first parameter is the value of this register before change,
+        /// the second parameter is the value after change. Note that it will also be called for unwrittable registers.</param>
+        public void DefineChangeCallback (Action<ushort, ushort> changeCallback)
+        {
+            changeCallbacks.Add (changeCallback);
+        }
+
+        /// <summary>
         /// Gets the underlying value without any modification or reaction.
         /// </summary>
         public ushort Value
@@ -114,6 +193,25 @@ namespace Emul8.Core.Structure.Registers
                 return (ushort)UnderlyingValue;
             }
         }
+
+        protected override void CallChangeHandlers (uint oldValue, uint newValue)
+        {
+            CallHandlers (changeCallbacks, (ushort)oldValue, (ushort)newValue);
+        }
+
+        protected override void CallReadHandlers (uint oldValue, uint newValue)
+        {
+            CallHandlers (readCallbacks, (ushort)oldValue, (ushort)newValue);
+        }
+
+        protected override void CallWriteHandlers (uint oldValue, uint newValue)
+        {
+            CallHandlers (writeCallbacks, (ushort)oldValue, (ushort)newValue);
+        }
+
+        private List<Action<ushort, ushort>> readCallbacks = new List<Action<ushort, ushort>> ();
+        private List<Action<ushort, ushort>> writeCallbacks = new List<Action<ushort, ushort>> ();
+        private List<Action<ushort, ushort>> changeCallbacks = new List<Action<ushort, ushort>> ();
     }
 
     /// <summary>
@@ -156,6 +254,36 @@ namespace Emul8.Core.Structure.Registers
         }
 
         /// <summary>
+        /// Defines the read callback. This method is called once on each change, regardles of the number of defined register fields.
+        /// </summary>
+        /// <param name="readCallback">Method to be called whenever this register is read. The first parameter is the value of this register before read,
+        /// the second parameter is the value after read. Note that it will also be called for unreadable registers.</param>
+        public void DefineReadCallback (Action<byte, byte> readCallback)
+        {
+            readCallbacks.Add (readCallback);
+        }
+
+        /// <summary>
+        /// Defines the write callback. This method is called once on each change, regardles of the number of defined register fields.
+        /// </summary>
+        /// <param name="writeCallback">Method to be called whenever this register is written to. The first parameter is the value of this register before write,
+        /// the second parameter is the value written (without any modification). Note that it will also be called for unwrittable registers.</param>
+        public void DefineWriteCallback (Action<byte, byte> writeCallback)
+        {
+            writeCallbacks.Add (writeCallback);
+        }
+
+        /// <summary>
+        /// Defines the change callback. This method is called once on each change, regardles of the number of defined register fields.
+        /// </summary>
+        /// <param name="changeCallback">Method to be called whenever this register's value is changed, either due to read or write. The first parameter is the value of this register before change,
+        /// the second parameter is the value after change. Note that it will also be called for unwrittable registers.</param>
+        public void DefineChangeCallback (Action<byte, byte> changeCallback)
+        {
+            changeCallbacks.Add (changeCallback);
+        }
+
+        /// <summary>
         /// Gets the underlying value without any modification or reaction.
         /// </summary>
         public byte Value
@@ -165,6 +293,26 @@ namespace Emul8.Core.Structure.Registers
                 return (byte)UnderlyingValue;
             }
         }
+
+        protected override void CallChangeHandlers (uint oldValue, uint newValue)
+        {
+            CallHandlers (changeCallbacks, (byte)oldValue, (byte)newValue);
+        }
+
+        protected override void CallReadHandlers (uint oldValue, uint newValue)
+        {
+            CallHandlers (readCallbacks, (byte)oldValue, (byte)newValue);
+        }
+
+        protected override void CallWriteHandlers (uint oldValue, uint newValue)
+        {
+            CallHandlers (writeCallbacks, (byte)oldValue, (byte)newValue);
+        }
+
+        private List<Action<byte, byte>> readCallbacks = new List<Action<byte, byte>> ();
+        private List<Action<byte, byte>> writeCallbacks = new List<Action<byte, byte>> ();
+        private List<Action<byte, byte>> changeCallbacks = new List<Action<byte, byte>> ();
+
     }
 
     /// <summary>
@@ -265,30 +413,15 @@ namespace Emul8.Core.Structure.Registers
         /// <param name="valueProviderCallback">Method to be called whenever this field is read. The value passed is the current field's value, that will be overwritten by
         /// the value returned from it. This returned value is eventually passed as the first parameter of <paramref name="readCallback"/>.</param> 
         /// <param name="name">Ignored parameter, for convenience. Treat it as a comment.</param>
-        public IEnumRegisterField<T> DefineEnumField<T>(int position, int width, FieldMode mode = FieldMode.Read | FieldMode.Write, Action<T, T> readCallback = null,
-            Action<T, T> writeCallback = null, Action<T, T> changeCallback = null, Func<T, T> valueProviderCallback = null, string name = null) 
-            where T : struct, IConvertible
+        public IEnumRegisterField<TEnum> DefineEnumField<TEnum>(int position, int width, FieldMode mode = FieldMode.Read | FieldMode.Write, Action<TEnum, TEnum> readCallback = null,
+            Action<TEnum, TEnum> writeCallback = null, Action<TEnum, TEnum> changeCallback = null, Func<TEnum, TEnum> valueProviderCallback = null, string name = null) 
+            where TEnum : struct, IConvertible
         {
             ThrowIfRangeIllegal(position, width, name);
-            var field = new EnumRegisterField<T>(this, position, width, mode, readCallback, writeCallback, changeCallback, valueProviderCallback);
+            var field = new EnumRegisterField<TEnum>(this, position, width, mode, readCallback, writeCallback, changeCallback, valueProviderCallback);
             registerFields.Add(field);
             RecalculateFieldMask();
             return field;
-        }
-
-        public void DefineReadCallback (Action<uint, uint> readCallback)
-        {
-            readCallbacks.Add (readCallback);
-        }
-
-        public void DefineWriteCallback (Action<uint, uint> writeCallback)
-        {
-            writeCallbacks.Add (writeCallback);
-        }
-
-        public void DefineChangeCallback (Action<uint, uint> changeCallback)
-        {
-            changeCallbacks.Add (changeCallback);
         }
 
         protected PeripheralRegister(IPeripheral parent, uint resetValue, int maxLength)
@@ -329,13 +462,10 @@ namespace Emul8.Core.Structure.Registers
             {
                 changedRegister.CallChangeHandler(baseValue, UnderlyingValue);
             }
-            foreach (var readCallback in readCallbacks) {
-                readCallback (baseValue, UnderlyingValue);
-            }
+
+            CallReadHandlers(baseValue, UnderlyingValue);
             if (changedFields.Any ()) {
-                foreach (var changeCallback in changeCallbacks) {
-                    changeCallback (baseValue, UnderlyingValue);
-                }
+                    CallChangeHandlers(baseValue, UnderlyingValue);
             }
 
             return valueToRead;
@@ -397,13 +527,10 @@ namespace Emul8.Core.Structure.Registers
             {
                 changedRegister.CallChangeHandler(baseValue, UnderlyingValue);
             }
-            foreach (var writeCallback in writeCallbacks) {
-                writeCallback (baseValue, value);
-            }
+
+            CallWriteHandlers(baseValue, value);
             if (changedRegisters.Any ()) { 
-                foreach (var changeCallback in changeCallbacks) {
-                    changeCallback (baseValue, UnderlyingValue);
-                }
+                    CallChangeHandlers(baseValue, UnderlyingValue);
             }
 
             var unhandledWrites = difference & ~definedFieldsMask;
@@ -412,6 +539,18 @@ namespace Emul8.Core.Structure.Registers
                 parent.Log(LogLevel.Warning, TagLogger(offset, unhandledWrites, value));
             }
         }
+
+        protected void CallHandlers<T> (List<Action<T, T>> handlers, T oldValue, T newValue)
+        {
+            foreach (var handler in handlers) {
+                handler (oldValue, newValue);
+            }
+        }
+
+        protected abstract void CallWriteHandlers (uint oldValue, uint newValue);
+        protected abstract void CallReadHandlers (uint oldValue, uint newValue);
+        protected abstract void CallChangeHandlers (uint oldValue, uint newValue);
+
 
         protected uint UnderlyingValue;
 
@@ -472,10 +611,6 @@ namespace Emul8.Core.Structure.Registers
         }
 
         private List<RegisterField> registerFields = new List<RegisterField>();
-
-        private List<Action<uint, uint>> readCallbacks = new List<Action<uint, uint>>();
-        private List<Action<uint, uint>> writeCallbacks = new List<Action<uint, uint>>();
-        private List<Action<uint, uint>> changeCallbacks = new List<Action<uint, uint>>();
 
         private List<Tag> tags = new List<Tag>();
 
