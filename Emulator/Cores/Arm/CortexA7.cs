@@ -10,12 +10,13 @@ using Emul8.Peripherals.CPU;
 using Emul8.Core;
 using Emul8.Peripherals.Timers;
 using Emul8.Peripherals.IRQControllers;
+using Endianess = ELFSharp.ELF.Endianess;
 
 namespace Emul8.Peripherals.CPU
 {
     public sealed class CortexA7 : Arm
     {
-        public CortexA7(Machine machine, GIC gic, long genericTimerCompareValue, EndiannessEnum endianness = EndiannessEnum.LittleEndian) : base("cortex-a15", machine, endianness)
+        public CortexA7(Machine machine, GIC gic, long genericTimerCompareValue, Endianess endianness = Endianess.LittleEndian) : base("cortex-a15", machine, endianness)
         {
             genericTimer = new CortexAGenericTimer(machine, gic, genericTimerCompareValue);
         }

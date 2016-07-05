@@ -5,7 +5,6 @@
 // This file is part of the Emul8 project.
 // Full license details are defined in the 'LICENSE' file.
 //
-using System;
 using ELFSharp.ELF;
 using ELFSharp.UImage;
 
@@ -17,25 +16,15 @@ namespace Emul8.Peripherals.CPU
 
         uint GetRegisterUnsafe(int register);
 
+        int[] GetRegisters();
+
         string[,] GetRegistersValues();
-
-        void SetSingleStepMode(bool on);
-
-        void WaitForStepDone();
-
-        bool InSingleStep();
-
-        void SingleStep();
-
-        void AddBreakpoint(uint addr);
-
-        void RemoveBreakpoint(uint addr);
 
         void InitFromElf(ELF<uint> elf);
 
         void InitFromUImage(UImage uImage);
 
-        event Action<HaltReason> Halted;
+        Endianess Endianness { get; }
     }
 }
 

@@ -29,25 +29,29 @@ using Emul8.Peripherals.CPU.Disassembler;
 using Emul8.Peripherals.CPU.Registers;
 using ELFSharp.ELF;
 using ELFSharp.UImage;
+using System.Diagnostics;
 
 namespace Emul8.Peripherals.CPU
 {
     [GPIO(NumberOfInputs = 2)]  // TODO: maybe we should support more?
-    public abstract class TranslationCPU : IGPIOReceiver, IControllableCPU, IDisposable, IDisassemblable, IClockSource
+    public abstract class TranslationCPU : IGPIOReceiver, ICpuSupportingGdb, IDisposable, IDisassemblable, IClockSource
     {
-        public EndiannessEnum Endianness { get; protected set; }
+        public Endianess Endianness { get; protected set; }
 
-        protected TranslationCPU(string cpuType, Machine machine, EndiannessEnum endianness)
+        protected TranslationCPU(string cpuType, Machine machine, Endianess endianness)
         {
             if(cpuType == null)
             {
                 throw new RecoverableException(new ArgumentNullException("cpuType"));
             }
 
+            oldMaximumBlockSize = -1;
+
             Endianness = endianness;
             PerformanceInMips = 100;
             currentCountThreshold = 5000;
             this.cpuType = cpuType;
+            DisableInterruptsWhileStepping = true;
             ClockSource = new BaseClockSource();
             ClockSource.NumberOfEntriesChanged += (oldValue, newValue) =>
             {
@@ -65,7 +69,6 @@ namespace Emul8.Peripherals.CPU
             started = false;
             isHalted = false;
             translationCacheSync = new object();
-            pumpingModeSync = new object();
             pagesAccessedByIo = new HashSet<long>();
             pauseGuard = new CpuThreadPauseGuard(this);
             InitializeRegisters();
@@ -178,9 +181,14 @@ namespace Emul8.Peripherals.CPU
             }
             set
             {
-                TlibSetMaximumBlockSize(checked((uint)value));
-                ClearTranslationCache();
+                SetMaximumBlockSize(checked((uint)value));
             }
+        }
+
+        private void SetMaximumBlockSize(uint value, bool skipSync = false)
+        {
+            TlibSetMaximumBlockSize(value);
+            ClearTranslationCache(skipSync);
         }
 
         public bool LogTranslationBlockFetch
@@ -214,45 +222,18 @@ namespace Emul8.Peripherals.CPU
         public int Slot { get{if(!slot.HasValue) slot = machine.SystemBus.GetCPUId(this); return slot.Value;} private set {slot = value;} }
         private int? slot;
 
-        public void ClearTranslationCache()
+        public void ClearTranslationCache(bool skipSync = false)
         {
-            using(machine.ObtainPausedState())
+            if(skipSync)
             {
                 TlibInvalidateTranslationCache();
             }
-        }
-
-        public long Pump(long numberOfInstructions)
-        {
-            lock(pumpingModeSync)
+            else
             {
-                executionLimit = numberOfInstructions;
-                var oldCountThreshold = CountThreshold;
-                if(numberOfInstructions < CountThreshold)
+                using(machine.ObtainPausedState())
                 {
-                    this.NoisyLog("Corrected count threshold to {0}.", numberOfInstructions);
-                    CountThreshold = (int)numberOfInstructions; // always fits because numberOfInstructions < CountThreshold which had to be 32bit
+                    TlibInvalidateTranslationCache();
                 }
-                if(IsInstructionCountEnabled() == 0)
-                {
-                    throw new RecoverableException("You can only pump if virtual timers are used.");
-                }
-                if(!PauseEvent.WaitOne(0))
-                {
-                    throw new RecoverableException("You can only pump when CPU is not running (i.e. not started or paused).");
-                }
-                machine.Start();
-                PauseEvent.Reset();
-                CpuLoop();
-                pauseFinishedEvent.Reset();
-                TlibClearPaused();
-                machine.Pause(); // needed because _whole_ machine should be paused after executing pump
-                var reallyExecuted = numberOfInstructions - executionLimit.Value;
-                var discrepancy = Math.Abs(1.0 * numberOfInstructions - reallyExecuted) / numberOfInstructions * 100.0;
-                this.DebugLog("Pump mode: {0} instructions requested, {1} instruction executed, {2:00.00}% discrepancy.", numberOfInstructions, reallyExecuted, discrepancy);
-                CountThreshold = oldCountThreshold;
-                executionLimit = null;
-                return reallyExecuted;
             }
         }
 
@@ -378,15 +359,60 @@ namespace Emul8.Peripherals.CPU
             FreeState();
         }
 
-        public virtual void SetSingleStepMode(bool on)
-        {
-            // TODO: some handling if cpu is not paused
-            if(!on && stepMode)
+        public ExecutionMode ExecutionMode 
+        { 
+            get 
             {
-                SingleStep();
-            } // out of singlestep, move the cpu on, TODO: rework this
-            stepMode = on;
-            TlibSetSingleStep(on ? 1 : 0);
+                lock(sync.Guard)
+                {
+                    return executionMode;
+                }
+            }
+
+            set 
+            {
+                if(executionMode == value) 
+                {
+                    return;
+                }
+
+                lock(sync.Guard)
+                {
+                    executionMode = value;
+                    if(executionMode == ExecutionMode.Continuous)
+                    {
+                        sync.Pass();
+                    }
+                    InvokeInCpuThreadSafely(AdjustBlockSize);
+                }
+            }
+        }
+
+        [Transient]
+        private ExecutionMode executionMode;
+
+        private void AdjustBlockSize()
+        {
+            // to avoid locking, step mode must be checked just once
+            switch(executionMode)
+            {
+            case ExecutionMode.SingleStep:
+                if(oldMaximumBlockSize == -1)
+                {
+                    oldMaximumBlockSize = MaximumBlockSize;
+                    SetMaximumBlockSize(1, true);
+                }
+                break;
+            case ExecutionMode.Continuous:
+                if(oldMaximumBlockSize != -1)
+                {
+                    SetMaximumBlockSize((uint)oldMaximumBlockSize, true);
+                    oldMaximumBlockSize = -1;
+                }
+                break;
+            default:
+                throw new ArgumentException("Unsupported execution mode");
+            }
         }
 
         public bool OnPossessedThread
@@ -424,49 +450,62 @@ namespace Emul8.Peripherals.CPU
 
         public void Pause()
         {
+            InnerPause(new HaltArguments(HaltReason.Pause));
+        }
+
+        private void InnerPause(HaltArguments haltArgs)
+        {
             if(PauseEvent.WaitOne(0))
             {
+                // cpu is already paused
                 return;
             }
-            PauseEvent.Set();
-            TlibSetPaused();
-            if(Thread.CurrentThread.ManagedThreadId == cpuThread.ManagedThreadId)
+
+            lock(pauseLock)
             {
-                pauseGuard.OrderPause();
-                return;
+                PauseEvent.Set();
+                TlibSetPaused();
+
+                if(Thread.CurrentThread.ManagedThreadId != cpuThread.ManagedThreadId)
+                {
+                    this.NoisyLog("Waiting for thread to pause.");
+                    sync.Pass();
+                    cpuThread.Join();
+                    this.NoisyLog("Paused.");
+                    cpuThread = null;
+                    TlibClearPaused();
+                }
+                else
+                {
+                    pauseGuard.OrderPause();
+                }
             }
-            this.NoisyLog("Waiting for thread to pause.");
-            cpuThread.Join();
-            this.NoisyLog("Paused.");
-            cpuThread = null;
-            TlibClearPaused();
+
+            InvokeHalted(haltArgs);
         }
      
         public virtual void Resume()
         {
-            if(!PauseEvent.WaitOne(0))
+            lock(pauseLock)
             {
-                return;
-            }
-            started = true;
-            lock(pumpingModeSync)
-            {
-                if(executionLimit.HasValue)
+                if(!PauseEvent.WaitOne(0))
                 {
                     return;
                 }
+                started = true;
+                this.NoisyLog("Resuming.");
+                cpuThread = new Thread(CpuLoop)
+                {
+                    IsBackground = true,
+                    Name = this.GetCPUThreadName(machine)
+                };
+                PauseEvent.Reset();
+                cpuThread.Start();
+                TlibClearPaused();
+                this.NoisyLog("Resumed.");
             }
-            this.NoisyLog("Resuming.");
-            cpuThread = new Thread(CpuLoop) 
-            {
-                IsBackground = true,
-                Name = this.GetCPUThreadName(machine)
-            };
-            PauseEvent.Reset();
-            TlibClearPaused();
-            cpuThread.Start();
-            this.NoisyLog("Resumed.");
         }
+
         public virtual void Reset()
         {
             Pause();
@@ -484,7 +523,7 @@ namespace Emul8.Peripherals.CPU
                     CheckIfOnSynchronizedThread();
                 }
                 this.NoisyLog("IRQ {0}, value {1}", number, value);
-                if(started)
+                if(started && !(DisableInterruptsWhileStepping && executionMode == ExecutionMode.SingleStep))
                 {
                     TlibSetIrq((int)decodedInterrupt, value ? 1 : 0);
                 }
@@ -511,7 +550,7 @@ namespace Emul8.Peripherals.CPU
             }
         }
 
-        public event Action<HaltReason> Halted;
+        public event Action<HaltArguments> Halted;
 
         public void MapMemory(IMappedSegment segment)
         {
@@ -554,6 +593,7 @@ namespace Emul8.Peripherals.CPU
             pagesAccessedByIo.Remove(address & TlibGetPageSize());
         }
 
+        public bool DisableInterruptsWhileStepping { get; set; }
         public int PerformanceInMips { get; set; }
 
         public void LogFunctionNames(bool value)
@@ -590,12 +630,12 @@ namespace Emul8.Peripherals.CPU
 
         protected abstract Interrupt DecodeInterrupt(int number);
 
-        protected void ClearHookAtBlockBegin()
+        public void ClearHookAtBlockBegin()
         {
             SetHookAtBlockBegin(null);
         }
 
-        protected void SetHookAtBlockBegin(Action<uint, uint> hook)
+        public void SetHookAtBlockBegin(Action<uint, uint> hook)
         {
             using(machine.ObtainPausedState())
             {
@@ -689,6 +729,8 @@ namespace Emul8.Peripherals.CPU
 
         public abstract uint GetRegisterUnsafe(int register);
 
+        public abstract int[] GetRegisters();
+
         private void CheckIfOnSynchronizedThread()
         {
             if(Thread.CurrentThread.ManagedThreadId != cpuThread.ManagedThreadId
@@ -739,8 +781,16 @@ namespace Emul8.Peripherals.CPU
             PC = entryPoint;
         }
 
+        private void InvokeInCpuThreadSafely(Action a)
+        {
+            actionsToExecuteInCpuThread.Enqueue(a);
+        }
+
+        private ConcurrentQueue<Action> actionsToExecuteInCpuThread = new ConcurrentQueue<Action>();
+
         private void CpuLoop()
         {
+            var tlibResult = 0;
             if(ClockSource.HasEntries && advanceShouldBeRestarted)
             {
                 try
@@ -765,8 +815,7 @@ namespace Emul8.Peripherals.CPU
                     if(info != string.Empty)
                         info = "- " + info;
                 }
-                //this.NoisyLog("Entered iteration @ 0x{0:x8} {1}", PC,info);
-                if(TlibIsIrqSet() == 0 && interruptEvents.Any(x => x.WaitOne(0)))
+                if(!(DisableInterruptsWhileStepping && executionMode == ExecutionMode.SingleStep) && TlibIsIrqSet() == 0 && interruptEvents.Any(x => x.WaitOne(0)))
                 {
                     for(var i = 0; i < interruptEvents.Length; i++)
                     {
@@ -784,15 +833,25 @@ namespace Emul8.Peripherals.CPU
                     }
                     if(doIteration)
                     {
-                        TlibExecute();
+                        Action queuedAction;
+                        while(actionsToExecuteInCpuThread.TryDequeue(out queuedAction))
+                        {
+                            queuedAction();
+                        }
+
+                        HandleStepping(true);
+
+                        pauseGuard.Enter();
+                        skipNextStepping = true;
+                        tlibResult = TlibExecute();
+                        pauseGuard.Leave();
                     }
                 }
                 catch(CpuAbortException)
                 {
                     this.NoisyLog("CPU abort detected, halting.");
-                    PauseEvent.Set();
                     machine.Pause();
-                    InvokeHalted(HaltReason.Abort);
+                    InvokeHalted(new HaltArguments(HaltReason.Abort));
                     break;
                 }
                 catch(OperationCanceledException)
@@ -801,41 +860,16 @@ namespace Emul8.Peripherals.CPU
                     break;
                 }
 
-                // hook handling
-                if(hooks.ContainsKey(this.PC)) {
-                    this.DebugLog("Hook @ PC=0x{0:X8}", PC);
-                    hooks[PC](PC);
-                    if (!breakpoints.Contains(PC)) {
-                        // temporarily remove this hook
-                        TlibRemoveBreakpoint(PC);
-                        inactiveHooks.Add(PC);
-                    }
+                if(tlibResult == BreakpointResult)
+                {
+                    ExecuteHooks(PC);
                 }
 
-                if(breakpoints.Contains(this.PC))
-                {
-                    this.DebugLog("Breakpoint at PC=0x{0:X8}, pausing", PC);
-                    PauseEvent.Set();
-                    ThreadPool.QueueUserWorkItem(x => machine.Pause());
-                    stepDoneEvent.Set();// TODO
-                    InvokeHalted(HaltReason.Breakpoint);
-                    break;
-                }
-                if(stepMode)
-                {
-                    stepDoneEvent.Set();
-                    this.NoisyLog("Waiting for another step (PC=0x{0:X8}).", PC);
-                    stepEvent.WaitOne();
-                    InvokeHalted(HaltReason.StepMode);
-                    continue;
-                }
                 if(PauseEvent.WaitOne(0))
                 {
-                    this.NoisyLog("Pause set, exiting loop.");
-                    pauseFinishedEvent.Set();
-                    InvokeHalted(HaltReason.Pause);
                     break;
                 }
+
                 if(CheckHalted())
                 {
                     if(ClockSource.HasEntries)
@@ -887,18 +921,27 @@ namespace Emul8.Peripherals.CPU
             interruptEvents[number].Reset();
         }
 
+        private void HandleStepping(bool force = false)
+        {
+            lock(sync.Guard)
+            {
+                if(ExecutionMode != ExecutionMode.SingleStep || (!force && skipNextStepping))
+                {
+                    return;
+                }
+
+                this.NoisyLog("Waiting for another step (PC=0x{0:X8}).", PC);
+                InvokeHalted(new HaltArguments(HaltReason.Step));
+                sync.SignalAndWait();
+            }
+        }
+
         [Export]
         private void OnBlockBegin(uint address, uint size)
         {
-            // add missing hooks
-            foreach(var hook in inactiveHooks)
-            {
-                if(hooks.ContainsKey(hook))
-                {
-                    TlibAddBreakpoint(hook);
-                }
-            }
-            inactiveHooks.Clear();
+            HandleStepping();
+            skipNextStepping = false;
+
             var bbHook = blockBeginHook;
             if(bbHook == null)
             {
@@ -926,8 +969,6 @@ namespace Emul8.Peripherals.CPU
             return null;
         }
 
-
-
         private string GetSymbolName(uint offset) 
         {
             var info = string.Empty;
@@ -948,10 +989,6 @@ namespace Emul8.Peripherals.CPU
                 if (info != string.Empty) info = "- " + info;
                 return string.Format("Fetching block @ 0x{0:X8} {1}", offset, info);
             });
-            if(hooks.ContainsKey(PC)) {
-                  this.DebugLog("Hook @ PC=0x{0:X8} [issued from LogOffset]", this.PC);
-                hooks[PC](PC); // TODO: will it happen two times sometimes ?
-            }
         }
             
         private IntPtr DoLookupSymbol(uint offset)
@@ -981,57 +1018,94 @@ namespace Emul8.Peripherals.CPU
             }
         }
 
-        public bool InSingleStep()
+        public void Step(int count = 1)
         {
-            return stepMode;
-        }
+            lock(sync.Guard)
+            {
+                if(ExecutionMode != ExecutionMode.SingleStep)
+                {
+                    throw new RecoverableException("Stepping is available in single step execution mode only.");
+                }
 
-        public void SingleStep()
-        {
-            stepEvent.Set();
-        }
-
-        public void AddBreakpoint(uint addr)
-        {
-            breakpoints.Add(addr);
-            TlibAddBreakpoint(addr);
-        }
-
-        public void RemoveBreakpoint(uint addr)
-        {
-            breakpoints.Remove(addr);
-            if (!hooks.ContainsKey(addr)) {
-                    TlibRemoveBreakpoint(addr);
+                sync.PassAndWait(count);
             }
         }
 
         public void AddHook(uint addr, Action<uint> hook)
         {
-            // TODO: use hook
-            this.DebugLog("Added hook @0x{0:X}'", addr);
-            if(hooks.ContainsKey(addr))
+            lock(hooks)
             {
-                hooks.Remove(addr);
-                TlibRemoveBreakpoint(addr);
-            }
-            hooks.Add(addr, hook);
-            TlibAddBreakpoint(addr);
-        }
+                if(!hooks.ContainsKey(addr))
+                {
+                    hooks[addr] = new HashSet<Action<uint>>();
+                    TlibAddBreakpoint(addr);
+                }
 
-        public void RemoveHook(uint addr)
-        {
-            hooks.Remove(addr);
-            if(!breakpoints.Contains(addr))
-            {
-                TlibRemoveBreakpoint(addr);
+                hooks[addr].Add(hook);
+                this.DebugLog("Added hook @ 0x{0:X}", addr);
             }
         }
 
-        public void WaitForStepDone()
+        public void RemoveHook(uint addr, Action<uint> hook)
         {
-            stepDoneEvent.WaitOne();
+            lock(hooks)
+            {
+                HashSet<Action<uint>> callbacks;
+                if(!hooks.TryGetValue(addr, out callbacks)|| !callbacks.Remove(hook))
+                {
+                    this.Log(LogLevel.Warning, "Tried to remove not existing hook from address 0x{0:x}", addr);
+                    return;
+                }
+                if(!callbacks.Any())
+                {
+                    hooks.Remove(addr);
+                    TlibRemoveBreakpoint(addr);
+                }
+            }
         }
-     
+
+        public void RemoveHooksAt(uint addr)
+        {
+            lock(hooks)
+            {
+                if(hooks.Remove(addr))
+                {
+                    TlibRemoveBreakpoint(addr);
+                }
+            }
+        }
+
+        [Conditional("DEBUG")]
+        private void CheckCpuThreadId()
+        {
+            if(Thread.CurrentThread != cpuThread)
+            {
+                throw new ArgumentException(
+                    string.Format("Method called from a wrong thread. Expected {0}, but got {1}",
+                                  cpuThread.ManagedThreadId, Thread.CurrentThread.ManagedThreadId));
+            }
+        }
+
+        public void EnterSingleStepModeSafely(HaltArguments args)
+        {
+            // this method should only be called from CPU thread,
+            // but we should check it anyway
+            CheckCpuThreadId();
+
+            TlibSetPaused();
+            InvokeInCpuThreadSafely(() =>
+            {
+                ExecutionMode = ExecutionMode.SingleStep;
+                TlibClearPaused();
+                if(args != null)
+                {
+                    InvokeHalted(args);
+                }
+            });
+        }
+
+        private readonly object pauseLock = new object();
+             
         public string Model
         {
             get
@@ -1057,14 +1131,14 @@ namespace Emul8.Peripherals.CPU
                 {
                     this.NoisyLog("Halting CPU.");
                 }
-                Pause();
+                InnerPause(new HaltArguments(HaltReason.Abort));
             }
             started = false;
             if(!silent)
             {
                 this.NoisyLog("Disposing translation library.");
             }
-            RemoveAllBreakpoints();
+            RemoveAllHooks();
             TlibDispose();
             EmulFreeHostBlocks();
             binder.Dispose();
@@ -1102,12 +1176,8 @@ namespace Emul8.Peripherals.CPU
         {
             memoryManager = new SimpleMemoryManager(this);
             PauseEvent = new ManualResetEvent(true);
-            breakpoints = breakpoints ?? new List<uint>();
-            hooks = hooks ?? new Dictionary<uint, Action<uint>>();
-            inactiveHooks = inactiveHooks ?? new List<uint>();
-            pauseFinishedEvent = new ManualResetEventSlim(false);
-            stepDoneEvent = new AutoResetEvent(false);
-            stepEvent = new AutoResetEvent(false);
+            hooks = hooks ?? new Dictionary<uint, HashSet<Action<uint>>>();
+            sync = new Synchronizer();
             haltedFinishedEvent = new AutoResetEvent(false);
             waitHandles = interruptEvents.Cast<WaitHandle>().Union(new EventWaitHandle[] { PauseEvent, haltedFinishedEvent }).ToArray();
 
@@ -1117,7 +1187,7 @@ namespace Emul8.Peripherals.CPU
             }
             onTranslationBlockFetch = OnTranslationBlockFetch;
 
-            var libraryResource = string.Format("Emul8.translate_{0}-{1}-{2}.so", IntPtr.Size * 8, Architecture, Endianness == EndiannessEnum.BigEndian ? "be" : "le");
+            var libraryResource = string.Format("Emul8.translate_{0}-{1}-{2}.so", IntPtr.Size * 8, Architecture, Endianness == Endianess.BigEndian ? "be" : "le");
             libraryFile = GetType().Assembly.FromResourceToTemporaryFile(libraryResource);
 
             binder = new NativeBinder(this, libraryFile);
@@ -1135,10 +1205,6 @@ namespace Emul8.Peripherals.CPU
                 AfterLoad(statePtr);
             }
             HandleRamSetup();
-            foreach(var bpoint in breakpoints)
-            {
-                TlibAddBreakpoint(bpoint);
-            }
             foreach(var hook in hooks)
             {
                 TlibAddBreakpoint(hook.Key);
@@ -1146,12 +1212,12 @@ namespace Emul8.Peripherals.CPU
             EmulSetCountThreshold(currentCountThreshold);
         }
 
-        private void InvokeHalted(HaltReason reason)
+        private void InvokeHalted(HaltArguments arguments)
         {
             var halted = Halted;
             if(halted != null)
             {
-                halted(reason);
+                halted(arguments);
             }
         }
 
@@ -1159,18 +1225,6 @@ namespace Emul8.Peripherals.CPU
         private void UpdateInstructionCounter(int value)
         {
             ExecutedInstructions += value;
-            lock(pumpingModeSync)
-            {
-                if(executionLimit.HasValue)
-                {
-                    executionLimit -= value;
-                    if(executionLimit <= 0)
-                    {
-                        PauseEvent.Set();
-                        TlibSetPaused();
-                    }
-                }
-            }
             var instructionsThisTurn = value + instructionCountResiduum;
             instructionCountResiduum = instructionsThisTurn % PerformanceInMips;
             ClockSource.Advance(instructionsThisTurn / PerformanceInMips);
@@ -1185,22 +1239,17 @@ namespace Emul8.Peripherals.CPU
         [Export]
         private uint IsBlockBeginEventEnabled()
         {
-            return (blockBeginHook != null || inactiveHooks.Count > 0) ? 1u : 0u;
+            return (blockBeginHook != null || executionMode == ExecutionMode.SingleStep) ? 1u : 0u;
         }
-      
-        private List<uint>breakpoints;
-        private Dictionary<uint, Action<uint>>hooks;
-        private List<uint>inactiveHooks;
+
+        private int oldMaximumBlockSize;
 
         [Transient]
         private ActionUInt32 onTranslationBlockFetch;
         private string cpuType;
-        private bool stepMode;
         private byte[] cpuState;
         private int instructionCountResiduum;
         private bool isHalted;
-        private readonly object pumpingModeSync; 
-        private long? executionLimit;
 
         [Transient]
         private volatile bool started;
@@ -1212,16 +1261,10 @@ namespace Emul8.Peripherals.CPU
         protected ManualResetEvent PauseEvent;
 
         [Transient]
-        private ManualResetEventSlim pauseFinishedEvent;
-
-        [Transient]
         private string libraryFile;
 
         [Transient]
-        private AutoResetEvent stepEvent;
-
-        [Transient]
-        private AutoResetEvent stepDoneEvent;
+        private Synchronizer sync;
 
         private int translationCacheSize;
         private readonly object translationCacheSync;
@@ -1303,16 +1346,6 @@ namespace Emul8.Peripherals.CPU
             {
                 cpu.TlibInvalidateTranslationBlocks(start, end);
             }
-        }
-
-        private void RemoveAllBreakpoints()
-        {
-            foreach(var breakpoint in breakpoints.Union(hooks.Select(x => x.Key)))
-            {
-                TlibRemoveBreakpoint(breakpoint);
-            }
-            breakpoints.Clear();
-            hooks.Clear();
         }
 
         private CpuThreadPauseGuard ObtainPauseGuard(bool forReading, long address)
@@ -1451,6 +1484,16 @@ namespace Emul8.Peripherals.CPU
                 this.parent = parent;
             }
 
+            public void Enter()
+            {
+                active = true;
+            }
+
+            public void Leave()
+            {
+                active = false;
+            }
+
             public void Initialize(bool forReading, long address)
             {
                 guard.Value = new object();
@@ -1481,7 +1524,7 @@ namespace Emul8.Peripherals.CPU
 
             public void OrderPause()
             {
-                if(guard.Value == null)
+                if(active && guard.Value == null)
                 {
                     throw new InvalidOperationException("Trying to order pause without prior guard initialization on this thread.");
                 }
@@ -1499,6 +1542,7 @@ namespace Emul8.Peripherals.CPU
             private readonly ThreadLocal<bool> blockRestartReached;
 
             private readonly TranslationCPU parent;
+            private bool active;
         }
 
         protected enum Interrupt
@@ -1631,6 +1675,10 @@ namespace Emul8.Peripherals.CPU
                         isHaltedChanged(value);
                     }
                     isHalted = value;
+                    if(isHalted) 
+                    {
+                        InvokeHalted(new HaltArguments(HaltReason.Pause));
+                    }
                     if(!value)
                     {
                         haltedFinishedEvent.Set();
@@ -1657,7 +1705,7 @@ namespace Emul8.Peripherals.CPU
         private Action TlibReset;
 
         [Import]
-        private Action TlibExecute;
+        private FuncInt32 TlibExecute;
 
         [Import]
         protected Action TlibRestartTranslationBlock;
@@ -1670,9 +1718,6 @@ namespace Emul8.Peripherals.CPU
             
         [Import]
         private FuncInt32 TlibIsWfi;
-
-        [Import]
-        private ActionInt32 TlibSetSingleStep;
 
         [Import]
         private FuncUInt32 TlibGetPageSize;
@@ -1781,18 +1826,152 @@ namespace Emul8.Peripherals.CPU
 
         private bool advanceShouldBeRestarted;
 
+        // Execution of a code in CPU is performed by tlib (implemented in C) that is called 
+        // from C# in TranslationCPU.CpuLoop using TlibExecute method. For better performance, 
+        // tlib groups instructions in so-called blocks that are executed atomically from C# code 
+        // perspective (with some exceptions regarding hooks, of course). Sometimes it is even 
+        // possible for multiple blocks to be executed one-by-one without leaving single TlibExecute call.
+        //
+        // In order to achieve code execution with precision up to a single instruction, maximum 
+        // block size must be set to one.This, however, does not prevent block chaining from happening.
+        // As a result, there is still no guarantee that TlibExecute finishes after each instruction, 
+        // even with minimal possible block size.
+        //
+        // Fortunately, there is OnBlockBegin hook that is called before executing instructions from
+        // each block - as a result, C# is notified about each block even when chaining is active.
+        //
+        // SingleStepping and halting on Hooks (both watchpoints and breakpoints) is achieved by 
+        // blocking CpuLoop on sync guard located in OnBlockBegin hook. Thanks to that we are 
+        // able to control an execution of CPU precisely with block chaining being active.
+        //
+        // Unfortunately, there is one problem with this approach when it comes to breakpoints. 
+        // When it is inserted, the whole instruction block is re-translated in such a way that it ends 
+        // with special trap instruction generated at the breakpoint's address. As a result, it is naturally 
+        // guaranteed to leave C-code when hitting it. Removing breakpoint requires another retranslation 
+        // to remove this trap instruction.
+        //
+        // Adding/removing breakpoints when tlib is not executing is safe and works well, but problems 
+        // arise when managing them from within hooks.As mentioned earlier, CpuLoop is halted on 
+        // OnBlockBegin hook, which means that the block is already executing. As a result removing
+        // breakpoint at this moment will not prevent executing trap instruction in this block again 
+        // leading to breaking on non-existing breakpoint.
+        //
+        // To solve this problem method HandleStepping is executed two times: 
+        //   (1) before entering tlib code (to handle breakpoints) 
+        //   (2) at the beginning of each block (to handle stepping)
+        //
+        // As a result, it is executed twice for the first block.To avoid it we have special flag 
+        // skipNextStepping which is set to true after(1) and cleared after first(2).
+        private bool skipNextStepping;
+
         protected static readonly Exception InvalidInterruptNumberException = new InvalidOperationException("Invalid interrupt number.");
 
         private const int DefaultMaximumBlockSize = 0x7FF;
+        private const int BreakpointResult = 0x10002;
+        private const int HaltedResult = 0x10003;
 
+        private void ExecuteHooks(uint address)
+        {
+            lock(hooks)
+            {
+                HashSet<Action<uint>> callbacks;
+                if(!hooks.TryGetValue(address, out callbacks))
+                {
+                    return;
+                }
+
+                this.DebugLog("Executing hooks registered at address 0x{0:X8}", address);
+                foreach(var hook in callbacks)
+                {
+                    hook(address);
+                }
+            }
+        }
+
+        public void RemoveAllHooks()
+        {
+            lock(hooks)
+            {
+                foreach(var hook in hooks)
+                {
+                    TlibRemoveBreakpoint(hook.Key);
+                }
+                hooks.Clear();
+            }
+        }
+
+        private Dictionary<uint, HashSet<Action<uint>>> hooks;
+
+        private class Synchronizer
+        {
+            public Synchronizer()
+            {
+                guard = new object();
+            }
+
+            public void SignalAndWait()
+            {
+                lock(guard)
+                {
+                    if(counter > 0) 
+                    {
+                        counter--;
+                    }
+                    if(counter == 0) 
+                    {
+                        Monitor.Pulse(guard);
+                    }
+                    do
+                    {
+                        Monitor.Wait(guard);
+                    }
+                    while(counter == 0);
+                }
+            }
+
+            public void PassAndWait(int steps = 1)
+            {
+                lock(guard)
+                {
+                    counter = steps;
+                    Monitor.Pulse(guard);
+
+                    do
+                    {
+                        Monitor.Wait(guard);
+                    }
+                    while(counter > 0);
+                }
+            }
+
+            public void Pass()
+            {
+                lock(guard)
+                {
+                    counter = 1;
+                    Monitor.Pulse(guard);
+                }
+            }
+
+            public void Wait()
+            {
+                lock(guard)
+                {
+                    Monitor.Wait(guard);
+                }
+            }
+
+            public object Guard
+            {
+                get
+                {
+                    return guard;
+                }
+            }
+
+            private int counter;
+            private readonly object guard;
+        }
     }
-
-
-    public enum EndiannessEnum
-    {
-        BigEndian,
-        LittleEndian
-    }
-
 }
 

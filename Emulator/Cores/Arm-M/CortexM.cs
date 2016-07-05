@@ -21,7 +21,7 @@ namespace Emul8.Peripherals.CPU
 {
     public partial class CortexM : Arm, IControllableCPU
     {
-        public CortexM(string cpuType, Machine machine, NVIC nvic, EndiannessEnum endianness = EndiannessEnum.LittleEndian) : base(cpuType, machine, endianness)
+        public CortexM(string cpuType, Machine machine, NVIC nvic, Endianess endianness = Endianess.LittleEndian) : base(cpuType, machine, endianness)
         {
             if(nvic == null)
             {

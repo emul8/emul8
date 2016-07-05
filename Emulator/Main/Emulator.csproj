@@ -217,7 +217,7 @@
     <Compile Include="Network\EtherType.cs" />
     <Compile Include="Peripherals\Bus\Wrappers\RegisterMapper.cs" />
     <Compile Include="Network\EthernetFrame.cs" />
-    <Compile Include="Peripherals\CPU\ICPUWithBlockBeginHook.cs" />
+    <Compile Include="Peripherals\CPU\ICPUWithHooks.cs" />
     <Compile Include="Utilities\AutoParameterAttribute.cs" />
     <Compile Include="Peripherals\CPU\HaltReason.cs" />
     <Compile Include="Peripherals\IMemory.cs" />
@@ -366,6 +366,10 @@
     <Compile Include="Peripherals\Bus\BusHookHandler.cs" />
     <Compile Include="Testing\FrameBufferTester.cs" />
     <Compile Include="Peripherals\InterruptHandler.cs" />
+    <Compile Include="Peripherals\CPU\BreakpointType.cs" />
+    <Compile Include="Peripherals\CPU\HaltArguments.cs" />
+    <Compile Include="Peripherals\CPU\ExecutionMode.cs" />
+    <Compile Include="Peripherals\CPU\ICpuSupportingGdb.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup />
