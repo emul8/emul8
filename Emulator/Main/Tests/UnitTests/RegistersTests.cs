@@ -199,6 +199,28 @@ namespace Emul8.UnitTests
         }
 
         [Test]
+        public void ShouldCallGlobalReadHandler ()
+        {
+            Assert.AreEqual (0, globalCallbacks);
+            register.Read ();
+            Assert.AreEqual (1, globalCallbacks);
+            Assert.AreEqual (RegisterResetValue, oldGlobalValue);
+            Assert.AreEqual (RegisterResetValue, newGlobalValue);
+        }
+
+        [Test]
+        public void ShouldCallGlobalWriteAndChangeHandler ()
+        {
+            Assert.AreEqual (0, globalCallbacks);
+            register.Write (0, 0x2A80);
+            //Two calls for changed registers, 1 call for unchanged register
+            Assert.AreEqual (2, globalCallbacks);
+
+            Assert.AreEqual (RegisterResetValue, oldGlobalValue);
+            Assert.AreEqual (0x2A80, newGlobalValue);
+        }
+
+        [Test]
         public void ShouldWorkWithUndefinedEnumValue()
         {
             register.Write(0, 2);
@@ -254,17 +276,29 @@ namespace Emul8.UnitTests
             register.DefineFlagField(25, valueProviderCallback: ModifyingFlagCallback);
             register.DefineEnumField<TwoBitEnum>(26, 2, valueProviderCallback: ModifyingEnumCallback);
 
+            register.WithReadCallback(GlobalCallback).WithWriteCallback(GlobalCallback).WithChangeCallback(GlobalCallback);
+
             enableValueProviders = false;
 
             enumCallbacks = 0;
             boolCallbacks = 0;
             numberCallbacks = 0;
+            globalCallbacks = 0;
             oldBoolValue = false;
             newBoolValue = false;
             oldEnumValue = TwoBitEnum.A;
             newEnumValue = TwoBitEnum.A;
             oldUintValue = 0;
             newUintValue = 0;
+            oldGlobalValue = 0;
+            newGlobalValue = 0;
+        }
+
+        private void GlobalCallback (uint oldValue, uint newValue)
+        {
+            globalCallbacks++;
+            oldGlobalValue = oldValue;
+            newGlobalValue = newValue;
         }
 
         private void EnumCallback(TwoBitEnum oldValue, TwoBitEnum newValue)
@@ -366,12 +400,16 @@ namespace Emul8.UnitTests
         private int boolCallbacks;
         private int numberCallbacks;
 
+        private int globalCallbacks;
+
         private TwoBitEnum oldEnumValue;
         private TwoBitEnum newEnumValue;
         private bool oldBoolValue;
         private bool newBoolValue;
         private uint oldUintValue;
         private uint newUintValue;
+        private uint oldGlobalValue;
+        private uint newGlobalValue;
 
         private bool enableValueProviders;
 
