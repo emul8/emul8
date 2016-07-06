@@ -46,7 +46,7 @@ namespace Emul8.Bootstrap
 
             foreach(var project in projects)
             {
-                builder.AppendFormat("Project(\"{{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}}\") = \"{0}\", \"{1}\", \"{{{2}}}\"\n", project.Name, project.Path, project.GUID);
+                builder.AppendFormat("Project(\"{{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}}\") = \"{0}\", \"{1}\", \"{{{2}}}\"\n", project.Name, project.Path, project.GUID.ToString().ToUpper());
                 builder.AppendLine("EndProject");
             }
 
@@ -84,7 +84,7 @@ namespace Emul8.Bootstrap
 
             foreach(var type in typeToGuidMap)
             {
-                builder.AppendFormat("Project(\"{{2150E333-8FDC-42A3-9474-1A3956D46DE8}}\") = \"{0}\", \"{0}\", \"{{{1}}}\"\n", type.Key, type.Value.Item1);
+                builder.AppendFormat("Project(\"{{2150E333-8FDC-42A3-9474-1A3956D46DE8}}\") = \"{0}\", \"{0}\", \"{{{1}}}\"\n", type.Key, type.Value.Item1.ToString().ToUpper());
                 builder.AppendLine("EndProject");
             }
 
@@ -97,10 +97,11 @@ namespace Emul8.Bootstrap
 
             foreach(var project in projects)
             {
-                builder.AppendFormat("\t\t\t{{{0}}}.Debug|x86.ActiveCfg = Debug|{1}\n", project.GUID, project.Target);
-                builder.AppendFormat("\t\t\t{{{0}}}.Debug|x86.Build.0 = Debug|{1}\n", project.GUID, project.Target);
-                builder.AppendFormat("\t\t\t{{{0}}}.Release|x86.ActiveCfg = Release|{1}\n", project.GUID, project.Target);
-                builder.AppendFormat("\t\t\t{{{0}}}.Release|x86.Build.0 = Release|{1}\n", project.GUID, project.Target);
+                var guid = project.GUID.ToString().ToUpper();
+                builder.AppendFormat("\t\t\t{{{0}}}.Debug|x86.ActiveCfg = Debug|{1}\n", guid, project.Target);
+                builder.AppendFormat("\t\t\t{{{0}}}.Debug|x86.Build.0 = Debug|{1}\n", guid, project.Target);
+                builder.AppendFormat("\t\t\t{{{0}}}.Release|x86.ActiveCfg = Release|{1}\n", guid, project.Target);
+                builder.AppendFormat("\t\t\t{{{0}}}.Release|x86.Build.0 = Release|{1}\n", guid, project.Target);
             }
 
             builder.AppendLine("\tEndGlobalSection");
@@ -111,7 +112,7 @@ namespace Emul8.Bootstrap
             {
                 foreach(var project in type.Value.Item2)
                 {
-                    builder.AppendFormat("\t\t\t{{{0}}} = {{{1}}}\n", project.GUID, type.Value.Item1);
+                    builder.AppendFormat("\t\t\t{{{0}}} = {{{1}}}\n", project.GUID.ToString().ToUpper(), type.Value.Item1);
                 }
             }
 
