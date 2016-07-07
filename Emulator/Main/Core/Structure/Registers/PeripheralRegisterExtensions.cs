@@ -57,7 +57,7 @@ namespace Emul8.Core.Structure.Registers
 
         /// <summary>
         /// Fluent API for value field creation. For parameters see <see cref="PeripheralRegister.DefineValueField"/>.
-        /// This overload allows you to retrieve the created field via <c>valueFiled</c> parameter.
+        /// This overload allows you to retrieve the created field via <c>valueField</c> parameter.
         /// </summary>
         /// <returns>This register with a defined value field.</returns>
         public static T WithValueField<T>(this T register, int position, int width, out IValueRegisterField valueField, FieldMode mode = FieldMode.Read | FieldMode.Write, Action<uint, uint> readCallback = null,

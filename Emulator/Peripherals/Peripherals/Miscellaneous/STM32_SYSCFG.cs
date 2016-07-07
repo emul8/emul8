@@ -14,7 +14,7 @@ using Emul8.Peripherals.IRQControllers;
 
 namespace Emul8.Peripherals.Miscellaneous
 {
-    public class STM32_SYSCFG : IDoubleWordPeripheral, IIRQController, INumberedGPIOOutput, IKnownSize
+    public sealed class STM32_SYSCFG : IDoubleWordPeripheral, IIRQController, INumberedGPIOOutput, IKnownSize
     {
         public STM32_SYSCFG()
         {
@@ -24,14 +24,14 @@ namespace Emul8.Peripherals.Miscellaneous
                 gpios.Add(i, new GPIO());
             }
             Connections = new ReadOnlyDictionary<int, IGPIO>(gpios);
-            CreateRegisters();
+            registers = CreateRegisters();
         }
 
         public void OnGPIO(int number, bool value)
         {
             var pinNumber = number % GpioPins;
             var portNumber = number / GpioPins;
-            if(extiMappings[pinNumber].Value == portNumber && !block)
+            if(extiMappings[pinNumber].Value == portNumber)
             {
                 Connections[pinNumber].Set(value);
             }
@@ -44,15 +44,8 @@ namespace Emul8.Peripherals.Miscellaneous
 
         public void WriteDoubleWord(long offset, uint value)
         {
-            if(!block)
-                registers.Write(offset, value);
+            registers.Write(offset, value);
         }
-        private bool block;
-        public void Block(bool shouldBlock)
-        {
-            block = shouldBlock;
-        }
-
 
         public void Reset()
         {
@@ -76,7 +69,7 @@ namespace Emul8.Peripherals.Miscellaneous
             }
         }
 
-        private void CreateRegisters()
+        private DoubleWordRegisterCollection CreateRegisters()
         {
             var map = new Dictionary<long, DoubleWordRegister>();
             for(var regNumber = 0; regNumber < 4; ++regNumber)
@@ -90,12 +83,12 @@ namespace Emul8.Peripherals.Miscellaneous
                 }
                 map.Add((long)Registers.ExternalInterruptConfiguration1 + 4 * regNumber, reg);
             }
-            registers = new DoubleWordRegisterCollection(this, map);
+            return new DoubleWordRegisterCollection(this, map);
         }
 
-        private DoubleWordRegisterCollection registers;
+        private readonly DoubleWordRegisterCollection registers;
 
-        private IValueRegisterField[] extiMappings = new IValueRegisterField[GpioPins];
+        private readonly IValueRegisterField[] extiMappings = new IValueRegisterField[GpioPins];
 
         private const int GpioPins = 16;
 

@@ -18,25 +18,21 @@ namespace Emul8.Peripherals.I2C
     {
         public STM32F7_I2C(Machine machine) : base(machine)
         {
-
             EventInterrupt = new GPIO();
             ErrorInterrupt = new GPIO();
-            CreateRegisters();
+            registers = CreateRegisters();
             Reset();
         }
 
         public uint ReadDoubleWord(long offset)
         {
-            var value = registers.Read(offset);
-            return value;
+            return registers.Read(offset);
         }
 
         public void WriteDoubleWord(long offset, uint value)
         {
             registers.Write(offset, value);
         }
-
-        public long Size { get { return 0x400; } }
 
         public override void Reset()
         {
@@ -45,20 +41,13 @@ namespace Emul8.Peripherals.I2C
             currentSlaveAddress = 0;
         }
 
+        public long Size { get { return 0x400; } }
 
-        public GPIO EventInterrupt
-        {
-            get;
-            private set;
-        }
+        public GPIO EventInterrupt { get; private set; }
 
-        public GPIO ErrorInterrupt
-        {
-            get;
-            private set;
-        }
+        public GPIO ErrorInterrupt { get; private set; }
 
-        private void CreateRegisters()
+        private DoubleWordRegisterCollection CreateRegisters()
         {
             var map = new Dictionary<long, DoubleWordRegister> { {(long)Registers.Control1, new DoubleWordRegister(this)
                         .WithFlag(0, changeCallback: PeripheralEnabledChange, name: "PE")
@@ -72,7 +61,6 @@ namespace Emul8.Peripherals.I2C
                         .WithTag("ANFOFF", 12, 1).WithTag("TXDMAEN", 14, 1).WithTag("RXDMAEN", 15, 1).WithTag("SBC", 16, 1).WithTag("NOSTRETCH", 17, 1).WithTag("GCEN", 19, 1)
                         .WithTag("SMBHEN", 20, 1).WithTag("SMBDEN", 21, 1).WithTag("ALERTEN", 22, 1).WithTag("PECEN", 23, 1)
                         .WithChangeCallback((_,__)=>Update())
-
                 }, {
                     (long)Registers.Control2,
                     new DoubleWordRegister(this)
@@ -115,47 +103,49 @@ namespace Emul8.Peripherals.I2C
                 }
             };
 
-            registers = new DoubleWordRegisterCollection(this, map);
+            return new DoubleWordRegisterCollection(this, map);
         }
 
         private void PeripheralEnabledChange(bool oldValue, bool newValue)
         {
-            if(!newValue)
+            if(newValue)
             {
-                stopDetection.Value = false;
-                transferComplete.Value = false;
-                transferCompleteReload.Value = false;
-                transmitInterruptStatus.Value = false;
+                return;
             }
+            stopDetection.Value = false;
+            transferComplete.Value = false;
+            transferCompleteReload.Value = false;
+            transmitInterruptStatus.Value = false;
         }
 
         private void StartWrite(bool oldValue, bool newValue)
         {
-            if(newValue)
+            if(!newValue)
             {
-                transmitInterruptStatus.Value = true;
-                transferComplete.Value = false;
+                return;
+            }
+            transmitInterruptStatus.Value = true;
+            transferComplete.Value = false;
 
-                currentSlave = null;
+            currentSlave = null;
 
-                //This is kinda volatile. If we change slaveAddress setting to a callback action, it might not be set at this moment.
-                currentSlaveAddress = (int)(use10BitAddressing.Value ? slaveAddress.Value : ((slaveAddress.Value >> 1) & 0x7F));
-                if(!TryGetByAddress(currentSlaveAddress, out currentSlave))
+            dataPacket.Clear();
+            //This is kinda volatile. If we change slaveAddress setting to a callback action, it might not be set at this moment.
+            currentSlaveAddress = (int)(use10BitAddressing.Value ? slaveAddress.Value : ((slaveAddress.Value >> 1) & 0x7F));
+            if(!TryGetByAddress(currentSlaveAddress, out currentSlave))
+            {
+                this.Log(LogLevel.Warning, "Unknown slave at address {0}.", currentSlaveAddress);
+                return;
+            }
+
+            if(isReadTransfer.Value)
+            {
+                var data = currentSlave.Read((int)bytesToTransfer.Value);
+                foreach(var item in data)
                 {
-                    this.Log(LogLevel.Warning, "Unknown slave at address {0}.", currentSlaveAddress);
+                    dataPacket.Enqueue(item);
                 }
-                dataPacket.Clear();
-
-                if(isReadTransfer.Value)
-                {
-                    var data = currentSlave.Read((int)bytesToTransfer.Value);
-                    foreach(var item in data)
-                    {
-                        dataPacket.Enqueue(item);
-                    }
-                    SetTransferCompleteFlags();
-                }
-                //We do not do anything for writes because we wait for data to be written to TXDATA.
+                SetTransferCompleteFlags();
             }
         }
 
@@ -202,7 +192,8 @@ namespace Emul8.Peripherals.I2C
             {
                 transferCompleteReload.Value = true;
             }
-            else {
+            else
+            {
                 transmitInterruptStatus.Value = false; //this is a guess based on a driver
             }
         }
@@ -215,11 +206,6 @@ namespace Emul8.Peripherals.I2C
                 || (stopDetectionInterruptEnabled.Value && stopDetection.Value)
                 || (nackReceivedInterruptEnabled.Value && false); //TODO: implement NACKF
             EventInterrupt.Set(value);
-
-            /*ErrorInterrupt.Set(
-                errorInterruptsEnabled.Value &&
-                (false) //TODO: Implement error interrupts?
-            );*/
         }
 
         private IFlagRegisterField transferInterruptEnabled;
@@ -227,7 +213,6 @@ namespace Emul8.Peripherals.I2C
         private IFlagRegisterField nackReceivedInterruptEnabled;
         private IFlagRegisterField stopDetectionInterruptEnabled;
         private IFlagRegisterField transferCompleteInterruptEnabled;
-        //private IFlagRegisterField errorInterruptsEnabled;
 
         private IFlagRegisterField transmitInterruptStatus;
         private IFlagRegisterField transferComplete;

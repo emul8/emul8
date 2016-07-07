@@ -167,7 +167,7 @@ There are three callback types available: ``readCallback``, ``writeCallback`` an
 Their semantics is identical to their field counterparts.
 Read callbacks are called on each register read, write - on each register write, and change callbacks are called whenever there is any change to register value, regardless of the type of operation.
 
-Please note that fields' ``valueProviderCallbacks`` to not trigger register's ``changeCallback``.
+Please note that fields' ``valueProviderCallbacks`` do not trigger register's ``changeCallback``.
 
 For each callback type there may be many registered functions.
 They are called in an undefined order.

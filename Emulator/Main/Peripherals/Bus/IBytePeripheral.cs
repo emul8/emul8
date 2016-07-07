@@ -11,7 +11,6 @@ namespace Emul8.Peripherals.Bus
     public interface IBytePeripheral : IBusPeripheral
     {
         byte ReadByte(long offset);
-
         void WriteByte(long offset, byte value);
     }
 }
