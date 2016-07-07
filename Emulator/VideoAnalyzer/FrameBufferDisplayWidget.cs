@@ -42,7 +42,11 @@ namespace Emul8.Extensions.Analyzers.Video
             }
         }
 
-        public void DrawFrame(byte[] frame)
+        /// <summary>
+        /// Draws the frame.
+        /// </summary>
+        /// <param name="frame">Frame represented as array of bytes. If this parameter is omitted previous frame is redrawn.</param>
+        public void DrawFrame(byte[] frame = null)
         {
             if(!drawQueued)
             {
@@ -53,8 +57,11 @@ namespace Emul8.Extensions.Analyzers.Video
                         return;
                     }
 
-                    converter.Convert(frame, ref outBuffer);
-                    img.Copy(outBuffer); 
+                    if(frame != null)
+                    {
+                        converter.Convert(frame, ref outBuffer);
+                        img.Copy(outBuffer);
+                    }
                     ApplicationExtensions.InvokeInUIThread(QueueDraw);
                     drawQueued = true;
                 }
