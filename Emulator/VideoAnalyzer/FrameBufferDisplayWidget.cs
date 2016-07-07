@@ -61,6 +61,7 @@ namespace Emul8.Extensions.Analyzers.Video
                     {
                         converter.Convert(frame, ref outBuffer);
                         img.Copy(outBuffer);
+                        cursorDrawn = false;
                     }
                     ApplicationExtensions.InvokeInUIThread(QueueDraw);
                     drawQueued = true;
@@ -157,6 +158,7 @@ namespace Emul8.Extensions.Analyzers.Video
                 mode = value;
                 drawMethod = CalculateDrawMethod();
                 ActualImageArea = CalculateActualImageRectangle();
+                DrawFrame();
             }
         }
 
@@ -168,10 +170,21 @@ namespace Emul8.Extensions.Analyzers.Video
                 return;
             }
 
-            if(handler.DrawCross)
+            IOHandler.Position current, previous;
+            handler.GetPosition(out current, out previous);
+
+            if(cursorDrawn && previous != null)
             {
-                img.DrawCursor(handler.X, handler.Y);
+                // drawing a cursor for the second time will effectively remove it
+                img.DrawCursor(previous.X, previous.Y);
             }
+
+            if(current != null)
+            {
+                img.DrawCursor(current.X, current.Y);
+                cursorDrawn = true;
+            }
+
             dmc(ctx);
 
             var fd = FrameDrawn;
@@ -316,6 +329,7 @@ namespace Emul8.Extensions.Analyzers.Video
             {
                 pm(x, y);
             }
+            DrawFrame();
         }
 
         /// <summary>
@@ -376,6 +390,7 @@ namespace Emul8.Extensions.Analyzers.Video
         private BitmapImage img;
         private DisplayMode mode;
         private byte[] outBuffer;
+        private bool cursorDrawn;
 
         private readonly object imgLock = new object();
     }

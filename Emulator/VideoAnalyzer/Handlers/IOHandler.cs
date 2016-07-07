@@ -126,13 +126,11 @@ namespace Emul8.Extensions.Analyzers.Video.Handlers
 
                 if(pointer is IRelativePositionPointerInput)
                 {
-                    crossDrawable = false;
                     status = Status.NotGrabbed;
                     pointerHandler = new RelativePointerHandler((IRelativePositionPointerInput)pointer);
                 }
                 else if(pointer is IAbsolutePositionPointerInput)
                 {
-                    crossDrawable = true;
                     status = Status.NotGrabbable;
                     pointerHandler = new AbsolutePointerHandler((IAbsolutePositionPointerInput)pointer, widget);
                 }
@@ -163,12 +161,27 @@ namespace Emul8.Extensions.Analyzers.Video.Handlers
             }
         }
 
-        public bool DrawCross { get { return crossDrawable; } }
+        public void GetPosition(out Position current, out Position previous)
+        {
+            previous = this.previous;
 
-        public int X { get { return pointerHandler is AbsolutePointerHandler ? ((AbsolutePointerHandler)pointerHandler).X : -1; } }
-        public int Y { get { return pointerHandler is AbsolutePointerHandler ? ((AbsolutePointerHandler)pointerHandler).Y : -1; } }
+            var pointerHandlerAsAbsolutePointerHandler = pointerHandler as AbsolutePointerHandler;
+            if(pointerHandlerAsAbsolutePointerHandler != null)
+            {
+                current = new Position
+                {
+                    X = pointerHandlerAsAbsolutePointerHandler.X,
+                    Y = pointerHandlerAsAbsolutePointerHandler.Y
+                };
+            }
+            else
+            {
+                current = null;
+            }
 
-        private bool crossDrawable;
+            this.previous = current;
+        }
+
         private PointerHandler pointerHandler;
         private IKeyboard keyboardHandler;
 
@@ -179,7 +192,20 @@ namespace Emul8.Extensions.Analyzers.Video.Handlers
         private bool lalt;
         private bool lshift;
 
+        private Position previous;
+
         private Status status;
+
+        public class Position
+        {
+            public int X { get; set; }
+            public int Y { get; set; }
+
+            public Position Clone()
+            {
+                return new Position { X = this.X, Y = this.Y };
+            }
+        }
 
         private enum Status
         {
