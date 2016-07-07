@@ -213,7 +213,7 @@ namespace Emul8.UnitTests
         {
             Assert.AreEqual(0, globalCallbacks);
             register.Write(0, 0x2A80);
-            //Two calls for changed registers, 1 call for unchanged register
+            //1 for write, 1 for change
             Assert.AreEqual(2, globalCallbacks);
 
             Assert.AreEqual(RegisterResetValue, oldGlobalValue);

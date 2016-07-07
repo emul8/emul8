@@ -54,30 +54,33 @@ namespace Emul8.Core.Structure.Registers
         }
 
         /// <summary>
-        /// Defines the read callback. This method is called once on each change, regardles of the number of defined register fields.
+        /// Defines the read callback that is called once on each read, regardles of the number of defined register fields.
+        /// Note that it will also be called for unreadable registers.
         /// </summary>
         /// <param name="readCallback">Method to be called whenever this register is read. The first parameter is the value of this register before read,
-        /// the second parameter is the value after read. Note that it will also be called for unreadable registers.</param>
+        /// the second parameter is the value after read.</param>
         public void DefineReadCallback(Action<uint, uint> readCallback)
         {
             readCallbacks.Add(readCallback);
         }
 
         /// <summary>
-        /// Defines the write callback. This method is called once on each change, regardles of the number of defined register fields.
+        /// Defines the write callback that is called once on each write, regardles of the number of defined register fields.
+        /// Note that it will also be called for unwrittable registers.
         /// </summary>
         /// <param name="writeCallback">Method to be called whenever this register is written to. The first parameter is the value of this register before write,
-        /// the second parameter is the value written (without any modification). Note that it will also be called for unwrittable registers.</param>
+        /// the second parameter is the value written (without any modification).</param>
         public void DefineWriteCallback(Action<uint, uint> writeCallback)
         {
             writeCallbacks.Add(writeCallback);
         }
 
         /// <summary>
-        /// Defines the change callback. This method is called once on each change, regardles of the number of defined register fields.
+        /// Defines the change callback that is called once on each change, regardles of the number of defined register fields.
+        /// Note that it will also be called for unwrittable registers.
         /// </summary>
         /// <param name="changeCallback">Method to be called whenever this register's value is changed, either due to read or write. The first parameter is the value of this register before change,
-        /// the second parameter is the value after change. Note that it will also be called for unwrittable registers.</param>
+        /// the second parameter is the value after change.</param>
         public void DefineChangeCallback(Action<uint, uint> changeCallback)
         {
             changeCallbacks.Add(changeCallback);
@@ -101,7 +104,7 @@ namespace Emul8.Core.Structure.Registers
 
         protected override void CallReadHandlers(uint oldValue, uint newValue)
         {
-            CallHandlers(readCallbacks, (ushort)oldValue, newValue);
+            CallHandlers(readCallbacks, oldValue, newValue);
         }
 
         protected override void CallWriteHandlers(uint oldValue, uint newValue)
@@ -154,30 +157,33 @@ namespace Emul8.Core.Structure.Registers
         }
 
         /// <summary>
-        /// Defines the read callback. This method is called once on each change, regardles of the number of defined register fields.
+        /// Defines the read callback that is called once on each read, regardles of the number of defined register fields.
+        /// Note that it will also be called for unreadable registers.
         /// </summary>
         /// <param name="readCallback">Method to be called whenever this register is read. The first parameter is the value of this register before read,
-        /// the second parameter is the value after read. Note that it will also be called for unreadable registers.</param>
+        /// the second parameter is the value after read.</param>
         public void DefineReadCallback(Action<ushort, ushort> readCallback)
         {
             readCallbacks.Add(readCallback);
         }
 
         /// <summary>
-        /// Defines the write callback. This method is called once on each change, regardles of the number of defined register fields.
+        /// Defines the write callback that is called once on each write, regardles of the number of defined register fields.
+        /// Note that it will also be called for unwrittable registers.
         /// </summary>
         /// <param name="writeCallback">Method to be called whenever this register is written to. The first parameter is the value of this register before write,
-        /// the second parameter is the value written (without any modification). Note that it will also be called for unwrittable registers.</param>
+        /// the second parameter is the value written (without any modification).</param>
         public void DefineWriteCallback(Action<ushort, ushort> writeCallback)
         {
             writeCallbacks.Add(writeCallback);
         }
 
         /// <summary>
-        /// Defines the change callback. This method is called once on each change, regardles of the number of defined register fields.
+        /// Defines the change callback that is called once on each change, regardles of the number of defined register fields.
+        /// Note that it will also be called for unwrittable registers.
         /// </summary>
         /// <param name="changeCallback">Method to be called whenever this register's value is changed, either due to read or write. The first parameter is the value of this register before change,
-        /// the second parameter is the value after change. Note that it will also be called for unwrittable registers.</param>
+        /// the second parameter is the value after change.</param>
         public void DefineChangeCallback(Action<ushort, ushort> changeCallback)
         {
             changeCallbacks.Add(changeCallback);
@@ -254,30 +260,33 @@ namespace Emul8.Core.Structure.Registers
         }
 
         /// <summary>
-        /// Defines the read callback. This method is called once on each change, regardles of the number of defined register fields.
+        /// Defines the read callback that is called once on each read, regardles of the number of defined register fields.
+        /// Note that it will also be called for unreadable registers.
         /// </summary>
         /// <param name="readCallback">Method to be called whenever this register is read. The first parameter is the value of this register before read,
-        /// the second parameter is the value after read. Note that it will also be called for unreadable registers.</param>
+        /// the second parameter is the value after read.</param>
         public void DefineReadCallback(Action<byte, byte> readCallback)
         {
             readCallbacks.Add(readCallback);
         }
 
         /// <summary>
-        /// Defines the write callback. This method is called once on each change, regardles of the number of defined register fields.
+        /// Defines the write callback that is called once on each write, regardles of the number of defined register fields.
+        /// Note that it will also be called for unwrittable registers.
         /// </summary>
         /// <param name="writeCallback">Method to be called whenever this register is written to. The first parameter is the value of this register before write,
-        /// the second parameter is the value written (without any modification). Note that it will also be called for unwrittable registers.</param>
+        /// the second parameter is the value written (without any modification).</param>
         public void DefineWriteCallback(Action<byte, byte> writeCallback)
         {
             writeCallbacks.Add(writeCallback);
         }
 
         /// <summary>
-        /// Defines the change callback. This method is called once on each change, regardles of the number of defined register fields.
+        /// Defines the change callback that is called once on each change, regardles of the number of defined register fields.
+        /// Note that it will also be called for unwrittable registers.
         /// </summary>
         /// <param name="changeCallback">Method to be called whenever this register's value is changed, either due to read or write. The first parameter is the value of this register before change,
-        /// the second parameter is the value after change. Note that it will also be called for unwrittable registers.</param>
+        /// the second parameter is the value after change.</param>
         public void DefineChangeCallback(Action<byte, byte> changeCallback)
         {
             changeCallbacks.Add(changeCallback);

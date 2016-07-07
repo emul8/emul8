@@ -19,7 +19,7 @@ namespace Emul8.Peripherals.Input
     /// with the Linux driver we used to create FT5x06.cs.
     /// This name is used because of STM32F7 Cube, providing such a driver.
     /// </summary>
-    public class FT5336 : II2CPeripheral, IAbsolutePositionPointerInput
+    public sealed class FT5336 : II2CPeripheral, IAbsolutePositionPointerInput
     {
         public FT5336(Machine machine, bool isRotated = false)
         {
@@ -49,9 +49,9 @@ namespace Emul8.Peripherals.Input
         public void Write(byte[] data)
         {
             lastWriteRegister = (Registers)data[0];
-            if(lastWriteRegister < TouchEndRegister && lastWriteRegister >= TouchBeginRegister)
+            if(lastWriteRegister < Registers.TouchEndRegister && lastWriteRegister >= Registers.TouchBeginRegister)
             {
-                PrepareTouchData((byte)((lastWriteRegister - TouchBeginRegister) % TouchInfoSize), (lastWriteRegister - TouchBeginRegister) / TouchInfoSize);
+                PrepareTouchData((byte)((lastWriteRegister - Registers.TouchBeginRegister) % TouchInfoSize), (lastWriteRegister - Registers.TouchBeginRegister) / TouchInfoSize);
                 return;
             }
             switch(lastWriteRegister)
@@ -79,22 +79,16 @@ namespace Emul8.Peripherals.Input
         public void MoveTo(int x, int y)
         {
             machine.ReportForeignEvent(x, y, MoveToInner);
-            if(touchedPoints.Any(b => b.Type == PointType.Down || b.Type == PointType.Contact))
-            {
-                IRQ.Blink();
-            }
         }
 
         public void Press(MouseButton button = MouseButton.Left)
         {
             machine.ReportForeignEvent(button, PressInner);
-            IRQ.Blink();
         }
 
         public void Release(MouseButton button = MouseButton.Left)
         {
             machine.ReportForeignEvent(button, ReleaseInner);
-            IRQ.Blink();
         }
 
         public int MaxX { get; set; }
@@ -171,18 +165,24 @@ namespace Emul8.Peripherals.Input
                 this.NoisyLog("Moving the pointer at {0}x{1}", touchedPoints[0].X, touchedPoints[0].Y);
                 touchedPoints[0].Type = PointType.Contact;
             }
+            if(touchedPoints.Any(b => b.Type == PointType.Down || b.Type == PointType.Contact))
+            {
+                IRQ.Blink();
+            }
         }
 
         private void PressInner(MouseButton button)
         {
             this.NoisyLog("Pressing the pointer at {0}x{1}", touchedPoints[0].X, touchedPoints[0].Y);
             touchedPoints[0].Type = PointType.Contact;
+            IRQ.Blink();
         }
 
         private void ReleaseInner(MouseButton button)
         {
             this.NoisyLog("Releasing the pointer at {0}x{1}", touchedPoints[0].X, touchedPoints[0].Y);
             touchedPoints[0].Type = PointType.Up;
+            IRQ.Blink();
         }
 
         private byte[] currentReturnValue;
@@ -192,8 +192,6 @@ namespace Emul8.Peripherals.Input
 
         private readonly TouchedPoint[] touchedPoints = new TouchedPoint[5];
 
-        private const Registers TouchBeginRegister = (Registers)0x3;
-        private const Registers TouchEndRegister = (Registers)0x21;
         private const byte ChipVendorId = 0x51;
 
         private const int TouchInfoSize = TouchDataRegisters.TouchMisc - TouchDataRegisters.TouchXHigh + 1;
@@ -228,6 +226,8 @@ namespace Emul8.Peripherals.Input
         {
             GestureId = 0x1,
             TouchDataStatus = 0x2,
+            TouchBeginRegister = 0x3,
+            TouchEndRegister = 0x21,
             InterruptStatus = 0xA4,
             ChipVendorId = 0xA8
         }
