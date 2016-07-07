@@ -36,7 +36,8 @@ namespace Emul8.Peripherals.Input
             lastWriteRegister = 0;
             for(ushort i = 0; i < touchedPoints.Length; ++i)
             {
-                touchedPoints[i] = new TouchedPoint {
+                touchedPoints[i] = new TouchedPoint
+                {
                     Type = PointType.Reserved,
                     X = 0,
                     Y = 0,
@@ -78,21 +79,22 @@ namespace Emul8.Peripherals.Input
         public void MoveTo(int x, int y)
         {
             machine.ReportForeignEvent(x, y, MoveToInner);
-            if (touchedPoints.Any(b => b.Type == PointType.Down || b.Type == PointType.Contact)) {
-                IRQ.Blink ();
+            if(touchedPoints.Any(b => b.Type == PointType.Down || b.Type == PointType.Contact))
+            {
+                IRQ.Blink();
             }
         }
 
         public void Press(MouseButton button = MouseButton.Left)
         {
             machine.ReportForeignEvent(button, PressInner);
-            IRQ.Blink ();
+            IRQ.Blink();
         }
 
         public void Release(MouseButton button = MouseButton.Left)
         {
             machine.ReportForeignEvent(button, ReleaseInner);
-            IRQ.Blink ();
+            IRQ.Blink();
         }
 
         public int MaxX { get; set; }
@@ -119,36 +121,36 @@ namespace Emul8.Peripherals.Input
 
         private void PrepareTouchData(byte offset, int pointNumber)
         {
-            var queue = new Queue<byte> ();
+            var queue = new Queue<byte>();
 
             switch((TouchDataRegisters)offset)
             {
             case TouchDataRegisters.TouchXHigh:
-                queue.Enqueue ((byte)(((int)touchedPoints [pointNumber].Type << 6) | (touchedPoints [pointNumber].X.HiByte () & 0xF)));
+                queue.Enqueue((byte)(((int)touchedPoints[pointNumber].Type << 6) | (touchedPoints[pointNumber].X.HiByte() & 0xF)));
                 goto case TouchDataRegisters.TouchXLow;
             case TouchDataRegisters.TouchXLow:
-                queue.Enqueue (touchedPoints [pointNumber].X.LoByte ());
+                queue.Enqueue(touchedPoints[pointNumber].X.LoByte());
                 goto case TouchDataRegisters.TouchYHigh;
             case TouchDataRegisters.TouchYHigh:
-                queue.Enqueue ((byte)((touchedPoints [pointNumber].Id << 4) | (touchedPoints [pointNumber].Y.HiByte () & 0xF)));
+                queue.Enqueue((byte)((touchedPoints[pointNumber].Id << 4) | (touchedPoints[pointNumber].Y.HiByte() & 0xF)));
                 goto case TouchDataRegisters.TouchYLow;
             case TouchDataRegisters.TouchYLow:
-                queue.Enqueue (touchedPoints [pointNumber].Y.LoByte ());
+                queue.Enqueue(touchedPoints[pointNumber].Y.LoByte());
                 goto case TouchDataRegisters.TouchWeight;
             case TouchDataRegisters.TouchWeight:
-                queue.Enqueue (0);
+                queue.Enqueue(0);
                 goto case TouchDataRegisters.TouchMisc;
             case TouchDataRegisters.TouchMisc:
-                queue.Enqueue (0);
+                queue.Enqueue(0);
                 break;
             default:
                 throw new Exception("Should not reach here.");
             }
-            SetReturnValue (queue.ToArray ());
+            SetReturnValue(queue.ToArray());
         }
 
         private void SetReturnValue(params byte[] bytes)
-        {            
+        {
             currentReturnValue = bytes;
         }
 

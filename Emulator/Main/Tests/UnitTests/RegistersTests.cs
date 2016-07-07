@@ -18,16 +18,16 @@ namespace Emul8.UnitTests
         [Test]
         public void ShouldNotAcceptOutOfBoundsValues()
         {
-            Assert.Catch<ArgumentException> (() => enumRWField.Value = (TwoBitEnum)(1 << 2));
-            Assert.Catch<ArgumentException> (() => valueRWField.Value = (1 << 4));
+            Assert.Catch<ArgumentException>(() => enumRWField.Value = (TwoBitEnum)(1 << 2));
+            Assert.Catch<ArgumentException>(() => valueRWField.Value = (1 << 4));
         }
 
         [Test]
         public void ShouldNotAcceptNegativeFields()
         {
             var localRegister = new DoubleWordRegister(null);
-            Assert.Catch<ArgumentException> (() => localRegister.DefineEnumField<TwoBitEnum> (0, -1));
-            Assert.Catch<ArgumentException> (() => localRegister.DefineValueField (0, -1));
+            Assert.Catch<ArgumentException>(() => localRegister.DefineEnumField<TwoBitEnum>(0, -1));
+            Assert.Catch<ArgumentException>(() => localRegister.DefineValueField(0, -1));
         }
 
 
@@ -43,7 +43,7 @@ namespace Emul8.UnitTests
             foreach(var registerAndPosition in registersAndPositions)
             {
                 var localRegister = registerAndPosition.Key;
-                Assert.Catch<ArgumentException> (() => localRegister.DefineEnumField<TwoBitEnum> (registerAndPosition.Value, 2));
+                Assert.Catch<ArgumentException>(() => localRegister.DefineEnumField<TwoBitEnum>(registerAndPosition.Value, 2));
             }
         }
 
@@ -52,7 +52,7 @@ namespace Emul8.UnitTests
         {
             var localRegister = new DoubleWordRegister(null);
             localRegister.DefineValueField(1, 5);
-            Assert.Catch<ArgumentException> (() => localRegister.DefineValueField (0, 2));
+            Assert.Catch<ArgumentException>(() => localRegister.DefineValueField(0, 2));
         }
 
         [Test]
@@ -199,25 +199,25 @@ namespace Emul8.UnitTests
         }
 
         [Test]
-        public void ShouldCallGlobalReadHandler ()
+        public void ShouldCallGlobalReadHandler()
         {
-            Assert.AreEqual (0, globalCallbacks);
-            register.Read ();
-            Assert.AreEqual (1, globalCallbacks);
-            Assert.AreEqual (RegisterResetValue, oldGlobalValue);
-            Assert.AreEqual (RegisterResetValue, newGlobalValue);
+            Assert.AreEqual(0, globalCallbacks);
+            register.Read();
+            Assert.AreEqual(1, globalCallbacks);
+            Assert.AreEqual(RegisterResetValue, oldGlobalValue);
+            Assert.AreEqual(RegisterResetValue, newGlobalValue);
         }
 
         [Test]
-        public void ShouldCallGlobalWriteAndChangeHandler ()
+        public void ShouldCallGlobalWriteAndChangeHandler()
         {
-            Assert.AreEqual (0, globalCallbacks);
-            register.Write (0, 0x2A80);
+            Assert.AreEqual(0, globalCallbacks);
+            register.Write(0, 0x2A80);
             //Two calls for changed registers, 1 call for unchanged register
-            Assert.AreEqual (2, globalCallbacks);
+            Assert.AreEqual(2, globalCallbacks);
 
-            Assert.AreEqual (RegisterResetValue, oldGlobalValue);
-            Assert.AreEqual (0x2A80, newGlobalValue);
+            Assert.AreEqual(RegisterResetValue, oldGlobalValue);
+            Assert.AreEqual(0x2A80, newGlobalValue);
         }
 
         [Test]
@@ -294,7 +294,7 @@ namespace Emul8.UnitTests
             newGlobalValue = 0;
         }
 
-        private void GlobalCallback (uint oldValue, uint newValue)
+        private void GlobalCallback(uint oldValue, uint newValue)
         {
             globalCallbacks++;
             oldGlobalValue = oldValue;

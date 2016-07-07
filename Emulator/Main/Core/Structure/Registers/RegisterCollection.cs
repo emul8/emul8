@@ -5,7 +5,7 @@
 // This file is part of the Emul8 project.
 // Full license details are defined in the 'LICENSE' file.
 //
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using Emul8.Peripherals;
 using Emul8.Logging;
 
@@ -68,7 +68,7 @@ namespace Emul8.Core.Structure.Registers
         public void Write(long offset, uint value)
         {
             if(!TryWrite(offset, value))
-            {                
+            {
                 parent.LogUnhandledWrite(offset, value);
             }
         }
@@ -162,7 +162,7 @@ namespace Emul8.Core.Structure.Registers
         public void Write(long offset, ushort value)
         {
             if(!TryWrite(offset, value))
-            {                
+            {
                 parent.LogUnhandledRead(offset);
             }
         }
@@ -256,7 +256,7 @@ namespace Emul8.Core.Structure.Registers
         public void Write(long offset, byte value)
         {
             if(!TryWrite(offset, value))
-            {                
+            {
                 parent.LogUnhandledRead(offset);
             }
         }

@@ -58,7 +58,7 @@ namespace Emul8.Peripherals.I2C
             private set;
         }
 
-        private void CreateRegisters ()
+        private void CreateRegisters()
         {
             var map = new Dictionary<long, DoubleWordRegister> { {(long)Registers.Control1, new DoubleWordRegister(this)
                         .WithFlag(0, changeCallback: PeripheralEnabledChange, name: "PE")
@@ -118,9 +118,10 @@ namespace Emul8.Peripherals.I2C
             registers = new DoubleWordRegisterCollection(this, map);
         }
 
-        private void PeripheralEnabledChange (bool oldValue, bool newValue)
+        private void PeripheralEnabledChange(bool oldValue, bool newValue)
         {
-            if (!newValue) {
+            if(!newValue)
+            {
                 stopDetection.Value = false;
                 transferComplete.Value = false;
                 transferCompleteReload.Value = false;
@@ -162,7 +163,7 @@ namespace Emul8.Peripherals.I2C
         {
             if(dataPacket.Any())
             {
-                var value =  dataPacket.Dequeue();
+                var value = dataPacket.Dequeue();
                 Update();
                 return value;
             }
@@ -197,9 +198,11 @@ namespace Emul8.Peripherals.I2C
             {
                 stopDetection.Value = true;
             }
-            if (reload.Value) {
+            if(reload.Value)
+            {
                 transferCompleteReload.Value = true;
-            } else {
+            }
+            else {
                 transmitInterruptStatus.Value = false; //this is a guess based on a driver
             }
         }
@@ -213,7 +216,7 @@ namespace Emul8.Peripherals.I2C
                 || (nackReceivedInterruptEnabled.Value && false); //TODO: implement NACKF
             EventInterrupt.Set(value);
 
-           /* ErrorInterrupt.Set (
+            /*ErrorInterrupt.Set(
                 errorInterruptsEnabled.Value &&
                 (false) //TODO: Implement error interrupts?
             );*/
