@@ -37,7 +37,7 @@ namespace Emul8.Debug
         {
             var regs = new List<object>();
             var paramList = parameters.ToList();
-            //TODO: works only for 0-4 parameters!
+            //works only for 0-4 parameters!
             for (int i = 0; i < Math.Min(paramList.Count, 4); i++) 
             {
                 regs.Add(TranslateParameter(cpu.R[i], paramList[i]));
@@ -115,13 +115,10 @@ namespace Emul8.Debug
         {
             cpu.Log(LogLevel.Info, "Going to trace function '{0}'.", name);
 
-            //TODO: Make better after #3024
-            uint address;
             Symbol symbol;
-            uint? end = null;
             try
             {
-                address = cpu.Bus.GetSymbolAddress(name);
+                var address = cpu.Bus.GetSymbolAddress(name);
                 symbol = cpu.Bus.Lookup.GetSymbolByAddress(address);
 
             }
@@ -131,32 +128,37 @@ namespace Emul8.Debug
                 throw;
             }
 
-            cpu.AddHook((uint)symbol.Start, new Action<uint>((pc) => EvaluateTraceCallback(pc, name, parameters, callback)));
+            var traceInfo = new TraceInfo();
+            traceInfo.Begin = symbol.Start;
+            traceInfo.BeginCallback = (pc) => EvaluateTraceCallback(pc, name, parameters, callback);
+
+            cpu.AddHook(traceInfo.Begin, traceInfo.BeginCallback);
             if(returnCallback != null && returnParameter.HasValue)
             {
-                end = (uint)(symbol.End - (symbol.IsThumbSymbol ? 2 : 4));
-                cpu.Log(LogLevel.Debug, "Address is @ 0x{0:X}, end is @ 0x{1:X}.", address, end);
-                cpu.AddHook(end.Value, new Action<uint>((pc) => EvaluateTraceCallback(pc, name, new []{ returnParameter.Value }, returnCallback)));
+                traceInfo.HasEnd = true;
+                traceInfo.End = (uint)(symbol.End - (symbol.IsThumbSymbol ? 2 : 4));
+                traceInfo.EndCallback = (pc) => EvaluateTraceCallback(pc, name, new[] { returnParameter.Value }, returnCallback);
+                cpu.Log(LogLevel.Debug, "Address is @ 0x{0:X}, end is @ 0x{1:X}.", traceInfo.Begin, traceInfo.End);
+                cpu.AddHook(traceInfo.End, traceInfo.EndCallback);
             }
             else
             {
-                cpu.Log(LogLevel.Debug, "Address is @ 0x{0:X}, end is not traced.", address);
+                cpu.Log(LogLevel.Debug, "Address is @ 0x{0:X}, end is not traced.", traceInfo.Begin);
             }
 
-            registeredCallbacks[name] = Tuple.Create((uint)symbol.Start, end);
+            registeredCallbacks[name] = traceInfo;
         }
 
         public void RemoveTracing(string name)
         {
-            Tuple<uint, uint?> addresses;
-            if(registeredCallbacks.TryGetValue(name, out addresses))
+            TraceInfo traceInfo;
+            if(registeredCallbacks.TryGetValue(name, out traceInfo))
             {
                 cpu.Log(LogLevel.Info, "Removing trace from function '{0}'.", name);
-                // todo: this is potentially dangerous as it may remove other hooks/breakpoints from this address as well!
-                cpu.RemoveHooksAt(addresses.Item1);
-                if(addresses.Item2.HasValue)
+                cpu.RemoveHook(traceInfo.Begin, traceInfo.BeginCallback);
+                if(traceInfo.HasEnd)
                 {
-                    cpu.RemoveHooksAt(addresses.Item2.Value);
+                    cpu.RemoveHook(traceInfo.End, traceInfo.EndCallback);
                 }
             }
             else
@@ -165,10 +167,19 @@ namespace Emul8.Debug
             }
         }
 
-        private readonly Dictionary<string, Tuple<uint, uint?>> registeredCallbacks = new Dictionary<string, Tuple<uint, uint?>>();
+        private readonly Dictionary<string, TraceInfo> registeredCallbacks = new Dictionary<string, TraceInfo>();
         private readonly Arm cpu;
         private readonly SystemBus bus;
 
         private const int SizeOfStringBatch = 100;
+
+        private struct TraceInfo
+        {
+            public uint Begin;
+            public bool HasEnd;
+            public uint End;
+            public Action<uint> BeginCallback;
+            public Action<uint> EndCallback;
+        }
     }
 }
