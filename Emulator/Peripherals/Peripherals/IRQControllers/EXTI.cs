@@ -71,7 +71,7 @@ namespace Emul8.Peripherals.IRQControllers
         {
             var lineNumber = (byte)(number % MaxNumberOfPinsPerPort);
             var irqNumber = gpioMapping[lineNumber];
-            if(BitHelper.IsBitSet((interruptMask | eventMask), lineNumber) && // irq/event unmasked
+            if(BitHelper.IsBitSet(interruptMask, lineNumber) && // irq unmasked
                ((BitHelper.IsBitSet(risingTrigger, lineNumber) && value) // rising edge
                || (BitHelper.IsBitSet(fallingTrigger, lineNumber) && !value))) // falling edge
             {
@@ -124,7 +124,7 @@ namespace Emul8.Peripherals.IRQControllers
                 var bitsToSet = allNewAndOld ^ softwareInterrupt;
                 BitHelper.ForeachActiveBit(bitsToSet, (x) =>
                 {
-                    if(BitHelper.IsBitSet((interruptMask | eventMask), x))
+                    if(BitHelper.IsBitSet(interruptMask, x))
                     {
                         Connections[gpioMapping[x]].Set();
                     }
