@@ -30,6 +30,7 @@ using Emul8.Peripherals.CPU.Registers;
 using ELFSharp.ELF;
 using ELFSharp.UImage;
 using System.Diagnostics;
+using System.Net.Sockets;
 
 namespace Emul8.Peripherals.CPU
 {
@@ -75,6 +76,34 @@ namespace Emul8.Peripherals.CPU
             InitInterruptEvents();
             Init();
             InitDisas();
+        }
+
+        public void StartGdbServer(int port)
+        {
+            if(IsGdbServerCreated)
+            {
+                throw new RecoverableException(string.Format("GDB server already started for this cpu on port: {0}", stub.Port));
+            }
+
+            try
+            {
+                stub = new GdbStub(port, this);
+            }
+            catch(SocketException e)
+            {
+                throw new RecoverableException(string.Format("Could not start GDB server: {0}", e.Message));
+            }
+        }
+
+        public void StopGdbServer()
+        {
+            if(!IsGdbServerCreated)
+            {
+                return;
+            }
+
+            stub.Dispose();
+            stub = null;
         }
 
         public virtual void InitFromElf(ELF<uint> elf)
@@ -628,6 +657,10 @@ namespace Emul8.Peripherals.CPU
 
         public bool UpdateContextOnLoadAndStore { get; set; }
 
+        public bool IsGdbServerCreated { get { return stub != null; } }
+
+        private GdbStub stub;
+
         protected abstract Interrupt DecodeInterrupt(int number);
 
         public void ClearHookAtBlockBegin()
@@ -1144,6 +1177,7 @@ namespace Emul8.Peripherals.CPU
             binder.Dispose();
             File.Delete(libraryFile);
             memoryManager.CheckIfAllIsFreed();
+            StopGdbServer();
         }
 
         [Export]
