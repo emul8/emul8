@@ -62,6 +62,10 @@
       <Project>{CF944E09-7C14-433C-A185-161848E989B3}</Project>
       <Name>ELFSharp</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Extensions\Extensions.csproj">
+      <Project>{4C636FAF-4650-4088-8EA8-2FCCC225E9CF}</Project>
+      <Name>Extensions</Name>
+    </ProjectReference>
   </ItemGroup>
   <ProjectExtensions>
     <MonoDevelop>

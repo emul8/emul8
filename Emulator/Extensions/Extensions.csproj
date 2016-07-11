@@ -150,6 +150,7 @@
     <Compile Include="Utilities\GDB\ArgumentAttribute.cs" />
     <Compile Include="Utilities\GDB\ExecuteAttribute.cs" />
     <Compile Include="UserInterface\Tokenizer\FloatToken.cs" />
+    <Compile Include="Utilities\ICpuSupportingGdb.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
@@ -195,10 +196,6 @@
     <ProjectReference Include="..\..\External\FdtSharp\FdtSharp\FdtSharp.csproj">
       <Project>{74FDB727-CC22-4E13-AF44-EE3E9C146D8A}</Project>
       <Name>FdtSharp</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Peripherals\Peripherals-TranslationCPU.csproj">
-      <Project>{66400796-0C5B-4386-A859-50A2AC3F3DB5}</Project>
-      <Name>Peripherals-TranslationCPU</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\External\ELFSharp\ELFSharp\ELFSharp.csproj">
       <Project>{CF944E09-7C14-433C-A185-161848E989B3}</Project>
