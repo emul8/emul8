@@ -29,8 +29,10 @@ namespace Emul8.Utilities.GDB.Commands
             switch(type)
             {
                 case BreakpointType.MemoryBreakpoint:
+                    manager.Cpu.AddHook(address, MemoryBreakpointHook);
+                    break;
                 case BreakpointType.HardwareBreakpoint:
-                    manager.Cpu.AddHook(address, BreakpointHook);
+                    manager.Cpu.AddHook(address, HardwareBreakpointHook);
                     break;
                 case BreakpointType.AccessWatchpoint:
                     AddWatchpointsCoveringMemoryArea(address, kind, Access.ReadAndWrite, AccessWatchpointHook);
@@ -58,8 +60,10 @@ namespace Emul8.Utilities.GDB.Commands
             switch(type)
             {
                 case BreakpointType.MemoryBreakpoint:
+                    manager.Cpu.RemoveHook(address, MemoryBreakpointHook);
+                    break;
                 case BreakpointType.HardwareBreakpoint:
-                    manager.Cpu.RemoveHook(address, BreakpointHook);
+                    manager.Cpu.RemoveHook(address, HardwareBreakpointHook);
                     break;
                 case BreakpointType.AccessWatchpoint:
                     RemoveWatchpointsCoveringMemoryArea(address, kind, Access.ReadAndWrite, AccessWatchpointHook);
@@ -78,9 +82,14 @@ namespace Emul8.Utilities.GDB.Commands
             return PacketData.Success;
         }
 
-        private void BreakpointHook(uint address)
+        private void HardwareBreakpointHook(uint address)
         {
             manager.Cpu.EnterSingleStepModeSafely(new HaltArguments(HaltReason.Breakpoint, breakpointType: BreakpointType.HardwareBreakpoint));
+        }
+
+        private void MemoryBreakpointHook(uint address)
+        {
+            manager.Cpu.EnterSingleStepModeSafely(new HaltArguments(HaltReason.Breakpoint, breakpointType: BreakpointType.MemoryBreakpoint));
         }
 
         private void AccessWatchpointHook(long address, Width width)
