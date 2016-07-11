@@ -123,7 +123,7 @@
   </Target>
 
   <Target Name="Compile" DependsOnTargets="_PrepareInputsAndOutputsForCompilation;GenerateFlags;CompileTcg" Inputs="@(InputFiles)" Outputs="@(ObjectFiles)" >
-    <CCompilerTask CompilerPath="$(CompilerPath)" Parallel="false" Sources="@(SourceFiles)" Flags="@(CompilationFlags)" ObjectFilesDirectory="$(ObjectFilesDirectory)" />
+    <CCompilerTask CompilerPath="$(CompilerPath)" Parallel="true" Sources="@(SourceFiles)" Flags="@(CompilationFlags)" ObjectFilesDirectory="$(ObjectFilesDirectory)" />
   </Target>
 
   <Target Name="Link" DependsOnTargets="Compile" Inputs="@(ObjectFiles)" Outputs="$(SoFileLocation)/$(LibraryPath)">
