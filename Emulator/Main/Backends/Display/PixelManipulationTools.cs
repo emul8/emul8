@@ -266,9 +266,9 @@ namespace Emul8.Backends.Display
         /// and storing each channel in separate variable expression.
         /// </summary>
         /// <returns>Generated expression.</returns>
-        /// <param name="inputFormat">Pixel color format of pixels in input buffer.</param>
-        /// <param name="endianess">Endianess of input buffer.</param>
+        /// <param name="inputBufferDescriptor">Object containing information about input buffer: color format and endianness.</param>
         /// <param name="inBuffer">Input buffer.</param>
+        /// <param name="clutBuffer">Color look-up table buffer.</param>
         /// <param name="inPosition">Position of pixel in buffer.</param>
         /// <param name="color">Variable where values of color channels should be stored.</param>
         private static Expression GenerateFrom(BufferDescriptor inputBufferDescriptor, ParameterExpression inBuffer, ParameterExpression clutBuffer, Expression inPosition, PixelDescriptor color, Expression tmp)
@@ -405,8 +405,7 @@ namespace Emul8.Backends.Display
         /// Generates expression converting and storing one pixel in output format to output buffer (ordering bytes accordingly to endianess) at given position using channels values provided by red/green/blue/alpha variables.
         /// </summary>
         /// <returns>Generated expression.</returns>
-        /// <param name="outputFormat">Pixel color format of pixels stored in output buffer.</param>
-        /// <param name="endianess">Endianess of output buffer.</param>
+        /// <param name="outputBufferDescriptor">Object containing information about output buffer: color format and endianness.</param>
         /// <param name="outBuffer">Output buffer.</param>
         /// <param name="outPosition">Position of pixel in output buffer.</param>
         /// <param name="color">Object with variables from which value of color channels should be read.</param>
