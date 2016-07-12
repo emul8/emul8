@@ -14,7 +14,7 @@ namespace Emul8.Backends.Display
 {
     public static class PixelManipulationTools
     {
-        public static IPixelConverter GetConverter(PixelFormat inputFormat, Endianess inputEndianess, PixelFormat outputFormat, Endianess outputEndianess)
+        public static IPixelConverter GetConverter(PixelFormat inputFormat, Endianess inputEndianess, PixelFormat outputFormat, Endianess outputEndianess, PixelFormat? clutInputFormat = null)
         {
             var tuple = Tuple.Create(inputFormat, inputEndianess, outputFormat, outputEndianess);
             if(!convertersCache.ContainsKey(tuple))
@@ -25,6 +25,7 @@ namespace Emul8.Backends.Display
                     new BufferDescriptor 
                     {
                         ColorFormat = inputFormat,
+                        ClutColorFormat = clutInputFormat,
                         DataEndianness = inputEndianess
                     },
                     new BufferDescriptor 
@@ -116,8 +117,8 @@ namespace Emul8.Backends.Display
                     Expression.IfThenElse(Expression.LessThan(vBackPos, vLength),
                         Expression.Block(
 
-                            GenerateFrom(backgroudBufferDescriptor, vBackBuffer, vBackPos, inputBackgroundPixel),
-                            GenerateFrom(foregroundBufferDescriptor, vFrontBuffer, vFrontPos, inputForegroundPixel),
+                            GenerateFrom(backgroudBufferDescriptor, vBackBuffer, null, vBackPos, inputBackgroundPixel),
+                            GenerateFrom(foregroundBufferDescriptor, vFrontBuffer, null, vFrontPos, inputForegroundPixel),
 
                             Expression.Assign(inputBackgroundPixel.AlphaChannel, Expression.Divide(Expression.Multiply(inputBackgroundPixel.AlphaChannel, Expression.Convert(vBackBufferAlphaMultiplier, typeof(uint))), Expression.Constant((uint)0xFF))),
                             Expression.Assign(inputForegroundPixel.AlphaChannel, Expression.Divide(Expression.Multiply(inputForegroundPixel.AlphaChannel, Expression.Convert(vFrontBufferAlphaMultiplier, typeof(uint))), Expression.Constant((uint)0xFF))),
@@ -216,6 +217,7 @@ namespace Emul8.Backends.Display
             var vLength = Expression.Variable(typeof(int),  "length");
 
             var vInputBuffer = Expression.Parameter(typeof(byte[]), "inputBuffer");
+            var vClutBuffer = Expression.Parameter(typeof(byte[]), "clutBuffer");
             var vOutputBuffer = Expression.Parameter(typeof(byte[]).MakeByRefType(), "outputBuffer");
 
             var vInPos = Expression.Variable(typeof(int), "inPos");
@@ -235,7 +237,7 @@ namespace Emul8.Backends.Display
                 Expression.Loop(
                     Expression.IfThenElse(Expression.LessThan(vInPos, vLength),
                         Expression.Block(
-                            GenerateFrom(inputBufferDescriptor, vInputBuffer, vInPos, vColor),
+                            GenerateFrom(inputBufferDescriptor, vInputBuffer, vClutBuffer, vInPos, vColor),
                             GenerateTo(outputBufferDescriptor, vOutputBuffer, vOutPos, vColor),
 
                             Expression.AddAssign(vInPos, vInStep),
@@ -247,7 +249,7 @@ namespace Emul8.Backends.Display
                 )
             );
 
-            return Expression.Lambda<ConvertDelegate>(block, vInputBuffer, vOutputBuffer).Compile();
+            return Expression.Lambda<ConvertDelegate>(block, vInputBuffer, vClutBuffer, vOutputBuffer).Compile();
         }
 
         /// <summary>
@@ -260,7 +262,7 @@ namespace Emul8.Backends.Display
         /// <param name="inBuffer">Input buffer.</param>
         /// <param name="inPosition">Position of pixel in buffer.</param>
         /// <param name="color">Variable where values of color channels should be stored.</param>
-        private static Expression GenerateFrom(BufferDescriptor inputBufferDescriptor, ParameterExpression inBuffer, Expression inPosition, PixelDescriptor color)
+        private static Expression GenerateFrom(BufferDescriptor inputBufferDescriptor, ParameterExpression inBuffer, ParameterExpression clutBuffer, Expression inPosition, PixelDescriptor color)
         {
             byte currentBit = 0;
             byte currentByte = 0;
@@ -323,37 +325,55 @@ namespace Emul8.Backends.Display
                     continue;
                 }
 
-                Expression currentColor = null;
-                switch(colorDescriptor.Key)
+                // luminance - indirect color indexing using CLUT
+                if(colorDescriptor.Key == ColorType.L)
                 {
-                case ColorType.A:
-                    currentColor = color.AlphaChannel;
-                    isAlphaSet = true;
-                    break;
-                case ColorType.B:
-                    currentColor = color.BlueChannel;
-                    break;
-                case ColorType.G:
-                    currentColor = color.GreenChannel;
-                    break;
-                case ColorType.R:
-                    currentColor = color.RedChannel;
-                    break;
+                    if(!inputBufferDescriptor.ClutColorFormat.HasValue)
+                    {
+                        throw new ArgumentException("CLUT mode required but not set");
+                    }
+
+                    var clutWidth = Expression.Constant(inputBufferDescriptor.ClutColorFormat.Value.GetColorDepth());
+                    var clutOffset = Expression.Multiply(colorExpression, clutWidth);
+
+                    // todo: indirect parameters should not be needed here, but we  m u s t  pass something
+                    expressions.Add(
+                        GenerateFrom(new BufferDescriptor { ColorFormat = inputBufferDescriptor.ClutColorFormat.Value, DataEndianness = inputBufferDescriptor.DataEndianness }, clutBuffer, clutBuffer, clutOffset, color));
                 }
-                
-                expressions.Add(Expression.Assign(currentColor, colorExpression));
-                
-                // filling lsb '0'-bits with copy of msb pattern
-                var numberOfBits = colorDescriptor.Value;
-                var zeroBits = 8 - numberOfBits;
-                while(zeroBits > 0)
+                else
                 {
-                    expressions.Add(Expression.OrAssign(
-                        currentColor, 
-                        Expression.RightShift(
+                    Expression currentColor = null;
+                    switch(colorDescriptor.Key)
+                    {
+                    case ColorType.A:
+                        currentColor = color.AlphaChannel;
+                        isAlphaSet = true;
+                        break;
+                    case ColorType.B:
+                        currentColor = color.BlueChannel;
+                        break;
+                    case ColorType.G:
+                        currentColor = color.GreenChannel;
+                        break;
+                    case ColorType.R:
+                        currentColor = color.RedChannel;
+                        break;
+                    }
+
+                    expressions.Add(Expression.Assign(currentColor, colorExpression));
+                                
+                    // filling lsb '0'-bits with copy of msb pattern
+                    var numberOfBits = colorDescriptor.Value;
+                    var zeroBits = 8 - numberOfBits;
+                    while(zeroBits > 0)
+                    {
+                        expressions.Add(Expression.OrAssign(
                             currentColor, 
-                            Expression.Constant((int)numberOfBits))));
-                    zeroBits -= numberOfBits;
+                            Expression.RightShift(
+                                currentColor, 
+                                Expression.Constant((int)numberOfBits))));
+                        zeroBits -= numberOfBits;
+                    }
                 }
             }
 
@@ -555,7 +575,12 @@ namespace Emul8.Backends.Display
 
             public void Convert(byte[] inBuffer, ref byte[] outBuffer)
             {
-                converter(inBuffer, ref outBuffer);
+                converter(inBuffer, null, ref outBuffer);
+            }
+
+            public void Convert(byte[] inBuffer, byte[] clutBuffer, ref byte[] outBuffer)
+            {
+                converter(inBuffer, clutBuffer, ref outBuffer);
             }
 
             public PixelFormat Input { get; private set; }
@@ -570,6 +595,11 @@ namespace Emul8.Backends.Display
             {
                 Input = format;
                 Output = format;
+            }
+
+            public void Convert(byte[] inBuffer, byte[] clutBuffer, ref byte[] outBuffer)
+            {
+                outBuffer = inBuffer;
             }
 
             public void Convert(byte[] inBuffer, ref byte[] outBuffer)
@@ -610,7 +640,7 @@ namespace Emul8.Backends.Display
         private static Dictionary<Tuple<PixelFormat, Endianess, PixelFormat, Endianess>, IPixelConverter> convertersCache = new Dictionary<Tuple<PixelFormat, Endianess, PixelFormat, Endianess>, IPixelConverter>();
         private static Dictionary<Tuple<PixelFormat, Endianess, PixelFormat, Endianess, PixelFormat, Endianess>, IPixelBlender> blendersCache = new Dictionary<Tuple<PixelFormat, Endianess, PixelFormat, Endianess, PixelFormat, Endianess>, IPixelBlender>();
 
-        private delegate void ConvertDelegate(byte[] inBuffer, ref byte[] outBuffer);
+        private delegate void ConvertDelegate(byte[] inBuffer, byte[] clutBuffer, ref byte[] outBuffer);
         private delegate void BlendDelegate(byte[] backBuffer, byte[] frontBuffer, ref byte[] outBuffer, Pixel background = null, byte backBufferAlphaMulitplier = 0xFF, byte frontBufferAlphaMultiplayer = 0xFF);
 
         private class PixelDescriptor
@@ -633,6 +663,7 @@ namespace Emul8.Backends.Display
         {
             public PixelFormat ColorFormat { get; set; }
             public Endianess DataEndianness { get; set; }
+            public PixelFormat? ClutColorFormat { get; set; }
         }
     }
 }
