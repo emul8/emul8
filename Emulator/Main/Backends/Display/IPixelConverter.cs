@@ -9,6 +9,7 @@
 {
     public interface IPixelConverter
     {
+        void Convert(byte[] inBuffer, byte[] clutBuffer, ref byte[] outBuffer);
         void Convert(byte[] inBuffer, ref byte[] outBuffer);
 
         PixelFormat Input { get; }
