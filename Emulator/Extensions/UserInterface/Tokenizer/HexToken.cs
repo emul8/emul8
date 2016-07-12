@@ -9,7 +9,7 @@ using System;
 
 namespace Emul8.UserInterface.Tokenizer
 {
-    public class HexToken : NumericToken
+    public class HexToken : DecimalIntegerToken
     {
         public HexToken(string value):base(Convert.ToInt64(value.Split('x')[1], 16).ToString())
         {

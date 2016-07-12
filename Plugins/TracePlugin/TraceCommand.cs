@@ -75,7 +75,7 @@ namespace Emul8.Plugins.TracePlugin
         }
 
         [Runnable]
-        public void Run(ICommandInteraction writer, [Values(TraceEnableCommand)] LiteralToken enable, LiteralToken cpuToken, StringToken functionName, BooleanToken traceReturn, NumericToken numberOfParameters)
+        public void Run(ICommandInteraction writer, [Values(TraceEnableCommand)] LiteralToken enable, LiteralToken cpuToken, StringToken functionName, BooleanToken traceReturn, DecimalIntegerToken numberOfParameters)
         {
             Execute(writer, cpuToken, functionName.Value, traceReturn.Value, (int)numberOfParameters.Value);
         }

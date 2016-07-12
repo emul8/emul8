@@ -9,7 +9,7 @@ using System;
 
 namespace Emul8.UserInterface.Tokenizer
 {
-    public class ConditionalEqualityToken : EqualToken
+    public class ConditionalEqualityToken : EqualityToken
     {
         public ConditionalEqualityToken(string value) : base(value)
         {
