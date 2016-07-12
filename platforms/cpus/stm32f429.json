@@ -363,7 +363,7 @@
   },
   "I2C1":
   {
-    "_type":"I2C.STM32I2C",
+    "_type":"I2C.STM32F4_I2C",
     "_connection":
     {
       "sysbus": {"address":0x40005400}
@@ -375,7 +375,7 @@
   },
   "I2C2":
   {
-    "_type":"I2C.STM32I2C",
+    "_type":"I2C.STM32F4_I2C",
     "_connection":
     {
       "sysbus": {"address":0x40005800}
@@ -387,7 +387,7 @@
   },
   "I2C3":
   {
-    "_type":"I2C.STM32I2C",
+    "_type":"I2C.STM32F4_I2C",
     "_connection":
     {
       "sysbus": {"address":0x40005C00}
