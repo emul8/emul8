@@ -14,6 +14,7 @@ using System.Linq;
 using Emul8.Exceptions;
 using Emul8.Peripherals.Bus;
 using System.Text;
+using Emul8.Utilities;
 
 namespace Emul8.Debug
 {
@@ -36,6 +37,10 @@ namespace Emul8.Debug
         public void TraceFunction(string name, IEnumerable<FunctionCallParameter> parameters, Action<TranslationCPU, uint, string, IEnumerable<object>> callback,
             FunctionCallParameter? returnParameter = null, Action<TranslationCPU, uint, string, IEnumerable<object>> returnCallback = null)
         {
+            if(registeredCallbacks.ContainsKey(name))
+            {
+                throw new RecoverableException("Function {0} is already being traced.".FormatWith(name));
+            }
             cpu.Log(LogLevel.Info, "Going to trace function '{0}'.", name);
 
             Symbol symbol;
