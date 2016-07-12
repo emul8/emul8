@@ -42,7 +42,8 @@ namespace Emul8.Backends.Display
         G,
         B,
         A,
-        X
+        X,
+        L
     }
 
     public static class PixelFormatExtensions
