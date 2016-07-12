@@ -15,14 +15,14 @@ namespace Emul8.Backends.Display
 {
     public static class PixelManipulationTools
     {
-        public static IPixelConverter GetConverter(PixelFormat input, Endianess inputEndianess, PixelFormat output, Endianess outputEndianess)
+        public static IPixelConverter GetConverter(PixelFormat inputFormat, Endianess inputEndianess, PixelFormat outputFormat, Endianess outputEndianess)
         {
-            var tuple = Tuple.Create(input, inputEndianess, output, outputEndianess);
+            var tuple = Tuple.Create(inputFormat, inputEndianess, outputFormat, outputEndianess);
             if(!convertersCache.ContainsKey(tuple))
             {
-                convertersCache[tuple] = ((input == output) && (inputEndianess == outputEndianess)) ? 
-                    (IPixelConverter) new IdentityPixelConverter(input) : 
-                    new PixelConverter(input, output, GenerateConvertMethod(input, inputEndianess, output, outputEndianess));
+                convertersCache[tuple] = ((inputFormat == outputFormat) && (inputEndianess == outputEndianess)) ? 
+                    (IPixelConverter) new IdentityPixelConverter(inputFormat) : 
+                    new PixelConverter(inputFormat, outputFormat, GenerateConvertMethod(inputFormat, inputEndianess, outputFormat, outputEndianess));
             }
             return convertersCache[tuple];
         }
@@ -37,7 +37,7 @@ namespace Emul8.Backends.Display
             return blendersCache[tuple];
         }
 
-        private static BlendDelegate GenerateBlendMethod(PixelFormat backBuffer, Endianess backBufferEndianess, PixelFormat frontBuffer, Endianess frontBufferEndianess, PixelFormat output, Endianess outputEndianess)
+        private static BlendDelegate GenerateBlendMethod(PixelFormat backBufferFormat, Endianess backBufferEndianess, PixelFormat frontBufferFormat, Endianess frontBufferEndianess, PixelFormat outputFormat, Endianess outputEndianess)
         {
             var outputPixel = new PixelDescriptor();
             var inputBackgroundPixel = new PixelDescriptor();
@@ -73,9 +73,9 @@ namespace Emul8.Backends.Display
                          vBackAlphaBlended, vBackgroundColorAlphaBlended
                 },
 
-                Expression.Assign(vBackStep, Expression.Constant(backBuffer.GetColorDepth())),
-                Expression.Assign(vFrontStep, Expression.Constant(frontBuffer.GetColorDepth())),
-                Expression.Assign(vOutStep, Expression.Constant(output.GetColorDepth())),
+                Expression.Assign(vBackStep, Expression.Constant(backBufferFormat.GetColorDepth())),
+                Expression.Assign(vFrontStep, Expression.Constant(frontBufferFormat.GetColorDepth())),
+                Expression.Assign(vOutStep, Expression.Constant(outputFormat.GetColorDepth())),
                 Expression.Assign(vLength, Expression.Property(vBackBuffer, "Length")),
 
                 Expression.Assign(vBackPos, Expression.Constant(0x00)),
@@ -91,8 +91,8 @@ namespace Emul8.Backends.Display
                     Expression.IfThenElse(Expression.LessThan(vBackPos, vLength),
                         Expression.Block(
 
-                            GenerateFrom(backBuffer, backBufferEndianess, vBackBuffer, vBackPos, inputBackgroundPixel),
-                            GenerateFrom(frontBuffer, frontBufferEndianess, vFrontBuffer, vFrontPos, inputForegroundPixel),
+                            GenerateFrom(backBufferFormat, backBufferEndianess, vBackBuffer, vBackPos, inputBackgroundPixel),
+                            GenerateFrom(frontBufferFormat, frontBufferEndianess, vFrontBuffer, vFrontPos, inputForegroundPixel),
 
                             Expression.Assign(inputBackgroundPixel.AlphaChannel, Expression.Divide(Expression.Multiply(inputBackgroundPixel.AlphaChannel, Expression.Convert(vBackBufferAlphaMultiplier, typeof(uint))), Expression.Constant((uint)0xFF))),
                             Expression.Assign(inputForegroundPixel.AlphaChannel, Expression.Divide(Expression.Multiply(inputForegroundPixel.AlphaChannel, Expression.Convert(vFrontBufferAlphaMultiplier, typeof(uint))), Expression.Constant((uint)0xFF))),
@@ -167,7 +167,7 @@ namespace Emul8.Backends.Display
                                                 outputPixel.AlphaChannel))))
                             ),
 
-                            GenerateTo(output, outputEndianess, vOutputBuffer, vOutPos, outputPixel),
+                            GenerateTo(outputFormat, outputEndianess, vOutputBuffer, vOutPos, outputPixel),
 
                             Expression.AddAssign(vBackPos, vBackStep),
                             Expression.AddAssign(vFrontPos, vFrontStep),
@@ -182,7 +182,7 @@ namespace Emul8.Backends.Display
             return Expression.Lambda<BlendDelegate>(block, vBackBuffer, vFrontBuffer, vOutputBuffer, vBackgroundColor, vBackBufferAlphaMultiplier, vFrontBufferAlphaMultiplier).Compile();
         }
 
-        private static ConvertDelegate GenerateConvertMethod(PixelFormat input, Endianess inputEndianess, PixelFormat output, Endianess outputEndianess)
+        private static ConvertDelegate GenerateConvertMethod(PixelFormat inputFormat, Endianess inputEndianess, PixelFormat outputFormat, Endianess outputEndianess)
         {
             var vColor = new PixelDescriptor();
 
@@ -201,8 +201,8 @@ namespace Emul8.Backends.Display
             var block = Expression.Block(
                 new [] { vColor.RedChannel, vColor.GreenChannel, vColor.BlueChannel, vColor.AlphaChannel, vInStep, vOutStep, vLength, vInPos, vOutPos },
 
-                Expression.Assign(vInStep, Expression.Constant(input.GetColorDepth())),
-                Expression.Assign(vOutStep, Expression.Constant(output.GetColorDepth())),
+                Expression.Assign(vInStep, Expression.Constant(inputFormat.GetColorDepth())),
+                Expression.Assign(vOutStep, Expression.Constant(outputFormat.GetColorDepth())),
                 Expression.Assign(vLength, Expression.Property(vInputBuffer, "Length")),
 
                 Expression.Assign(vInPos, Expression.Constant(0)),
@@ -210,8 +210,8 @@ namespace Emul8.Backends.Display
                 Expression.Loop(
                     Expression.IfThenElse(Expression.LessThan(vInPos, vLength),
                         Expression.Block(
-                            GenerateFrom(input, inputEndianess, vInputBuffer, vInPos, vColor),
-                            GenerateTo(output, outputEndianess, vOutputBuffer, vOutPos, vColor),
+                            GenerateFrom(inputFormat, inputEndianess, vInputBuffer, vInPos, vColor),
+                            GenerateTo(outputFormat, outputEndianess, vOutputBuffer, vOutPos, vColor),
 
                             Expression.AddAssign(vInPos, vInStep),
                             Expression.AddAssign(vOutPos, vOutStep)
