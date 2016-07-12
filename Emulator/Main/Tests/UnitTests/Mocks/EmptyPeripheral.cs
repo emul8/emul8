@@ -19,7 +19,7 @@ namespace UnitTests.Mocks
 			
 		}
 		
-		public byte[] Read ()
+		public byte[] Read (int count)
 		{
 			return new byte[]{0};
 		}

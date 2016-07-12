@@ -524,7 +524,7 @@ namespace Emul8.Peripherals.I2C
             Reset();
         }
 
-        public byte[] Read ()
+        public byte[] Read (int count = 0)
         {
             this.NoisyLog ("Read {0}", sendData.Select(x=>x.ToString("X")).Aggregate((x,y)=>x+" "+y));
             return sendData;

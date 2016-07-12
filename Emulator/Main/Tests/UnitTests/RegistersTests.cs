@@ -18,66 +18,16 @@ namespace Emul8.UnitTests
         [Test]
         public void ShouldNotAcceptOutOfBoundsValues()
         {
-            var foundException = false;
-            try
-            {
-                enumRWField.Value = (TwoBitEnum)(1 << 2);
-            }
-            catch(ArgumentException)
-            {
-                foundException = true;
-            }
-            finally
-            {
-                Assert.IsTrue(foundException);
-            }
-
-            foundException = false;
-            try
-            {
-                valueRWField.Value = (1 << 4);
-            }
-            catch(ArgumentException)
-            {
-                foundException = true;
-            }
-            finally
-            {
-                Assert.IsTrue(foundException);
-            }
+            Assert.Catch<ArgumentException>(() => enumRWField.Value = (TwoBitEnum)(1 << 2));
+            Assert.Catch<ArgumentException>(() => valueRWField.Value = (1 << 4));
         }
 
         [Test]
         public void ShouldNotAcceptNegativeFields()
         {
-            var foundException = false;
             var localRegister = new DoubleWordRegister(null);
-            try
-            {
-                localRegister.DefineEnumField<TwoBitEnum>(0, -1); 
-            }
-            catch(ArgumentException)
-            {
-                foundException = true;
-            }
-            finally
-            {
-                Assert.IsTrue(foundException);
-            }
-
-            foundException = false;
-            try
-            {
-                localRegister.DefineValueField(0, -1); 
-            }
-            catch(ArgumentException)
-            {
-                foundException = true;
-            }
-            finally
-            {
-                Assert.IsTrue(foundException);
-            }
+            Assert.Catch<ArgumentException>(() => localRegister.DefineEnumField<TwoBitEnum>(0, -1));
+            Assert.Catch<ArgumentException>(() => localRegister.DefineValueField(0, -1));
         }
 
 
@@ -88,45 +38,21 @@ namespace Emul8.UnitTests
             {
                 { new DoubleWordRegister(null), 31 },
                 { new WordRegister(null), 15 },
-                { new ByteRegister(null), 7 },
+                { new ByteRegister(null), 7 }
             };
             foreach(var registerAndPosition in registersAndPositions)
             {
-                var foundException = false;
                 var localRegister = registerAndPosition.Key;
-                try
-                {
-                    localRegister.DefineEnumField<TwoBitEnum>(registerAndPosition.Value, 2);
-                }
-                catch(ArgumentException)
-                {
-                    foundException = true;
-                }
-                finally
-                {
-                    Assert.IsTrue(foundException);
-                }
+                Assert.Catch<ArgumentException>(() => localRegister.DefineEnumField<TwoBitEnum>(registerAndPosition.Value, 2));
             }
         }
 
         [Test]
         public void ShouldNotAllowIntersectingFields()
         {
-            var foundException = false;
             var localRegister = new DoubleWordRegister(null);
             localRegister.DefineValueField(1, 5);
-            try
-            {
-                localRegister.DefineValueField(0, 2);
-            }
-            catch(ArgumentException)
-            {
-                foundException = true;
-            }
-            finally
-            {
-                Assert.IsTrue(foundException);
-            }
+            Assert.Catch<ArgumentException>(() => localRegister.DefineValueField(0, 2));
         }
 
         [Test]
@@ -255,7 +181,7 @@ namespace Emul8.UnitTests
         }
 
         [Test]
-        public void ShouldCallWriteAndHandler()
+        public void ShouldCallWriteAndChangeHandler()
         {
             Assert.AreEqual(0, enumCallbacks);
             Assert.AreEqual(0, boolCallbacks);
@@ -270,6 +196,28 @@ namespace Emul8.UnitTests
             Assert.IsTrue(oldEnumValue == TwoBitEnum.D && newEnumValue == TwoBitEnum.B);
             Assert.IsTrue(oldUintValue == 13);
             Assert.IsTrue(newUintValue == 10);
+        }
+
+        [Test]
+        public void ShouldCallGlobalReadHandler()
+        {
+            Assert.AreEqual(0, globalCallbacks);
+            register.Read();
+            Assert.AreEqual(1, globalCallbacks);
+            Assert.AreEqual(RegisterResetValue, oldGlobalValue);
+            Assert.AreEqual(RegisterResetValue, newGlobalValue);
+        }
+
+        [Test]
+        public void ShouldCallGlobalWriteAndChangeHandler()
+        {
+            Assert.AreEqual(0, globalCallbacks);
+            register.Write(0, 0x2A80);
+            //1 for write, 1 for change
+            Assert.AreEqual(2, globalCallbacks);
+
+            Assert.AreEqual(RegisterResetValue, oldGlobalValue);
+            Assert.AreEqual(0x2A80, newGlobalValue);
         }
 
         [Test]
@@ -328,17 +276,29 @@ namespace Emul8.UnitTests
             register.DefineFlagField(25, valueProviderCallback: ModifyingFlagCallback);
             register.DefineEnumField<TwoBitEnum>(26, 2, valueProviderCallback: ModifyingEnumCallback);
 
+            register.WithReadCallback(GlobalCallback).WithWriteCallback(GlobalCallback).WithChangeCallback(GlobalCallback);
+
             enableValueProviders = false;
 
             enumCallbacks = 0;
             boolCallbacks = 0;
             numberCallbacks = 0;
+            globalCallbacks = 0;
             oldBoolValue = false;
             newBoolValue = false;
             oldEnumValue = TwoBitEnum.A;
             newEnumValue = TwoBitEnum.A;
             oldUintValue = 0;
             newUintValue = 0;
+            oldGlobalValue = 0;
+            newGlobalValue = 0;
+        }
+
+        private void GlobalCallback(uint oldValue, uint newValue)
+        {
+            globalCallbacks++;
+            oldGlobalValue = oldValue;
+            newGlobalValue = newValue;
         }
 
         private void EnumCallback(TwoBitEnum oldValue, TwoBitEnum newValue)
@@ -440,12 +400,16 @@ namespace Emul8.UnitTests
         private int boolCallbacks;
         private int numberCallbacks;
 
+        private int globalCallbacks;
+
         private TwoBitEnum oldEnumValue;
         private TwoBitEnum newEnumValue;
         private bool oldBoolValue;
         private bool newBoolValue;
         private uint oldUintValue;
         private uint newUintValue;
+        private uint oldGlobalValue;
+        private uint newGlobalValue;
 
         private bool enableValueProviders;
 

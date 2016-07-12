@@ -349,7 +349,6 @@
       "nvic": [ [0,56], [1, 57], [2, 58], [3, 59], [4, 60], [5, 68], [6, 69], [7, 70] ]
     }
   },
-  /*
   "LTDC":
   {
     "_type":"Video.STM32LTDC",
@@ -361,6 +360,41 @@
     {
      "nvic": [88]
     }
-  }
-  */
+  },
+  "I2C1":
+  {
+    "_type":"I2C.STM32I2C",
+    "_connection":
+    {
+      "sysbus": {"address":0x40005400}
+    },
+    "_irq":
+    {
+     "nvic": [["EventInterrupt",31], ["ErrorInterrupt",32]]
+    }
+  },
+  "I2C2":
+  {
+    "_type":"I2C.STM32I2C",
+    "_connection":
+    {
+      "sysbus": {"address":0x40005800}
+    },
+    "_irq":
+    {
+     "nvic": [["EventInterrupt",33], ["ErrorInterrupt",34]]
+    }
+  },
+  "I2C3":
+  {
+    "_type":"I2C.STM32I2C",
+    "_connection":
+    {
+      "sysbus": {"address":0x40005C00}
+    },
+    "_irq":
+    {
+     "nvic": [["EventInterrupt",72], ["ErrorInterrupt",73]]
+    }
+  },
 }
