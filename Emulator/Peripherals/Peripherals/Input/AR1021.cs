@@ -27,7 +27,7 @@ namespace Emul8.Peripherals.Input
             this.DebugLog("Writing {0}.", data.Select(x => x.ToString()).Stringify());
         }
 
-        public byte[] Read()
+        public byte[] Read(int count)
         {
             var returnValue = currentRetValue ?? new byte[5];
             this.DebugLog("Read returning {0}.", returnValue.Select(x => x.ToString()).Stringify());

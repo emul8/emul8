@@ -5,7 +5,7 @@
 // This file is part of the Emul8 project.
 // Full license details are defined in the 'LICENSE' file.
 //
-﻿using System;
+using System;
 using Emul8.Utilities;
 
 namespace Emul8.Core.Structure.Registers
@@ -16,7 +16,7 @@ namespace Emul8.Core.Structure.Registers
         /// Gets or sets the field's value. Access to this property does not invoke verification procedures in terms of FieldMode checking.
         /// Also, it does not invoke callbacks.
         /// </summary>
-        T Value { get; set; }       
+        T Value { get; set; }
     }
 
     public partial class PeripheralRegister
@@ -84,7 +84,7 @@ namespace Emul8.Core.Structure.Registers
             {
                 get
                 {
-                    return FromBinary(FilterValue(parent.UnderlyingValue)); 
+                    return FromBinary(FilterValue(parent.UnderlyingValue));
                 }
                 set
                 {
