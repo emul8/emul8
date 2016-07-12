@@ -47,6 +47,10 @@ namespace Emul8.Backends.Display
 
     public static class PixelFormatExtensions
     {
+        /// <summary>
+        /// Calculates the number of bytes needed to encode the color.
+        /// </summary>
+        /// <param name="format">Color format.</param>
         public static int GetColorDepth(this PixelFormat format)
         {
             switch(format)
