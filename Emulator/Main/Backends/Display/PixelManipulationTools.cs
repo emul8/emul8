@@ -6,7 +6,6 @@
 // Full license details are defined in the 'LICENSE' file.
 //
 ﻿using System;
-using Emul8.Backends.Display;
 using System.Linq.Expressions;
 using System.Collections.Generic;
 using ELFSharp.ELF;
