@@ -1,22 +1,21 @@
-//
+﻿//
 // Copyright (c) Antmicro
-// Copyright (c) Realtime Embedded
 //
 // This file is part of the Emul8 project.
 // Full license details are defined in the 'LICENSE' file.
 //
-using System;
+using System.Globalization;
 
 namespace Emul8.UserInterface.Tokenizer
 {
-    public class EqualToken : Token
+    public class FloatToken : Token
     {
-        public EqualToken(string value):base(value)
+        public FloatToken(string value) : base(value)
         {
-            Value = value;
+            Value = float.Parse(value, CultureInfo.InvariantCulture);
         }
 
-        public string Value { get; private set; }
+        public float Value { get; private set; }
 
         public override object GetObjectValue()
         {
@@ -25,7 +24,7 @@ namespace Emul8.UserInterface.Tokenizer
 
         public override string ToString()
         {
-            return string.Format("[EqualToken: Value={0}]", Value);
+            return string.Format("[FloatToken: Value={0}]", Value);
         }
     }
 }

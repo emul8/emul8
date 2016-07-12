@@ -11,6 +11,7 @@ using Emul8.UserInterface;
 using Emul8.UserInterface.Tokenizer;
 using System.Linq;
 using Emul8.Exceptions;
+using Emul8.Core;
 
 namespace MonitorTests
 {
@@ -21,65 +22,90 @@ namespace MonitorTests
         public void CommentTest()
         {
             var result = tokenizer.Tokenize("#something");
-            AssertTokenizationResult(result, typeof(CommentToken));
+            AssertTokenizationTypes(result, typeof(CommentToken));
+            AssertTokenizationValues(result, "something");
+
             result = tokenizer.Tokenize("emu[\"SomeIndexWith#Hash\"]");
-            AssertTokenizationResult(result, typeof(LiteralToken), typeof(LeftBraceToken), typeof(StringToken), typeof(RightBraceToken));
+            AssertTokenizationTypes(result, typeof(LiteralToken), typeof(LeftBraceToken), typeof(StringToken), typeof(RightBraceToken));
+            AssertTokenizationValues(result, "emu", "[", "SomeIndexWith#Hash", "]");
+
             result = tokenizer.Tokenize("emu[\"SomeIndexWithoutHash\"#Comment]");
-            AssertTokenizationResult(result, typeof(LiteralToken), typeof(LeftBraceToken), typeof(StringToken), typeof(CommentToken));
+            AssertTokenizationTypes(result, typeof(LiteralToken), typeof(LeftBraceToken), typeof(StringToken), typeof(CommentToken));
+            AssertTokenizationValues(result, "emu", "[", "SomeIndexWithoutHash", "Comment]");
         }
 
         [Test]
         public void ExecutionTest()
         {
             var result = tokenizer.Tokenize("`something`");
-            AssertTokenizationResult(result, typeof(ExecutionToken));
+            AssertTokenizationTypes(result, typeof(ExecutionToken));
+            AssertTokenizationValues(result, "something");
         }
 
         [Test]
         public void VariableTest()
         {
             var result = tokenizer.Tokenize("$name $_name $NaMe $.name $123name123");
-            AssertTokenizationResult(result, typeof(VariableToken), typeof(VariableToken), typeof(VariableToken), typeof(VariableToken), typeof(VariableToken));
+            AssertTokenizationTypes(result, typeof(VariableToken), typeof(VariableToken), typeof(VariableToken), typeof(VariableToken), typeof(VariableToken));
+            AssertTokenizationValues(result, "name", "_name", "NaMe", ".name", "123name123");
+
             result = tokenizer.Tokenize("$variable=\"value\"");
-            AssertTokenizationResult(result, typeof(VariableToken), typeof(EqualToken), typeof(StringToken));
+            AssertTokenizationTypes(result, typeof(VariableToken), typeof(EqualityToken), typeof(StringToken));
+            AssertTokenizationValues(result, "variable", "=", "value");
+
             result = tokenizer.Tokenize("$variable?=\"value\"");
-            AssertTokenizationResult(result, typeof(VariableToken), typeof(ConditionalEqualityToken), typeof(StringToken));
+            AssertTokenizationTypes(result, typeof(VariableToken), typeof(ConditionalEqualityToken), typeof(StringToken));
+            AssertTokenizationValues(result, "variable", "?=", "value");
         }
 
         [Test]
         public void IndexTest()
         {
             var result = tokenizer.Tokenize("emu[\"SomeIndex\"]");
-            AssertTokenizationResult(result, typeof(LiteralToken), typeof(LeftBraceToken), typeof(StringToken), typeof(RightBraceToken));
+            AssertTokenizationTypes(result, typeof(LiteralToken), typeof(LeftBraceToken), typeof(StringToken), typeof(RightBraceToken));
+            AssertTokenizationValues(result, "emu", "[", "SomeIndex", "]");
+
             result = tokenizer.Tokenize("emu[15]");
-            AssertTokenizationResult(result, typeof(LiteralToken), typeof(LeftBraceToken), typeof(NumericToken), typeof(RightBraceToken));
+            AssertTokenizationTypes(result, typeof(LiteralToken), typeof(LeftBraceToken), typeof(DecimalIntegerToken), typeof(RightBraceToken));
+            AssertTokenizationValues(result, "emu", "[", 15, "]");
         }
 
         [Test]
         public void StringTest()
         {
             var result = tokenizer.Tokenize("'string1' \"string2\"");
-            AssertTokenizationResult(result, typeof(StringToken), typeof(StringToken));
+            AssertTokenizationTypes(result, typeof(StringToken), typeof(StringToken));
+            AssertTokenizationValues(result, "string1", "string2");
+
             result = tokenizer.Tokenize("'string1\" 'string2\"");
             AssertTokenizationResult(result, 1, null, typeof(StringToken), typeof(LiteralToken));
+            AssertTokenizationValues(result, "string1\" ", "string2");
         }
 
         [Test]
         public void UnbalancedStringTest()
         {
             var result = tokenizer.Tokenize("\"test\\\"       \\\"         \\\"       test \" 'test\\'        \\'  \\'   test '");
-            AssertTokenizationResult(result, typeof(StringToken), typeof(StringToken));
+            AssertTokenizationValues(result, "test\"       \"         \"       test ", "test'        '  '   test ");
+            AssertTokenizationTypes(result, typeof(StringToken), typeof(StringToken));
         }
 
         [Test]
         public void RangeTest()
         {
             var result = tokenizer.Tokenize("<-5,+5>");
-            AssertTokenizationResult(result, typeof(AbsoluteRangeToken));
+            var expectedValue = new Range(-5, 11);
+            AssertTokenizationTypes(result, typeof(AbsoluteRangeToken));
+            AssertTokenizationValues(result, expectedValue);
+
             result = tokenizer.Tokenize("<    \t0x123abDE  \t, \t\t  0xabcdef0 \t\t   >");
-            AssertTokenizationResult(result, typeof(AbsoluteRangeToken));
+            expectedValue = new Range(0x123abde, 0xabcdef0 - 0x123abde + 1);
+            AssertTokenizationTypes(result, typeof(AbsoluteRangeToken));
+            AssertTokenizationValues(result, expectedValue);
+
             result = tokenizer.Tokenize("<0xdefg, 0xefgh>");
             AssertTokenizationResult(result, 16);
+
             result = tokenizer.Tokenize("<5,-6>");
             AssertTokenizationResult(result, 6, typeof(RecoverableException));
         }
@@ -88,71 +114,105 @@ namespace MonitorTests
         public void RelativeRangeTest()
         {
             var result = tokenizer.Tokenize("<-5,+5>");
-            AssertTokenizationResult(result, typeof(AbsoluteRangeToken));
+            var expectedValue = new Range(-5, 11);
+            AssertTokenizationTypes(result, typeof(AbsoluteRangeToken));
+            AssertTokenizationValues(result, expectedValue);
+
             result = tokenizer.Tokenize("<0x6 0x2>");
-            AssertTokenizationResult(result, typeof(RelativeRangeToken));
+            expectedValue = new Range(0x6, 0x2);
+            AssertTokenizationTypes(result, typeof(RelativeRangeToken));
+            AssertTokenizationValues(result, expectedValue);
         }
 
         [Test]
         public void SimplePathTest()
         {
             var result = tokenizer.Tokenize("@Some\\path\\to\\File");
-            AssertTokenizationResult(result, typeof(PathToken));
+            AssertTokenizationTypes(result, typeof(PathToken));
+            AssertTokenizationValues(result, "Some\\path\\to\\File");
+
             result = tokenizer.Tokenize("@Some\\path\\to\\Directory\\");
-            AssertTokenizationResult(result, typeof(PathToken));
+            AssertTokenizationTypes(result, typeof(PathToken));
+            AssertTokenizationValues(result, "Some\\path\\to\\Directory\\");
         }
 
         [Test]
         public void EscapedPathTest()
         {
             var result = tokenizer.Tokenize("@Some\\path\\to\\file\\ with\\ Spaces");
-            AssertTokenizationResult(result, typeof(PathToken));
+            AssertTokenizationTypes(result, typeof(PathToken));
+            AssertTokenizationValues(result, "Some\\path\\to\\file with Spaces");
+
             result = tokenizer.Tokenize("@Some\\path\\to\\directory\\ with\\ Spaces\\");
-            AssertTokenizationResult(result, typeof(PathToken));
+            AssertTokenizationTypes(result, typeof(PathToken));
+            AssertTokenizationValues(result, "Some\\path\\to\\directory with Spaces\\");
         }
 
         [Test]
         public void MultilineTest()
         {
             var result = tokenizer.Tokenize("\"\"\"");
-            AssertTokenizationResult(result, typeof(MultilineStringTerminatorToken));
+            AssertTokenizationTypes(result, typeof(MultilineStringTerminatorToken));
+            AssertTokenizationValues(result, "\"");
+
             result = tokenizer.Tokenize("\"\"\"SomeMultiline\r\nString with many #tokens [\"inside\"] with\r\nnumbers 123 0x23 and\r\n stuff\"\"\"");
-            AssertTokenizationResult(result, typeof(MultilineStringToken));
+            AssertTokenizationTypes(result, typeof(MultilineStringToken));
+            AssertTokenizationValues(result, "SomeMultiline\r\nString with many #tokens [\"inside\"] with\r\nnumbers 123 0x23 and\r\n stuff");
         }
 
         [Test]
         public void BooleanTest()
         {
             var result = tokenizer.Tokenize("true");
-            AssertTokenizationResult(result, typeof(BooleanToken));
+            AssertTokenizationTypes(result, typeof(BooleanToken));
+            AssertTokenizationValues(result, true);
+
             result = tokenizer.Tokenize("TrUe");
-            AssertTokenizationResult(result, typeof(BooleanToken));
+            AssertTokenizationTypes(result, typeof(BooleanToken));
+            AssertTokenizationValues(result, true);
+
             result = tokenizer.Tokenize("FalSE");
-            AssertTokenizationResult(result, typeof(BooleanToken));
+            AssertTokenizationTypes(result, typeof(BooleanToken));
+            AssertTokenizationValues(result, false);
+
             result = tokenizer.Tokenize("false");
-            AssertTokenizationResult(result, typeof(BooleanToken));
+            AssertTokenizationTypes(result, typeof(BooleanToken));
+            AssertTokenizationValues(result, false);
         }
 
         [Test]
-        public void DecimalTest()
+        public void IntegerTest()
         {
             var result = tokenizer.Tokenize("123465 -213245 +132432");
-            AssertTokenizationResult(result, typeof(NumericToken), typeof(NumericToken), typeof(NumericToken));
+            AssertTokenizationTypes(result, typeof(DecimalIntegerToken), typeof(DecimalIntegerToken), typeof(DecimalIntegerToken));
+            AssertTokenizationValues(result, 123465, -213245, 132432);
+        }
+
+        [Test]
+        public void FloatTest()
+        {
+            var result = tokenizer.Tokenize("145.5 -0.43 +45.");
+            AssertTokenizationTypes(result, typeof(FloatToken), typeof(FloatToken), typeof(FloatToken));
+            AssertTokenizationValues(result, 145.5f, -0.43f, 45.0f);
         }
 
         [Test]
         public void HexadecimalTest()
         {
             var result = tokenizer.Tokenize("0xabcdef 0x123469 0xABCDEF 0x123AbC");
-            AssertTokenizationResult(result, typeof(HexToken), typeof(HexToken), typeof(HexToken), typeof(HexToken));
+            AssertTokenizationTypes(result, typeof(HexToken), typeof(HexToken), typeof(HexToken), typeof(HexToken));
+            AssertTokenizationValues(result, 0xabcdef, 0x123469, 0xabcdef, 0x123abc);
+
             result = tokenizer.Tokenize("0xgfd 123bcd");
-            AssertTokenizationResult(result, typeof(NumericToken), typeof(LiteralToken), typeof(NumericToken), typeof(LiteralToken));
+            AssertTokenizationTypes(result, typeof(DecimalIntegerToken), typeof(LiteralToken), typeof(DecimalIntegerToken), typeof(LiteralToken));
+            AssertTokenizationValues(result, 0, "xgfd", 123, "bcd");
         }
 
         public void LiteralTest()
         {
             var result = tokenizer.Tokenize(".Some.Literal-With?Extra:SignsIn.It:");
-            AssertTokenizationResult(result, typeof(LiteralToken));
+            AssertTokenizationTypes(result, typeof(LiteralToken));
+            AssertTokenizationValues(result, ".Some.Literal-With?Extra:SignsIn.It:");
         }
 
         [SetUp]
@@ -181,7 +241,7 @@ namespace MonitorTests
             }
         }
 
-        private static void AssertTokenizationResult(TokenizationResult result, params Type[] types)
+        private static void AssertTokenizationTypes(TokenizationResult result, params Type[] types)
         {
             Assert.IsNull(result.Exception);
             Assert.IsTrue(result.UnmatchedCharactersLeft == 0);
@@ -194,8 +254,14 @@ namespace MonitorTests
             }
         }
 
-        private Tokenizer tokenizer;
+        private static void AssertTokenizationValues(TokenizationResult result, params object[] values)
+        {
+            var tokens = result.Tokens.ToArray();
+            Assert.AreEqual(tokens.Length, values.Length);
+            CollectionAssert.AreEqual(values, tokens.Select(x => x.GetObjectValue()));
+        }
 
+        private Tokenizer tokenizer;
     }
 }
 
