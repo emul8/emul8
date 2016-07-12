@@ -13,11 +13,17 @@ namespace Emul8.Backends.Display
 {
     public enum PixelFormat
     {
+        A4,
+        L4,
         A8,
+        L8,
+        AL44,
+        AL88,
         RGB565,
         BGR565,
         BGR888,
         RGB888,
+        ARGB1555,
         ARGB4444,
         RGBA4444,
         ABGR4444,
