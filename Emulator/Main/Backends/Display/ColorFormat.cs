@@ -62,8 +62,8 @@ namespace Emul8.Backends.Display
         {
             switch(format)
             {
-	    case PixelFormat.A8:
-	        return 1;
+	        case PixelFormat.A8:
+	            return 1;
             case PixelFormat.RGB565:
             case PixelFormat.BGR565:
             case PixelFormat.ARGB4444:
