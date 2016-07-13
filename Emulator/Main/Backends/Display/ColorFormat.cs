@@ -87,9 +87,8 @@ namespace Emul8.Backends.Display
         }
 
         /// <summary>
-        /// Calculates lenghts (in bits) of colors deduced from format name.
+        /// Calculates number of bits needed to encode each color channel.
         /// </summary>
-        /// <returns>Colors maped to a number of bits they are encoded at.</returns>
         /// <param name="format">Color format</param>
         public static Dictionary<ColorType, byte> GetColorsLengths(this PixelFormat format)
         {
