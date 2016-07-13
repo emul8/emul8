@@ -48,11 +48,17 @@ namespace Emul8.Peripherals.DMA
             }
         }
 
+        private byte[] foregroundClut;
+        private byte[] backgroundClut;
+
         private STM32DMA2D()
         {
             var controlRegister = new DoubleWordRegister(this);
             startFlag = controlRegister.DefineFlagField(0, FieldMode.Read | FieldMode.Write, name: "Start", changeCallback: (old, @new) => { if(@new) DoTransfer(); });
             dma2dMode = controlRegister.DefineEnumField<Mode>(16, 2, FieldMode.Read | FieldMode.Write, name: "Mode");
+
+            var foregroundClutMemoryAddressRegister = new DoubleWordRegister(this).WithValueField(0, 32, FieldMode.Read | FieldMode.Write);
+            var backgroundClutMemoryAddressRegister = new DoubleWordRegister(this).WithValueField(0, 32, FieldMode.Read | FieldMode.Write);
 
             var interruptFlagClearRegister = new DoubleWordRegister(this).WithFlag(1, FieldMode.Read | FieldMode.WriteOneToClear, name: "CTCIF", changeCallback: (old, @new) => { if(!@new) IRQ.Unset(); });
 
@@ -81,10 +87,28 @@ namespace Emul8.Peripherals.DMA
             var foregroundPfcControlRegister = new DoubleWordRegister(this);
             foregroundColorModeField = foregroundPfcControlRegister.DefineEnumField<Dma2DColorMode>(0, 4, FieldMode.Read | FieldMode.Write, name: "CM", 
                 writeCallback: (_, __) => 
-                { 
+                {
                     HandlePixelFormatChange(); 
                     HandleForegroundBufferSizeChange(); 
                 });
+            var foregroundClutSizeField = foregroundPfcControlRegister.DefineValueField(8, 8, FieldMode.Read | FieldMode.Write, name: "CS");
+            foregroundClutColorModeField = foregroundPfcControlRegister.DefineEnumField<Dma2DColorMode>(4, 1, FieldMode.Read | FieldMode.Write, name: "CCM",
+                changeCallback: (_, __) =>
+                {
+                    HandlePixelFormatChange();
+                });
+            foregroundPfcControlRegister.DefineFlagField(5, FieldMode.Read, name: "START",
+                writeCallback: (_, value) =>
+            {
+                if(!value)
+                {
+                    return;
+                }
+
+                foregroundClut = new byte[(foregroundClutSizeField.Value + 1) * foregroundClutColorModeField.Value.ToPixelFormat().GetColorDepth()];
+                machine.SystemBus.ReadBytes(foregroundClutMemoryAddressRegister.Value, foregroundClut.Length, foregroundClut, 0, true);
+
+            });
 
             var backgroundPfcControlRegister = new DoubleWordRegister(this);
             backgroundColorModeField = backgroundPfcControlRegister.DefineEnumField<Dma2DColorMode>(0, 4, FieldMode.Read | FieldMode.Write, name: "CM", 
@@ -93,6 +117,24 @@ namespace Emul8.Peripherals.DMA
                     HandlePixelFormatChange(); 
                     HandleBackgroundBufferSizeChange(); 
                 });
+            var backgroundClutSizeField = backgroundPfcControlRegister.DefineValueField(8, 8, FieldMode.Read | FieldMode.Write, name: "CS");
+            backgroundClutColorModeField = backgroundPfcControlRegister.DefineEnumField<Dma2DColorMode>(4, 1, FieldMode.Read | FieldMode.Write, name: "CCM",
+                changeCallback: (_, __) =>
+                {
+                    HandlePixelFormatChange();
+                });
+            backgroundPfcControlRegister.DefineFlagField(5, FieldMode.Read, name: "START",
+                writeCallback: (_, value) =>
+            {
+                if(!value)
+                {
+                    return;
+                }
+
+                backgroundClut = new byte[(backgroundClutSizeField.Value + 1) * backgroundClutColorModeField.Value.ToPixelFormat().GetColorDepth()];
+                machine.SystemBus.ReadBytes(backgroundClutMemoryAddressRegister.Value, backgroundClut.Length, backgroundClut, 0, true);
+
+            });
 
             outputColorRegister = new DoubleWordRegister(this).WithValueField(0, 32, FieldMode.Read | FieldMode.Write);
 
@@ -119,7 +161,9 @@ namespace Emul8.Peripherals.DMA
                 { (long)Register.OutputColorRegister, outputColorRegister },
                 { (long)Register.OutputMemoryAddressRegister, outputMemoryAddressRegister },
                 { (long)Register.OutputOffsetRegister, outputOffsetRegister },
-                { (long)Register.NumberOfLineRegister, numberOfLineRegister }
+                { (long)Register.NumberOfLineRegister, numberOfLineRegister },
+                { (long)Register.ForegroundClutMemoryAddressRegister, foregroundClutMemoryAddressRegister },
+                { (long)Register.BackgroundClutMemoryAddressRegister, backgroundClutMemoryAddressRegister }
             };
 
             registers = new DoubleWordRegisterCollection(this, regs);
@@ -152,8 +196,8 @@ namespace Emul8.Peripherals.DMA
             var backgroundFormat = backgroundColorModeField.Value.ToPixelFormat();
             var foregroundFormat = foregroundColorModeField.Value.ToPixelFormat();
 
-            converter = PixelManipulationTools.GetConverter(foregroundFormat, Endianness, outputFormat, Endianness);
-            blender = PixelManipulationTools.GetBlender(backgroundFormat, Endianness, foregroundFormat, Endianness, outputFormat, Endianness);
+            converter = PixelManipulationTools.GetConverter(foregroundFormat, Endianness, outputFormat, Endianness, foregroundClutColorModeField.Value.ToPixelFormat());
+            blender = PixelManipulationTools.GetBlender(backgroundFormat, Endianness, foregroundFormat, Endianness, outputFormat, Endianness, foregroundClutColorModeField.Value.ToPixelFormat(), backgroundClutColorModeField.Value.ToPixelFormat());
         }
 
         private void DoTransfer()
@@ -198,7 +242,7 @@ namespace Emul8.Peripherals.DMA
                                {
                                    machine.SystemBus.ReadBytes(backgroundMemoryAddressRegister.Value, backgroundBuffer.Length, backgroundBuffer, 0);
                                    // per-pixel alpha blending
-                                   blender.Blend(backgroundBuffer, foregroundBuffer, ref outputBuffer);
+                                   blender.Blend(backgroundBuffer, backgroundClut, foregroundBuffer, foregroundClut, ref outputBuffer);
                                    return outputBuffer;
                                });
                     }
@@ -213,7 +257,7 @@ namespace Emul8.Peripherals.DMA
                                (foregroundBuffer, line) =>
                                 {
                                     machine.SystemBus.ReadBytes(backgroundMemoryAddressRegister.Value + line * (backgroundLineOffsetField.Value + pixelsPerLineField.Value) * backgroundFormat.GetColorDepth(), backgroundLineBuffer.Length, backgroundLineBuffer, 0);
-                                    blender.Blend(backgroundLineBuffer, foregroundBuffer, ref outputLineBuffer);
+                                    blender.Blend(backgroundLineBuffer, backgroundClut, foregroundBuffer, foregroundClut, ref outputLineBuffer);
                                     return outputLineBuffer;
                                 });
                     }
@@ -225,7 +269,7 @@ namespace Emul8.Peripherals.DMA
                                 foregroundBuffer,
                                 converter: (foregroundBuffer, line) =>
                                 {
-                                    converter.Convert(foregroundBuffer, ref outputBuffer);
+                                    converter.Convert(foregroundBuffer, foregroundClut, ref outputBuffer);
                                     return outputBuffer;
                                 });
                     }
@@ -238,7 +282,7 @@ namespace Emul8.Peripherals.DMA
                                 (int)numberOfLineField.Value,
                                 (foregroundBuffer, line) => 
                                 {
-                                    converter.Convert(foregroundBuffer, ref outputLineBuffer);
+                                    converter.Convert(foregroundBuffer, foregroundClut, ref outputLineBuffer);
                                     return outputLineBuffer;
                                 });
                     }
@@ -298,6 +342,8 @@ namespace Emul8.Peripherals.DMA
         private readonly IValueRegisterField outputLineOffsetField;
         private readonly IValueRegisterField foregroundLineOffsetField;
         private readonly IValueRegisterField backgroundLineOffsetField;
+        private readonly IEnumRegisterField<Dma2DColorMode> foregroundClutColorModeField;
+        private readonly IEnumRegisterField<Dma2DColorMode> backgroundClutColorModeField;
         private readonly DoubleWordRegisterCollection registers;
 
         private byte[] outputBuffer;
@@ -332,6 +378,8 @@ namespace Emul8.Peripherals.DMA
             BackgroundOffsetRegister = 0x18,
             ForegroundPfcControlRegister = 0x1C,
             BackgroundPfcControlRegister = 0x24,
+            ForegroundClutMemoryAddressRegister = 0x2C,
+            BackgroundClutMemoryAddressRegister = 0x30,
             OutputPfcControlRegister = 0x34,
             OutputColorRegister = 0x38,
             OutputMemoryAddressRegister = 0x3C,

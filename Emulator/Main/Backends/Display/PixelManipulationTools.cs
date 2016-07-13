@@ -37,21 +37,23 @@ namespace Emul8.Backends.Display
             return convertersCache[tuple];
         }
 
-        public static IPixelBlender GetBlender(PixelFormat backBuffer, Endianess backBufferEndianess, PixelFormat fronBuffer, Endianess frontBufferEndianes, PixelFormat output, Endianess outputEndianess)
+        public static IPixelBlender GetBlender(PixelFormat backBuffer, Endianess backBufferEndianess, PixelFormat fronBuffer, Endianess frontBufferEndianes, PixelFormat output, Endianess outputEndianess, PixelFormat? clutForegroundFormat = null, PixelFormat? clutBackgroundFormat = null)
         {
             var tuple = Tuple.Create(backBuffer, backBufferEndianess, fronBuffer, frontBufferEndianes, output, outputEndianess);
             if(!blendersCache.ContainsKey(tuple))
             {
-                blendersCache [tuple] = new PixelBlender (backBuffer, fronBuffer, output, 
-                    GenerateBlendMethod (
+                blendersCache[tuple] = new PixelBlender(backBuffer, fronBuffer, output, 
+                    GenerateBlendMethod(
                         new BufferDescriptor 
                         {
                             ColorFormat = backBuffer,
+                            ClutColorFormat = clutBackgroundFormat,
                             DataEndianness = backBufferEndianess
                         },
                         new BufferDescriptor 
                         {
                             ColorFormat = fronBuffer,
+                            ClutColorFormat = clutForegroundFormat,
                             DataEndianness = frontBufferEndianes
                         },
                         new BufferDescriptor 
@@ -79,7 +81,9 @@ namespace Emul8.Backends.Display
             var vLength = Expression.Variable(typeof(int),  "length");
 
             var vBackBuffer = Expression.Parameter(typeof(byte[]), "backBuffer");
+            var vBackClutBuffer = Expression.Parameter(typeof(byte[]), "backClutBuffer");
             var vFrontBuffer = Expression.Parameter(typeof(byte[]), "fronBuffer");
+            var vFrontClutBuffer = Expression.Parameter(typeof(byte[]), "frontClutBuffer");
             var vOutputBuffer = Expression.Parameter(typeof(byte[]).MakeByRefType(), "outputBuffer");
             var vBackgroundColor = Expression.Parameter(typeof(Pixel), "backgroundColor");
             var vBackBufferAlphaMultiplier = Expression.Parameter(typeof(byte), "backBufferAlphaMultiplier");
@@ -87,6 +91,8 @@ namespace Emul8.Backends.Display
 
             var vBackAlphaBlended = Expression.Variable(typeof(uint), "backAlphaBlended");
             var vBackgroundColorAlphaBlended = Expression.Variable(typeof(uint), "backgroundColorAlphaBlended");
+
+            var tmp = Expression.Variable(typeof(uint));
 
             var outOfLoop = Expression.Label();
 
@@ -96,7 +102,8 @@ namespace Emul8.Backends.Display
                          inputBackgroundPixel.RedChannel, inputBackgroundPixel.GreenChannel, inputBackgroundPixel.BlueChannel, inputBackgroundPixel.AlphaChannel,
                          vBackStep, vFrontStep, vOutStep, vLength, vBackPos, vFrontPos, vOutPos,
                          contantBackgroundPixel.RedChannel, contantBackgroundPixel.GreenChannel, contantBackgroundPixel.BlueChannel, contantBackgroundPixel.AlphaChannel,
-                         vBackAlphaBlended, vBackgroundColorAlphaBlended
+                         vBackAlphaBlended, vBackgroundColorAlphaBlended,
+                                    tmp
                 },
 
                 Expression.Assign(vBackStep, Expression.Constant(backgroudBufferDescriptor.ColorFormat.GetColorDepth())),
@@ -117,8 +124,8 @@ namespace Emul8.Backends.Display
                     Expression.IfThenElse(Expression.LessThan(vBackPos, vLength),
                         Expression.Block(
 
-                            GenerateFrom(backgroudBufferDescriptor, vBackBuffer, null, vBackPos, inputBackgroundPixel),
-                            GenerateFrom(foregroundBufferDescriptor, vFrontBuffer, null, vFrontPos, inputForegroundPixel),
+                            GenerateFrom(backgroudBufferDescriptor, vBackBuffer, vBackClutBuffer, vBackPos, inputBackgroundPixel, tmp),
+                            GenerateFrom(foregroundBufferDescriptor, vFrontBuffer, vFrontClutBuffer, vFrontPos, inputForegroundPixel, tmp),
 
                             Expression.Assign(inputBackgroundPixel.AlphaChannel, Expression.Divide(Expression.Multiply(inputBackgroundPixel.AlphaChannel, Expression.Convert(vBackBufferAlphaMultiplier, typeof(uint))), Expression.Constant((uint)0xFF))),
                             Expression.Assign(inputForegroundPixel.AlphaChannel, Expression.Divide(Expression.Multiply(inputForegroundPixel.AlphaChannel, Expression.Convert(vFrontBufferAlphaMultiplier, typeof(uint))), Expression.Constant((uint)0xFF))),
@@ -205,7 +212,7 @@ namespace Emul8.Backends.Display
                 )
             );
 
-            return Expression.Lambda<BlendDelegate>(block, vBackBuffer, vFrontBuffer, vOutputBuffer, vBackgroundColor, vBackBufferAlphaMultiplier, vFrontBufferAlphaMultiplier).Compile();
+            return Expression.Lambda<BlendDelegate>(block, vBackBuffer, vBackClutBuffer, vFrontBuffer, vFrontClutBuffer, vOutputBuffer, vBackgroundColor, vBackBufferAlphaMultiplier, vFrontBufferAlphaMultiplier).Compile();
         }
 
         private static ConvertDelegate GenerateConvertMethod(BufferDescriptor inputBufferDescriptor, BufferDescriptor outputBufferDescriptor)
@@ -223,10 +230,12 @@ namespace Emul8.Backends.Display
             var vInPos = Expression.Variable(typeof(int), "inPos");
             var vOutPos = Expression.Variable(typeof(int), "outPos");
 
+            var tmp = Expression.Variable(typeof(uint));
+
             var outOfLoop = Expression.Label();
 
             var block = Expression.Block(
-                new [] { vColor.RedChannel, vColor.GreenChannel, vColor.BlueChannel, vColor.AlphaChannel, vInStep, vOutStep, vLength, vInPos, vOutPos },
+                new [] { vColor.RedChannel, vColor.GreenChannel, vColor.BlueChannel, vColor.AlphaChannel, vInStep, vOutStep, vLength, vInPos, vOutPos, tmp },
 
                 Expression.Assign(vInStep, Expression.Constant(inputBufferDescriptor.ColorFormat.GetColorDepth())),
                 Expression.Assign(vOutStep, Expression.Constant(outputBufferDescriptor.ColorFormat.GetColorDepth())),
@@ -237,7 +246,7 @@ namespace Emul8.Backends.Display
                 Expression.Loop(
                     Expression.IfThenElse(Expression.LessThan(vInPos, vLength),
                         Expression.Block(
-                            GenerateFrom(inputBufferDescriptor, vInputBuffer, vClutBuffer, vInPos, vColor),
+                            GenerateFrom(inputBufferDescriptor, vInputBuffer, vClutBuffer, vInPos, vColor, tmp),
                             GenerateTo(outputBufferDescriptor, vOutputBuffer, vOutPos, vColor),
 
                             Expression.AddAssign(vInPos, vInStep),
@@ -262,7 +271,7 @@ namespace Emul8.Backends.Display
         /// <param name="inBuffer">Input buffer.</param>
         /// <param name="inPosition">Position of pixel in buffer.</param>
         /// <param name="color">Variable where values of color channels should be stored.</param>
-        private static Expression GenerateFrom(BufferDescriptor inputBufferDescriptor, ParameterExpression inBuffer, ParameterExpression clutBuffer, Expression inPosition, PixelDescriptor color)
+        private static Expression GenerateFrom(BufferDescriptor inputBufferDescriptor, ParameterExpression inBuffer, ParameterExpression clutBuffer, Expression inPosition, PixelDescriptor color, Expression tmp)
         {
             byte currentBit = 0;
             byte currentByte = 0;
@@ -333,12 +342,20 @@ namespace Emul8.Backends.Display
                         throw new ArgumentException("CLUT mode required but not set");
                     }
 
-                    var clutWidth = Expression.Constant(inputBufferDescriptor.ClutColorFormat.Value.GetColorDepth());
+                    var clutWidth = Expression.Constant((uint)inputBufferDescriptor.ClutColorFormat.Value.GetColorDepth());
                     var clutOffset = Expression.Multiply(colorExpression, clutWidth);
+
+                    expressions.Add(Expression.Assign(tmp, color.AlphaChannel));
 
                     // todo: indirect parameters should not be needed here, but we  m u s t  pass something
                     expressions.Add(
-                        GenerateFrom(new BufferDescriptor { ColorFormat = inputBufferDescriptor.ClutColorFormat.Value, DataEndianness = inputBufferDescriptor.DataEndianness }, clutBuffer, clutBuffer, clutOffset, color));
+                        GenerateFrom(new BufferDescriptor
+                    { 
+                        ColorFormat = inputBufferDescriptor.ClutColorFormat.Value, 
+                        DataEndianness = inputBufferDescriptor.DataEndianness 
+                    }, clutBuffer, clutBuffer, Expression.Convert(clutOffset, typeof(int)), color, tmp));
+
+                    expressions.Add(Expression.Assign(color.AlphaChannel, tmp));
                 }
                 else
                 {
@@ -623,11 +640,16 @@ namespace Emul8.Backends.Display
 
             public void Blend(byte[] backBuffer, byte[] frontBuffer, ref byte[] output, Pixel background = null, byte backBufferAlphaMulitplier = 0xFF, byte frontBufferAlphaMultiplayer = 0xFF)
             {
+                Blend(backBuffer, null, frontBuffer, null, ref output, background, backBufferAlphaMulitplier, frontBufferAlphaMultiplayer);
+            }
+
+            public void Blend(byte[] backBuffer, byte[] backClutBuffer, byte[] frontBuffer, byte[] frontClutBuffer, ref byte[] output, Pixel background = null, byte backBufferAlphaMulitplier = 0xFF, byte frontBufferAlphaMultiplayer = 0xFF)
+            {
                 if(background == null)
                 {
                     background = new Pixel(0x00, 0x00, 0x00, 0x00);
                 }
-                blender(backBuffer, frontBuffer, ref output, background, backBufferAlphaMulitplier, frontBufferAlphaMultiplayer);
+                blender(backBuffer, backClutBuffer, frontBuffer, frontClutBuffer, ref output, background, backBufferAlphaMulitplier, frontBufferAlphaMultiplayer);
             }
 
             public PixelFormat BackBuffer { get; private set; }
@@ -641,7 +663,7 @@ namespace Emul8.Backends.Display
         private static Dictionary<Tuple<PixelFormat, Endianess, PixelFormat, Endianess, PixelFormat, Endianess>, IPixelBlender> blendersCache = new Dictionary<Tuple<PixelFormat, Endianess, PixelFormat, Endianess, PixelFormat, Endianess>, IPixelBlender>();
 
         private delegate void ConvertDelegate(byte[] inBuffer, byte[] clutBuffer, ref byte[] outBuffer);
-        private delegate void BlendDelegate(byte[] backBuffer, byte[] frontBuffer, ref byte[] outBuffer, Pixel background = null, byte backBufferAlphaMulitplier = 0xFF, byte frontBufferAlphaMultiplayer = 0xFF);
+        private delegate void BlendDelegate(byte[] backBuffer, byte[] backClutBuffer, byte[] frontBuffer, byte[] frontClutBuffer, ref byte[] outBuffer, Pixel background = null, byte backBufferAlphaMulitplier = 0xFF, byte frontBufferAlphaMultiplayer = 0xFF);
 
         private class PixelDescriptor
         {
