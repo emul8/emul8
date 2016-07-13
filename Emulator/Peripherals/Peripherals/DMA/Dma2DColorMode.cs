@@ -11,6 +11,7 @@ using Emul8.Backends.Display;
 
 namespace Emul8.Peripherals.DMA
 {
+    // ordering of entry is taken from the documentation and should not be altered!
     internal enum Dma2DColorMode
     {
         ARGB8888,
