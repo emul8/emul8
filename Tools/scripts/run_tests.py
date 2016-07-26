@@ -42,7 +42,7 @@ def run(args):
         if ret is not None:
             return ret == 0
         else:
-            if line and not line.isspace() and 'GLib-GObject-CRITICAL' not in line and 'GLib-CRITICAL' not in line:
+            if line and not line.isspace() and 'GLib-' not in line:
                 output.write(line)
 
 # parsing cmd-line arguments
