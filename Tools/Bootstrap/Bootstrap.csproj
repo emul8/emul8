@@ -59,7 +59,6 @@
     <Compile Include="Paging\Steps\UIStep.cs" />
     <Compile Include="Paging\Steps\ProjectsListStep.cs" />
     <Compile Include="Paging\Steps\PluginStep.cs" />
-    <Compile Include="IInterestingElement.cs" />
     <Compile Include="Elements\RobotTestSuite.cs" />
     <Compile Include="Configuration.cs" />
     <Compile Include="Paging\Steps\RobotTestsStep.cs" />
@@ -72,6 +71,7 @@
     <Compile Include="Elements\Projects\TestsProject.cs" />
     <Compile Include="Elements\Projects\UiProject.cs" />
     <Compile Include="Elements\Projects\UnknownProject.cs" />
+    <Compile Include="Elements\IInterestingElement.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ProjectExtensions>
