@@ -5,6 +5,7 @@
 // Full license details are defined in the 'LICENSE' file.
 //
 using System;
+
 namespace Emul8.Robot
 {
     public class RobotFrameworkKeywordAttribute : Attribute
