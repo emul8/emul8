@@ -97,7 +97,7 @@ for project in options.tests:
 print("Starting tests. Use STOP signal (default: Ctrl+Z) to check progress.")
 
 #main loop
-fail_count = 0
+tests_failed = False
 counter = 0
 while options.repeat_count == 0 or counter < options.repeat_count:
     counter += 1
@@ -116,7 +116,7 @@ while options.repeat_count == 0 or counter < options.repeat_count:
             continue
 
         if not run(args):
-            fail_count += 1
+            tests_failed = True
 
     if any(robot_tests):
 
@@ -132,7 +132,7 @@ while options.repeat_count == 0 or counter < options.repeat_count:
         args.extend(robot_tests)
 
         if not run(args):
-            fail_count += 1
+            tests_failed = True
 
         os.kill(emul8_robot_frontend_process.pid, 15)
         emul8_robot_frontend_process.wait()
@@ -141,6 +141,6 @@ output.flush()
 if not output is sys.stdout:
     output.close()
 
-if fail_count > 0:
-    print("Failed tests count: {}!".format(fail_count))
+if tests_failed:
+    print("Some tests failed! See logs for details!")
     sys.exit(1)
