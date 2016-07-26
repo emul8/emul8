@@ -34,7 +34,7 @@ namespace Emul8.Bootstrap
                         IInterestingElement element;
                         if(interestingElement.Value(Path.GetFullPath(file), out element))
                         {
-                            Elements.Add(element);
+                            elements.Add(element);
                         }
                     }
                 }
@@ -67,12 +67,14 @@ namespace Emul8.Bootstrap
             }
         }
 
-        public List<IInterestingElement> Elements { get; private set; }
+        public IEnumerable<IInterestingElement> Elements { get { return elements; } }
 
         private Scanner()
         {
-            Elements = new List<IInterestingElement>();
+            elements = new HashSet<IInterestingElement>();
         }
+
+        private readonly HashSet<IInterestingElement> elements;
 
         private static Dictionary<string, TryCreateElementDelegate> interestingElements = new Dictionary<string, TryCreateElementDelegate>
         {

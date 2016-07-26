@@ -38,8 +38,8 @@ namespace Emul8.Bootstrap
                 extraProjects = new Project[0];
             }
             
-            var extensionProjects = Scanner.Instance.Projects.OfType<ExtensionProject>();
-            var pluginProjects = Scanner.Instance.Projects.OfType<PluginProject>().Where(x => !x.PluginModes.Any() || x.PluginModes.Contains(mainProject.UiType));
+            var extensionProjects = Scanner.Instance.Elements.OfType<ExtensionProject>();
+            var pluginProjects = Scanner.Instance.Elements.OfType<PluginProject>().Where(x => !x.PluginModes.Any() || x.PluginModes.Contains(mainProject.UiType));
             
             var projects = extensionProjects
                 .Union(extraProjects)
