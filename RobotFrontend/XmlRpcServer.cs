@@ -5,6 +5,7 @@
 // Full license details are defined in the 'LICENSE' file.
 //
 using System;
+using System.Text;
 using CookComputing.XmlRpc;
 
 namespace Emul8.Robot
@@ -47,7 +48,7 @@ namespace Emul8.Robot
                 result.Clear();
 
                 result.Add(KeywordResultStatus, KeywordResultFail);
-                result.Add(KeywordResultError, e.InnerException == null ? e.Message : e.InnerException.Message);
+                result.Add(KeywordResultError, BuildRecursiveErrorMessage(e));
                 result.Add(KeywordResultTraceback, e.StackTrace);
             }
 
@@ -58,6 +59,18 @@ namespace Emul8.Robot
         public void Dispose()
         {
             RobotFrontend.RobotFrontend.Shutdown();
+        }
+
+        private static string BuildRecursiveErrorMessage(Exception e)
+        {
+            var result = new StringBuilder();
+            while(e != null)
+            {
+                result.AppendFormat("{0}: {1}\n", e.GetType().Name, e.Message);
+                e = e.InnerException;
+            }
+
+            return result.ToString();
         }
 
         private readonly KeywordManager keywordManager;
