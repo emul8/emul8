@@ -8,8 +8,8 @@ import subprocess
 import signal
 
 this_path = os.path.abspath(os.path.dirname(__file__))
-nunit_path = os.path.abspath(os.path.join(os.path.dirname(__file__), './../../External/Tools/nunit-console.exe'))
-bin_directory = os.path.abspath(os.path.join(os.path.dirname(__file__), 'tests'))
+nunit_path = os.path.join(this_path, './../../External/Tools/nunit-console.exe')
+bin_directory = os.path.join(this_path, 'tests')
 
 def build_project(path):
     """
