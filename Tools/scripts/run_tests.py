@@ -106,8 +106,9 @@ while options.repeat_count == 0 or counter < options.repeat_count:
     for project in options.tests:
         if project.endswith('csproj'):
             filename = os.path.split(project)[1]
-            subprocess.call(['bash', '-c', 'cp -r ' + os.path.dirname(nunit_path) + '/* ' + bin_directory + ''])
-            copied_nunit_path = bin_directory + "/nunit-console.exe"
+            copied_nunit_path = os.path.join(bin_directory, 'nunit-console.exe')
+            if not os.path.isfile(copied_nunit_path):
+                subprocess.call(['bash', '-c', 'cp -r ' + os.path.dirname(nunit_path) + '/* ' + bin_directory])
             args = ['mono', copied_nunit_path, '-noshadow', '-nologo', '-labels', '-domain:None', filename.replace("csproj", "dll")]
             if options.fixture:
                 args.append('-run:' + options.fixture)
