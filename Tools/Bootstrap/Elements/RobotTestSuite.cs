@@ -4,11 +4,13 @@
 // This file is part of the Emul8 project.
 // Full license details are defined in the 'LICENSE' file.
 //
+using System.Diagnostics;
 using System.IO;
 using System.Text.RegularExpressions;
 
 namespace Emul8.Bootstrap.Elements
 {
+    [DebuggerDisplay ("Path = {Path}, IsExcluded = {IsExcluded}")]
     public class RobotTestSuite : IInterestingElement
     {
         public static bool TryCreate(string path, out IInterestingElement result)
