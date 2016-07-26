@@ -39,7 +39,7 @@ namespace Emul8.Bootstrap
         protected override bool ShouldBeShown(StepManager m)
         {
             var additionalProjects = m.GetPreviousSteps<ProjectsListStep>(this).SelectMany(x => x.AdditionalProjects).Union(m.GetStep<UiStep>().UIProject.GetAllReferences()).ToList();
-            ScannedProjects = new HashSet<Project>(Scanner.Instance.Projects.OfType<T>());
+            ScannedProjects = new HashSet<Project>(Scanner.Instance.Elements.OfType<T>());
             ScannedProjects.ExceptWith(additionalProjects);
             return ScannedProjects.Any();
         }

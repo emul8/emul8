@@ -167,7 +167,7 @@ namespace Emul8.Bootstrap
                 Tuple.Create("Clean", "Remove generated configuration")
             };
 
-            foreach(var uiType in Scanner.Instance.Projects.OfType<UiProject>().Select(x => x.UiType).Distinct().OrderByDescending(x => x))
+            foreach(var uiType in Scanner.Instance.Elements.OfType<UiProject>().Select(x => x.UiType).Distinct().OrderByDescending(x => x))
             {
                 actions.Insert(1, Tuple.Create(uiType, string.Format("Generate solution file for {0} with references", uiType)));
             }
@@ -195,7 +195,7 @@ namespace Emul8.Bootstrap
                     new MessageDialog(Title, "Solution cleaned.").Show();
                     return CleanedResultCode;
                 default:
-                    var mainProject = Scanner.Instance.Projects.OfType<UiProject>().SingleOrDefault(x => x.UiType == key);
+                    var mainProject = Scanner.Instance.Elements.OfType<UiProject>().SingleOrDefault(x => x.UiType == key);
                     if(mainProject == null)
                     {
                         new MessageDialog("Bootstrap failure", string.Format("Could not load {0} project. Exiting", key)).Show();
@@ -243,7 +243,7 @@ namespace Emul8.Bootstrap
             var fullPaths = paths.Select(Path.GetFullPath);
             Scanner.Instance.ScanDirectories(fullPaths);
 
-            var mainProject = Scanner.Instance.Projects.OfType<UiProject>().FirstOrDefault();
+            var mainProject = Scanner.Instance.Elements.OfType<UiProject>().FirstOrDefault();
             if(mainProject == null)
             {
                 Console.Error.WriteLine("No UI project found. Exiting");
@@ -252,7 +252,7 @@ namespace Emul8.Bootstrap
 
             return new Configuration(
                 SolutionGenerator.GenerateWithAllReferences(mainProject, generateEntryProject, binariesPath, 
-                    Scanner.Instance.Projects.Where(x => !(x is UnknownProject))),
+                    Scanner.Instance.Elements.OfType<Project>().Where(x => !(x is UnknownProject))),
                 Scanner.Instance.Elements.OfType<RobotTestSuite>());
         }
 
