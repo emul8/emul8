@@ -124,6 +124,10 @@ while options.repeat_count == 0 or counter < options.repeat_count:
         emul8_robot_frontend_binary_folder = os.path.join(this_path, '../../output/{0}'.format(configuration))
         emul8_robot_frontend_binary = os.path.join(emul8_robot_frontend_binary_folder, 'RobotFrontend.exe')
 
+        if not os.path.isfile(emul8_robot_frontend_binary):
+            print("Robot frontend binary not found! Have you forgot to bootstrap and build the Emul8?")
+            sys.exit(1)
+
         emul8_robot_frontend_process = subprocess.Popen(['mono', emul8_robot_frontend_binary, '9999'], cwd=emul8_robot_frontend_binary_folder, bufsize=1)
 
         args = ['robot', '-N', 'Emul8_Suite', '-C', 'on', '-v', 'SKIP_RUNNING_SERVER:True']
