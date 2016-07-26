@@ -36,8 +36,8 @@ namespace Emul8.Bootstrap
             switch(options.Action)
             {
             case Operation.GenerateAll:
-                var conf = GenerateAllProjects(options.BinariesDirectory, options.GenerateEntryProject, options.Directories);
-                conf.Save(options.OutputDirectory);
+                var configuration = GenerateAllProjects(options.BinariesDirectory, options.GenerateEntryProject, options.Directories);
+                configuration.Save(options.OutputDirectory);
                 break;
             case Operation.Clean:
                 Cleaner.Clean(options.OutputDirectory);
