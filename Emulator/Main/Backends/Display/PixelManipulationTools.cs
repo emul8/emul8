@@ -16,10 +16,10 @@ namespace Emul8.Backends.Display
     {
         public static IPixelConverter GetConverter(PixelFormat inputFormat, Endianess inputEndianess, PixelFormat outputFormat, Endianess outputEndianess, PixelFormat? clutInputFormat = null)
         {
-            var tuple = Tuple.Create(inputFormat, inputEndianess, outputFormat, outputEndianess);
-            if(!convertersCache.ContainsKey(tuple))
+            var converterConfiguration = Tuple.Create(inputFormat, inputEndianess, outputFormat, outputEndianess);
+            if(!convertersCache.ContainsKey(converterConfiguration))
             {
-                convertersCache[tuple] = ((inputFormat == outputFormat) && (inputEndianess == outputEndianess)) ?  
+                convertersCache[converterConfiguration] = ((inputFormat == outputFormat) && (inputEndianess == outputEndianess)) ?  
                     (IPixelConverter)new IdentityPixelConverter(inputFormat) : 
                     new PixelConverter(inputFormat, outputFormat, GenerateConvertMethod(
                     new BufferDescriptor 
@@ -34,15 +34,15 @@ namespace Emul8.Backends.Display
                         DataEndianness = outputEndianess
                     }));
             }
-            return convertersCache[tuple];
+            return convertersCache[converterConfiguration];
         }
 
         public static IPixelBlender GetBlender(PixelFormat backBuffer, Endianess backBufferEndianess, PixelFormat fronBuffer, Endianess frontBufferEndianes, PixelFormat output, Endianess outputEndianess, PixelFormat? clutForegroundFormat = null, PixelFormat? clutBackgroundFormat = null)
         {
-            var tuple = Tuple.Create(backBuffer, backBufferEndianess, fronBuffer, frontBufferEndianes, output, outputEndianess);
-            if(!blendersCache.ContainsKey(tuple))
+            var blenderConfiguration = Tuple.Create(backBuffer, backBufferEndianess, fronBuffer, frontBufferEndianes, output, outputEndianess);
+            if(!blendersCache.ContainsKey(blenderConfiguration))
             {
-                blendersCache[tuple] = new PixelBlender(backBuffer, fronBuffer, output, 
+                blendersCache[blenderConfiguration] = new PixelBlender(backBuffer, fronBuffer, output, 
                     GenerateBlendMethod(
                         new BufferDescriptor 
                         {
@@ -62,7 +62,7 @@ namespace Emul8.Backends.Display
                             DataEndianness = outputEndianess
                         }));
             }
-            return blendersCache[tuple];
+            return blendersCache[blenderConfiguration];
         }
 
         private static BlendDelegate GenerateBlendMethod(BufferDescriptor backgroudBufferDescriptor, BufferDescriptor foregroundBufferDescriptor, BufferDescriptor outputBufferDescriptor)
