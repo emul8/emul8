@@ -5,8 +5,7 @@
 // Full license details are defined in the 'LICENSE' file.
 //
 using System;
-using System.Text;
-using AntShell.Commands;
+using System.Collections.Generic;
 using Emul8.Core;
 using Emul8.Peripherals.UART;
 using Emul8.Robot;
@@ -21,6 +20,7 @@ namespace Emul8.RobotFrontend
         {
             interaction = new CommandInteractionEater();
             monitor = new Monitor();
+            testers = new Dictionary<string, TerminalTester>();
             monitor.Interaction = interaction;
         }
 
@@ -73,38 +73,56 @@ namespace Emul8.RobotFrontend
         }
 
         [RobotFrameworkKeyword]
-        public void CreateAnalyzer(string peripheralName)
+        public void CreateTerminalTester(string peripheralName)
         {
+            if(testers.ContainsKey(peripheralName))
+            {
+                throw new KeywordException("Terminal tester for peripheral {0} already exists");
+            }
+            
             IUART uart;
             if(!monitor.Machine.TryGetByName(peripheralName, out uart))
             {
                 throw new KeywordException("Peripheral not found or of wrong type: {0}", peripheralName);
             }
 
-            tester = new TerminalTester(new TimeSpan(0, 0, 30));
+            var tester = new TerminalTester(new TimeSpan(0, 0, 30));
             tester.Terminal.AttachTo(uart);
+
+            testers.Add(peripheralName, tester);
         }
 
         [RobotFrameworkKeyword]
-        public void WaitForLine(string content)
+        public void WaitForLine(string peripheralName, string content)
         {
-            tester.WaitUntilLine(x => x.Contains(content));
+            GetTesterOrThrowException(peripheralName).WaitUntilLine(x => x.Contains(content));
         }
 
         [RobotFrameworkKeyword]
-        public void WaitForPrompt(string prompt)
+        public void WaitForPrompt(string peripheralName, string prompt)
         {
+            var tester = GetTesterOrThrowException(peripheralName);
             tester.NowPromptIs(prompt);
             tester.WaitForPrompt();
         }
 
         [RobotFrameworkKeyword]
-        public void WriteLine(string content)
+        public void WriteLine(string peripheralName, string content)
         {
-            tester.WriteLine(content);
+            GetTesterOrThrowException(peripheralName).WriteLine(content);
         }
 
-        private TerminalTester tester;
+        private TerminalTester GetTesterOrThrowException(string peripheralName)
+        {
+            TerminalTester tester;
+            if(!testers.TryGetValue(peripheralName, out tester))
+            {
+                throw new KeywordException("Terminal tester for peripheral {0} not found. Did you forget to call `CreateTerminalTester`", peripheralName);
+            }
+            return tester;
+         }
+
+        private readonly Dictionary<string, TerminalTester> testers;
         private readonly Monitor monitor;
         private readonly CommandInteractionEater interaction;
     }
