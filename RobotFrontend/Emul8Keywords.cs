@@ -41,10 +41,17 @@ namespace Emul8.RobotFrontend
         }
 
         [RobotFrameworkKeyword]
-        public string ExecuteCommand(string[] commands)
+        // this method accepts array of string that is later
+        // concatenated using single space and parsed by a monitor
+        //
+        // using array instead of a single string allows us to 
+        // split long commands into several lines using (...)
+        // notation in robot script; otherwise it would be impossible
+        // as there is no option to split single parameter
+        public string ExecuteCommand(string[] commandFragments)
         {
-            var command = string.Join(" ", commands);
             interaction.Clear();
+            var command = string.Join(" ", commandFragments);
             if(!monitor.Parse(command))
             {
                 throw new KeywordException("Could not execute command '{0}': {1}", command, interaction.GetError());
