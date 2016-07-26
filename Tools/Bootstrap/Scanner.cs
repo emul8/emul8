@@ -55,15 +55,20 @@ namespace Emul8.Bootstrap
 
         public IEnumerable<Project> GetProjectsOfType(ProjectType type)
         {
-            
-            throw new NotImplementedException();
-        }
-
-        public HashSet<Project> Projects
-        {
-            get
+            switch(type)
             {
-                return new HashSet<Project>(Elements.OfType<Project>());
+            case ProjectType.CpuCore:
+                return elements.OfType<CpuCoreProject>();
+            case ProjectType.Extension:
+                return elements.OfType<ExtensionProject>();
+            case ProjectType.Plugin:
+                return elements.OfType<PluginProject>();
+            case ProjectType.Tests:
+                return elements.OfType<TestsProject>();
+            case ProjectType.UI:
+                return elements.OfType<UiProject>();
+            default:
+                throw new ArgumentException("Unsupported project type");
             }
         }
 
