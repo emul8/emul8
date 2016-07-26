@@ -36,11 +36,8 @@ namespace Emul8.Bootstrap
 
             // generate tests file
             var testsFilePath = Path.Combine(directory, testsFileName);
-            File.WriteAllLines(testsFilePath, Solution.Projects.OfType<TestsProject>().Select(x => x.Path));
-            if(RobotTests != null && RobotTests.Any())
-            {
-                File.AppendAllLines(testsFilePath, RobotTests.Select(x => x.Path));
-            }
+            File.WriteAllLines(testsFilePath, Solution.Projects.OfType<TestsProject>().Select(x => x.Path)
+                .Union(RobotTests == null ? Enumerable.Empty<string>() : RobotTests.Select(x => x.Path)));
         }
 
         public Solution Solution { get; private set; }
