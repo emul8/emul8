@@ -438,6 +438,8 @@ namespace Emul8.Backends.Display
                 case ColorType.X:
                     colorExpression = Expression.Constant((uint)0xFF);
                     break;
+                case ColorType.L:
+                    throw new ArgumentException("Luminance channel is not allowed in target color format");
                 }
 
                 foreach(var transformation in ByteSqueezeAndMove(colorDescriptor.Value, currentBit))
