@@ -107,7 +107,6 @@ namespace Emul8.Peripherals.DMA
 
                 foregroundClut = new byte[(foregroundClutSizeField.Value + 1) * foregroundClutColorModeField.Value.ToPixelFormat().GetColorDepth()];
                 machine.SystemBus.ReadBytes(foregroundClutMemoryAddressRegister.Value, foregroundClut.Length, foregroundClut, 0, true);
-
             });
 
             var backgroundPfcControlRegister = new DoubleWordRegister(this);
@@ -133,7 +132,6 @@ namespace Emul8.Peripherals.DMA
 
                 backgroundClut = new byte[(backgroundClutSizeField.Value + 1) * backgroundClutColorModeField.Value.ToPixelFormat().GetColorDepth()];
                 machine.SystemBus.ReadBytes(backgroundClutMemoryAddressRegister.Value, backgroundClut.Length, backgroundClut, 0, true);
-
             });
 
             outputColorRegister = new DoubleWordRegister(this).WithValueField(0, 32, FieldMode.Read | FieldMode.Write);
