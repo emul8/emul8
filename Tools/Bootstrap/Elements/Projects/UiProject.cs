@@ -8,7 +8,7 @@
 ﻿using System.Xml.XPath;
 using System;
 
-namespace Emul8.Bootstrap
+namespace Emul8.Bootstrap.Elements.Projects
 {
     public class UiProject : Project
     {

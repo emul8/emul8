@@ -5,7 +5,8 @@
 // This file is part of the Emul8 project.
 // Full license details are defined in the 'LICENSE' file.
 //
-﻿using Antmicro.OptionsParser;
+using Antmicro.OptionsParser;
+using Emul8.Bootstrap.Elements.Projects;
 
 namespace Emul8.Bootstrap
 {
@@ -34,6 +35,9 @@ namespace Emul8.Bootstrap
 
         [Name("generate-entry-project"), Description("Generates entry project. Cannot be used without setting `output-directory`."), DefaultValue(false)]
         public bool GenerateEntryProject { get; set; }
+
+        [Name("robot-tests"), Description("List of files with Robot Framework test suites")]
+        public string[] RobotTests { get; set; }
         
         [PositionalArgument(0), DefaultValue(Operation.None)]
         public Operation Action { get; set; }
