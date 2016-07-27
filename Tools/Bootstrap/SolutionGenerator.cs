@@ -5,8 +5,10 @@
 // This file is part of the Emul8 project.
 // Full license details are defined in the 'LICENSE' file.
 //
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
+using Emul8.Bootstrap.Elements;
+using Emul8.Bootstrap.Elements.Projects;
 
 namespace Emul8.Bootstrap
 {
@@ -36,8 +38,8 @@ namespace Emul8.Bootstrap
                 extraProjects = new Project[0];
             }
             
-            var extensionProjects = Scanner.Instance.Projects.OfType<ExtensionProject>();
-            var pluginProjects = Scanner.Instance.Projects.OfType<PluginProject>().Where(x => !x.PluginModes.Any() || x.PluginModes.Contains(mainProject.UiType));
+            var extensionProjects = Scanner.Instance.Elements.OfType<ExtensionProject>();
+            var pluginProjects = Scanner.Instance.Elements.OfType<PluginProject>().Where(x => !x.PluginModes.Any() || x.PluginModes.Contains(mainProject.UiType));
             
             var projects = extensionProjects
                 .Union(extraProjects)
