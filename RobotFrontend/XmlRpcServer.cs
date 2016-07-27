@@ -31,7 +31,7 @@ namespace Emul8.Robot
             Keyword keyword;
             if(!keywordManager.TryGetKeyword(keywordName, out keyword))
             {
-                throw new XmlRpcFaultException(1, string.Format("Keyword {0} not found", keywordName));
+                throw new XmlRpcFaultException(1, string.Format("Keyword \"{0}\" not found", keywordName));
             }
 
             try

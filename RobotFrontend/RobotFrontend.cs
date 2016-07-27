@@ -17,7 +17,7 @@ namespace Emul8.RobotFrontend
             int port;
             if(args.Length != 1 || !int.TryParse(args[0], out port))
             {
-                Console.Error.WriteLine("Provide valid port number as an argument.");
+                Console.Error.WriteLine("Provide a valid port number as an argument.");
                 return;
             }
 

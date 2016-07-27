@@ -41,7 +41,7 @@ namespace Emul8.Robot
                 var method = outputType.GetMethod("Parse", types);
                 if(method == null)
                 {
-                    throw new ArgumentException(string.Format("{0} type does not have Parse method", outputType.Name));
+                    throw new ArgumentException(string.Format("Type \"{0}\" does not have a \"Parse\" method", outputType.Name));
                 }
 
                 var delegateType = Expression.GetDelegateType(types.Concat(new[] { method.ReturnType }).ToArray());

@@ -41,13 +41,13 @@ namespace Emul8.RobotFrontend
         }
 
         [RobotFrameworkKeyword]
-        // this method accepts array of string that is later
-        // concatenated using single space and parsed by a monitor
+        // This method accepts array of strings that is later
+        // concatenated using single space and parsed by the monitor.
         //
-        // using array instead of a single string allows us to 
+        // Using array instead of a single string allows us to
         // split long commands into several lines using (...)
         // notation in robot script; otherwise it would be impossible
-        // as there is no option to split single parameter
+        // as there is no option to split a single parameter.
         public string ExecuteCommand(string[] commandFragments)
         {
             interaction.Clear();
@@ -124,7 +124,7 @@ namespace Emul8.RobotFrontend
             TerminalTester tester;
             if(!testers.TryGetValue(peripheralName, out tester))
             {
-                throw new KeywordException("Terminal tester for peripheral {0} not found. Did you forget to call `CreateTerminalTester`", peripheralName);
+                throw new KeywordException("Terminal tester for peripheral {0} not found. Did you forget to call `CreateTerminalTester`?", peripheralName);
             }
             return tester;
          }
