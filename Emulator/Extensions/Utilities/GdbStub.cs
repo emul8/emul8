@@ -7,74 +7,15 @@
 using System;
 using Emul8.Core;
 using Emul8.Logging;
-using System.Collections.Generic;
 using Emul8.Peripherals.CPU;
-using System.Net.Sockets;
-using Emul8.Exceptions;
 using Emul8.Utilities.GDB;
 using Emul8.Utilities.GDB.Commands;
 
 namespace Emul8.Utilities
 {
-    public static class GdbExtensions
-    {
-        public static void StartGdbServer(this ICpuSupportingGdb cpu, [AutoParameter] Machine machine, int port)
-        {
-            string cpuName;
-            machine.TryGetLocalName(cpu, out cpuName);
-            var stub = GdbStub.CreateAndListenOnPort(port, cpu);
-            EmulationManager.Instance.CurrentEmulation.ExternalsManager.AddExternal(stub, string.Format("GdbStub-{0}", cpuName));
-        }
-
-        public static void StopGdbServer(this ICpuSupportingGdb cpu)
-        {
-            GdbStub.Stop(cpu);
-        }
-    }
-
     public class GdbStub : IDisposable, IExternal
     {
-        public static GdbStub CreateAndListenOnPort(int port, ICpuSupportingGdb cpu)
-        {
-            lock(activeGdbStubs)
-            {
-                if(activeGdbStubs.ContainsKey(cpu))
-                {
-                    throw new RecoverableException(string.Format("GDB server already started for this cpu on port: {0}", activeGdbStubs[cpu].Port));
-                }
-
-                try
-                {
-                    var stub = new GdbStub(port, cpu);
-                    activeGdbStubs.Add(cpu, stub);
-                    return stub;
-                }
-                catch(SocketException e)
-                {
-                    throw new RecoverableException(string.Format("Could not start GDB server: {0}", e.Message));
-                }
-            }
-        }
-
-        public static void Stop(ICpuSupportingGdb cpu)
-        {
-            GdbStub stub;
-            if(activeGdbStubs.TryGetValue(cpu, out stub))
-            {
-                activeGdbStubs.Remove(cpu);
-                stub.Dispose();
-            }
-        }
-
-        public void Dispose()
-        {
-            cpu.Halted -= OnHalted;
-            terminal.Dispose();
-        }
-
-        public int Port { get; private set; }
-
-        private GdbStub(int port, ICpuSupportingGdb cpu)
+        public GdbStub(int port, ICpuSupportingGdb cpu)
         {
             this.cpu = cpu;
             Port = port;
@@ -91,6 +32,14 @@ namespace Emul8.Utilities
             terminal.DataReceived += OnByteWritten;
             terminal.Start(port);
         }
+
+        public void Dispose()
+        {
+            cpu.Halted -= OnHalted;
+            terminal.Dispose();
+        }
+
+        public int Port { get; private set; }
 
         private void OnHalted(HaltArguments args)
         {
@@ -206,8 +155,6 @@ namespace Emul8.Utilities
                 terminal.SendByte(b);
             }
         }
-
-        private static readonly Dictionary<ICpuSupportingGdb, GdbStub> activeGdbStubs = new Dictionary<ICpuSupportingGdb, GdbStub>();
 
         private int commandsCounter;
         private Func<Command, bool> beforeCommand;

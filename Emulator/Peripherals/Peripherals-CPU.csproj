@@ -110,5 +110,9 @@
       <Project>{23222114-707C-4EFD-8289-2728351FB7E9}</Project>
       <Name>cores-ppc</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Extensions\Extensions.csproj">
+      <Project>{4C636FAF-4650-4088-8EA8-2FCCC225E9CF}</Project>
+      <Name>Extensions</Name>
+    </ProjectReference>
   </ItemGroup>
 </Project>

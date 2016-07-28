@@ -14,6 +14,10 @@ namespace Emul8.Peripherals.CPU
         ExecutionMode ExecutionMode { get; set; }
         event Action<HaltArguments> Halted;
         void EnterSingleStepModeSafely(HaltArguments args);
+
+        void StartGdbServer(int port);
+        void StopGdbServer();
+        bool IsGdbServerCreated { get; }
     }
 }
 
