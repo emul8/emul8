@@ -8,8 +8,6 @@ using System;
 using Emul8.Core;
 using Emul8.Logging;
 using Emul8.Peripherals.CPU;
-using System.Net.Sockets;
-using Emul8.Exceptions;
 using Emul8.Utilities.GDB;
 using Emul8.Utilities.GDB.Commands;
 
