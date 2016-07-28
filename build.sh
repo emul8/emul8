@@ -55,6 +55,10 @@ fi
 # Build CCTask in Release configuration
 xbuild /p:Configuration=Release $ROOT_PATH/External/cctask/CCTask.sln > /dev/null
 
+# Build Termsharp in Release configuration
+
+xbuild /p:Configuration=Release $ROOT_PATH/External/TermsharpConsole/TermsharpConsole.sln
+
 if $CLEAN
 then
     xbuild /t:Clean /p:Configuration=Debug $TARGET

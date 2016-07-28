@@ -47,11 +47,12 @@ namespace Emul8.CLI
 
             var preferredTerminal = conf.Get("general", "terminal", TerminalTypes.XTerm);
             var windowCreators = new Dictionary<TerminalTypes, CreateWindowDelegate>
-            { 
+            {
                 {TerminalTypes.XTerm, CreateXtermWindow},
                 {TerminalTypes.Putty, CreatePuttyWindow},
                 {TerminalTypes.GnomeTerminal, CreateGnomeTerminalWindow},
-                {TerminalTypes.TerminalApp, CreateTerminalAppWindow}
+                {TerminalTypes.TerminalApp, CreateTerminalAppWindow},
+                {TerminalTypes.Termsharp, CreateTermsharpWindow}
             };
 
             var commandString = string.Format("screen {0}", Name);
@@ -301,6 +302,39 @@ namespace Emul8.CLI
             return false;
         }
 
+        private bool CreateTermsharpWindow(string arg, out Process p)
+        {
+            try
+            {
+                p = new Process();
+                p.EnableRaisingEvents = true;
+
+                var arguments = string.Format("{0} {1}", Name, Name);
+                p.StartInfo = new ProcessStartInfo(Path.Combine(Directory.GetCurrentDirectory(), "External/TermsharpConsole/bin/Release/TermsharpConsole.exe"), arguments)
+                {
+                    UseShellExecute = false,
+                    RedirectStandardError = true,
+                    RedirectStandardOutput = true,
+                    RedirectStandardInput = true
+                };
+                p.Exited += (sender, e) =>
+                {
+                    var proc = sender as Process;
+                    if(proc.ExitCode != 0)
+                    {
+                        LogError("Termsharp", arguments, proc.ExitCode);
+                    }
+                };
+                p.Start();
+                return true;
+            }
+            catch(Win32Exception)
+            {
+            }
+            p = null;
+            return false;
+        }
+
         private void LogError(string source, string arguments, int exitCode)
         {
             Logger.LogAs(this, LogLevel.Error, "There was an error while starting {2} with arguments: {0}. It exited with code: {1}. In order to use different terminal change preferences in configuration file.", arguments, exitCode, source);
@@ -325,7 +359,8 @@ namespace Emul8.CLI
             Putty,
             XTerm,
             GnomeTerminal,
-            TerminalApp
+            TerminalApp,
+            Termsharp
         }
     }
 }
