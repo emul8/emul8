@@ -21,7 +21,6 @@ using System.Collections.Concurrent;
 using System.Text;
 using System.IO;
 using Antmicro.Migrant.Hooks;
-using Emul8.Peripherals.CPU;
 using Emul8.Time;
 using System.Threading.Tasks;
 using Emul8.Peripherals.Bus;
