@@ -11,6 +11,8 @@ using System.Threading;
 using Terminal.Vt100;
 using Emul8.Utilities;
 using Terminal.Rows;
+using Xwt.Drawing;
+using System.IO;
 
 namespace TermsharpConsole
 {
@@ -28,6 +30,13 @@ namespace TermsharpConsole
 			Padding = new WidgetSpacing();
 
 			terminal.Cursor.Enabled = true;
+
+			Font.RegisterFontFromFile(Path.Combine(Directory.GetCurrentDirectory(), "External/TermsharpConsole/RobotoMono-Regular.ttf"));
+			var robotoMonoFont = Font.FromName("Roboto Mono");
+			if(robotoMonoFont.Family.Contains("Roboto"))
+			{
+				terminal.CurrentFont = robotoMonoFont;
+			}
 
 			var contextMenu = new Menu();
 
