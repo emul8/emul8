@@ -26,7 +26,7 @@ namespace TermsharpConsole
 
 			terminal = new Terminal.Terminal();
 			Content = terminal;
-			terminal.InnerMargin = new WidgetSpacing(5, 5, 5, 5);
+			terminal.InnerMargin = new WidgetSpacing(5, 0, 5, 0);
 			Padding = new WidgetSpacing();
 
 			terminal.Cursor.Enabled = true;
@@ -78,7 +78,8 @@ namespace TermsharpConsole
 					});
 
 					var encoder = new Terminal.Vt100.Encoder(x => 
-					{ 
+					{
+						terminal.ClearSelection();
 						terminal.MoveScrollbarToEnd();
 						stream.WriteByte(x); 
 					});
