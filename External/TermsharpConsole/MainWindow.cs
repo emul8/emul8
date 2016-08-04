@@ -87,6 +87,19 @@ namespace TermsharpConsole
 					terminal.KeyPressed += (s, a) =>
 					{
 						a.Handled = true;
+						if(a.Modifiers == ModifierKeys.Shift)
+						{
+							if(a.Key == Key.PageUp)
+							{
+								terminal.PageUp();
+								return;
+							}
+							if(a.Key == Key.PageDown)
+							{
+								terminal.PageDown();
+								return;
+							}
+						}
 						encoder.Feed(a.Key, a.Modifiers);
 					};
 
