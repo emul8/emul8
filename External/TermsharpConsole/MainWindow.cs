@@ -87,7 +87,14 @@ namespace TermsharpConsole
 					terminal.KeyPressed += (s, a) =>
 					{
 						a.Handled = true;
-						if(a.Modifiers == ModifierKeys.Shift)
+
+						var modifiers = a.Modifiers;
+						if(!Utilities.IsOnOsX)
+						{
+							modifiers &= ~(ModifierKeys.Command);
+						}
+
+						if(modifiers== ModifierKeys.Shift)
 						{
 							if(a.Key == Key.PageUp)
 							{
@@ -100,7 +107,7 @@ namespace TermsharpConsole
 								return;
 							}
 						}
-						encoder.Feed(a.Key, a.Modifiers);
+						encoder.Feed(a.Key, modifiers);
 					};
 
 					var buffer = new List<byte>();

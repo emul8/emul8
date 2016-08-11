@@ -36,6 +36,7 @@
     <Compile Include="Program.cs" />
     <Compile Include="MainWindow.cs" />
     <Compile Include="PtyUnixStream.cs" />
+    <Compile Include="Utilities.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="termsharp\Terminal.csproj">
