@@ -104,6 +104,24 @@ then
 fi
 popd > /dev/null
 
+# Update references to Xwt
+if [ -e ${ROOT_PATH:=.}/External/TermsharpConsole/TermsharpConsole.csproj ]
+then
+    sed -i='' 's/"termsharp\\xwt\\Xwt\\Xwt.csproj"/"..\\xwt\\Xwt\\Xwt.csproj"/' ${ROOT_PATH:=.}/External/TermsharpConsole/TermsharpConsole.csproj
+    sed -i='' 's/"termsharp\\xwt\\Xwt.Gtk\\Xwt.Gtk.csproj"/"..\\xwt\\Xwt.Gtk\\Xwt.Gtk.csproj"/' ${ROOT_PATH:=.}/External/TermsharpConsole/TermsharpConsole.csproj
+fi
+if [ -e ${ROOT_PATH:=.}/External/TermsharpConsole/TermsharpConsole.sln ]
+then
+    sed -i='' 's/"termsharp\\xwt\\Xwt\\Xwt.csproj"/"..\\xwt\\Xwt\\Xwt.csproj"/' ${ROOT_PATH:=.}/External/TermsharpConsole/TermsharpConsole.sln
+    sed -i='' 's/"termsharp\\xwt\\Xwt.Gtk\\Xwt.Gtk.csproj"/"..\\xwt\\Xwt.Gtk\\Xwt.Gtk.csproj"/' ${ROOT_PATH:=.}/External/TermsharpConsole/TermsharpConsole.sln
+fi
+if [ -e ${ROOT_PATH:=.}/External/TermsharpConsole/termsharp/TermSharp.csproj ]
+then
+    sed -i='' 's/"xwt\\Xwt\\Xwt.csproj"/"..\\..\\xwt\\Xwt\\Xwt.csproj"/' ${ROOT_PATH:=.}/External/TermsharpConsole/termsharp/TermSharp.csproj
+fi
+
+
+
 BOOTSTRAPER_DIR=$ROOT_PATH/Tools/Bootstrap
 BOOTSTRAPER_BIN=$BOOTSTRAPER_DIR/bin/Release/Bootstrap.exe
 
