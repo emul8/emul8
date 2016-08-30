@@ -26,6 +26,7 @@ namespace Emul8.CLI
     {
         public static void Run(string[] args)
         {
+            Plugins.XwtProviderPlugin.XwtProvider.StartXwtThread();
             var options = new Options();
             var optionsParser = new OptionsParser();
             if(!optionsParser.Parse(options, args))
@@ -87,11 +88,8 @@ namespace Emul8.CLI
                     {
                         preferredUARTAnalyzer = typeof(UARTWindowBackendAnalyzer);
 
-                        var stream = new PtyUnixStream();
-                        var dio = new DetachableIO(new StreamIOSource(stream, stream.Name));
-                        var terminal = new UARTWindowBackendAnalyzer(dio);
-                        shell = ShellProvider.GenerateShell(dio, monitor);     
-
+                        var terminal = new UARTWindowBackendAnalyzer();
+                        shell = ShellProvider.GenerateShell(terminal.IO, monitor);
                         monitor.Quitted += shell.Stop;
 
                         try
@@ -127,7 +125,11 @@ namespace Emul8.CLI
                         shell.Started += s => s.InjectInput(string.Format("i {0}{1}\n", Path.IsPathRooted(options.ScriptPath) ? "@" : "$CWD/", options.ScriptPath));
                     }
 
-                    new Thread(x => shell.Start(true)) { IsBackground = true, Name = "Shell thread" }.Start();
+                    new Thread(x => shell.Start(true)) 
+                    { 
+                        IsBackground = true, 
+                        Name = "Shell thread" 
+                    }.Start();
                 }
 
                 Emulator.BeforeExit += () =>

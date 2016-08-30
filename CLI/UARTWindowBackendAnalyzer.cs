@@ -19,15 +19,27 @@ using System.ComponentModel;
 using AntShell.Terminal;
 using System.Threading;
 using Mono.Unix.Native;
+using TermSharp.Vt100;
+using Xwt;
 
 namespace Emul8.CLI
 {
     public class UARTWindowBackendAnalyzer : IAnalyzableBackendAnalyzer<UARTBackend>
     {
+        // this constructor is needed by the monitor; do not remove it
         public UARTWindowBackendAnalyzer()
         {
-            var stream = new PtyUnixStream();
-            IO = new DetachableIO(new StreamIOSource(stream, stream.Name));
+            preferredTerminal = ConfigurationManager.Instance.Get("general", "terminal", TerminalTypes.XTerm);
+            if(preferredTerminal == TerminalTypes.Termsharp)
+            {
+                terminalWidget = new TerminalWidget();
+                IO = terminalWidget.IO;
+            }
+            else
+            {
+                var stream = new PtyUnixStream();
+                IO = new DetachableIO(new StreamIOSource(stream, stream.Name));
+            }
         }
 
         public UARTWindowBackendAnalyzer(DetachableIO io)
@@ -43,43 +55,65 @@ namespace Emul8.CLI
 
         public void Show()
         {
-            var conf = ConfigurationManager.Instance;
-
-            var preferredTerminal = conf.Get("general", "terminal", TerminalTypes.XTerm);
-            var windowCreators = new Dictionary<TerminalTypes, CreateWindowDelegate>
+            if(terminalWidget != null)
             {
-                {TerminalTypes.XTerm, CreateXtermWindow},
-                {TerminalTypes.Putty, CreatePuttyWindow},
-                {TerminalTypes.GnomeTerminal, CreateGnomeTerminalWindow},
-                {TerminalTypes.TerminalApp, CreateTerminalAppWindow},
-                {TerminalTypes.Termsharp, CreateTermsharpWindow}
-            };
-
-            var commandString = string.Format("screen {0}", Name);
-            //Try preferred terminal first, than any other. If all fail, throw.
-            if (!windowCreators.OrderByDescending(x => x.Key == preferredTerminal).Any(x => x.Value(commandString, out process)))
-            {
-                throw new NotSupportedException(String.Format("Could not start terminal. Possible config values: {0}",
-                    windowCreators.Keys.Select(x => x.ToString()).Aggregate((x, y) => x + ", " + y)));
+                Emul8.Plugins.XwtProviderPlugin.ApplicationExtensions.InvokeInUIThreadAndWait(() => {
+                    window = new Window();
+                    window.Title = "TERMINAL";
+                    window.Width = 700;
+                    window.Height = 400;
+                    window.Content = terminalWidget;
+                    window.Show();
+                });
             }
+            else
+            {
+                var windowCreators = new Dictionary<TerminalTypes, CreateWindowDelegate>
+                {
+                    {TerminalTypes.XTerm, CreateXtermWindow},
+                    {TerminalTypes.Putty, CreatePuttyWindow},
+                    {TerminalTypes.GnomeTerminal, CreateGnomeTerminalWindow},
+                    {TerminalTypes.TerminalApp, CreateTerminalAppWindow},
+                    {TerminalTypes.Termsharp, CreateTermsharpWindow}
+                };
 
-            Thread.Sleep(1000);
-            // I know - this is ugly. But here's the problem:
-            // we start terminal process with embedded socat and it takes time
-            // how much? - you ask
-            // good question - we don't know it; sometimes more, sometimes less
-            // sometimes it causes a problem - socat is not ready yet when first data arrives
-            // what happens then? - you ask
-            // good question - we lost some input, Emul8 banner most probably
-            // how to solve it? - you ask
-            // good question - with no good answer though, i'm affraid
-            // that is why we sleep here for 1s hoping it's enough
-            //
-            // This will be finally changed to our own implementation of VirtualTerminalEmulator.
+                var commandString = string.Format("screen {0}", Name);
+                //Try preferred terminal first, than any other. If all fail, throw.
+                if(!windowCreators.OrderByDescending(x => x.Key == preferredTerminal).Any(x => x.Value(commandString, out process)))
+                {
+                    throw new NotSupportedException(String.Format("Could not start terminal. Possible config values: {0}",
+                        windowCreators.Keys.Select(x => x.ToString()).Aggregate((x, y) => x + ", " + y)));
+                }
+
+                Thread.Sleep(1000);
+                // I know - this is ugly. But here's the problem:
+                // we start terminal process with embedded socat and it takes time
+                // how much? - you ask
+                // good question - we don't know it; sometimes more, sometimes less
+                // sometimes it causes a problem - socat is not ready yet when first data arrives
+                // what happens then? - you ask
+                // good question - we lost some input, Emul8 banner most probably
+                // how to solve it? - you ask
+                // good question - with no good answer though, i'm affraid
+                // that is why we sleep here for 1s hoping it's enough
+                //
+                // This will be finally changed to our own implementation of VirtualTerminalEmulator.
+            }
         }
 
         public void Hide()
         {
+            var w = window;
+            if(w != null)
+            {
+                Emul8.Plugins.XwtProviderPlugin.ApplicationExtensions.InvokeInUIThreadAndWait(() =>
+                {
+                    w.Hide();
+                });
+                w = null;
+                return;
+            }
+
             var p = process;
             if(p == null)
             {
@@ -349,7 +383,10 @@ namespace Emul8.CLI
         private delegate bool CreateWindowDelegate(string command, out Process process);
 
         private Process process;
+        private Xwt.Window window;
 
+        private readonly TerminalWidget terminalWidget;
+        private readonly TerminalTypes preferredTerminal;
         private const int WindowHeight = 500;
         private const int WindowWidth = 670;
         private const int MaxWidth = 1700;

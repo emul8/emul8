@@ -33,6 +33,7 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="Mono.Posix" />
+    <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Program.cs" />
@@ -45,6 +46,8 @@
     <Compile Include="StdInOutInteraction.cs" />
     <Compile Include="UARTWindowBackendAnalyzer.cs" />
     <Compile Include="UARTMultiplexedBackendAnalyzer.cs" />
+    <Compile Include="TerminalIOSource.cs" />
+    <Compile Include="TerminalWidget.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <Import Project="$(MSBuildProjectDirectory)\BuildAdditionalProjects-CLI.csproj.targets" Condition="Exists('$(MSBuildProjectDirectory)\BuildAdditionalProjects-CLI.csproj.targets')" />
@@ -87,5 +90,29 @@
       <Project>{CC6D2193-B747-42F0-8F80-6569ED04338D}</Project>
       <Name>LaunchAttributes</Name>
     </ProjectReference>
+    <ProjectReference Include="..\External\TermsharpConsole\termsharp\TermSharp.csproj">
+      <Project>{25FAECC1-55F0-4608-88BD-4207A7F993B0}</Project>
+      <Name>Terminal</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\External\xwt\Xwt\Xwt.csproj">
+      <Project>{92494904-35FA-4DC9-BDE9-3A3E87AC49D3}</Project>
+      <Name>Xwt</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\External\xwt\Xwt.Gtk\Xwt.Gtk.csproj">
+      <Project>{C3887A93-B2BD-4097-8E2F-3A063EFF32FD}</Project>
+      <Name>Xwt.Gtk</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Plugins\XwtProviderPlugin\XwtProviderPlugin.csproj">
+      <Project>{6946CE8C-6A63-431F-95CC-1D517C9AA7C9}</Project>
+      <Name>XwtProviderPlugin</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Resources\" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\RobotoMono-Regular.ttf">
+      <LogicalName>RobotoMono-Regular.ttf</LogicalName>
+    </EmbeddedResource>
   </ItemGroup>
 </Project>
