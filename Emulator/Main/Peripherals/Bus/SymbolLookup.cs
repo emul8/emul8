@@ -33,7 +33,7 @@ namespace Emul8.Core
         /// Loads the symbols from ELF and puts the symbols into the SymbolLookup.
         /// </summary>
         /// <param name="elf">Elf.</param>
-        public void LoadELF(ELF<TAddress> elf)
+        public void LoadELF(ELF<TAddress> elf, bool useVirtualAddress)
         {
             Section<uint> symtabSection;
             if(!elf.TryGetSection(".symtab", out symtabSection))
@@ -42,9 +42,20 @@ namespace Emul8.Core
             }
             var symtab = (SymbolTable<uint>)symtabSection;
             var thumb = elf.Machine == ELFSharp.ELF.Machine.ARM;
+
             var elfSymbols = symtab.Entries.Where(x => !armSpecificSymbolNames.Contains(x.Name)).Where(x => !excludedSymbolTypes.Contains(x.Type)).Select(x => new Symbol(x, thumb));
             InsertSymbols(elfSymbols);
             EntryPoint = elf.EntryPoint;
+            var segments = elf.Segments.Where(x => x.Type == ELFSharp.ELF.Segments.SegmentType.Load);
+
+            foreach(var segment in segments)
+            {
+                var loadAddress = useVirtualAddress ? segment.Address : segment.PhysicalAddress;
+                if(maxLoadAddress > loadAddress + segment.Size)
+                {
+                    maxLoadAddress = loadAddress + segment.Size;
+                }
+            }
         }
 
         /// <summary>
@@ -56,6 +67,10 @@ namespace Emul8.Core
             var symbolToAdd = GetUnique(symbol);
             symbols.Add(symbolToAdd);
             symbolsByName.Add(symbol.Name, symbol);
+            if(symbol.End > maxLoadAddress)
+            {
+                maxLoadAddress = symbol.End;
+            }
         }
 
         /// <summary>
@@ -91,6 +106,10 @@ namespace Emul8.Core
             foreach(var symbolToAdd in symbolsToAdd)
             {
                 AddSymbolToNameLookup(symbolToAdd);
+                if(symbolToAdd.End > maxLoadAddress)
+                {
+                    maxLoadAddress = symbolToAdd.End;
+                }
             }
 
             // Add symbols to interval set
@@ -117,6 +136,11 @@ namespace Emul8.Core
         /// <param name="symbol">Symbol.</param>
         public bool TryGetSymbolByAddress(TAddress offset, out Symbol symbol)
         {
+            if(offset > maxLoadAddress)
+            {
+                symbol = default(Symbol);
+                return false;
+            }
             return symbols.TryGet(offset, out symbol);
         }
 
@@ -127,7 +151,12 @@ namespace Emul8.Core
         /// <param name="offset">Offset.</param>
         public Symbol GetSymbolByAddress(TAddress offset)
         {
-            return symbols.Get(offset);
+            Symbol symbol;
+            if(!TryGetSymbolByAddress(offset, out symbol))
+            {
+                throw new KeyNotFoundException("No symbol for given address [" + offset + "] found.");
+            }
+            return symbol;
         }
 
         /// <summary>
@@ -214,6 +243,8 @@ namespace Emul8.Core
         /// Name to symbol mapping.
         /// </summary>
         private MultiValueDictionary<string, Symbol> symbolsByName;
+
+        private uint maxLoadAddress;
 
         private class SortedIntervals : IEnumerable
         {
@@ -306,21 +337,6 @@ namespace Emul8.Core
                 }
 
                 return false;
-            }
-
-            /// <summary>
-            /// Gets the innermost interval containing the specified scalar.
-            /// </summary>
-            /// <param name="scalar">Scalar.</param>
-            /// <returns>The innermost interval containing the specified scalar, if such exists.</returns>
-            public Symbol Get(TAddress scalar)
-            {
-                Symbol interval;
-                if(TryGet(scalar, out interval))
-                {
-                    return interval;
-                }
-                throw new KeyNotFoundException("No symbol for given address [" + scalar + "] found.");
             }
 
             /// <summary>
@@ -861,9 +877,20 @@ namespace Emul8.Core
             /// <param name = "scalar"></param>
             private int FindEnclosingInterval(int index, TAddress scalar)
             {
+                var original = index;
                 while(index != NoEnclosingInterval && !symbols[index].Contains(scalar))
                 {
                     index = indexOfEnclosingInterval[index];
+                }
+                //A special case when we hit after a 0-length symbol thas does not have any parent.
+                //We do not need to check it in the loop, as such a symbol would never enclose other symbols.
+                //This gives an approximate result.
+                if(index == NoEnclosingInterval)
+                {
+                    if(symbols[original].Start <= scalar && symbols[original].End == symbols[original].Start && (symbols.Length == original + 1 || symbols[original + 1].Start > scalar))
+                    {
+                        index = original;
+                    }
                 }
                 return index;
             }
