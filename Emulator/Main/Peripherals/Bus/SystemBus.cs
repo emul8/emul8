@@ -405,9 +405,9 @@ namespace Emul8.Peripherals.Bus
             ZeroRange(from.By(size));
         }
 
-        public void LoadSymbolsFrom(string fileName)
+        public void LoadSymbolsFrom(string fileName, bool useVirtualAddress = false)
         {
-            Lookup.LoadELF(GetELFFromFile(fileName));
+            Lookup.LoadELF(GetELFFromFile(fileName), useVirtualAddress);
         }
 
         public void AddSymbol(Range address, string name, bool isThumb = false)
@@ -443,7 +443,7 @@ namespace Emul8.Peripherals.Bus
                 UpdateLowestLoadedAddress(loadAddress);
                 this.DebugLog("Segment loaded.");
             }
-            Lookup.LoadELF(elf);
+            Lookup.LoadELF(elf, useVirtualAddress);
             if(cpu != null)
             {
                 cpu.InitFromElf(elf);
@@ -562,7 +562,7 @@ namespace Emul8.Peripherals.Bus
             Symbol symbol;
             if(Lookup.TryGetSymbolByAddress(offset, out symbol))
             {
-                return symbol.Name;
+                return symbol.ToStringRelative(offset);
             }
             return null;
         }
