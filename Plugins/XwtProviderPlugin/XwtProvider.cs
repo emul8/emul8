@@ -46,6 +46,28 @@ namespace Emul8.Plugins.XwtProviderPlugin
             StartXwtThread();
         }
 
+        public static void StartXwtThread()
+        {
+            Emulator.ExecuteOnMainThread(() =>
+                {
+                    InitializeXwt();
+                    RunXwtInCurrentThread();
+                });
+        }
+
+        public static void StopXwtThread()
+        {
+            lock(internalLock)
+            {
+                if(UiThreadId == -1)
+                {
+                    return;
+                }
+                ApplicationExtensions.InvokeInUIThreadAndWait(Application.Exit);
+                UiThreadId = -1;
+            }
+        }
+
         public static void InitializeXwt()
         {
             Application.Initialize(ToolkitType.Gtk);
@@ -94,28 +116,6 @@ namespace Emul8.Plugins.XwtProviderPlugin
         }
 
         private static object internalLock;
-
-        private void StartXwtThread()
-        {
-            Emulator.ExecuteOnMainThread(() =>
-            {
-                InitializeXwt();
-                RunXwtInCurrentThread();
-            });
-        }
-
-        private void StopXwtThread()
-        {
-            lock(internalLock)
-            {
-                if(UiThreadId == -1)
-                {
-                    return;
-                }
-                ApplicationExtensions.InvokeInUIThreadAndWait(Application.Exit);
-                UiThreadId = -1;
-            }
-        }
 
         private readonly IUserInterfaceProvider previousProvider;
     }
