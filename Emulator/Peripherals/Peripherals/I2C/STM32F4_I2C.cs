@@ -181,7 +181,6 @@ namespace Emul8.Peripherals.I2C
             //moved from WriteByte
             byteTransferFinished.Value = false;
             Update();
-            this.Log(LogLevel.Error, "writing data from {0}", machine.SystemBus.FindSymbolAt(machine.SystemBus.GetCurrentCPU().PC));
             switch(state)
             {
             case State.AwaitingAddress:
