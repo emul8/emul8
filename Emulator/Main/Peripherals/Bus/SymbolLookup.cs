@@ -293,10 +293,10 @@ namespace Emul8.Core
                 }
 
                 /***
-                * We might be between two towers, that lie on the commond ground (we will be between the top of the left tower and
+                * We might be between two towers, that lie on the common ground (we will be between the top of the left tower and
                 * before the base of the next one). `index` points to the left top symbol, we check if any enclosing symbol also contains the
                 * scalar. If not, there is no such symbol (the common ground) and scalar just lies between two towers. If it exists scalar 
-                * Is between two symbol lying on the same base.
+                * is between two symbol lying on the same base.
                 ****/
                 index = FindEnclosingInterval(index, scalar);
                 if(index != NoEnclosingInterval)
@@ -582,21 +582,21 @@ namespace Emul8.Core
 
                 public Symbol Current { 
                     get {
-                        updateCurrentSymbolAndType();
+                        UpdateCurrentSymbolAndType();
                         return currentSymbol;
                     } 
                 }
 
                 public SymbolType CurrentType {
                     get {
-                        updateCurrentSymbolAndType();
+                        UpdateCurrentSymbolAndType();
                         return currentSymbolType;
                     } 
                 }
 
                 public bool Empty { 
                     get { 
-                        updateCurrentSymbolAndType();
+                        UpdateCurrentSymbolAndType();
                         return currentSymbol == null;
                     }
                 }
@@ -658,7 +658,7 @@ namespace Emul8.Core
                 /// Also tails are added in a monotonic manner, so adding a new tail will also not result in eventual put back.
                 /// Original symbols are consumed in DiscardCurrentSymbol.
                 /// </description>
-                private void updateCurrentSymbolAndType()
+                private void UpdateCurrentSymbolAndType()
                 {
                     if(currentsSynced)
                     {
@@ -709,7 +709,7 @@ namespace Emul8.Core
                 /// </summary>
                 /// <returns>The last copy.</returns>
                 /// <param name="symbolTails">Symbol tails.</param>
-                Symbol DequeueLastCopy(Queue<Symbol> symbolTails)
+                private Symbol DequeueLastCopy(Queue<Symbol> symbolTails)
                 {
                     var symbol = symbolTails.Dequeue();
                     while(symbolTails.Count > 0 && intervalComparer.Compare(symbol, symbolTails.Peek()) == 0)
@@ -898,8 +898,8 @@ namespace Emul8.Core
 
                 public override int Compare(IInterval<TScalar> lhs, IInterval<TScalar> rhs)
                 {
-                    var MarkerValue = GetMarkerValue();
-                    if(lhs.End.CompareTo(MarkerValue) != 0 && rhs.End.CompareTo(MarkerValue) != 0)
+                    var markerValue = GetMarkerValue();
+                    if(lhs.End.CompareTo(markerValue) != 0 && rhs.End.CompareTo(markerValue) != 0)
                     {
                         return base.Compare(lhs, rhs);
                     }
@@ -907,7 +907,7 @@ namespace Emul8.Core
                     IInterval<TScalar> marker;
                     IInterval<TScalar> symbol;
                     bool markerIsLhs;
-                    if(lhs.End.CompareTo(MarkerValue) == 0)
+                    if(lhs.End.CompareTo(markerValue) == 0)
                     {
                         marker = lhs;
                         symbol = rhs;
