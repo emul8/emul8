@@ -17,6 +17,10 @@ namespace Emul8.Extensions.Analyzers.Video.Handlers
             this.input = input;
         }
 
+        public virtual void Init()
+        {
+        }
+
         public virtual void ButtonPressed(int button)
         {
             input.Press(ToMouseButton((PointerButton)button));
