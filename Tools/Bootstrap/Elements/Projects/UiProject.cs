@@ -18,7 +18,7 @@ namespace Emul8.Bootstrap.Elements.Projects
         
         protected override bool TryLoad(System.Xml.Linq.XDocument doc)
         {
-            var projectInfoNode = doc.XPathSelectElement(@"/x:Project/x:PropertyGroup/x:ProjectInfo", NamespaceManager);
+            var projectInfoNode = doc.XPathSelectElement(@"/x:Project/x:ProjectExtensions/x:Emul8/x:ProjectInfo", NamespaceManager);
             var uiType = projectInfoNode.Value;
             if(string.IsNullOrWhiteSpace(uiType))
             {

@@ -60,7 +60,7 @@ namespace Emul8.Bootstrap.Elements
             }
 
             var nameNode = doc.XPathSelectElement(@"/x:Project/x:PropertyGroup/x:AssemblyName", NamespaceManager);
-            var projectInfoNode = doc.XPathSelectElement(@"/x:Project/x:PropertyGroup/x:ProjectInfo", NamespaceManager);
+            var projectInfoNode = doc.XPathSelectElement(@"/x:Project/x:ProjectExtensions/x:Emul8/x:ProjectInfo", NamespaceManager);
             XAttribute projectTypeAttribute = null;
             if(projectInfoNode != null)
             {
