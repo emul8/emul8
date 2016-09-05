@@ -1,9 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-    <ProjectInfo Type="UI">
-      <Mode>Robot</Mode>
-    </ProjectInfo>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
     <ProjectGuid>{481F087F-03FE-4A81-96E9-2974BE42B4E3}</ProjectGuid>
@@ -72,6 +69,11 @@
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ProjectExtensions>
+    <Emul8>
+      <ProjectInfo Type="UI">
+        <Mode>Robot</Mode>
+      </ProjectInfo>
+    </Emul8>
     <MonoDevelop>
       <Properties>
         <Policies>

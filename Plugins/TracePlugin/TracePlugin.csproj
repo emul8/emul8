@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-    <ProjectInfo Type="Plugin" />
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{887C6088-F483-466A-A671-06EEC42B8DC1}</ProjectGuid>
@@ -76,6 +75,9 @@
     </ProjectReference>
   </ItemGroup>
   <ProjectExtensions>
+    <Emul8>
+      <ProjectInfo Type="Plugin" />
+    </Emul8>
     <MonoDevelop>
       <Properties>
         <Policies>

@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-    <ProjectInfo Type="Extension" />
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{4C636FAF-4650-4088-8EA8-2FCCC225E9CF}</ProjectGuid>
@@ -168,6 +167,9 @@
     <Folder Include="Utilities\GDB\Commands\" />
   </ItemGroup>
   <ProjectExtensions>
+    <Emul8>
+      <ProjectInfo Type="Extension" />
+    </Emul8>
     <MonoDevelop>
       <Properties>
         <Policies>
