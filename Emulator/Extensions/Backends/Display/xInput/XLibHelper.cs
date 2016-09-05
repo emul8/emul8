@@ -71,34 +71,6 @@ namespace Emul8.Backends.Display.XInput
             XSetErrorHandler(fpointer);
         }
 
-		public static void MakeCursorTransparent(int windowId)
-		{
-            lock(locker)
-            {
-                using(var l = new XLibLocker(DisplayHandle))
-                {
-                    XDefineCursor(DisplayHandle, windowId, DefineEmptyCursor(windowId));
-                }
-
-                XCloseDisplay(DisplayHandle);
-                DisplayHandle = XOpenDisplay(IntPtr.Zero);
-            }
-		}
-
-		public static void RestoreCursor(int windowId)
-		{
-            lock(locker)
-            {
-                using(var l = new XLibLocker(DisplayHandle))
-                {
-                    XUndefineCursor(DisplayHandle, windowId);
-                }
-
-                XCloseDisplay(DisplayHandle);
-                DisplayHandle = XOpenDisplay(IntPtr.Zero);
-            }
-		}
-
 		public static void GrabCursorByWindow(int windowId)
 		{
             lock(locker)
@@ -382,12 +354,6 @@ namespace Emul8.Backends.Display.XInput
 
 		[DllImport ("libX11", EntryPoint="XOpenDisplay")]
 		internal extern static IntPtr XOpenDisplay(IntPtr display);
-
-		[DllImport ("libX11", EntryPoint="XDefineCursor")]
-		internal extern static int XDefineCursor(IntPtr display, int window, IntPtr cursor);
-
-		[DllImport ("libX11", EntryPoint="XUndefineCursor")]
-		internal extern static int XUndefineCursor(IntPtr display, int window);
 
 		[DllImport ("libX11", EntryPoint="XCloseDisplay")]
 		internal extern static int XCloseDisplay(IntPtr display);
