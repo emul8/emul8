@@ -45,7 +45,6 @@ namespace Emul8.SystemTests
             ConfigurationManager.Instance.SetNonPersistent("monitor", "consume-exceptions-from-command", false);
 
             monitor = new Monitor { Interaction = new DummyCommandInteraction() };
-            monitor.UseConsole = false;
 
             context = ObjectCreator.Instance.OpenContext();
             context.RegisterSurrogate(typeof(Monitor), monitor);
