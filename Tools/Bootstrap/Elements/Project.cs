@@ -60,7 +60,7 @@ namespace Emul8.Bootstrap.Elements
             }
 
             var nameNode = doc.XPathSelectElement(@"/x:Project/x:PropertyGroup/x:AssemblyName", NamespaceManager);
-            var projectInfoNode = doc.XPathSelectElement(@"/x:Project/x:ProjectExtensions/x:Emul8/x:ProjectInfo", NamespaceManager);
+            var projectInfoNode = doc.XPathSelectElement(ProjectInfoXPath, NamespaceManager);
             XAttribute projectTypeAttribute = null;
             if(projectInfoNode != null)
             {
@@ -146,6 +146,8 @@ namespace Emul8.Bootstrap.Elements
         public bool HasForcedOutput { get; private set; }
         public IEnumerable<Project> References { get; protected set; }
         public string StartupObject { get; protected set; }
+
+        public const string ProjectInfoXPath = @"/x:Project/x:ProjectExtensions/x:Emul8/x:ProjectInfo";
 
         protected Project(string name, string path)
         {

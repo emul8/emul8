@@ -19,7 +19,7 @@ namespace Emul8.Bootstrap.Elements.Projects
         
         protected override bool TryLoad(System.Xml.Linq.XDocument doc)
         {
-            var projectInfoNode = doc.XPathSelectElement(@"/x:Project/x:ProjectExtensions/x:Emul8/x:ProjectInfo", NamespaceManager);
+            var projectInfoNode = doc.XPathSelectElement(ProjectInfoXPath, NamespaceManager);
             PluginModes = projectInfoNode.Elements().Select(x => x.Value).ToArray();
             return base.TryLoad(doc);
         }
