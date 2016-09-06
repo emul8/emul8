@@ -82,7 +82,6 @@ namespace Emul8.Bootstrap.Elements.Projects
                                 "AnyCPU"),
                         new XElement(xnamespace + "ProjectGuid", string.Format("{{{0}}}", GUID.ToString().ToUpper())),
                         new XElement(xnamespace + "OutputType", "Exe"),
-                        new XElement(xnamespace + "ProjectInfo", new XAttribute("Skip", "true")),
                         new XElement(xnamespace + "AssemblyName", Name),
                         new XElement(xnamespace + "TargetFrameworkVersion", "v4.5"),
                         new XElement(xnamespace + "StartupObject", string.Format("Emul8.{0}", GeneratedProjectMainClassName))),
@@ -102,6 +101,10 @@ namespace Emul8.Bootstrap.Elements.Projects
                         new XElement(xnamespace + "OutputPath", string.Format("{0}/Release", outputPath)),
                         new XElement(xnamespace + "ErrorReport", "prompt"),
                         new XElement(xnamespace + "Externalconsole", "true")),
+                    new XElement(xnamespace + "ProjectExtensions",
+                        new XElement(xnamespace + "Emul8",
+                            new XElement(xnamespace + "ProjectInfo", new XAttribute("Skip", "true"))
+                        )),
                     new XElement(xnamespace + "ItemGroup",
                         new XElement(xnamespace + "Reference", new XAttribute("Include", "System"))),
                     new XElement(xnamespace + "ItemGroup",
