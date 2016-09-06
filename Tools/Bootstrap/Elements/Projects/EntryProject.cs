@@ -112,7 +112,7 @@ namespace Emul8.Bootstrap.Elements.Projects
                     new XElement(xnamespace + "Import", new XAttribute("Project", @"$(MSBuildBinPath)\Microsoft.CSharp.targets")),
                     referencedProjectsNode,
                     forcedOutputNode,
-                    new XElement(xnamespace + "Target", new XAttribute("AfterTargets", "ResolveAssemblyReferences"),
+                    new XElement(xnamespace + "Target", new XAttribute("Name", "BuildForcedOutput"), new XAttribute("AfterTargets", "ResolveAssemblyReferences"),
                         new XElement(xnamespace + "MSBuild",
                             new XAttribute("Projects", "@(ForcedOutput)"),
                             new XAttribute("Targets", "GetForcedOutput"),
