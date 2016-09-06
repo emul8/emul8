@@ -3,9 +3,9 @@
     <UsingTask AssemblyFile="$(MSBuildProjectDirectory)/../../../External/cctask/CCTask/bin/Release/CCTask.dll" TaskName="EnvironmentTask" />
 
     <ProjectExtensions>
-      <Emul8>
-        <ProjectInfo Type="Extension"/>
-      </Emul8>
+        <Emul8>
+            <ProjectInfo Type="Extension"/>
+        </Emul8>
     </ProjectExtensions>
 
     <PropertyGroup>
