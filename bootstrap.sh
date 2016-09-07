@@ -40,7 +40,6 @@ do
             ;;
         k)
             KEEP_SUBMODULES=1
-            echo "k is set"
             ;;
         h)
             echo "Emul8 bootstrapping script"
