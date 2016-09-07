@@ -51,7 +51,7 @@ do
             echo "  -b directory    location for binaries created from generated project"
             echo "  -o directory    location of generated project files"
             echo "  -s csproj_file  location of the project file"
-            echo "  -k              keep submodules intact (do not reset them)"
+            echo "  -k              keep submodules intact (do not update them)"
             echo "  -h              prints this help"
             exit 0
     esac
