@@ -9,7 +9,6 @@
 #include <stdlib.h>
 #include "cpu.h"
 #include "emul8_imports.h"
-#include "callbacks.h"
 
 extern CPUState *cpu;
 
