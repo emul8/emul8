@@ -7,8 +7,11 @@
 //
 
 #include <stdlib.h>
+#include "cpu.h"
 #include "emul8_imports.h"
 #include "callbacks.h"
+
+extern CPUState *cpu;
 
 void (*on_translation_block_find_slow)(uint32_t pc);
 
@@ -63,23 +66,20 @@ void tlib_invalidate_tb_in_other_cpus(unsigned long start, unsigned long end)
 EXTERNAL_AS(action_int32, UpdateInstructionCounter, update_instruction_counter_inner)
 EXTERNAL_AS(func_uint32, IsInstructionCountEnabled, tlib_is_instruction_count_enabled)
 
-static int32_t count_threshold;
-static int32_t current_count_value;
-
 void emul_set_count_threshold(int32_t value)
 {
-    count_threshold = value;
+  cpu->instructions_count_threshold = value;
 }
 
 void tlib_update_instruction_counter(int32_t value)
 {
-  current_count_value += value;
-  if(current_count_value < count_threshold)
+  cpu->instructions_count_value += value;
+  if(cpu->instructions_count_value < cpu->instructions_count_threshold)
   {
      return;
   }
-  update_instruction_counter_inner(current_count_value);
-  current_count_value = 0;
+  update_instruction_counter_inner(cpu->instructions_count_value);
+  cpu->instructions_count_value = 0;
 }
 
 EXTERNAL_AS(func_int32, GetCpuIndex, tlib_get_cpu_index)
