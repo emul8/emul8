@@ -145,8 +145,8 @@ namespace Emul8.Logging
         }
 
         private static ulong nextEntryId = 0;
-        private static ConcurrentDictionary<string, ILoggerBackend> backendNames = new ConcurrentDictionary<string, ILoggerBackend>();
-        private static FastReadConcurrentCollection<ILoggerBackend> backends = new FastReadConcurrentCollection<ILoggerBackend>();
+        private static readonly ConcurrentDictionary<string, ILoggerBackend> backendNames = new ConcurrentDictionary<string, ILoggerBackend>();
+        private static readonly FastReadConcurrentCollection<ILoggerBackend> backends = new FastReadConcurrentCollection<ILoggerBackend>();
 
         private static string GetGenericName(object o)
         {
@@ -167,9 +167,12 @@ namespace Emul8.Logging
 
             public void Dispose() 
             {
-                stopThread = true;
-                cancellationToken.Cancel();
-                loggingThread.Join();
+                if(!useSynchronousLogging)
+                {
+                    stopThread = true;
+                    cancellationToken.Cancel();
+                    loggingThread.Join();
+                }
             }
 
             public string GetMachineName(int id)
@@ -229,7 +232,19 @@ namespace Emul8.Logging
                 }
 
                 var entry = new LogEntry(CustomDateTime.Now, type, message, sourceId, Thread.CurrentThread.ManagedThreadId);
-                entries.Add(entry);
+
+                if(useSynchronousLogging)
+                {
+                    lock(synchronousLoggingLock)
+                    {
+                        entry.Id = Logger.nextEntryId++;
+                        WriteLogEntryToBackends(entry);
+                    }
+                }
+                else
+                {
+                    entries.Add(entry);
+                }
             }
 
             private void LoggingThreadBody()
@@ -248,11 +263,16 @@ namespace Emul8.Logging
 
                     // we set ids here to avoid the need of locking counter in `ObjectInnerLog`
                     entry.Id = Logger.nextEntryId++;
-                    var backends = Logger.backends.Items;
-                    for (int i = 0; i < backends.Length; i++)
-                    {
-                        backends[i].Log(entry);
-                    }
+                    WriteLogEntryToBackends(entry);
+                }
+            }
+
+            private void WriteLogEntryToBackends(LogEntry entry)
+            {
+                var allBackends = Logger.backends.Items;
+                for(var i = 0; i < allBackends.Length; i++)
+                {
+                    allBackends[i].Log(entry);
                 }
             }
 
@@ -262,14 +282,28 @@ namespace Emul8.Logging
                 logSourcesMap = new LogSourcesMap();
                 nextNameId = 0;
 
-                entries = new BlockingCollection<LogEntry>(10000);
+                useSynchronousLogging = ConfigurationManager.Instance.Get("general", "use-synchronous-logging", false);
+                if(useSynchronousLogging)
+                {
+                    synchronousLoggingLock = new object();
+                }
+                else
+                {
+                    entries = new BlockingCollection<LogEntry>(10000);
 
-                cancellationToken = new CancellationTokenSource();
-                loggingThread = new Thread(LoggingThreadBody);
-                loggingThread.IsBackground = true;
-                loggingThread.Name = "Logging thread";
-                loggingThread.Start();
+                    cancellationToken = new CancellationTokenSource();
+                    loggingThread = new Thread(LoggingThreadBody);
+                    loggingThread.IsBackground = true;
+                    loggingThread.Name = "Logging thread";
+                    loggingThread.Start();
+                }
             }
+
+            [Transient]
+            private bool useSynchronousLogging;
+
+            [Transient]
+            private object synchronousLoggingLock;
 
             [Transient]
             private Thread loggingThread;
