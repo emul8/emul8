@@ -8,7 +8,6 @@
 using System;
 using Emul8.Peripherals.Input;
 using Xwt;
-using Emul8.Backends.Display.XInput;
 
 namespace Emul8.Extensions.Analyzers.Video.Handlers
 {
@@ -85,7 +84,7 @@ namespace Emul8.Extensions.Analyzers.Video.Handlers
             var touchscreenX = (int)Math.Round(imageX * ainput.MaxX / maxX);
             var touchscreenY = (int)Math.Round(imageY * ainput.MaxY / maxY);
 
-            ainput.MoveTo(touchscreenX,touchscreenY);
+            ainput.MoveTo(touchscreenX, touchscreenY);
 
             var opm = OnPointerMoved;
             if(opm != null)
