@@ -76,7 +76,7 @@ namespace Emul8.Logging
             DebugLog(e, string.Format(message, args));
         }
 
-        // TODO: zastanowić się nad późniejszym rozwiązywaniem tego tu
+        // TODO: think about delayed resolution of message generator
         public static void DebugLog(this IEmulationElement e, Func<string> messageGenerator)
         {
             DebugLog(e, messageGenerator());
