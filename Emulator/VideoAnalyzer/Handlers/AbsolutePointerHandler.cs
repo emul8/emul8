@@ -8,7 +8,6 @@
 using System;
 using Emul8.Peripherals.Input;
 using Xwt;
-using Emul8.Backends.Display.XInput;
 
 namespace Emul8.Extensions.Analyzers.Video.Handlers
 {
@@ -17,21 +16,31 @@ namespace Emul8.Extensions.Analyzers.Video.Handlers
         public AbsolutePointerHandler(IAbsolutePositionPointerInput tablet, FrameBufferDisplayWidget widget) : base(tablet)
         {
             this.widget = widget;
+            previousCursorType = widget.Cursor;
+            // it looks strange, but without it handling cursor for the first time causes glitches
+            ShowCursor();
+        }
+
+        public override void Init()
+        {
+            // this will hide cursor and draw cross if needed
+            PointerMoved(lastX, lastY, 0, 0);
         }
 
         public override void ButtonReleased(int button)
         {
             base.ButtonReleased(button);
-            XLibHelper.MakeCursorTransparent(widget.ParentWindow.Id);
-
-            //TODO: After releasing button, the real cursor over canvas is getting visible.
-            // As a temporary dirty solution, variable below is set, and cursor is hidden 
-            // again by moving it in MoveTablet()
-            isTabletButtonJustReleased = true;
+            if(isCursorOverImageRectangle)
+            {
+                HideCursor();
+            }
         }
 
         public override void PointerMoved(int x, int y, int dx, int dy)
         {
+            lastX = x;
+            lastY = y;
+
             var image = widget.Image;
             if(image == null)
             {
@@ -44,17 +53,16 @@ namespace Emul8.Extensions.Analyzers.Video.Handlers
             // if cursor doesn't touch actual image, return
             if(!imgRect.IntersectsWith(new Rectangle(x, y, 1, 1)))
             {
-                XLibHelper.RestoreCursor(widget.ParentWindow.Id);
+                ShowCursor();
                 isCursorOverImageRectangle = false;
                 return;
             }
-            if(!isCursorOverImageRectangle || isTabletButtonJustReleased)
+            if(!isCursorOverImageRectangle)
             {
                 widget.CanGetFocus = true;
                 widget.SetFocus();
                 isCursorOverImageRectangle = true;
-                isTabletButtonJustReleased = false;
-                XLibHelper.MakeCursorTransparent(widget.ParentWindow.Id);
+                HideCursor();
             }
 
             //  this fragment converts click-point coordinates:
@@ -76,7 +84,7 @@ namespace Emul8.Extensions.Analyzers.Video.Handlers
             var touchscreenX = (int)Math.Round(imageX * ainput.MaxX / maxX);
             var touchscreenY = (int)Math.Round(imageY * ainput.MaxY / maxY);
 
-            ainput.MoveTo(touchscreenX,touchscreenY);
+            ainput.MoveTo(touchscreenX, touchscreenY);
 
             var opm = OnPointerMoved;
             if(opm != null)
@@ -90,9 +98,24 @@ namespace Emul8.Extensions.Analyzers.Video.Handlers
 
         public event Action<int, int> OnPointerMoved;
 
-        private readonly FrameBufferDisplayWidget widget;
+        private void HideCursor()
+        {
+            if(widget.Cursor == CursorType.Invisible)
+            {
+                return;
+            }
+            previousCursorType = widget.Cursor;
+            widget.Cursor = CursorType.Invisible;
+        }
 
-        private bool isTabletButtonJustReleased;
+        private void ShowCursor()
+        {
+            widget.Cursor = previousCursorType;
+        }
+
+        private int lastX, lastY;
+        private CursorType previousCursorType;
+        private readonly FrameBufferDisplayWidget widget;
         private bool isCursorOverImageRectangle;
     }
 }
