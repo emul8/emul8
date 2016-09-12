@@ -24,7 +24,7 @@ namespace Emul8.Extensions.Analyzers.Video
     {
         public FrameBufferDisplayWidget()
         {
-            base.BoundsChanged += (sender, e) =>
+            BoundsChanged += (sender, e) =>
             {
                 drawMethod = CalculateDrawMethod();
                 ActualImageArea = CalculateActualImageRectangle();

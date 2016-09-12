@@ -12,7 +12,7 @@ namespace Emul8.Extensions.Analyzers.Video.Handlers
 {
     internal abstract class PointerHandler
     {
-        public PointerHandler(IPointerInput input)
+        protected PointerHandler(IPointerInput input)
         {
             this.input = input;
         }
