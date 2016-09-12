@@ -182,6 +182,15 @@ namespace Emul8.Extensions.Analyzers.Video.Handlers
             this.previous = current;
         }
 
+        public void Init()
+        {
+            var ph = pointerHandler;
+            if(ph != null)
+            {
+                ph.Init();
+            }
+        }
+
         private PointerHandler pointerHandler;
         private IKeyboard keyboardHandler;
 

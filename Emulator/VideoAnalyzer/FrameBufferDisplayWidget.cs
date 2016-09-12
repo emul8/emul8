@@ -24,7 +24,7 @@ namespace Emul8.Extensions.Analyzers.Video
     {
         public FrameBufferDisplayWidget()
         {
-            base.BoundsChanged += (sender, e) =>
+            BoundsChanged += (sender, e) =>
             {
                 drawMethod = CalculateDrawMethod();
                 ActualImageArea = CalculateActualImageRectangle();
@@ -63,6 +63,13 @@ namespace Emul8.Extensions.Analyzers.Video
                         img.Copy(outBuffer);
                         cursorDrawn = false;
                     }
+
+                    if(!anythingDrawnAfterLastReconfiguration && frame != null) 
+                    {
+                        anythingDrawnAfterLastReconfiguration = true;
+                        handler.Init();
+                    }
+
                     ApplicationExtensions.InvokeInUIThread(QueueDraw);
                     drawQueued = true;
                 }
@@ -96,6 +103,8 @@ namespace Emul8.Extensions.Analyzers.Video
                 img = new ImageBuilder(DesiredDisplayWidth, DesiredDisplayHeight).ToBitmap();
                 drawMethod = CalculateDrawMethod();
                 ActualImageArea = CalculateActualImageRectangle();
+
+                anythingDrawnAfterLastReconfiguration = false;
             }
 
             OnDisplayParametersChanged(DesiredDisplayWidth, DesiredDisplayHeight, colorFormat);
@@ -384,6 +393,7 @@ namespace Emul8.Extensions.Analyzers.Video
         private IPixelConverter converter;
         [Transient]
         private bool dontShowGrabConfirmationDialog;
+        private bool anythingDrawnAfterLastReconfiguration;
         private Action<Context> drawMethod;
         private bool drawQueued;
         private IOHandler handler;
