@@ -58,98 +58,90 @@ namespace TermsharpConsole
 
 			var readerThread = new Thread(() =>
 			{
+				var stream = new PtyUnixStream(pty);
+				var vt100decoder = new Terminal.Vt100.Decoder(terminal, stream.WriteByte, new ConsoleDecoderLogger());
+				var utfDecoder = new ByteUtf8Decoder(vt100decoder.Feed);
+
+				Application.Invoke(() =>
+				{
+					pasteMenuItem.Clicked += delegate
+					{
+						var text = Clipboard.GetText();
+						var textAsBytes = Encoding.UTF8.GetBytes(text);
+						foreach(var b in textAsBytes)
+						{
+							stream.WriteByte(b);
+						}
+					};
+				});
+
+				var encoder = new Terminal.Vt100.Encoder(x => 
+				{
+					terminal.ClearSelection();
+					terminal.MoveScrollbarToEnd();
+					stream.WriteByte(x); 
+				});
+
+				terminal.KeyPressed += (s, a) =>
+				{
+					a.Handled = true;
+
+					var modifiers = a.Modifiers;
+					if(!Utilities.IsOnOsX)
+					{
+						modifiers &= ~(ModifierKeys.Command);
+					}
+
+					if(modifiers== ModifierKeys.Shift)
+					{
+						if(a.Key == Key.PageUp)
+						{
+							terminal.PageUp();
+							return;
+						}
+						if(a.Key == Key.PageDown)
+						{
+							terminal.PageDown();
+							return;
+						}
+					}
+					encoder.Feed(a.Key, modifiers);
+				};
+
+				var buffer = new List<byte>();
+				var noTimeoutNextTime = true;
 				while(true)
 				{
-					var stream = new PtyUnixStream(pty);
-					var vt100decoder = new Terminal.Vt100.Decoder(terminal, stream.WriteByte, new ConsoleDecoderLogger());
-					var utfDecoder = new ByteUtf8Decoder(vt100decoder.Feed);
-
-					Application.Invoke(() =>
+					if(noTimeoutNextTime)
 					{
-						pasteMenuItem.Clicked += delegate
+						noTimeoutNextTime = false;
+					}
+					else
+					{
+						stream.ReadTimeout = 10;
+					}
+					var readByte = buffer.Count > 1024 ? BufferFull : stream.ReadByte();
+					if(readByte == StreamClosed)
+					{
+						Application.Invoke(Application.Exit);
+						return;
+					}
+					if(readByte >= 0)
+					{
+						buffer.Add((byte)readByte);
+					}
+					else
+					{
+						var bufferToWrite = buffer;
+						Application.Invoke(() =>
 						{
-							var text = Clipboard.GetText();
-							var textAsBytes = Encoding.UTF8.GetBytes(text);
-							foreach(var b in textAsBytes)
+							foreach (var b in bufferToWrite)
 							{
-								stream.WriteByte(b);
+								utfDecoder.Feed(b);
 							}
-						};
-					});
-
-					var encoder = new Terminal.Vt100.Encoder(x => 
-					{
-						terminal.ClearSelection();
-						terminal.MoveScrollbarToEnd();
-						stream.WriteByte(x); 
-					});
-
-					terminal.KeyPressed += (s, a) =>
-					{
-						a.Handled = true;
-
-						var modifiers = a.Modifiers;
-						if(!Utilities.IsOnOsX)
-						{
-							modifiers &= ~(ModifierKeys.Command);
-						}
-
-						if(modifiers== ModifierKeys.Shift)
-						{
-							if(a.Key == Key.PageUp)
-							{
-								terminal.PageUp();
-								return;
-							}
-							if(a.Key == Key.PageDown)
-							{
-								terminal.PageDown();
-								return;
-							}
-						}
-						encoder.Feed(a.Key, modifiers);
-					};
-
-					var buffer = new List<byte>();
-					var noTimeoutNextTime = true;
-					while(true)
-					{
-						if(noTimeoutNextTime)
-						{
-							noTimeoutNextTime = false;
-						}
-						else
-						{
-							stream.ReadTimeout = 10;
-						}
-						var readByte = buffer.Count > 1024 ? -3 : stream.ReadByte();
-						if(readByte == -1)
-						{
-							Application.Invoke(Application.Exit);
-							return;
-						}
-						if(readByte >= 0)
-						{
-							buffer.Add((byte)readByte);
-						}
-						else
-						{
-							var bufferToWrite = buffer;
-							Application.Invoke(() =>
-							{
-								foreach (var b in bufferToWrite)
-								{
-									utfDecoder.Feed(b);
-								}
-							});
-							buffer = new List<byte>();
-							noTimeoutNextTime = true;
-						}
-						if (readByte == -1)
-						{
-							Application.Invoke(Application.Exit);
-							return;
-						}
+						});
+						buffer = new List<byte>();
+						noTimeoutNextTime = true;
 					}
 				}
 			})
@@ -167,6 +159,9 @@ namespace TermsharpConsole
 		}
 
 		private readonly Terminal.Terminal terminal;
+
+		private const int BufferFull = -3;
+		private const int StreamClosed = -1;
 	}
 }
 
