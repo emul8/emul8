@@ -36,15 +36,6 @@ namespace MonitorTests.CommandTests
             Assert.AreEqual(1, next_value - value);
         }
 
-        //TODO: Well, this one is VERY contract-specific...
-        [Test]
-        public void RandomStringTest()
-        {
-            monitor.Parse("random_string", commandEater);
-            var value = commandEater.GetContents();
-            Assert.IsTrue(value.StartsWith("__aabb", StringComparison.Ordinal));
-        }
-
         [Test]
         public void SleepTest()
         {
@@ -132,22 +123,6 @@ namespace MonitorTests.CommandTests
             finally
             {
                 File.Delete(file);
-            }
-        }
-
-        [Test]
-        public void EnvironmentTest()
-        {
-            var variables = Environment.GetEnvironmentVariables();
-            foreach(DictionaryEntry variable in variables)
-            {
-                monitor.Parse(String.Format("get_environ {0}", variable.Key), commandEater);
-                //Some systems provide additional formatting that is omitted by IronPython,
-                //so squash all white spaces to a single space
-                var result = Regex.Replace(commandEater.GetContents(), @"\s+", " ");
-                var value = Regex.Replace((string)variable.Value, @"\s+", " ");
-                Assert.AreEqual(value, result);
-                commandEater.Clear();
             }
         }
 

@@ -2,7 +2,6 @@
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
   <Import Project="../../target/properties.csproj" Condition="Exists('../../target/properties.csproj')" />
   <PropertyGroup>
-    <ProjectInfo Type="CpuCore" />
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{13222124-707C-5EFD-8289-2728351FB7E9}</ProjectGuid>
@@ -69,11 +68,18 @@
       <Project>{CF944E09-7C14-433C-A185-161848E989B3}</Project>
       <Name>ELFSharp</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Extensions\Extensions.csproj">
+      <Project>{4C636FAF-4650-4088-8EA8-2FCCC225E9CF}</Project>
+      <Name>Extensions</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Arm\Timers\" />
   </ItemGroup>
   <ProjectExtensions>
+    <Emul8>
+      <ProjectInfo Type="CpuCore" />
+    </Emul8>
     <MonoDevelop>
       <Properties>
         <Policies>

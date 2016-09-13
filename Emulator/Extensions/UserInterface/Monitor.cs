@@ -991,8 +991,6 @@ namespace Emul8.UserInterface
             return null;
         }
 
-        public bool UseConsole { get; set; }
-
         public IEnumerable<Command> RegisteredCommands
         {
             get

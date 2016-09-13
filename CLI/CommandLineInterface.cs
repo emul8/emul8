@@ -116,7 +116,6 @@ namespace Emul8.CLI
                         };
                     }
                     monitor.Interaction = shell.Writer;
-                    monitor.UseConsole = options.ConsoleMode;
                     monitor.MachineChanged += emu => shell.SetPrompt(emu != null ? new Prompt(string.Format("({0}) ", emu), ConsoleColor.DarkYellow) : null);
 
                     if(options.Execute != null)

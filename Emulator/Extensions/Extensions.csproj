@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-    <ProjectInfo Type="Extension" />
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{4C636FAF-4650-4088-8EA8-2FCCC225E9CF}</ProjectGuid>
@@ -150,6 +149,7 @@
     <Compile Include="Utilities\GDB\ArgumentAttribute.cs" />
     <Compile Include="Utilities\GDB\ExecuteAttribute.cs" />
     <Compile Include="UserInterface\Tokenizer\FloatToken.cs" />
+    <Compile Include="Utilities\ICpuSupportingGdb.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
@@ -167,6 +167,9 @@
     <Folder Include="Utilities\GDB\Commands\" />
   </ItemGroup>
   <ProjectExtensions>
+    <Emul8>
+      <ProjectInfo Type="Extension" />
+    </Emul8>
     <MonoDevelop>
       <Properties>
         <Policies>
@@ -195,10 +198,6 @@
     <ProjectReference Include="..\..\External\FdtSharp\FdtSharp\FdtSharp.csproj">
       <Project>{74FDB727-CC22-4E13-AF44-EE3E9C146D8A}</Project>
       <Name>FdtSharp</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Peripherals\Peripherals-TranslationCPU.csproj">
-      <Project>{66400796-0C5B-4386-A859-50A2AC3F3DB5}</Project>
-      <Name>Peripherals-TranslationCPU</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\External\ELFSharp\ELFSharp\ELFSharp.csproj">
       <Project>{CF944E09-7C14-433C-A185-161848E989B3}</Project>

@@ -58,16 +58,20 @@
     <Compile Include="Paging\IStepResult.cs" />
     <Compile Include="Paging\Steps\UIStep.cs" />
     <Compile Include="Paging\Steps\ProjectsListStep.cs" />
-    <Compile Include="Projects\ProjectType.cs" />
-    <Compile Include="Projects\UiProject.cs" />
-    <Compile Include="Projects\CustomProject.cs" />
-    <Compile Include="Projects\ExtensionProject.cs" />
-    <Compile Include="Projects\PluginProject.cs" />
-    <Compile Include="Projects\TestsProject.cs" />
-    <Compile Include="Projects\Project.cs" />
-    <Compile Include="Projects\CpuCoreProject.cs" />
     <Compile Include="Paging\Steps\PluginStep.cs" />
-    <Compile Include="Projects\UnknownProject.cs" />
+    <Compile Include="Elements\RobotTestSuite.cs" />
+    <Compile Include="Configuration.cs" />
+    <Compile Include="Paging\Steps\RobotTestsStep.cs" />
+    <Compile Include="Elements\Project.cs" />
+    <Compile Include="Elements\Projects\CpuCoreProject.cs" />
+    <Compile Include="Elements\Projects\EntryProject.cs" />
+    <Compile Include="Elements\Projects\ExtensionProject.cs" />
+    <Compile Include="Elements\Projects\PluginProject.cs" />
+    <Compile Include="Elements\Projects\ProjectType.cs" />
+    <Compile Include="Elements\Projects\TestsProject.cs" />
+    <Compile Include="Elements\Projects\UiProject.cs" />
+    <Compile Include="Elements\Projects\UnknownProject.cs" />
+    <Compile Include="Elements\IInterestingElement.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ProjectExtensions>
@@ -88,7 +92,8 @@
     <Folder Include="Dialog\" />
     <Folder Include="Paging\" />
     <Folder Include="Paging\Steps\" />
-    <Folder Include="Projects\" />
+    <Folder Include="Elements\" />
+    <Folder Include="Elements\Projects\" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\External\options-parser\OptionsParser.csproj">
@@ -97,6 +102,6 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Projects\MainClassTemplate.cstemplate" />
+    <EmbeddedResource Include="Elements\Projects\MainClassTemplate.cstemplate" />
   </ItemGroup>
 </Project>

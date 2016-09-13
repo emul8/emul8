@@ -16,6 +16,7 @@ namespace Emul8.UserInterface
         public void Clear()
         {
             data.Clear();
+            error.Clear();
         }
 
         public void Write(char c, ConsoleColor? color = null)

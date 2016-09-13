@@ -6,7 +6,6 @@
 // Full license details are defined in the 'LICENSE' file.
 //
 ﻿using System;
-using Emul8.Backends.Display;
 using System.Linq.Expressions;
 using System.Collections.Generic;
 using ELFSharp.ELF;
@@ -15,49 +14,63 @@ namespace Emul8.Backends.Display
 {
     public static class PixelManipulationTools
     {
-        public static IPixelConverter GetConverter(PixelFormat input, Endianess inputEndianess, PixelFormat output, Endianess outputEndianess)
+        public static IPixelConverter GetConverter(PixelFormat inputFormat, Endianess inputEndianess, PixelFormat outputFormat, Endianess outputEndianess, PixelFormat? clutInputFormat = null)
         {
-            var tuple = Tuple.Create(input, inputEndianess, output, outputEndianess);
-            if(!convertersCache.ContainsKey(tuple))
+            var converterConfiguration = Tuple.Create(inputFormat, inputEndianess, outputFormat, outputEndianess);
+            if(!convertersCache.ContainsKey(converterConfiguration))
             {
-                convertersCache[tuple] = ((input == output) && (inputEndianess == outputEndianess)) ? 
-                    (IPixelConverter) new IdentityPixelConverter(input) : 
-                    new PixelConverter(input, output, GenerateConvertMethod(input, inputEndianess, output, outputEndianess));
+                convertersCache[converterConfiguration] = ((inputFormat == outputFormat) && (inputEndianess == outputEndianess)) ?  
+                    (IPixelConverter)new IdentityPixelConverter(inputFormat) : 
+                    new PixelConverter(inputFormat, outputFormat, GenerateConvertMethod(
+                    new BufferDescriptor 
+                    {
+                        ColorFormat = inputFormat,
+                        ClutColorFormat = clutInputFormat,
+                        DataEndianness = inputEndianess
+                    },
+                    new BufferDescriptor 
+                    {
+                        ColorFormat = outputFormat,
+                        DataEndianness = outputEndianess
+                    }));
             }
-            return convertersCache[tuple];
+            return convertersCache[converterConfiguration];
         }
 
-        public static IPixelBlender GetBlender(PixelFormat backBuffer, Endianess backBufferEndianess, PixelFormat fronBuffer, Endianess frontBufferEndianes, PixelFormat output, Endianess outputEndianess)
+        public static IPixelBlender GetBlender(PixelFormat backBuffer, Endianess backBufferEndianess, PixelFormat fronBuffer, Endianess frontBufferEndianes, PixelFormat output, Endianess outputEndianess, PixelFormat? clutForegroundFormat = null, PixelFormat? clutBackgroundFormat = null)
         {
-            var tuple = Tuple.Create(backBuffer, backBufferEndianess, fronBuffer, frontBufferEndianes, output, outputEndianess);
-            if(!blendersCache.ContainsKey(tuple))
+            var blenderConfiguration = Tuple.Create(backBuffer, backBufferEndianess, fronBuffer, frontBufferEndianes, output, outputEndianess);
+            if(!blendersCache.ContainsKey(blenderConfiguration))
             {
-                blendersCache[tuple] = new PixelBlender(backBuffer, fronBuffer, output, GenerateBlendMethod(backBuffer, backBufferEndianess, fronBuffer, frontBufferEndianes, output, outputEndianess));
+                blendersCache[blenderConfiguration] = new PixelBlender(backBuffer, fronBuffer, output, 
+                    GenerateBlendMethod(
+                        new BufferDescriptor 
+                        {
+                            ColorFormat = backBuffer,
+                            ClutColorFormat = clutBackgroundFormat,
+                            DataEndianness = backBufferEndianess
+                        },
+                        new BufferDescriptor 
+                        {
+                            ColorFormat = fronBuffer,
+                            ClutColorFormat = clutForegroundFormat,
+                            DataEndianness = frontBufferEndianes
+                        },
+                        new BufferDescriptor 
+                        {
+                            ColorFormat = output,
+                            DataEndianness = outputEndianess
+                        }));
             }
-            return blendersCache[tuple];
+            return blendersCache[blenderConfiguration];
         }
 
-        private static BlendDelegate GenerateBlendMethod(PixelFormat backBuffer, Endianess backBufferEndianess, PixelFormat frontBuffer, Endianess frontBufferEndianess, PixelFormat output, Endianess outputEndianess)
+        private static BlendDelegate GenerateBlendMethod(BufferDescriptor backgroudBufferDescriptor, BufferDescriptor foregroundBufferDescriptor, BufferDescriptor outputBufferDescriptor)
         {
-            var vRed = Expression.Variable(typeof(uint),    "red");
-            var vGreen = Expression.Variable(typeof(uint),  "green");
-            var vBlue = Expression.Variable(typeof(uint),   "blue");
-            var vAlpha = Expression.Variable(typeof(uint),  "alpha");
-
-            var vBackRed = Expression.Variable(typeof(uint),    "backRed");
-            var vBackGreen = Expression.Variable(typeof(uint),  "backGreen");
-            var vBackBlue = Expression.Variable(typeof(uint),   "backBlue");
-            var vBackAlpha = Expression.Variable(typeof(uint),  "backAlpha");
-
-            var vFrontRed = Expression.Variable(typeof(uint),    "frontRed");
-            var vFrontGreen = Expression.Variable(typeof(uint),  "frontGreen");
-            var vFrontBlue = Expression.Variable(typeof(uint),   "frontBlue");
-            var vFrontAlpha = Expression.Variable(typeof(uint),  "frontAlpha");
-
-            var vBackgroundColorRed = Expression.Variable(typeof(uint), "backgroundColorRed");
-            var vBackgroundColorGreen = Expression.Variable(typeof(uint), "backgroundColorGreen");
-            var vBackgroundColorBlue = Expression.Variable(typeof(uint), "backgroundColorBlue");
-            var vBackgroundColorAlpha = Expression.Variable(typeof(uint), "backgroundColorAlpha");
+            var outputPixel = new PixelDescriptor();
+            var inputBackgroundPixel = new PixelDescriptor();
+            var inputForegroundPixel = new PixelDescriptor();
+            var contantBackgroundPixel = new PixelDescriptor();
 
             var vBackPos = Expression.Variable(typeof(int), "backPos");
             var vFrontPos = Expression.Variable(typeof(int), "frontPos");
@@ -68,7 +81,9 @@ namespace Emul8.Backends.Display
             var vLength = Expression.Variable(typeof(int),  "length");
 
             var vBackBuffer = Expression.Parameter(typeof(byte[]), "backBuffer");
+            var vBackClutBuffer = Expression.Parameter(typeof(byte[]), "backClutBuffer");
             var vFrontBuffer = Expression.Parameter(typeof(byte[]), "fronBuffer");
+            var vFrontClutBuffer = Expression.Parameter(typeof(byte[]), "frontClutBuffer");
             var vOutputBuffer = Expression.Parameter(typeof(byte[]).MakeByRefType(), "outputBuffer");
             var vBackgroundColor = Expression.Parameter(typeof(Pixel), "backgroundColor");
             var vBackBufferAlphaMultiplier = Expression.Parameter(typeof(byte), "backBufferAlphaMultiplier");
@@ -77,40 +92,43 @@ namespace Emul8.Backends.Display
             var vBackAlphaBlended = Expression.Variable(typeof(uint), "backAlphaBlended");
             var vBackgroundColorAlphaBlended = Expression.Variable(typeof(uint), "backgroundColorAlphaBlended");
 
+            var tmp = Expression.Variable(typeof(uint));
+
             var outOfLoop = Expression.Label();
 
             var block = Expression.Block(
-                new [] { vRed, vGreen, vBlue, vAlpha,
-                         vFrontRed, vFrontGreen, vFrontBlue, vFrontAlpha,
-                         vBackRed, vBackGreen, vBackBlue, vBackAlpha,
+                new[] {  outputPixel.RedChannel, outputPixel.GreenChannel, outputPixel.BlueChannel, outputPixel.AlphaChannel,
+                         inputForegroundPixel.RedChannel, inputForegroundPixel.GreenChannel, inputForegroundPixel.BlueChannel, inputForegroundPixel.AlphaChannel,
+                         inputBackgroundPixel.RedChannel, inputBackgroundPixel.GreenChannel, inputBackgroundPixel.BlueChannel, inputBackgroundPixel.AlphaChannel,
                          vBackStep, vFrontStep, vOutStep, vLength, vBackPos, vFrontPos, vOutPos,
-                         vBackgroundColorRed, vBackgroundColorGreen, vBackgroundColorBlue, vBackgroundColorAlpha, 
-                         vBackAlphaBlended, vBackgroundColorAlphaBlended
+                         contantBackgroundPixel.RedChannel, contantBackgroundPixel.GreenChannel, contantBackgroundPixel.BlueChannel, contantBackgroundPixel.AlphaChannel,
+                         vBackAlphaBlended, vBackgroundColorAlphaBlended,
+                                    tmp
                 },
 
-                Expression.Assign(vBackStep, Expression.Constant(backBuffer.GetColorDepth())),
-                Expression.Assign(vFrontStep, Expression.Constant(frontBuffer.GetColorDepth())),
-                Expression.Assign(vOutStep, Expression.Constant(output.GetColorDepth())),
+                Expression.Assign(vBackStep, Expression.Constant(backgroudBufferDescriptor.ColorFormat.GetColorDepth())),
+                Expression.Assign(vFrontStep, Expression.Constant(foregroundBufferDescriptor.ColorFormat.GetColorDepth())),
+                Expression.Assign(vOutStep, Expression.Constant(outputBufferDescriptor.ColorFormat.GetColorDepth())),
                 Expression.Assign(vLength, Expression.Property(vBackBuffer, "Length")),
 
                 Expression.Assign(vBackPos, Expression.Constant(0x00)),
                 Expression.Assign(vFrontPos, Expression.Constant(0x00)),
                 Expression.Assign(vOutPos, Expression.Constant(0x00)),
 
-                Expression.Assign(vBackgroundColorAlpha, Expression.Convert(Expression.Property(vBackgroundColor, "Alpha"), typeof(uint))),
-                Expression.Assign(vBackgroundColorRed, Expression.Convert(Expression.Property(vBackgroundColor, "Red"), typeof(uint))),
-                Expression.Assign(vBackgroundColorGreen, Expression.Convert(Expression.Property(vBackgroundColor, "Green"), typeof(uint))),
-                Expression.Assign(vBackgroundColorBlue, Expression.Convert(Expression.Property(vBackgroundColor, "Blue"), typeof(uint))),
+                Expression.Assign(contantBackgroundPixel.AlphaChannel, Expression.Convert(Expression.Property(vBackgroundColor, "Alpha"), typeof(uint))),
+                Expression.Assign(contantBackgroundPixel.RedChannel, Expression.Convert(Expression.Property(vBackgroundColor, "Red"), typeof(uint))),
+                Expression.Assign(contantBackgroundPixel.GreenChannel, Expression.Convert(Expression.Property(vBackgroundColor, "Green"), typeof(uint))),
+                Expression.Assign(contantBackgroundPixel.BlueChannel, Expression.Convert(Expression.Property(vBackgroundColor, "Blue"), typeof(uint))),
 
                 Expression.Loop(
                     Expression.IfThenElse(Expression.LessThan(vBackPos, vLength),
                         Expression.Block(
 
-                            GenerateFrom(backBuffer, backBufferEndianess, vBackBuffer, vBackPos, vBackRed, vBackGreen, vBackBlue, vBackAlpha),
-                            GenerateFrom(frontBuffer, frontBufferEndianess, vFrontBuffer, vFrontPos, vFrontRed, vFrontGreen, vFrontBlue, vFrontAlpha),
+                            GenerateFrom(backgroudBufferDescriptor, vBackBuffer, vBackClutBuffer, vBackPos, inputBackgroundPixel, tmp),
+                            GenerateFrom(foregroundBufferDescriptor, vFrontBuffer, vFrontClutBuffer, vFrontPos, inputForegroundPixel, tmp),
 
-                            Expression.Assign(vBackAlpha, Expression.Divide(Expression.Multiply(vBackAlpha, Expression.Convert(vBackBufferAlphaMultiplier, typeof(uint))), Expression.Constant((uint)0xFF))),
-                            Expression.Assign(vFrontAlpha, Expression.Divide(Expression.Multiply(vFrontAlpha, Expression.Convert(vFrontBufferAlphaMultiplier, typeof(uint))), Expression.Constant((uint)0xFF))),
+                            Expression.Assign(inputBackgroundPixel.AlphaChannel, Expression.Divide(Expression.Multiply(inputBackgroundPixel.AlphaChannel, Expression.Convert(vBackBufferAlphaMultiplier, typeof(uint))), Expression.Constant((uint)0xFF))),
+                            Expression.Assign(inputForegroundPixel.AlphaChannel, Expression.Divide(Expression.Multiply(inputForegroundPixel.AlphaChannel, Expression.Convert(vFrontBufferAlphaMultiplier, typeof(uint))), Expression.Constant((uint)0xFF))),
 
                             Expression.Block(
                                 // (b_alpha * (0xFF - f_alpha)) / 0xFF
@@ -118,10 +136,10 @@ namespace Emul8.Backends.Display
                                     vBackAlphaBlended,
                                     Expression.Divide(
                                         Expression.Multiply(
-                                            vBackAlpha,
+                                            inputBackgroundPixel.AlphaChannel,
                                             Expression.Subtract(
                                                 Expression.Constant((uint)0xFF),
-                                                vFrontAlpha)),
+                                                inputForegroundPixel.AlphaChannel)),
                                         Expression.Constant((uint)0xFF))),
 
                                 // (c_alpha * (0xFF - (f_alpha + b_alpha * (0xFF - f_alpha)))) / 0xFF
@@ -129,61 +147,60 @@ namespace Emul8.Backends.Display
                                         vBackgroundColorAlphaBlended,
                                         Expression.Divide(
                                             Expression.Multiply(
-                                                vBackgroundColorAlpha,
+                                                contantBackgroundPixel.AlphaChannel,
                                                 Expression.Subtract(
                                                     Expression.Constant((uint)0xFF),
                                                     Expression.Add(
-                                                        vFrontAlpha,
+                                                        inputForegroundPixel.AlphaChannel,
                                                         vBackAlphaBlended))),
                                              Expression.Constant((uint)0xFF))),
-
-
+                                                  
                                 Expression.Assign(
-                                    vAlpha, 
+                                    outputPixel.AlphaChannel, 
                                     Expression.Add(
-                                        vFrontAlpha,
+                                        inputForegroundPixel.AlphaChannel,
                                         Expression.Add(
                                             vBackAlphaBlended,
                                             vBackgroundColorAlphaBlended))),
 
                                 Expression.IfThenElse(
-                                    Expression.Equal(vAlpha, Expression.Constant((uint)0)),
+                                    Expression.Equal(outputPixel.AlphaChannel, Expression.Constant((uint)0)),
                                     Expression.Block(
-                                        Expression.Assign(vRed, vBackgroundColorRed),
-                                        Expression.Assign(vGreen, vBackgroundColorGreen),
-                                        Expression.Assign(vBlue, vBackgroundColorBlue),
-                                        Expression.Assign(vAlpha, vBackgroundColorAlpha)),
+                                        Expression.Assign(outputPixel.RedChannel, contantBackgroundPixel.RedChannel),
+                                        Expression.Assign(outputPixel.GreenChannel, contantBackgroundPixel.GreenChannel),
+                                        Expression.Assign(outputPixel.BlueChannel, contantBackgroundPixel.BlueChannel),
+                                        Expression.Assign(outputPixel.AlphaChannel, contantBackgroundPixel.AlphaChannel)),
                                     Expression.Block( 
                                         Expression.Assign(
-                                            vRed, 
+                                            outputPixel.RedChannel, 
                                             Expression.Divide(
                                                 Expression.Add(
                                                     Expression.Add(
-                                                        Expression.Multiply(vBackgroundColorAlphaBlended, vBackgroundColorRed),
-                                                        Expression.Multiply(vBackAlphaBlended, vBackRed)),
-                                                    Expression.Multiply(vFrontAlpha, vFrontRed)),
-                                                vAlpha)),
+                                                        Expression.Multiply(vBackgroundColorAlphaBlended, contantBackgroundPixel.RedChannel),
+                                                        Expression.Multiply(vBackAlphaBlended, inputBackgroundPixel.RedChannel)),
+                                                    Expression.Multiply(inputForegroundPixel.AlphaChannel, inputForegroundPixel.RedChannel)),
+                                                outputPixel.AlphaChannel)),
                                         Expression.Assign(
-                                            vGreen, 
+                                            outputPixel.GreenChannel, 
                                             Expression.Divide(
                                                 Expression.Add(
                                                     Expression.Add(
-                                                        Expression.Multiply(vBackgroundColorAlphaBlended, vBackgroundColorGreen),
-                                                        Expression.Multiply(vBackAlphaBlended, vBackGreen)),
-                                                    Expression.Multiply(vFrontAlpha, vFrontGreen)),
-                                                vAlpha)),
+                                                        Expression.Multiply(vBackgroundColorAlphaBlended, contantBackgroundPixel.GreenChannel),
+                                                        Expression.Multiply(vBackAlphaBlended, inputBackgroundPixel.GreenChannel)),
+                                                    Expression.Multiply(inputForegroundPixel.AlphaChannel, inputForegroundPixel.GreenChannel)),
+                                                outputPixel.AlphaChannel)),
                                         Expression.Assign(
-                                            vBlue, 
+                                            outputPixel.BlueChannel, 
                                             Expression.Divide(
                                                 Expression.Add(
                                                     Expression.Add(
-                                                        Expression.Multiply(vBackgroundColorAlphaBlended, vBackgroundColorBlue),
-                                                        Expression.Multiply(vBackAlphaBlended, vBackBlue)),
-                                                    Expression.Multiply(vFrontAlpha, vFrontBlue)),
-                                                vAlpha))))
+                                                        Expression.Multiply(vBackgroundColorAlphaBlended, contantBackgroundPixel.BlueChannel),
+                                                        Expression.Multiply(vBackAlphaBlended, inputBackgroundPixel.BlueChannel)),
+                                                    Expression.Multiply(inputForegroundPixel.AlphaChannel, inputForegroundPixel.BlueChannel)),
+                                                outputPixel.AlphaChannel))))
                             ),
 
-                            GenerateTo(output, outputEndianess, vOutputBuffer, vOutPos, vRed, vGreen, vBlue, vAlpha),
+                            GenerateTo(outputBufferDescriptor, vOutputBuffer, vOutPos, outputPixel),
 
                             Expression.AddAssign(vBackPos, vBackStep),
                             Expression.AddAssign(vFrontPos, vFrontStep),
@@ -195,33 +212,33 @@ namespace Emul8.Backends.Display
                 )
             );
 
-            return Expression.Lambda<BlendDelegate>(block, vBackBuffer, vFrontBuffer, vOutputBuffer, vBackgroundColor, vBackBufferAlphaMultiplier, vFrontBufferAlphaMultiplier).Compile();
+            return Expression.Lambda<BlendDelegate>(block, vBackBuffer, vBackClutBuffer, vFrontBuffer, vFrontClutBuffer, vOutputBuffer, vBackgroundColor, vBackBufferAlphaMultiplier, vFrontBufferAlphaMultiplier).Compile();
         }
 
-        private static ConvertDelegate GenerateConvertMethod(PixelFormat input, Endianess inputEndianess, PixelFormat output, Endianess outputEndianess)
+        private static ConvertDelegate GenerateConvertMethod(BufferDescriptor inputBufferDescriptor, BufferDescriptor outputBufferDescriptor)
         {
-            var vRed = Expression.Variable(typeof(uint),    "red");
-            var vGreen = Expression.Variable(typeof(uint),  "green");
-            var vBlue = Expression.Variable(typeof(uint),   "blue");
-            var vAlpha = Expression.Variable(typeof(uint),  "alpha");
+            var vColor = new PixelDescriptor();
 
             var vInStep = Expression.Variable(typeof(int),  "inStep");
             var vOutStep = Expression.Variable(typeof(int), "outStep");
             var vLength = Expression.Variable(typeof(int),  "length");
 
             var vInputBuffer = Expression.Parameter(typeof(byte[]), "inputBuffer");
+            var vClutBuffer = Expression.Parameter(typeof(byte[]), "clutBuffer");
             var vOutputBuffer = Expression.Parameter(typeof(byte[]).MakeByRefType(), "outputBuffer");
 
             var vInPos = Expression.Variable(typeof(int), "inPos");
             var vOutPos = Expression.Variable(typeof(int), "outPos");
 
+            var tmp = Expression.Variable(typeof(uint));
+
             var outOfLoop = Expression.Label();
 
             var block = Expression.Block(
-                new [] { vRed, vGreen, vBlue, vAlpha, vInStep, vOutStep, vLength, vInPos, vOutPos },
+                new [] { vColor.RedChannel, vColor.GreenChannel, vColor.BlueChannel, vColor.AlphaChannel, vInStep, vOutStep, vLength, vInPos, vOutPos, tmp },
 
-                Expression.Assign(vInStep, Expression.Constant(input.GetColorDepth())),
-                Expression.Assign(vOutStep, Expression.Constant(output.GetColorDepth())),
+                Expression.Assign(vInStep, Expression.Constant(inputBufferDescriptor.ColorFormat.GetColorDepth())),
+                Expression.Assign(vOutStep, Expression.Constant(outputBufferDescriptor.ColorFormat.GetColorDepth())),
                 Expression.Assign(vLength, Expression.Property(vInputBuffer, "Length")),
 
                 Expression.Assign(vInPos, Expression.Constant(0)),
@@ -229,8 +246,8 @@ namespace Emul8.Backends.Display
                 Expression.Loop(
                     Expression.IfThenElse(Expression.LessThan(vInPos, vLength),
                         Expression.Block(
-                            GenerateFrom(input, inputEndianess, vInputBuffer, vInPos, vRed, vGreen, vBlue, vAlpha),
-                            GenerateTo(output, outputEndianess, vOutputBuffer, vOutPos, vRed, vGreen, vBlue, vAlpha),
+                            GenerateFrom(inputBufferDescriptor, vInputBuffer, vClutBuffer, vInPos, vColor, tmp),
+                            GenerateTo(outputBufferDescriptor, vOutputBuffer, vOutPos, vColor),
 
                             Expression.AddAssign(vInPos, vInStep),
                             Expression.AddAssign(vOutPos, vOutStep)
@@ -241,7 +258,7 @@ namespace Emul8.Backends.Display
                 )
             );
 
-            return Expression.Lambda<ConvertDelegate>(block, vInputBuffer, vOutputBuffer).Compile();
+            return Expression.Lambda<ConvertDelegate>(block, vInputBuffer, vClutBuffer, vOutputBuffer).Compile();
         }
 
         /// <summary>
@@ -249,22 +266,19 @@ namespace Emul8.Backends.Display
         /// and storing each channel in separate variable expression.
         /// </summary>
         /// <returns>Generated expression.</returns>
-        /// <param name="inputFormat">Pixel color format of pixels in input buffer.</param>
-        /// <param name="endianess">Endianess of input buffer.</param>
+        /// <param name="inputBufferDescriptor">Object containing information about input buffer: color format and endianness.</param>
         /// <param name="inBuffer">Input buffer.</param>
+        /// <param name="clutBuffer">Color look-up table buffer.</param>
         /// <param name="inPosition">Position of pixel in buffer.</param>
-        /// <param name="redByte">Variable to which value of red channel should be stored.</param>
-        /// <param name="greenByte">Variable to which value of green channel should be stored.</param>
-        /// <param name="blueByte">Variable to which value of blue channel should be stored.</param>
-        /// <param name="alphaByte">Variable to which value of alpha channel should be stored.</param>
-        private static Expression GenerateFrom(PixelFormat inputFormat, Endianess endianess, Expression inBuffer, Expression inPosition, Expression redByte, Expression greenByte, Expression blueByte, Expression alphaByte)
+        /// <param name="color">Variable where values of color channels should be stored.</param>
+        private static Expression GenerateFrom(BufferDescriptor inputBufferDescriptor, ParameterExpression inBuffer, ParameterExpression clutBuffer, Expression inPosition, PixelDescriptor color, Expression tmp)
         {
             byte currentBit = 0;
             byte currentByte = 0;
             bool isAlphaSet = false;
             
             var expressions = new List<Expression>();
-            var inputBytes = new ParameterExpression[inputFormat.GetColorDepth()];
+            var inputBytes = new ParameterExpression[inputBufferDescriptor.ColorFormat.GetColorDepth()];
             for(int i = 0; i < inputBytes.Length; i++)
             {
                 inputBytes[i] = Expression.Variable(typeof(uint));
@@ -277,11 +291,11 @@ namespace Emul8.Backends.Display
                                 inBuffer,
                                 Expression.Add(
                                     inPosition, 
-                                    Expression.Constant((endianess == Endianess.BigEndian) ? i : inputBytes.Length - i - 1))),
+                                    Expression.Constant((inputBufferDescriptor.DataEndianness == Endianess.BigEndian) ? i : inputBytes.Length - i - 1))),
                             typeof(uint))));
             }
 
-            foreach(var colorDescriptor in inputFormat.GetColorsLengths())
+            foreach(var colorDescriptor in inputBufferDescriptor.ColorFormat.GetColorsLengths())
             {
                 Expression colorExpression = null; 
                 
@@ -320,43 +334,69 @@ namespace Emul8.Backends.Display
                     continue;
                 }
 
-                Expression currentColor = null;
-                switch(colorDescriptor.Key)
+                // luminance - indirect color indexing using CLUT
+                if(colorDescriptor.Key == ColorType.L)
                 {
-                case ColorType.A:
-                    currentColor = alphaByte;
-                    isAlphaSet = true;
-                    break;
-                case ColorType.B:
-                    currentColor = blueByte;
-                    break;
-                case ColorType.G:
-                    currentColor = greenByte;
-                    break;
-                case ColorType.R:
-                    currentColor = redByte;
-                    break;
+                    if(!inputBufferDescriptor.ClutColorFormat.HasValue)
+                    {
+                        throw new ArgumentException("CLUT mode required but not set");
+                    }
+
+                    var clutWidth = Expression.Constant((uint)inputBufferDescriptor.ClutColorFormat.Value.GetColorDepth());
+                    var clutOffset = Expression.Multiply(colorExpression, clutWidth);
+
+                    expressions.Add(Expression.Assign(tmp, color.AlphaChannel));
+
+                    // todo: indirect parameters should not be needed here, but we  m u s t  pass something
+                    expressions.Add(
+                        GenerateFrom(new BufferDescriptor
+                    { 
+                        ColorFormat = inputBufferDescriptor.ClutColorFormat.Value, 
+                        DataEndianness = inputBufferDescriptor.DataEndianness 
+                    }, clutBuffer, clutBuffer, Expression.Convert(clutOffset, typeof(int)), color, tmp));
+
+                    expressions.Add(Expression.Assign(color.AlphaChannel, tmp));
                 }
-                
-                expressions.Add(Expression.Assign(currentColor, colorExpression));
-                
-                // filling lsb '0'-bits with copy of msb pattern
-                var numberOfBits = colorDescriptor.Value;
-                var zeroBits = 8 - numberOfBits;
-                while(zeroBits > 0)
+                else
                 {
-                    expressions.Add(Expression.OrAssign(
-                        currentColor, 
-                        Expression.RightShift(
+                    Expression currentColor = null;
+                    switch(colorDescriptor.Key)
+                    {
+                    case ColorType.A:
+                        currentColor = color.AlphaChannel;
+                        isAlphaSet = true;
+                        break;
+                    case ColorType.B:
+                        currentColor = color.BlueChannel;
+                        break;
+                    case ColorType.G:
+                        currentColor = color.GreenChannel;
+                        break;
+                    case ColorType.R:
+                        currentColor = color.RedChannel;
+                        break;
+                    }
+
+                    expressions.Add(Expression.Assign(currentColor, colorExpression));
+                                
+                    // filling lsb '0'-bits with copy of msb pattern
+                    var numberOfBits = colorDescriptor.Value;
+                    var zeroBits = 8 - numberOfBits;
+                    while(zeroBits > 0)
+                    {
+                        expressions.Add(Expression.OrAssign(
                             currentColor, 
-                            Expression.Constant((int)numberOfBits))));
-                    zeroBits -= numberOfBits;
+                            Expression.RightShift(
+                                currentColor, 
+                                Expression.Constant((int)numberOfBits))));
+                        zeroBits -= numberOfBits;
+                    }
                 }
             }
 
             if(!isAlphaSet)
             {
-                expressions.Add(Expression.Assign(alphaByte, Expression.Constant((uint)0xFF)));
+                expressions.Add(Expression.Assign(color.AlphaChannel, Expression.Constant((uint)0xFF)));
             }
             return Expression.Block(inputBytes, expressions);
         }
@@ -365,15 +405,11 @@ namespace Emul8.Backends.Display
         /// Generates expression converting and storing one pixel in output format to output buffer (ordering bytes accordingly to endianess) at given position using channels values provided by red/green/blue/alpha variables.
         /// </summary>
         /// <returns>Generated expression.</returns>
-        /// <param name="outputFormat">Pixel color format of pixels stored in output buffer.</param>
-        /// <param name="endianess">Endianess of output buffer.</param>
+        /// <param name="outputBufferDescriptor">Object containing information about output buffer: color format and endianness.</param>
         /// <param name="outBuffer">Output buffer.</param>
         /// <param name="outPosition">Position of pixel in output buffer.</param>
-        /// <param name="redByte">Variable from which value of red channel should be read.</param>
-        /// <param name="greenByte">Variable from which value of green channel should be read.</param>
-        /// <param name="blueByte">Variable from which value of blue channel should be read.</param>
-        /// <param name="alphaByte">Variable from which value of alpha channel should be read.</param>
-        private static Expression GenerateTo(PixelFormat outputFormat, Endianess endianess, Expression outBuffer, Expression outPosition, Expression redByte, Expression greenByte, Expression blueByte, Expression alphaByte)
+        /// <param name="color">Object with variables from which value of color channels should be read.</param>
+        private static Expression GenerateTo(BufferDescriptor outputBufferDescriptor, ParameterExpression outBuffer, ParameterExpression outPosition, PixelDescriptor color)
         {
             byte currentBit = 0;
             byte currentByte = 0;
@@ -381,27 +417,29 @@ namespace Emul8.Backends.Display
             
             Expression currentExpression = null;
             
-            foreach(var colorDescriptor in outputFormat.GetColorsLengths())
+            foreach(var colorDescriptor in outputBufferDescriptor.ColorFormat.GetColorsLengths())
             {
                 Expression colorExpression = null; 
                 
                 switch(colorDescriptor.Key)
                 {
                 case ColorType.A:
-                    colorExpression = alphaByte;
+                    colorExpression = color.AlphaChannel;
                     break;
                 case ColorType.B:
-                    colorExpression = blueByte;
+                    colorExpression = color.BlueChannel;
                     break;
                 case ColorType.G:
-                    colorExpression = greenByte;
+                    colorExpression = color.GreenChannel;
                     break;
                 case ColorType.R:
-                    colorExpression = redByte;
+                    colorExpression = color.RedChannel;
                     break;
                 case ColorType.X:
                     colorExpression = Expression.Constant((uint)0xFF);
                     break;
+                case ColorType.L:
+                    throw new ArgumentException("Luminance channel is not allowed in target color format");
                 }
 
                 foreach(var transformation in ByteSqueezeAndMove(colorDescriptor.Value, currentBit))
@@ -435,7 +473,7 @@ namespace Emul8.Backends.Display
                                 Expression.ArrayAccess(outBuffer, 
                                     Expression.Add(
                                         outPosition, 
-                                        Expression.Constant((endianess == Endianess.BigEndian) ? (int) currentByte : (outputFormat.GetColorDepth() - currentByte - 1)))),
+                                        Expression.Constant((outputBufferDescriptor.DataEndianness == Endianess.BigEndian) ? (int) currentByte : (outputBufferDescriptor.ColorFormat.GetColorDepth() - currentByte - 1)))),
                                 Expression.Convert(currentExpression, typeof(byte))));
 
                         currentExpression = null;
@@ -555,7 +593,12 @@ namespace Emul8.Backends.Display
 
             public void Convert(byte[] inBuffer, ref byte[] outBuffer)
             {
-                converter(inBuffer, ref outBuffer);
+                converter(inBuffer, null, ref outBuffer);
+            }
+
+            public void Convert(byte[] inBuffer, byte[] clutBuffer, ref byte[] outBuffer)
+            {
+                converter(inBuffer, clutBuffer, ref outBuffer);
             }
 
             public PixelFormat Input { get; private set; }
@@ -570,6 +613,11 @@ namespace Emul8.Backends.Display
             {
                 Input = format;
                 Output = format;
+            }
+
+            public void Convert(byte[] inBuffer, byte[] clutBuffer, ref byte[] outBuffer)
+            {
+                outBuffer = inBuffer;
             }
 
             public void Convert(byte[] inBuffer, ref byte[] outBuffer)
@@ -593,11 +641,16 @@ namespace Emul8.Backends.Display
 
             public void Blend(byte[] backBuffer, byte[] frontBuffer, ref byte[] output, Pixel background = null, byte backBufferAlphaMulitplier = 0xFF, byte frontBufferAlphaMultiplayer = 0xFF)
             {
+                Blend(backBuffer, null, frontBuffer, null, ref output, background, backBufferAlphaMulitplier, frontBufferAlphaMultiplayer);
+            }
+
+            public void Blend(byte[] backBuffer, byte[] backClutBuffer, byte[] frontBuffer, byte[] frontClutBuffer, ref byte[] output, Pixel background = null, byte backBufferAlphaMulitplier = 0xFF, byte frontBufferAlphaMultiplayer = 0xFF)
+            {
                 if(background == null)
                 {
                     background = new Pixel(0x00, 0x00, 0x00, 0x00);
                 }
-                blender(backBuffer, frontBuffer, ref output, background, backBufferAlphaMulitplier, frontBufferAlphaMultiplayer);
+                blender(backBuffer, backClutBuffer, frontBuffer, frontClutBuffer, ref output, background, backBufferAlphaMulitplier, frontBufferAlphaMultiplayer);
             }
 
             public PixelFormat BackBuffer { get; private set; }
@@ -610,7 +663,30 @@ namespace Emul8.Backends.Display
         private static Dictionary<Tuple<PixelFormat, Endianess, PixelFormat, Endianess>, IPixelConverter> convertersCache = new Dictionary<Tuple<PixelFormat, Endianess, PixelFormat, Endianess>, IPixelConverter>();
         private static Dictionary<Tuple<PixelFormat, Endianess, PixelFormat, Endianess, PixelFormat, Endianess>, IPixelBlender> blendersCache = new Dictionary<Tuple<PixelFormat, Endianess, PixelFormat, Endianess, PixelFormat, Endianess>, IPixelBlender>();
 
-        private delegate void ConvertDelegate(byte[] inBuffer, ref byte[] outBuffer);
-        private delegate void BlendDelegate(byte[] backBuffer, byte[] frontBuffer, ref byte[] outBuffer, Pixel background = null, byte backBufferAlphaMulitplier = 0xFF, byte frontBufferAlphaMultiplayer = 0xFF);
+        private delegate void ConvertDelegate(byte[] inBuffer, byte[] clutBuffer, ref byte[] outBuffer);
+        private delegate void BlendDelegate(byte[] backBuffer, byte[] backClutBuffer, byte[] frontBuffer, byte[] frontClutBuffer, ref byte[] outBuffer, Pixel background = null, byte backBufferAlphaMulitplier = 0xFF, byte frontBufferAlphaMultiplayer = 0xFF);
+
+        private class PixelDescriptor
+        {
+            public PixelDescriptor()
+            {
+                RedChannel = Expression.Variable(typeof(uint), "red");
+                GreenChannel = Expression.Variable(typeof(uint), "green");
+                BlueChannel = Expression.Variable(typeof(uint), "blue");
+                AlphaChannel = Expression.Variable(typeof(uint), "alpha");
+            }
+
+            public ParameterExpression RedChannel;
+            public ParameterExpression GreenChannel;
+            public ParameterExpression BlueChannel;
+            public ParameterExpression AlphaChannel;
+        }
+
+        private class BufferDescriptor
+        {
+            public PixelFormat ColorFormat { get; set; }
+            public Endianess DataEndianness { get; set; }
+            public PixelFormat? ClutColorFormat { get; set; }
+        }
     }
 }

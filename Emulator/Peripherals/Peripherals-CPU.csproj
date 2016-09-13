@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-    <ProjectInfo Type="Extension" />
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{66400796-0C5B-4386-A859-50A2AC3F3DB4}</ProjectGuid>
@@ -69,6 +68,9 @@
     <Folder Include="Timers\" />
   </ItemGroup>
   <ProjectExtensions>
+    <Emul8>
+      <ProjectInfo Type="Extension" />
+    </Emul8>
     <MonoDevelop>
       <Properties>
         <Policies>
@@ -109,6 +111,10 @@
     <ProjectReference Include="..\Cores\cores-ppc.csproj">
       <Project>{23222114-707C-4EFD-8289-2728351FB7E9}</Project>
       <Name>cores-ppc</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Extensions\Extensions.csproj">
+      <Project>{4C636FAF-4650-4088-8EA8-2FCCC225E9CF}</Project>
+      <Name>Extensions</Name>
     </ProjectReference>
   </ItemGroup>
 </Project>

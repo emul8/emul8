@@ -11,11 +11,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 
-namespace Emul8.Bootstrap
+namespace Emul8.Bootstrap.Elements.Projects
 {
-    public class CustomProject : Project
+    public class EntryProject : Project
     {
-        public CustomProject(string startupObject, string outputPath, IEnumerable<Project> references) : base(GeneratedProjectName, null)
+        public EntryProject(string startupObject, string outputPath, IEnumerable<Project> references) : base(GeneratedProjectName, null)
         {
             GUID = Guid.NewGuid();
             StartupObject = startupObject;
@@ -37,15 +37,15 @@ namespace Emul8.Bootstrap
 
         private void SaveCs(string path)
         {
-            var stream = typeof(CustomProject).Assembly.GetManifestResourceStream("Emul8.Bootstrap.Projects.MainClassTemplate.cstemplate");
+            var stream = typeof(EntryProject).Assembly.GetManifestResourceStream("Emul8.Bootstrap.Elements.Projects.MainClassTemplate.cstemplate");
             using(var streamReader = new StreamReader(stream))
             {
                 File.WriteAllText(path, string.Format(
                     streamReader.ReadToEnd(),
                     GeneratedProjectMainClassName,
                     StartupObject,
-                    typeof(CustomProject).Assembly.GetCustomAttribute<AssemblyCompanyAttribute>().Company,
-                    typeof(CustomProject).Assembly.GetCustomAttribute<AssemblyCopyrightAttribute>().Copyright));
+                    typeof(EntryProject).Assembly.GetCustomAttribute<AssemblyCompanyAttribute>().Company,
+                    typeof(EntryProject).Assembly.GetCustomAttribute<AssemblyCopyrightAttribute>().Copyright));
             }
         }
 
@@ -82,7 +82,6 @@ namespace Emul8.Bootstrap
                                 "AnyCPU"),
                         new XElement(xnamespace + "ProjectGuid", string.Format("{{{0}}}", GUID.ToString().ToUpper())),
                         new XElement(xnamespace + "OutputType", "Exe"),
-                        new XElement(xnamespace + "ProjectInfo", new XAttribute("Skip", "true")),
                         new XElement(xnamespace + "AssemblyName", Name),
                         new XElement(xnamespace + "TargetFrameworkVersion", "v4.5"),
                         new XElement(xnamespace + "StartupObject", string.Format("Emul8.{0}", GeneratedProjectMainClassName))),
@@ -102,6 +101,10 @@ namespace Emul8.Bootstrap
                         new XElement(xnamespace + "OutputPath", string.Format("{0}/Release", outputPath)),
                         new XElement(xnamespace + "ErrorReport", "prompt"),
                         new XElement(xnamespace + "Externalconsole", "true")),
+                    new XElement(xnamespace + "ProjectExtensions",
+                        new XElement(xnamespace + "Emul8",
+                            new XElement(xnamespace + "ProjectInfo", new XAttribute("Skip", "true"))
+                        )),
                     new XElement(xnamespace + "ItemGroup",
                         new XElement(xnamespace + "Reference", new XAttribute("Include", "System"))),
                     new XElement(xnamespace + "ItemGroup",
@@ -109,7 +112,7 @@ namespace Emul8.Bootstrap
                     new XElement(xnamespace + "Import", new XAttribute("Project", @"$(MSBuildBinPath)\Microsoft.CSharp.targets")),
                     referencedProjectsNode,
                     forcedOutputNode,
-                    new XElement(xnamespace + "Target", new XAttribute("AfterTargets", "ResolveAssemblyReferences"),
+                    new XElement(xnamespace + "Target", new XAttribute("Name", "BuildForcedOutput"), new XAttribute("AfterTargets", "ResolveAssemblyReferences"),
                         new XElement(xnamespace + "MSBuild",
                             new XAttribute("Projects", "@(ForcedOutput)"),
                             new XAttribute("Targets", "GetForcedOutput"),

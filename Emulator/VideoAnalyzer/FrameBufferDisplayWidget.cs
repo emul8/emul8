@@ -24,7 +24,7 @@ namespace Emul8.Extensions.Analyzers.Video
     {
         public FrameBufferDisplayWidget()
         {
-            base.BoundsChanged += (sender, e) =>
+            BoundsChanged += (sender, e) =>
             {
                 drawMethod = CalculateDrawMethod();
                 ActualImageArea = CalculateActualImageRectangle();
@@ -42,7 +42,11 @@ namespace Emul8.Extensions.Analyzers.Video
             }
         }
 
-        public void DrawFrame(byte[] frame)
+        /// <summary>
+        /// Draws the frame.
+        /// </summary>
+        /// <param name="frame">Frame represented as array of bytes. If this parameter is omitted previous frame is redrawn.</param>
+        public void DrawFrame(byte[] frame = null)
         {
             if(!drawQueued)
             {
@@ -53,8 +57,19 @@ namespace Emul8.Extensions.Analyzers.Video
                         return;
                     }
 
-                    converter.Convert(frame, ref outBuffer);
-                    img.Copy(outBuffer); 
+                    if(frame != null)
+                    {
+                        converter.Convert(frame, ref outBuffer);
+                        img.Copy(outBuffer);
+                        cursorDrawn = false;
+                    }
+
+                    if(!anythingDrawnAfterLastReconfiguration && frame != null) 
+                    {
+                        anythingDrawnAfterLastReconfiguration = true;
+                        handler.Init();
+                    }
+
                     ApplicationExtensions.InvokeInUIThread(QueueDraw);
                     drawQueued = true;
                 }
@@ -88,6 +103,8 @@ namespace Emul8.Extensions.Analyzers.Video
                 img = new ImageBuilder(DesiredDisplayWidth, DesiredDisplayHeight).ToBitmap();
                 drawMethod = CalculateDrawMethod();
                 ActualImageArea = CalculateActualImageRectangle();
+
+                anythingDrawnAfterLastReconfiguration = false;
             }
 
             OnDisplayParametersChanged(DesiredDisplayWidth, DesiredDisplayHeight, colorFormat);
@@ -150,6 +167,7 @@ namespace Emul8.Extensions.Analyzers.Video
                 mode = value;
                 drawMethod = CalculateDrawMethod();
                 ActualImageArea = CalculateActualImageRectangle();
+                DrawFrame();
             }
         }
 
@@ -161,10 +179,21 @@ namespace Emul8.Extensions.Analyzers.Video
                 return;
             }
 
-            if(handler.DrawCross)
+            IOHandler.Position current, previous;
+            handler.GetPosition(out current, out previous);
+
+            if(cursorDrawn && previous != null)
             {
-                img.DrawCursor(handler.X, handler.Y);
+                // drawing a cursor for the second time will effectively remove it
+                img.DrawCursor(previous.X, previous.Y);
             }
+
+            if(current != null)
+            {
+                img.DrawCursor(current.X, current.Y);
+                cursorDrawn = true;
+            }
+
             dmc(ctx);
 
             var fd = FrameDrawn;
@@ -309,6 +338,7 @@ namespace Emul8.Extensions.Analyzers.Video
             {
                 pm(x, y);
             }
+            DrawFrame();
         }
 
         /// <summary>
@@ -363,12 +393,14 @@ namespace Emul8.Extensions.Analyzers.Video
         private IPixelConverter converter;
         [Transient]
         private bool dontShowGrabConfirmationDialog;
+        private bool anythingDrawnAfterLastReconfiguration;
         private Action<Context> drawMethod;
         private bool drawQueued;
         private IOHandler handler;
         private BitmapImage img;
         private DisplayMode mode;
         private byte[] outBuffer;
+        private bool cursorDrawn;
 
         private readonly object imgLock = new object();
     }

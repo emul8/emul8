@@ -42,9 +42,13 @@ The script supports the following options:
 
     Location of generated files.
 
+.. option:: -k
+
+    Keep submodules intact (do not update them).
+
 .. option:: -h
 
-    Prints help information.
+    Print help information.
 
 .. rubric:: build.sh
 
