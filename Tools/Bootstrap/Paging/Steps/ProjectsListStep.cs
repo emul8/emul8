@@ -5,9 +5,10 @@
 // This file is part of the Emul8 project.
 // Full license details are defined in the 'LICENSE' file.
 //
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using Emul8.Bootstrap.Elements;
 
 namespace Emul8.Bootstrap
 {
@@ -15,7 +16,7 @@ namespace Emul8.Bootstrap
     {
         public IEnumerable<Project> AdditionalProjects { get; protected set; }
         
-        protected ProjectsListStep()
+        protected ProjectsListStep(string message) : base(message)
         {
             AdditionalProjects = new Project[0];
         }
@@ -23,9 +24,8 @@ namespace Emul8.Bootstrap
     
     public class ProjectsListStep<T> : ProjectsListStep where T : Project
     {
-        public ProjectsListStep(string message, PathHelper pathHelper)
+        public ProjectsListStep(string message, PathHelper pathHelper) : base(message)
         {
-            this.message = message;
             this.pathHelper = pathHelper;
         }
         
@@ -39,7 +39,7 @@ namespace Emul8.Bootstrap
         protected override bool ShouldBeShown(StepManager m)
         {
             var additionalProjects = m.GetPreviousSteps<ProjectsListStep>(this).SelectMany(x => x.AdditionalProjects).Union(m.GetStep<UiStep>().UIProject.GetAllReferences()).ToList();
-            ScannedProjects = new HashSet<Project>(Scanner.Instance.Projects.OfType<T>());
+            ScannedProjects = new HashSet<Project>(Scanner.Instance.Elements.OfType<T>());
             ScannedProjects.ExceptWith(additionalProjects);
             return ScannedProjects.Any();
         }
@@ -64,7 +64,6 @@ namespace Emul8.Bootstrap
         protected HashSet<Project> ScannedProjects;
         
         private List<string> selectedKeys;
-        private readonly string message;
         private readonly PathHelper pathHelper;
     }
 }

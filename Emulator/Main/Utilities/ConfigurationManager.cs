@@ -153,6 +153,15 @@ namespace Emul8.Utilities
         {
             get
             {
+                string emul8Dir;
+                if(Misc.TryGetEmul8Directory(out emul8Dir))
+                {
+                    var localConfig = Path.Combine(emul8Dir, "emul8.config");
+                    if(File.Exists(localConfig))
+                    {
+                        return localConfig;
+                    }
+                }
                 return Path.Combine(Misc.GetUserDirectory(), "config");
             }
         }

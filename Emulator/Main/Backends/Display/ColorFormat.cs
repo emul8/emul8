@@ -8,16 +8,23 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Emul8.Backends.Display
 {
     public enum PixelFormat
     {
+        A4,
+        L4,
         A8,
+        L8,
+        AL44,
+        AL88,
         RGB565,
         BGR565,
         BGR888,
         RGB888,
+        ARGB1555,
         ARGB4444,
         RGBA4444,
         ABGR4444,
@@ -42,49 +49,46 @@ namespace Emul8.Backends.Display
         G,
         B,
         A,
-        X
+        X,
+        L
     }
 
     public static class PixelFormatExtensions
     {
-        public static int GetColorDepth(this PixelFormat format)
+        static PixelFormatExtensions()
         {
-            switch(format)
+            var values = Enum.GetValues(typeof(PixelFormat));
+            depths = new int[values.Length];
+            for(var i = 0; i < depths.Length; i++)
             {
-	    case PixelFormat.A8:
-	        return 1;
-            case PixelFormat.RGB565:
-            case PixelFormat.BGR565:
-            case PixelFormat.ARGB4444:
-            case PixelFormat.ABGR4444:
-            case PixelFormat.BGRA4444:
-            case PixelFormat.RGBA4444:
-            case PixelFormat.XRGB4444:
-            case PixelFormat.XBGR4444:
-            case PixelFormat.BGRX4444:
-            case PixelFormat.RGBX4444:
-                return 2;
-            case PixelFormat.BGR888:
-            case PixelFormat.RGB888:
-                return 3;
-            case PixelFormat.BGRA8888:
-            case PixelFormat.RGBA8888:
-            case PixelFormat.ABGR8888:
-            case PixelFormat.ARGB8888:
-            case PixelFormat.BGRX8888:
-            case PixelFormat.RGBX8888:
-            case PixelFormat.XRGB8888:
-            case PixelFormat.XBGR8888:
-                return 4;
-            default:
-                throw new ArgumentOutOfRangeException("format");
+                // here we check if pixel format enum value has proper value
+                // i.e. calculated from the position in enum (not set explicitly)
+                var value = (int)values.GetValue(i);
+                if(value != i)
+                {
+                    throw new ArgumentException(string.Format("Unexpected pixel format value: {0}", (PixelFormat)value));
+                }
+                depths[value] = GetColorsLengths((PixelFormat)value).Sum(x => x.Value) / 8;
             }
         }
 
         /// <summary>
-        /// Calculates lenghts (in bits) of colors deduced from format name.
+        /// Returns a number of bytes needed to encode the color.
         /// </summary>
-        /// <returns>Colors maped to a number of bits they are encoded at.</returns>
+        /// <param name="format">Color format.</param>
+        public static int GetColorDepth(this PixelFormat format)
+        {
+            if(format < 0 || (int)format >= depths.Length)
+            {
+                throw new ArgumentException(string.Format("Unsupported pixel format: {0}", format));
+            }
+
+            return depths[(int)format];
+        }
+
+        /// <summary>
+        /// Calculates number of bits needed to encode each color channel.
+        /// </summary>
         /// <param name="format">Color format</param>
         public static Dictionary<ColorType, byte> GetColorsLengths(this PixelFormat format)
         {
@@ -108,6 +112,8 @@ namespace Emul8.Backends.Display
 
             return bits;
         }
+
+        private static int[] depths;
     }
 }
 

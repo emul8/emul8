@@ -16,10 +16,11 @@
 set -e
 
 BATCH_MODE=0
+KEEP_SUBMODULES=0
 OUTPUT_DIRECTORY="target"
 BINARIES_DIRECTORY="bin"
 
-while getopts "ad:o:b:s:h" opt
+while getopts "ad:o:b:s:hk" opt
 do
     case "$opt" in
         a)
@@ -37,6 +38,9 @@ do
         b)
             BINARIES_DIRECTORY="$OPTARG"
             ;;
+        k)
+            KEEP_SUBMODULES=1
+            ;;
         h)
             echo "Emul8 bootstrapping script"
             echo "=========================="
@@ -47,6 +51,7 @@ do
             echo "  -b directory    location for binaries created from generated project"
             echo "  -o directory    location of generated project files"
             echo "  -s csproj_file  location of the project file"
+            echo "  -k              keep submodules intact (do not update them)"
             echo "  -h              prints this help"
             exit 0
     esac
@@ -79,7 +84,10 @@ then
     exit 1
 fi
 
-git submodule update --init --recursive
+if [ $KEEP_SUBMODULES -eq 0 ]
+then
+    git submodule update --init --recursive
+fi
 
 if [ -z "$ROOT_PATH" -a -x "$(command -v realpath)" ]; then
     # this is to support running emul8 from external directory

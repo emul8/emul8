@@ -2,8 +2,13 @@
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
     <UsingTask AssemblyFile="$(MSBuildProjectDirectory)/../../../External/cctask/CCTask/bin/Release/CCTask.dll" TaskName="EnvironmentTask" />
 
+    <ProjectExtensions>
+        <Emul8>
+            <ProjectInfo Type="Extension"/>
+        </Emul8>
+    </ProjectExtensions>
+
     <PropertyGroup>
-        <ProjectInfo Type="Extension"/>
         <AssemblyName>llvm-disas</AssemblyName>
         <ProjectGuid>{12A9F08D-6C63-4C20-910F-0F0E851D3A22}</ProjectGuid>
         <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>

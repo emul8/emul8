@@ -8,7 +8,7 @@
 ﻿using System;
 using Antmicro.OptionsParser;
 
-namespace Emul8.Bootstrap
+namespace Emul8.Bootstrap.Elements.Projects
 {
     public enum ProjectType
     {
