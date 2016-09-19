@@ -8,11 +8,12 @@ using Xwt;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading;
-using Terminal.Vt100;
 using Emul8.Utilities;
-using Terminal.Rows;
 using Xwt.Drawing;
 using System.IO;
+using TermSharp;
+using TermSharp.Vt100;
+using TermSharp.Rows;
 
 namespace TermsharpConsole
 {
@@ -24,7 +25,7 @@ namespace TermsharpConsole
 			Width = 700;
 			Height = 400;
 
-			terminal = new Terminal.Terminal();
+			terminal = new TermSharp.Terminal();
 			Content = terminal;
 			terminal.InnerMargin = new WidgetSpacing(5, 0, 5, 0);
 			Padding = new WidgetSpacing();
@@ -59,7 +60,7 @@ namespace TermsharpConsole
 			var readerThread = new Thread(() =>
 			{
 				var stream = new PtyUnixStream(pty);
-				var vt100decoder = new Terminal.Vt100.Decoder(terminal, stream.WriteByte, new ConsoleDecoderLogger());
+				var vt100decoder = new TermSharp.Vt100.Decoder(terminal, stream.WriteByte, new ConsoleDecoderLogger());
 				var utfDecoder = new ByteUtf8Decoder(vt100decoder.Feed);
 
 				Application.Invoke(() =>
@@ -75,7 +76,7 @@ namespace TermsharpConsole
 					};
 				});
 
-				var encoder = new Terminal.Vt100.Encoder(x => 
+				var encoder = new TermSharp.Vt100.Encoder(x => 
 				{
 					terminal.ClearSelection();
 					terminal.MoveScrollbarToEnd();
@@ -158,7 +159,7 @@ namespace TermsharpConsole
 			Height = 30 * lineHeight + Height - terminal.ScreenSize;
 		}
 
-		private readonly Terminal.Terminal terminal;
+		private readonly Terminal terminal;
 
 		private const int BufferFull = -3;
 		private const int StreamClosed = -1;
