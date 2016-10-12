@@ -14,4 +14,4 @@ LAUNCHER_BIN_PATH=$LAUNCHER_PATH/Emul8-Launcher/bin/Release/Emul8-Launcher.exe
 xbuild /p:Configuration=Release /nologo /verbosity:quiet $LAUNCHER_PATH/Emul8-Launcher.sln
 
 # ...and run it
-mono $LAUNCHER_BIN_PATH --root-path "$ROOT_PATH/output" $@
+mono $LAUNCHER_BIN_PATH --root-path "$ROOT_PATH/output" "$@"
