@@ -96,7 +96,7 @@ namespace Emul8.Core
         {
             var symbolsToAdd = new List<Symbol>();
 
-            //deduplicate symbols
+            // deduplicate symbols
             foreach(var symbol in symbols)
             {
                 symbolsToAdd.Add(GetUnique(symbol));
@@ -170,8 +170,8 @@ namespace Emul8.Core
         {
             IReadOnlyCollection<Symbol> candidates;
             outSymbol = null;
-            //Try getting cadidates via name, then if there are any present check whether they fit actual symbol.
-            if (TryGetSymbolsByName(symbol.Name, out candidates) && candidates.Count > 0)
+            // Try getting cadidates via name, then if there are any present check whether they fit actual symbol.
+            if(TryGetSymbolsByName(symbol.Name, out candidates) && candidates.Count > 0)
             {
                 outSymbol = candidates.FirstOrDefault(s => s.Equals(symbol));
             }
@@ -297,7 +297,7 @@ namespace Emul8.Core
             /// <param name="symbol">Symbol.</param>
             public void Add(Symbol symbol)
             {
-                Add(new [] { symbol });
+                Add(new[] { symbol });
             }
 
             /// <summary>
@@ -314,12 +314,12 @@ namespace Emul8.Core
                 if(index < 0)
                 {
                     index = ~index;
-                    //we are behind last element or before 1st
+                    // we are behind last element or before 1st
                     if(index == 0)
                     {
                         return false;
                     }
-                    //move back one element because search will always point to the 1st larger element than the marker
+                    // move back one element because search will always point to the 1st larger element than the marker
                     index--;
                 }
 
@@ -386,7 +386,7 @@ namespace Emul8.Core
             {
                 Symbol cakeBase = source.Current;
                 destination.Add(source.Consume()); // copy base
-                //"move cake" - while current old symbol is contained in base copy it
+                // "move cake" - while current old symbol is contained in base copy it
                 while(!source.Empty && cakeBase.Contains(source.Current))
                 {
                     destination.Add(source.Consume());
@@ -419,8 +419,8 @@ namespace Emul8.Core
                     hashCode = comparer.GetHashCode(symbol);
                     if(distinctSymbols.TryGetValue(hashCode, out symbolsWithSameHash))
                     {
-                        //Replace all exisiting copies (interval-wise) of the symbol which that are less important.
-                        //There should be only one and we have to break after modification of the collection.
+                        // Replace all exisiting copies (interval-wise) of the symbol which that are less important.
+                        // There should be only one and we have to break after modification of the collection.
                         foreach(var existingSymbol in symbolsWithSameHash)
                         {
                             if(comparer.Equals(symbol, existingSymbol) && symbol.IsMoreImportantThan(existingSymbol))
@@ -457,7 +457,7 @@ namespace Emul8.Core
                 var consumedSymbolType = oldSymbols.CurrentType;
                 var symbolToAdd = oldSymbols.Consume();
 
-                //If there is no symbol to potentially overlap just copy the orignal one
+                // If there is no symbol to potentially overlap just copy the orignal one
                 if(newSymbols.Empty)
                 {
                     destination.Add(symbolToAdd);
@@ -469,14 +469,14 @@ namespace Emul8.Core
                     deletedSymbols.Add(symbolToAdd);
                 }
 
-                //If the symbol to add starts before the new one, add its head to the destination.
+                // If the symbol to add starts before the new one, add its head to the destination.
                 if(symbolToAdd.Start < newSymbols.Current.Start)
                 {
                     Symbol symbolHead;
                     symbolToAdd.TryGetRightTrimmed(newSymbols.Current.Start, out symbolHead);
-                    //If there are symbols on the tail list, check if the trimming would produce the same interval.
-                    //If so, we skip the current addition. We do so, because in such case we want to preserve the top (most inner-one) former symbol.
-                    //We need, however, to process the possible remainder, a new tail might be generated.
+                    // If there are symbols on the tail list, check if the trimming would produce the same interval.
+                    // If so, we skip the current addition. We do so, because in such case we want to preserve the top (most inner-one) former symbol.
+                    // We need, however, to process the possible remainder, a new tail might be generated.
                     Symbol trimmedTail;
                     if(!oldSymbols.HasNextTail ||
                        !oldSymbols.NextTail.TryGetRightTrimmed(newSymbols.Current.Start, out trimmedTail) ||
@@ -493,44 +493,44 @@ namespace Emul8.Core
                     return;
                 }
 
-                //if there is something behind it add it to the new symbols list
+                // if there is something behind it add it to the new symbols list
                 if(symbolToAdd.End > newSymbols.Current.End)
                 {
                     Symbol symbolTail;
                     symbolToAdd.TryGetLeftTrimmed(newSymbols.Current.End, out symbolTail);
                     oldSymbols.AddTail(symbolTail);
-                    #if DEBUG
+#if DEBUG
                     DebugAssert.AssertFalse(
                         newSymbols.Current.Overlaps(symbolTail),
                         "New symbol overlaps with created tail! Old and new symbols should not overlap."
                     );
-                    #endif
+#endif
                     return;
                 }
 
-                //There is one another case. Where the overlapping candidate completely overshadows the symbol.
-                //Don't do anything, the overshadowed symbol got deleted anyways and no new symbol gets created.
+                // There is one another case. Where the overlapping candidate completely overshadows the symbol.
+                // Don't do anything, the overshadowed symbol got deleted anyways and no new symbol gets created.
             }
 
             private void MergeInSymbolArray(Symbol[] symbolsToAdd, out List<Symbol> createdSymbols, out List<Symbol> deletedSymbols)
             {
                 int capacity = symbols.Length + symbolsToAdd.Length;
-                //We don't know exact numbers of the new symbols, because some might get split, and some might get removed.
-                //Thus we use a list, and chosen initial capacity makes some sense.
+                // We don't know exact numbers of the new symbols, because some might get split, and some might get removed.
+                // Thus we use a list, and chosen initial capacity makes some sense.
                 var mergedIntervals = new List<Symbol>(capacity);
                 var oldSymbols = new OldSymbolProvider(comparer, symbols);
                 var newSymbols = new SymbolProvider(symbolsToAdd);
                 createdSymbols = new List<Symbol>();
                 deletedSymbols = new List<Symbol>();
 
-                //While new and old symbols might interleave
+                // While new and old symbols might interleave
                 while(!oldSymbols.Empty && !newSymbols.Empty)
                 {
-                    //While they do not overlap
+                    // While they do not overlap
                     while(!oldSymbols.Empty && !newSymbols.Empty && !oldSymbols.Current.Overlaps(newSymbols.Current))
                     {
-                        //Symbols do not overlap here so it is sufficient to check only beginnings to find out which comes 1st.
-                        //In case of copying new symbol, we can move whole cake, because it will never be cached.
+                        // Symbols do not overlap here so it is sufficient to check only beginnings to find out which comes 1st.
+                        // In case of copying new symbol, we can move whole cake, because it will never be cached.
                         if(oldSymbols.Current.Start < newSymbols.Current.Start)
                         {
                             mergedIntervals.Add(oldSymbols.Consume());
@@ -544,12 +544,12 @@ namespace Emul8.Core
                     {
                         break;
                     }
-                    //Here we are sure that current old and new symbols overlap somehow
+                    // Here we are sure that current old and new symbols overlap somehow
                     //
-                    //While we are not behind the current new symbol, keep adding old symbols and hash them if needed.
-                    //Also handles zero length symbols. It is done with such an ugly condition, be cause otherwise,
-                    //Two loops would be needed, one before overlaps, and one after, for different placements of 0-length
-                    //symbols.
+                    // While we are not behind the current new symbol, keep adding old symbols and hash them if needed.
+                    // Also handles zero length symbols. It is done with such an ugly condition, be cause otherwise,
+                    // Two loops would be needed, one before overlaps, and one after, for different placements of 0-length
+                    // symbols.
                     while(!oldSymbols.Empty && (
                               oldSymbols.Current.Start < newSymbols.Current.End || (
                                   newSymbols.Current.Length == 0 &&
@@ -558,11 +558,11 @@ namespace Emul8.Core
                     {
                         AddSymbolWithHashing(oldSymbols, newSymbols, mergedIntervals, createdSymbols, deletedSymbols);
                     }
-                    //Copy in the new symbol cake
+                    // Copy in the new symbol cake
                     CopyCake(mergedIntervals, newSymbols);
                 }
 
-                //Copy rest of the symbols. If the symbol comes from temporary list, it should be "materialized"
+                // Copy rest of the symbols. If the symbol comes from temporary list, it should be "materialized"
                 while(!oldSymbols.Empty)
                 {
                     if(oldSymbols.CurrentType == OldSymbolProvider.SymbolType.Temporary)
@@ -572,7 +572,7 @@ namespace Emul8.Core
                     mergedIntervals.Add(oldSymbols.Consume());
                 }
 
-                //Copy rest of the newSymbols
+                // Copy rest of the newSymbols
                 CopyRest(mergedIntervals, newSymbols);
                 symbols = mergedIntervals.ToArray();
             }
@@ -596,22 +596,28 @@ namespace Emul8.Core
                     currentsSynced = false;
                 }
 
-                public Symbol Current { 
-                    get {
+                public Symbol Current
+                {
+                    get
+                    {
                         UpdateCurrentSymbolAndType();
                         return currentSymbol;
-                    } 
+                    }
                 }
 
-                public SymbolType CurrentType {
-                    get {
+                public SymbolType CurrentType
+                {
+                    get
+                    {
                         UpdateCurrentSymbolAndType();
                         return currentSymbolType;
-                    } 
+                    }
                 }
 
-                public bool Empty { 
-                    get { 
+                public bool Empty
+                {
+                    get
+                    {
                         UpdateCurrentSymbolAndType();
                         return currentSymbol == null;
                     }
@@ -706,11 +712,11 @@ namespace Emul8.Core
                         currentSymbolType = SymbolType.Original;
                         return;
                     }
-                    //We will get last original copy of the symbol from the tails queue.
+                    // We will get last original copy of the symbol from the tails queue.
                     currentSymbol = DequeueLastCopy(tails);
                     currentSymbolType = SymbolType.Temporary;
-                    //If it's exactly the same as the symbol in the old list, we prefer to ignore tail, because it
-                    //for sure started before the original symbol, thus would not be the innermost.
+                    // If it's exactly the same as the symbol in the old list, we prefer to ignore tail, because it
+                    // for sure started before the original symbol, thus would not be the innermost.
                     if(intervalComparer.Compare(symbols.Current, currentSymbol) == 0)
                     {
                         currentSymbol = symbols.Current;
@@ -745,7 +751,7 @@ namespace Emul8.Core
 
             private class SymbolProvider : ISymbolProvider
             {
-                public int Length{ get { return array.Length - iterator; } }
+                public int Length { get { return array.Length - iterator; } }
 
                 public Symbol Current { get { return Peek(); } }
 
@@ -841,10 +847,10 @@ namespace Emul8.Core
 
                 var parentEnd = symbols[parentIdx].End;
                 index++;
-                //as long as there are any elements and we're not past our parent's end
+                // as long as there are any elements and we're not past our parent's end
                 while(index < symbols.Length && symbols[index].End > parentEnd)
                 {
-                    //check if the element has the same parent
+                    // check if the element has the same parent
                     if(indexOfEnclosingInterval[index] == parentIdx)
                     {
                         return index;
@@ -882,9 +888,9 @@ namespace Emul8.Core
                 {
                     index = indexOfEnclosingInterval[index];
                 }
-                //A special case when we hit after a 0-length symbol thas does not have any parent.
-                //We do not need to check it in the loop, as such a symbol would never enclose other symbols.
-                //This gives an approximate result.
+                // A special case when we hit after a 0-length symbol thas does not have any parent.
+                // We do not need to check it in the loop, as such a symbol would never enclose other symbols.
+                // This gives an approximate result.
                 if(index == NoEnclosingInterval)
                 {
                     if(symbols[original].Start <= scalar && symbols[original].End == symbols[original].Start && (symbols.Length == original + 1 || symbols[original + 1].Start > scalar))
@@ -955,7 +961,7 @@ namespace Emul8.Core
                     In other words this defines that inclusive start boundary of comparison overrides exclusive end.
                     **/
                     var cmp = symbol.Start.CompareTo(marker.Start) == 0 ? marker.Start.CompareTo(symbol.End) : symbol.Start.CompareTo(marker.Start);
-                    //If marker was passed as left hand side argument, we need to invert the comparison result.
+                    // If marker was passed as left hand side argument, we need to invert the comparison result.
                     return markerIsLhs ? -cmp : cmp;
                 }
             }
