@@ -15,11 +15,9 @@ using Emul8.Logging;
 using Emul8.Peripherals.Bus.Wrappers;
 using Emul8.Peripherals.CPU;
 using Emul8.Utilities;
-using Emul8.Peripherals;
 using System.Threading;
 using System.Collections.ObjectModel;
 using System.Text;
-using Emul8.Peripherals.Bus;
 using Machine = Emul8.Core.Machine;
 using Antmicro.Migrant;
 using ELFSharp.ELF;
@@ -30,9 +28,6 @@ using Emul8.Core.Extensions;
 using System.Reflection;
 using Emul8.UserInterface;
 using Emul8.Peripherals.Memory;
-using ELFSharp.ELF.Sections;
-using MiscUtil.Conversion;
-using System.Collections.Concurrent;
 
 namespace Emul8.Peripherals.Bus
 {
@@ -287,7 +282,7 @@ namespace Emul8.Peripherals.Bus
 
         /// <summary>Checks what is at a given address.</summary>
         /// <param name="address">
-        ///     A <see cref="Long"/> with the address to check.
+        ///     A <see cref="long"/> with the address to check.
         /// </param>
         /// <returns>
         ///     A peripheral which is at the given address.
@@ -410,9 +405,9 @@ namespace Emul8.Peripherals.Bus
             ZeroRange(from.By(size));
         }
 
-        public void LoadSymbolsFrom(string fileName)
+        public void LoadSymbolsFrom(string fileName, bool useVirtualAddress = false)
         {
-            Lookup.LoadELF(GetELFFromFile(fileName));
+            Lookup.LoadELF(GetELFFromFile(fileName), useVirtualAddress);
         }
 
         public void AddSymbol(Range address, string name, bool isThumb = false)
@@ -448,7 +443,7 @@ namespace Emul8.Peripherals.Bus
                 UpdateLowestLoadedAddress(loadAddress);
                 this.DebugLog("Segment loaded.");
             }
-            Lookup.LoadELF(elf);
+            Lookup.LoadELF(elf, useVirtualAddress);
             if(cpu != null)
             {
                 cpu.InitFromElf(elf);
@@ -567,7 +562,7 @@ namespace Emul8.Peripherals.Bus
             Symbol symbol;
             if(Lookup.TryGetSymbolByAddress(offset, out symbol))
             {
-                return symbol.Name;
+                return symbol.ToStringRelative(offset);
             }
             return null;
         }

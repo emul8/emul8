@@ -10,7 +10,6 @@ using ELFSharp.ELF.Sections;
 using Emul8.Utilities.Collections;
 using System;
 using Emul8.Utilities;
-using System.Runtime.InteropServices;
 using Antmicro.Migrant;
 using Emul8.Logging;
 
@@ -193,6 +192,23 @@ namespace Emul8.Core
         public bool Equals(Symbol other)
         {
             return intervalComparer.Compare(this, other) == 0 && string.Compare(Name, other.Name, StringComparison.Ordinal) == 0;
+        }
+
+        public string ToStringRelative(TAddress offset)
+        {
+            if(this.Name == null)
+            {
+                return String.Empty;
+            }
+            if(this.Start == offset)
+            {
+                return "{0} (entry)".FormatWith(this.Name);
+            }
+            if(this.End == this.Start && offset != this.Start)
+            {
+                return "{0}+0x{1:X} (guessed)".FormatWith(this.Name, offset - this.Start);
+            }
+            return this.Name;
         }
 
         public override string ToString()
