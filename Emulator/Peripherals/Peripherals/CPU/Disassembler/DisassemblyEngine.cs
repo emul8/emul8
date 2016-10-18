@@ -8,7 +8,6 @@
 using System;
 using System.Runtime.InteropServices;
 using System.IO;
-using Emul8.Core;
 using Emul8.Exceptions;
 
 namespace Emul8.Peripherals.CPU.Disassembler
@@ -42,24 +41,14 @@ namespace Emul8.Peripherals.CPU.Disassembler
                 file.WriteLine("-------------------------");
                 if (size > 0)
                 {
-                    file.Write("IN: {0} ", symbol == null ? String.Empty : symbol.ToString());
-                    if (phy != pc)
+                    file.Write("IN: {0} ", symbol == null ? string.Empty : symbol.ToStringRelative(pc));
+                    if(phy != pc)
                     {
-                        file.Write("(physical: 0x{0:x8}, virtual: 0x{1:x8})", phy, pc);
+                        file.WriteLine("(physical: 0x{0:x8}, virtual: 0x{1:x8})", phy, pc);
                     }
                     else
                     {
-                        file.Write("(address: 0x{0:x8})", phy);
-                    }
-                    if(symbol != null)
-                    {
-                        file.WriteLine(symbol.Start == pc ? " (entry)" 
-                            : symbol.Start == symbol.End ? String.Format("+0x{0:x} (guessed)", pc - symbol.Start) 
-                            : String.Empty);
-                    }
-                    else
-                    {
-                        file.WriteLine();
+                        file.WriteLine("(address: 0x{0:x8})", phy);
                     }
                 }
                 else
@@ -101,7 +90,7 @@ namespace Emul8.Peripherals.CPU.Disassembler
             // sometimes it happens that size is equal to 0 (e.g. addresses like 0xfffffffd) - in such case wee need to add 1 to make it work
             var outputLength = (size + 1) * 160;
             var outputPtr = Marshal.AllocHGlobal((int)outputLength);
-            int result = disassembler.Disassemble(pc, memory, (ulong)size, flags, outputPtr, (ulong)outputLength);
+            int result = disassembler.Disassemble(pc, memory, size, flags, outputPtr, outputLength);
             var lines = Marshal.PtrToStringAuto(outputPtr) ?? string.Empty;
             Marshal.FreeHGlobal(outputPtr);
 

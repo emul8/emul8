@@ -15,7 +15,7 @@ using ELFSharp.ELF.Sections;
 namespace UnitTests.SymbolLookupTests
 {
     [TestFixture]
-    public class GeneralTests
+    public class SymbolLookupTests
     {
         [Test]
         public void ShouldHaveMoreAndLessImportantViaName()
@@ -123,7 +123,7 @@ namespace UnitTests.SymbolLookupTests
         [Test]
         public void ShouldFindTenSymbols()
         {
-            var symbols = Enumerable.Range(1, 10).Select(x => MakeSymbolEntry(x.ToString(), (uint)(x * 10), (uint)5)).ToList();
+            var symbols = Enumerable.Range(1, 10).Select(x => MakeSymbolEntry(x.ToString(), (uint)(x * 10), 5)).ToList();
             var lookup = new SymbolLookup();
             lookup.InsertSymbols(symbols);
             foreach (var symbol in symbols)
@@ -482,6 +482,43 @@ namespace UnitTests.SymbolLookupTests
             var lookup = new SymbolLookup();
             lookup.InsertSymbols(symbols);
             CollectionAssert.AreEqual(symbols, addressesToQuery.Select(address => lookup.GetSymbolByAddress(address)));
+        }
+
+        [Test]
+        public void ShouldCorrectlyGuessZeroLengthSymbol()
+        {
+            var symbols = new List<Symbol>
+            {
+                MakeSymbolEntry("一", 20, 0),
+                MakeSymbolEntry("三", 30, 10),
+                MakeSymbolEntry("国", 40, 0),
+                MakeSymbolEntry("五", 50, 50),
+                MakeSymbolEntry("中", 60, 10),
+                MakeSymbolEntry("猫", 65, 0),
+                MakeSymbolEntry("私", 80, 0),
+                MakeSymbolEntry("糞", 100, 0),
+                MakeSymbolEntry("二", 110, 0)
+            };
+            var lookup = new SymbolLookup();
+            lookup.InsertSymbols(symbols);
+            Symbol dummySymbol;
+            Assert.IsFalse(lookup.TryGetSymbolByAddress(19, out dummySymbol));
+            Assert.AreEqual("一", lookup.GetSymbolByAddress(20).Name);
+            Assert.AreEqual("一", lookup.GetSymbolByAddress(21).Name);
+            Assert.AreEqual("国", lookup.GetSymbolByAddress(40).Name);
+            Assert.AreEqual("国", lookup.GetSymbolByAddress(41).Name);
+
+            Assert.AreEqual("猫", lookup.GetSymbolByAddress(65).Name);
+            Assert.AreEqual("中", lookup.GetSymbolByAddress(66).Name);
+            Assert.AreEqual("五", lookup.GetSymbolByAddress(70).Name);
+
+            Assert.AreEqual("私", lookup.GetSymbolByAddress(80).Name);
+            Assert.AreEqual("五", lookup.GetSymbolByAddress(81).Name);
+
+            Assert.AreEqual("糞", lookup.GetSymbolByAddress(100).Name);
+            Assert.AreEqual("糞", lookup.GetSymbolByAddress(101).Name);
+            Assert.AreEqual("二", lookup.GetSymbolByAddress(110).Name);
+            Assert.IsFalse(lookup.TryGetSymbolByAddress(111, out dummySymbol));
         }
 
         private Symbol MakeSymbolEntry(string name, uint start, uint length)

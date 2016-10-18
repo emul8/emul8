@@ -838,15 +838,6 @@ namespace Emul8.Peripherals.CPU
 
             while(true)
             {
-                string info = string.Empty;
-
-                if(LogTranslationBlockFetch)
-                {
-                    // TODO: this should depend also on log level
-                    info = GetSymbolName(PC);
-                    if(info != string.Empty)
-                        info = "- " + info;
-                }
                 if(!(DisableInterruptsWhileStepping && executionMode == ExecutionMode.SingleStep) && TlibIsIrqSet() == 0 && interruptEvents.Any(x => x.WaitOne(0)))
                 {
                     for(var i = 0; i < interruptEvents.Length; i++)
@@ -1013,15 +1004,13 @@ namespace Emul8.Peripherals.CPU
             return null;
         }
 
-        private string GetSymbolName(uint offset) 
+        private string GetSymbolName(uint offset)
         {
             var info = string.Empty;
             var s = DoLookupSymbolInner(offset);
             if(s != null && !string.IsNullOrEmpty(s.Name))
             {
-                info = string.Format("{0}{1}", s.Name, 
-                    (s.Start == offset) ? " (entry)" 
-                    : s.End - s.Start == 0 ? String.Format("+0x{0:X} (guessed)", offset - s.Start) : String.Empty);
+                info = s.ToStringRelative(offset);
             }
             return info;
         }
@@ -1034,7 +1023,7 @@ namespace Emul8.Peripherals.CPU
                 return string.Format("Fetching block @ 0x{0:X8} {1}", offset, info);
             });
         }
-            
+
         private IntPtr DoLookupSymbol(uint offset)
         {
             var symbol = DoLookupSymbolInner(offset);
