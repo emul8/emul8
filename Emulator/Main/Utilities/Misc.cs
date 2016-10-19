@@ -26,7 +26,6 @@ namespace Emul8.Utilities
 {
     public static class Misc
     {
-
         //TODO: isn't it obsolete?
         //TODO: what if memory_size should be long?
         public static List<UInt32> CreateAtags(string bootargs, uint memorySize)
