@@ -27,7 +27,7 @@
 
     <!-- We do not build here anything, just copying -->
     <Target Name="Build">
-        <EnvironmentTask>
+        <EnvironmentTask Condition= "$(HostWordSize) == ''">
             <Output TaskParameter="PointerSize" PropertyName="HostWordSize" />
         </EnvironmentTask>
         <PropertyGroup>
