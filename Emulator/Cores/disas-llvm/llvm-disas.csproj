@@ -27,8 +27,8 @@
 
     <!-- We do not build here anything, just copying -->
     <Target Name="Build">
-        <EnvironmentTask>
-            <Output TaskParameter="WordSize" PropertyName="HostWordSize" />
+        <EnvironmentTask Condition= "$(HostWordSize) == ''">
+            <Output TaskParameter="PointerSize" PropertyName="HostWordSize" />
         </EnvironmentTask>
         <PropertyGroup>
             <LibraryPath>$(HostWordSize)_libLLVM-3.4.so</LibraryPath>

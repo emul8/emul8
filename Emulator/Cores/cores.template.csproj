@@ -6,7 +6,7 @@
     <Target Name="_PrepareProperties" DependsOnTargets="SetEndianess">
         <Error Text="Configuration not provided" Condition=" $(Configuration) == '' " />
         <EnvironmentTask Condition= "$(HostWordSize) == ''">
-            <Output TaskParameter="WordSize" PropertyName="HostWordSize" />
+            <Output TaskParameter="PointerSize" PropertyName="HostWordSize" />
         </EnvironmentTask>
         <Message Text="Detected host word size: $(HostWordSize)" />
     </Target>
