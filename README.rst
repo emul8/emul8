@@ -42,7 +42,7 @@ The package names for prerequisites are given for Ubuntu 14.04 (please adjust th
 
 .. note::
 
-   The system ``mono-complete`` package will be later superseded by a stable Mono compiled from source (see: `Mono`_ below), but it is necessary to begin with.
+   The system ``mono-complete`` package will be later superseded by a stable Mono compiled from source (see: `Mono (Linux)`_ below), but it is necessary to begin with.
 
 If you want to modify or extend the source code of Emul8, it is recommended to install the *MonoDevelop* IDE.
 
