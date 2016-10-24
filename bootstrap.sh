@@ -135,10 +135,15 @@ xbuild $CCTASK_DIR/CCTask.sln /p:Configuration=Release /nologo /verbosity:quiet 
 OS_NAME=`uname`
 
 rm -f $OUTPUT_DIRECTORY/properties.csproj
+mkdir -p $OUTPUT_DIRECTORY
 if [ "$OS_NAME" == "Darwin" ]
 then
-  mkdir -p $OUTPUT_DIRECTORY
   cp $ROOT_PATH/Emulator/Cores/osx-properties.csproj  $OUTPUT_DIRECTORY/properties.csproj
+elif [ "$OS_NAME" == "Linux" ]
+then
+  cp $ROOT_PATH/Emulator/Cores/linux-properties.csproj  $OUTPUT_DIRECTORY/properties.csproj
+else
+  cp $ROOT_PATH/Emulator/Cores/windows-properties.csproj  $OUTPUT_DIRECTORY/properties.csproj
 fi
 
 if [ $BATCH_MODE -eq 1 ]
