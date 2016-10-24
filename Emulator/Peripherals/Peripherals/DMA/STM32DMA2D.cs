@@ -236,11 +236,11 @@ namespace Emul8.Peripherals.DMA
                     {
                         // we can optimize here and copy everything at once
                         DoCopy(foregroundMemoryAddressRegister.Value, outputMemoryAddressRegister.Value, foregroundBuffer,
-                               converter: (foregroundBuffer, line) =>
+                               converter: (localForegroundBuffer, line) =>
                                {
                                    machine.SystemBus.ReadBytes(backgroundMemoryAddressRegister.Value, backgroundBuffer.Length, backgroundBuffer, 0);
                                    // per-pixel alpha blending
-                                   blender.Blend(backgroundBuffer, backgroundClut, foregroundBuffer, foregroundClut, ref outputBuffer);
+                                   blender.Blend(backgroundBuffer, backgroundClut, localForegroundBuffer, foregroundClut, ref outputBuffer);
                                    return outputBuffer;
                                });
                     }
@@ -252,10 +252,10 @@ namespace Emul8.Peripherals.DMA
                                (int)foregroundLineOffsetField.Value * foregroundFormat.GetColorDepth(),
                                (int)outputLineOffsetField.Value * outputFormat.GetColorDepth(),
                                (int)numberOfLineField.Value,
-                               (foregroundBuffer, line) =>
+                               (localForegroundBuffer, line) =>
                                 {
                                     machine.SystemBus.ReadBytes(backgroundMemoryAddressRegister.Value + line * (backgroundLineOffsetField.Value + pixelsPerLineField.Value) * backgroundFormat.GetColorDepth(), backgroundLineBuffer.Length, backgroundLineBuffer, 0);
-                                    blender.Blend(backgroundLineBuffer, backgroundClut, foregroundBuffer, foregroundClut, ref outputLineBuffer);
+                                    blender.Blend(backgroundLineBuffer, backgroundClut, localForegroundBuffer, foregroundClut, ref outputLineBuffer);
                                     return outputLineBuffer;
                                 });
                     }
@@ -265,9 +265,9 @@ namespace Emul8.Peripherals.DMA
                     {
                         DoCopy(foregroundMemoryAddressRegister.Value, outputMemoryAddressRegister.Value,
                                 foregroundBuffer,
-                                converter: (foregroundBuffer, line) =>
+                                converter: (localForegroundBuffer, line) =>
                                 {
-                                    converter.Convert(foregroundBuffer, foregroundClut, ref outputBuffer);
+                                    converter.Convert(localForegroundBuffer, foregroundClut, ref outputBuffer);
                                     return outputBuffer;
                                 });
                     }
@@ -278,9 +278,9 @@ namespace Emul8.Peripherals.DMA
                                 (int)foregroundLineOffsetField.Value * foregroundFormat.GetColorDepth(), 
                                 (int)outputLineOffsetField.Value * outputFormat.GetColorDepth(),
                                 (int)numberOfLineField.Value,
-                                (foregroundBuffer, line) => 
+                                (localForegroundBuffer, line) => 
                                 {
-                                    converter.Convert(foregroundBuffer, foregroundClut, ref outputLineBuffer);
+                                    converter.Convert(localForegroundBuffer, foregroundClut, ref outputLineBuffer);
                                     return outputLineBuffer;
                                 });
                     }
