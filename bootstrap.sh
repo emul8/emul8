@@ -15,8 +15,15 @@
 
 set -e
 
-BATCH_MODE=0
-KEEP_SUBMODULES=0
+if [ -z "$ROOT_PATH" -a -x "$(command -v realpath)" ]; then
+    # this is to support running emul8 from external directory
+    ROOT_PATH="`dirname \`realpath $0\``"
+fi
+
+. ${ROOT_PATH}/Tools/common.sh
+
+BATCH_MODE=false
+KEEP_SUBMODULES=false
 OUTPUT_DIRECTORY="target"
 BINARIES_DIRECTORY="bin"
 
@@ -24,7 +31,7 @@ while getopts "ad:o:b:s:hk" opt
 do
     case "$opt" in
         a)
-            BATCH_MODE=1
+            BATCH_MODE=true
             ;;
         s)
             SELECTED_PROJECT="$OPTARG"
@@ -39,7 +46,7 @@ do
             BINARIES_DIRECTORY="$OPTARG"
             ;;
         k)
-            KEEP_SUBMODULES=1
+            KEEP_SUBMODULES=true
             ;;
         h)
             echo "Emul8 bootstrapping script"
@@ -57,42 +64,41 @@ do
     esac
 done
 
-if ! [ -x "$(command -v mono)" ]
+if ! $ON_WINDOWS
 then
-    echo "Mono not found. Please refer to documentation for installation instructions. Exiting!"
-    exit 1
+	if ! [ -x "$(command -v mono)" ]
+	then
+	    echo "Mono not found. Please refer to documentation for installation instructions. Exiting!"
+	    exit 1
+	fi
+
+	if ! [ -x "$(command -v mcs)" ]
+	then
+	    echo "mcs not found. Please refer to documentation for installation instructions. Exiting!"
+	    exit 1
+	fi
+
+	# Check mono version
+	MONO_VERSION=`mono --version | head -n1 | cut -d' ' -f5`
+	MONO_VERSION_MAJOR=`echo $MONO_VERSION | cut -d'.' -f1`
+	if [ $MONO_VERSION_MAJOR -lt 4 -a $MONO_VERSION != "3.99.0" ]
+	then
+	    echo "Wrong mono version detected: $MONO_VERSION. Please refer to documentation for installation instructions. Exiting!"
+	    exit 1
+	fi
+	MCS_VERSION=`mcs --version | cut -d' ' -f5 | cut -d'.' -f-3`
+	if [ $MONO_VERSION != $MCS_VERSION ]
+	then
+	    echo "Wrong mcs version detected: $MCS_VERSION (mono version is $MONO_VERSION). Please refer to documentation for installation instructions. Exiting!"
+	    exit 1
+	fi
 fi
 
-if ! [ -x "$(command -v mcs)" ]
-then
-    echo "mcs not found. Please refer to documentation for installation instructions. Exiting!"
-    exit 1
-fi
-
-# Check mono version
-MONO_VERSION=`mono --version | head -n1 | cut -d' ' -f5`
-MONO_VERSION_MAJOR=`echo $MONO_VERSION | cut -d'.' -f1`
-if [ $MONO_VERSION_MAJOR -lt 4 -a $MONO_VERSION != "3.99.0" ]
-then
-    echo "Wrong mono version detected: $MONO_VERSION. Please refer to documentation for installation instructions. Exiting!"
-    exit 1
-fi
-MCS_VERSION=`mcs --version | cut -d' ' -f5 | cut -d'.' -f-3`
-if [ $MONO_VERSION != $MCS_VERSION ]
-then
-    echo "Wrong mcs version detected: $MCS_VERSION (mono version is $MONO_VERSION). Please refer to documentation for installation instructions. Exiting!"
-    exit 1
-fi
-
-if [ $KEEP_SUBMODULES -eq 0 ]
+if ! $KEEP_SUBMODULES
 then
     git submodule update --init --recursive
 fi
 
-if [ -z "$ROOT_PATH" -a -x "$(command -v realpath)" ]; then
-    # this is to support running emul8 from external directory
-    ROOT_PATH="`dirname \`realpath $0\``"
-fi
 
 # Create Sandbox project
 pushd ${ROOT_PATH:=.}/Misc/Sandbox > /dev/null
@@ -107,54 +113,53 @@ popd > /dev/null
 # Update references to Xwt
 if [ -e ${ROOT_PATH:=.}/External/TermsharpConsole/TermsharpConsole.csproj ]
 then
-    sed -i='' 's/"termsharp\\xwt\\Xwt\\Xwt.csproj"/"..\\xwt\\Xwt\\Xwt.csproj"/' ${ROOT_PATH:=.}/External/TermsharpConsole/TermsharpConsole.csproj
-    sed -i='' 's/"termsharp\\xwt\\Xwt.Gtk\\Xwt.Gtk.csproj"/"..\\xwt\\Xwt.Gtk\\Xwt.Gtk.csproj"/' ${ROOT_PATH:=.}/External/TermsharpConsole/TermsharpConsole.csproj
+    PROJECT_FILE=${ROOT_PATH:=.}/External/TermsharpConsole/TermsharpConsole.csproj
+    sed -i='' 's/"termsharp\\xwt\\Xwt\\Xwt.csproj"/"..\\xwt\\Xwt\\Xwt.csproj"/' $PROJECT_FILE
+    sed -i='' 's/"termsharp\\xwt\\Xwt.Gtk\\Xwt.Gtk.csproj"/"..\\xwt\\Xwt.Gtk\\Xwt.Gtk.csproj"/' $PROJECT_FILE
 fi
 if [ -e ${ROOT_PATH:=.}/External/TermsharpConsole/TermsharpConsole.sln ]
 then
-    sed -i='' 's/"termsharp\\xwt\\Xwt\\Xwt.csproj"/"..\\xwt\\Xwt\\Xwt.csproj"/' ${ROOT_PATH:=.}/External/TermsharpConsole/TermsharpConsole.sln
-    sed -i='' 's/"termsharp\\xwt\\Xwt.Gtk\\Xwt.Gtk.csproj"/"..\\xwt\\Xwt.Gtk\\Xwt.Gtk.csproj"/' ${ROOT_PATH:=.}/External/TermsharpConsole/TermsharpConsole.sln
+    SOLUTION_FILE=${ROOT_PATH:=.}/External/TermsharpConsole/TermsharpConsole.sln
+    sed -i='' 's/"termsharp\\xwt\\Xwt\\Xwt.csproj"/"..\\xwt\\Xwt\\Xwt.csproj"/' $SOLUTION_FILE
+    sed -i='' 's/"termsharp\\xwt\\Xwt.Gtk\\Xwt.Gtk.csproj"/"..\\xwt\\Xwt.Gtk\\Xwt.Gtk.csproj"/' $SOLUTION_FILE
 fi
 if [ -e ${ROOT_PATH:=.}/External/TermsharpConsole/termsharp/TermSharp.csproj ]
 then
     sed -i='' 's/"xwt\\Xwt\\Xwt.csproj"/"..\\..\\xwt\\Xwt\\Xwt.csproj"/' ${ROOT_PATH:=.}/External/TermsharpConsole/termsharp/TermSharp.csproj
 fi
 
-
-
 BOOTSTRAPER_DIR=$ROOT_PATH/Tools/Bootstrap
 BOOTSTRAPER_BIN=$BOOTSTRAPER_DIR/bin/Release/Bootstrap.exe
 
 CCTASK_DIR=$ROOT_PATH/External/cctask
-CCTASK_BIN=$CCTASK_DIR/CCTask/bin/Release/CCTask.dll
 
 # We build bootstrap/cctask every time in order to have the newest versions at every bootstrapping.
-xbuild $BOOTSTRAPER_DIR/Bootstrap.csproj /p:Configuration=Release /nologo /verbosity:quiet || (echo "There was an error during Bootstrap compilation!" && exit 1)
-xbuild $CCTASK_DIR/CCTask.sln /p:Configuration=Release /nologo /verbosity:quiet            || (echo "There was an error during CCTask compilation!"    && exit 1)
+# We need to use get_path helper function in order to resolve paths to projects correctly both on linux and windows
+$CS_COMPILER `get_path $BOOTSTRAPER_DIR/Bootstrap.csproj` /p:Configuration=Release /nologo /verbosity:quiet || (echo "There was an error during Bootstrap compilation!" && exit 1)
+$CS_COMPILER `get_path $CCTASK_DIR/CCTask.sln`            /p:Configuration=Release /nologo /verbosity:quiet || (echo "There was an error during CCTask compilation!"    && exit 1)
 
-OS_NAME=`uname`
-
-rm -f $OUTPUT_DIRECTORY/properties.csproj
 mkdir -p $OUTPUT_DIRECTORY
-if [ "$OS_NAME" == "Darwin" ]
+if $ON_OSX
 then
-  cp $ROOT_PATH/Emulator/Cores/osx-properties.csproj  $OUTPUT_DIRECTORY/properties.csproj
-elif [ "$OS_NAME" == "Linux" ]
+  PROP_FILE=$ROOT_PATH/Emulator/Cores/osx-properties.csproj
+elif $ON_LINUX
 then
-  cp $ROOT_PATH/Emulator/Cores/linux-properties.csproj  $OUTPUT_DIRECTORY/properties.csproj
+  PROP_FILE=$ROOT_PATH/Emulator/Cores/linux-properties.csproj
 else
-  cp $ROOT_PATH/Emulator/Cores/windows-properties.csproj  $OUTPUT_DIRECTORY/properties.csproj
+  PROP_FILE=$ROOT_PATH/Emulator/Cores/windows-properties.csproj
 fi
+cp $PROP_FILE $OUTPUT_DIRECTORY/properties.csproj
 
-if [ $BATCH_MODE -eq 1 ]
+PARAMS=( --directories `get_path ${DIRECTORY:-.}` --output-directory `get_path $OUTPUT_DIRECTORY` --binaries-directory `get_path $BINARIES_DIRECTORY` )
+if $BATCH_MODE
 then
-    mono $BOOTSTRAPER_BIN GenerateAll --generate-entry-project --directories "${DIRECTORY:-.}" --output-directory "$OUTPUT_DIRECTORY" --binaries-directory "$BINARIES_DIRECTORY"
+    $LAUNCHER $BOOTSTRAPER_BIN GenerateAll --generate-entry-project ${PARAMS[@]}
 elif [ -n "$SELECTED_PROJECT" ]
 then
-    mono $BOOTSTRAPER_BIN GenerateSolution --directories "${DIRECTORY:-.}" --output-directory "$OUTPUT_DIRECTORY" --binaries-directory "$BINARIES_DIRECTORY" --main-project="$SELECTED_PROJECT"
+    $LAUNCHER $BOOTSTRAPER_BIN GenerateSolution --main-project=`get_path $SELECTED_PROJECT` ${PARAMS[@]}
 else
     set +e
-    mono $BOOTSTRAPER_BIN --interactive --generate-entry-project --directories "${DIRECTORY:-.}" --output-directory "$OUTPUT_DIRECTORY" --binaries-directory "$BINARIES_DIRECTORY"
+    $LAUNCHER $BOOTSTRAPER_BIN --interactive --generate-entry-project ${PARAMS[@]}
     result=$?
     set -e
     clear

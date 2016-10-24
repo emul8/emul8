@@ -13,7 +13,9 @@ if [ -z "$ROOT_PATH" -a -x "$(command -v realpath)" ]; then
     ROOT_PATH="`dirname \`realpath $0\``"
 fi
 
-TARGET="./target/Emul8.sln"
+. ${ROOT_PATH}/Tools/common.sh
+
+TARGET=`get_path "./target/Emul8.sln"`
 
 export CLEAN=false
 export INSTALL=false
@@ -40,7 +42,7 @@ while getopts ":cidv" opt; do
   esac
 done
 
-if [ ! -f "target/Emul8.sln" ]
+if [ ! -f $TARGET ]
 then
     ./bootstrap.sh
 fi
@@ -53,16 +55,15 @@ then
 fi
 
 # Build CCTask in Release configuration
-xbuild /p:Configuration=Release $ROOT_PATH/External/cctask/CCTask.sln > /dev/null
+$CS_COMPILER /p:Configuration=Release `get_path $ROOT_PATH/External/cctask/CCTask.sln` > /dev/null
 
 # Build Termsharp in Release configuration
-
-xbuild /p:Configuration=Release $ROOT_PATH/External/TermsharpConsole/TermsharpConsole.sln
+$CS_COMPILER /p:Configuration=Release `get_path $ROOT_PATH/External/TermsharpConsole/TermsharpConsole.sln`
 
 if $CLEAN
 then
-    xbuild /t:Clean /p:Configuration=Debug $TARGET
-    xbuild /t:Clean /p:Configuration=Release $TARGET
+    $CS_COMPILER /t:Clean /p:Configuration=Debug $TARGET
+    $CS_COMPILER /t:Clean /p:Configuration=Release $TARGET
     rm -fr $ROOT_PATH/output
     exit 0
 fi
@@ -85,7 +86,7 @@ retries=5
 while [ \( ${result_code:-134} -eq 134 \) -a \( $retries -ne 0 \) ]
 do
     set +e
-    xbuild /p:OutputPath=$PWD/output/$CONFIGURATION $PARAMS $TARGET $ADDITIONAL_PARAM
+    $CS_COMPILER /p:OutputPath=`get_path $PWD/output/$CONFIGURATION` $PARAMS $TARGET $ADDITIONAL_PARAM
     result_code=$?
     set -e
     retries=$((retries-1))
@@ -93,6 +94,11 @@ done
 
 if $INSTALL
 then
+    if $ON_WINDOWS
+    then
+        echo "Installing using this script is not supported on Windows."
+        exit 1
+    fi
     INSTALLATION_PATH="/usr/local/bin/emul8"
     echo "Installing Emul8 in: $INSTALLATION_PATH"
     sudo ln -sf $ROOT_PATH/run.sh $INSTALLATION_PATH
