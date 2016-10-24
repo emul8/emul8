@@ -26,7 +26,7 @@
       <CompilationFlags Include="-I $(TcgDirectory)/$(Architecture)" />
       <CompilationFlags Include="-I $(TcgDirectory) " />
       <CompilationFlags Include="-fomit-frame-pointer" />
-      <CompilationFlags Include="-fPIC " Condition=" $(HostWordSize) == '64'" />
+      <CompilationFlags Include="-fPIC " Condition=" $(HostWordSize) == '64' and $(CurrentPlatform) != 'Windows'" />
       <CompilationFlags Include="-g3 " Condition=" $(Configuration) == 'Debug'" />
       <CompilationFlags Include="-m32 " Condition="$(HostWordSize) == '32'" />
 
