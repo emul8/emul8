@@ -12,6 +12,9 @@ using ELFSharp;
 using System.Collections.Generic;
 using ELFSharp.ELF;
 using ELFSharp.ELF.Sections;
+using System.IO;
+using System.Text;
+using System.ComponentModel;
 
 namespace Emul8.Utilities
 {
@@ -42,10 +45,13 @@ namespace Emul8.Utilities
 
         public static bool TryLoadLibrary(string path, out IntPtr address, Relocation relocation = Relocation.Now)
         {
-            var mode = (int)relocation;
+#if EMUL8_PLATFORM_WINDOWS
+            address = WindowsLoadLibrary(path);
+#else
             //HACK: returns 0 on first call, somehow
             dlerror();
-            address = dlopen(path, mode);
+            address = dlopen(path, (int)relocation);
+#endif
             return address != IntPtr.Zero;
         }
 
@@ -57,11 +63,19 @@ namespace Emul8.Utilities
         /// </param>
         public static void UnloadLibrary(IntPtr address)
         {
+#if EMUL8_PLATFORM_WINDOWS
+            var result = WindowsCloseLibrary(address);
+            if (!result)
+            {
+                HandleError("unloading");
+            }
+#else
             var result = dlclose(address);
             if (result != 0)
             {
                 HandleError("unloading");
             }
+#endif
         }
 
         /// <summary>
@@ -84,6 +98,11 @@ namespace Emul8.Utilities
                 var machoSymtab = machO.GetCommandsOfType<ELFSharp.MachO.SymbolTable>().Single();
                 return machoSymtab.Symbols.Select(x => x.Name.TrimStart('_'));
             }
+            ELFSharp.PE.PE pe;
+            if(ELFSharp.PE.PEReader.TryLoad(path, out pe))
+            {
+                return pe.GetExportedSymbols();
+            }
             var elf = ELFReader.Load(path);
             var symtab = (ISymbolTable)elf.GetSection(".symtab");
             return symtab.Entries.Select(x => x.Name);
@@ -103,7 +122,11 @@ namespace Emul8.Utilities
         /// </param>
         public static IntPtr GetSymbolAddress(IntPtr libraryAddress, string name)
         {
+#if EMUL8_PLATFORM_WINDOWS
+            var address = WindowsGetSymbolAddress(libraryAddress, name);
+#else
             var address = dlsym(libraryAddress, name);
+#endif
             if (address == IntPtr.Zero)
             {
                 HandleError("getting symbol from");
@@ -123,21 +146,21 @@ namespace Emul8.Utilities
         /// </param>
         public static bool Exists(string name)
         {
-            var result = false;
-
-            var handle = dlopen(AppDomain.CurrentDomain.BaseDirectory + name, 1);
-            if (handle != IntPtr.Zero)
+            IntPtr lib;
+            if(TryLoadLibrary(AppDomain.CurrentDomain.BaseDirectory + name, out lib, Relocation.Lazy))
             {
-                dlclose(handle);
-                result = true;
+                UnloadLibrary(lib);
+                return true;
             }
-
-            return result;
+            return false;
         }
 
         private static void HandleError(string operation)
         {
             string message;
+#if EMUL8_PLATFORM_WINDOWS
+            message = new Win32Exception(Marshal.GetLastWin32Error()).Message;
+#else
             var messagePtr = dlerror();
             if (messagePtr == IntPtr.Zero)
             {
@@ -147,9 +170,23 @@ namespace Emul8.Utilities
             {
                 message = Marshal.PtrToStringAnsi(messagePtr);
             }
+#endif
             throw new InvalidOperationException(string.Format("Error while {1} dynamic library: {0}", message, operation));
         }
 
+#if EMUL8_PLATFORM_WINDOWS
+        [DllImport("kernel32", SetLastError=true, CharSet = CharSet.Ansi, EntryPoint="LoadLibrary")]
+        static extern IntPtr WindowsLoadLibrary([MarshalAs(UnmanagedType.LPStr)]string lpFileName);
+
+        [DllImport("kernel32.dll", EntryPoint="GetProcAddress")]
+        public static extern IntPtr WindowsGetSymbolAddress(IntPtr hModule, string symbolName);
+
+        [DllImport("kernel32.dll", EntryPoint="FreeLibrary")]
+        public static extern bool WindowsCloseLibrary(IntPtr hModule);
+
+        [DllImport("kernel32.dll", EntryPoint="GetLastError")]
+        public static extern UInt32 WindowsGetLastError();
+#else
         [DllImport("dl")]
         private static extern IntPtr dlopen(string file, int mode);
 
@@ -161,7 +198,7 @@ namespace Emul8.Utilities
 
         [DllImport("dl")]
         private static extern int dlclose(IntPtr handle);
-
+#endif
     }
 
     public enum Relocation
