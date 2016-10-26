@@ -19,7 +19,6 @@ using System.Runtime.InteropServices;
 using System.Linq.Expressions;
 using System.Drawing;
 using Emul8.Network;
-using Mono.Unix.Native;
 using System.Diagnostics;
 
 namespace Emul8.Utilities
@@ -697,17 +696,6 @@ namespace Emul8.Utilities
             b = temporary;
         }
 
-        public static bool TryLockFile(string fileToLock, out int fd)
-        {
-            fd = Syscall.open(fileToLock, OpenFlags.O_CREAT | OpenFlags.O_RDWR, FilePermissions.DEFFILEMODE);
-            return TryDoFileLocking(fd, true);
-        }
-
-        public static bool TryUnlockFile(int fd)
-        {
-            return TryDoFileLocking(fd, false);
-        }
-
         public static bool CalculateUnitSuffix(double value, out double newValue, out string unit)
         {
             var units = new [] { "B", "KB", "MB", "GB", "TB" };
@@ -752,36 +740,6 @@ namespace Emul8.Utilities
                 return num + "th";
             }
         }
-
-        private static bool TryDoFileLocking(int fd, bool lockFile, FlockOperation? specificFlag = null)
-        {
-            if (fd >= 0) 
-            {
-                int res;
-                Errno lastError;
-                do
-                {
-                    res = Flock(fd, specificFlag ?? (lockFile ? FlockOperation.LOCK_EX : FlockOperation.LOCK_UN));
-                    lastError = Stdlib.GetLastError();
-                }
-                while(res != 0 && lastError == Errno.EINTR);
-                // if can't get lock ...
-                return res == 0;
-            } 
-            return false;
-        }
-
-        [Flags]
-        private enum FlockOperation
-        {
-            LOCK_SH = 1,
-            LOCK_EX = 2,
-            LOCK_NB = 4,
-            LOCK_UN = 8
-        }
-
-        [DllImport("libc", EntryPoint = "flock")]
-        private extern static int Flock(int fd, FlockOperation operation);
 
         private const int MACLength = 14;
 

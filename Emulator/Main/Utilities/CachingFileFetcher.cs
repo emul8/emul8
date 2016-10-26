@@ -64,7 +64,11 @@ namespace Emul8.Utilities
                 Logger.LogAs(this, LogLevel.Error, "Cannot perform concurrent downloads, aborting...");
                 return false;
             }
-            using(var locker = new PosixFileLocker(GetCacheIndexLocation(), true))
+#if EMUL8_PLATFORM_WINDOWS
+            using(var locker = new WindowsFileLocker(GetCacheIndexLockLocation()))
+#else
+            using(var locker = new PosixFileLocker(GetCacheIndexLockLocation()))
+#endif
             {
                 if(TryGetFromCache(uri, out fileName))
                 {
@@ -91,7 +95,7 @@ namespace Emul8.Utilities
                             var period = newNow - now;
                             if(period > progressUpdateThreshold)
                             {
-                                downloadProgressHandler.UpdateProgress(e.ProgressPercentage, 
+                                downloadProgressHandler.UpdateProgress(e.ProgressPercentage,
                                     GenerateProgressMessage(uri,
                                         e.BytesReceived, e.TotalBytesToReceive, e.ProgressPercentage, 1.0 * (e.BytesReceived - bytesDownloaded) / period.TotalSeconds));
 
@@ -359,7 +363,7 @@ namespace Emul8.Utilities
                 Directory.Delete(cacheDir, true);
             }
         }
-         
+
         private string GetBinaryFileName(int id)
         {
             var cacheDir = GetCacheLocation();
@@ -383,6 +387,11 @@ namespace Emul8.Utilities
         private static string GetCacheIndexLocation()
         {
             return Path.Combine(Misc.GetUserDirectory(), CacheIndex);
+        }
+
+        private static string GetCacheIndexLockLocation()
+        {
+            return Path.Combine(Misc.GetUserDirectory(), CacheLock);
         }
 
         private static byte[] GetSHA1Checksum(string fileName)
@@ -426,6 +435,7 @@ namespace Emul8.Utilities
         private object concurrentLock = new object();
         private const string CacheDirectory = "cached_binaries";
         private const string CacheIndex = "binaries_index";
+        private const string CacheLock = "cache_lock";
         private readonly Dictionary<string, Uri> fetchedFiles;
 
         private static readonly Serializer Serializer = new Serializer(new Settings(versionTolerance: VersionToleranceLevel.AllowGuidChange | VersionToleranceLevel.AllowAssemblyVersionChange));
@@ -438,7 +448,7 @@ namespace Emul8.Utilities
                 this.Index = index;
                 this.Size = size;
                 this.Checksum = checksum;
-            }                  
+            }
 
             public int Index { get; set; }
             public long Size { get; set; }
