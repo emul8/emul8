@@ -20,12 +20,33 @@ using System.Threading;
 using LZ4n;
 using Emul8.UserInterface;
 using Emul8.Core;
+#if EMUL8_PLATFORM_WINDOWS
+using System.Reflection.Emit;
+using System.Reflection;
+#endif
 
 namespace Emul8.Peripherals.Memory
 {
     [Icon("memory")]
     public sealed class MappedMemory : IBytePeripheral, IWordPeripheral, IDoubleWordPeripheral, IMapped, IDisposable, IKnownSize, ISpeciallySerializable, IMemory, IMultibyteWritePeripheral
     {
+#if EMUL8_PLATFORM_WINDOWS
+        static MappedMemory()
+        {
+            var dynamicMethod = new DynamicMethod("Memset", MethodAttributes.Public | MethodAttributes.Static, CallingConventions.Standard,
+                null, new [] { typeof(IntPtr), typeof(byte), typeof(int) }, typeof(MappedMemory), true);
+
+            var generator = dynamicMethod.GetILGenerator();
+            generator.Emit(OpCodes.Ldarg_0);
+            generator.Emit(OpCodes.Ldarg_1);
+            generator.Emit(OpCodes.Ldarg_2);
+            generator.Emit(OpCodes.Initblk);
+            generator.Emit(OpCodes.Ret);
+
+            MemsetDelegate = (Action<IntPtr, byte, int>)dynamicMethod.CreateDelegate(typeof(Action<IntPtr, byte, int>));
+        }
+#endif
+
         public MappedMemory(uint size, int? segmentSize = null)
         {
             if(segmentSize == null)
@@ -223,7 +244,7 @@ namespace Emul8.Peripherals.Memory
                 this.NoisyLog(string.Format("Segment no {1} allocated at 0x{0:X} (aligned to 0x{2:X}).",
                     allocSeg.ToInt64(), segmentNo, alignedPointer.ToInt64()));
                 originalPointers[segmentNo] = allocSeg;
-                MemSet(allocSeg, 0, SegmentSize);
+                MemSet(allocSeg, (byte)0, SegmentSize);
                 var segmentTouched = SegmentTouched;
                 if(segmentTouched != null)
                 {
@@ -244,7 +265,7 @@ namespace Emul8.Peripherals.Memory
         {
             foreach(var segment in segments.Where(x => x != IntPtr.Zero))
             {
-                MemSet(segment, 0, SegmentSize);
+                MemSet(segment, (byte)0, SegmentSize);
             }
         }
 
@@ -433,8 +454,17 @@ namespace Emul8.Peripherals.Memory
             return Marshal.AllocHGlobal(SegmentSize + Alignment);
         }
 
+#if EMUL8_PLATFORM_WINDOWS
+        private static void MemSet(IntPtr pointer, byte value, int length)
+        {                
+            MemsetDelegate(pointer, value, length);
+        }
+
+        private static Action<IntPtr, byte, int> MemsetDelegate;
+#else
         [DllImport("libc", EntryPoint = "memset")]
-        private static extern IntPtr MemSet(IntPtr pointer, int value, int length);
+        private static extern IntPtr MemSet(IntPtr pointer, byte value, int length);
+#endif
 
         private readonly bool emptyCtorUsed;
         private IntPtr[] segments;
