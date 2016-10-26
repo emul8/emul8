@@ -5,6 +5,7 @@
 // This file is part of the Emul8 project.
 // Full license details are defined in the 'LICENSE' file.
 //
+#if EMUL8_PLATFORM_LINUX
 using System;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -174,4 +175,4 @@ namespace Emul8.TAPHelper
         #endregion
     }
 }
-
+#endif
