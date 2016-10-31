@@ -150,8 +150,13 @@ namespace Emul8.Peripherals.CPU
             return StartInVle ? 1u : 0u;
         }
 
+        // 649:  Field '...' is never assigned to, and will always have its default value null
+        #pragma warning disable 649
+
         [Import]
         private FuncInt32Int32Int32 TlibSetPendingInterrupt;
+
+        #pragma warning restore 649
 
         private uint tb;
         private readonly object irqSync;

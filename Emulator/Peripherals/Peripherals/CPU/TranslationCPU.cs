@@ -1727,6 +1727,9 @@ namespace Emul8.Peripherals.CPU
         {
         }
 
+        // 649:  Field '...' is never assigned to, and will always have its default value null
+        #pragma warning disable 649
+
         [Import]
         private FuncInt32String TlibInit;
 
@@ -1816,6 +1819,8 @@ namespace Emul8.Peripherals.CPU
 
         [Import]
         private FuncInt32 TlibGetStateSize;
+
+        #pragma warning restore 649
 
         private readonly HashSet<long> pagesAccessedByIo;
 
