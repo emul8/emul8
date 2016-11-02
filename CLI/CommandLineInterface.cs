@@ -70,6 +70,7 @@ namespace Emul8.CLI
                     }
                     else if(options.ConsoleMode)
                     {
+#if !EMUL8_PLATFORM_WINDOWS
                         preferredUARTAnalyzer = typeof(UARTMultiplexedBackendAnalyzer);
 
                         var stream = new PtyUnixStream("/dev/fd/1");
@@ -83,6 +84,7 @@ namespace Emul8.CLI
 
                         shell = ShellProvider.GenerateShell(monitor);
                         consoleTerm.AttachTerminal("shell", shell.Terminal);
+#endif
                     }
                     else
                     {
