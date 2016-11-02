@@ -268,7 +268,6 @@ namespace Emul8.Peripherals.DMA
             public uint DestinationAddressValue;
             public uint CurrentTransferedElementNumber;
             public uint CurrentTransferedFrameNumber;
-            public uint ColorKey;
             public uint LinkListParameters;
             public uint NextDescriptorPointer;
             public uint CurrentActiveDescriptor;
@@ -292,7 +291,6 @@ namespace Emul8.Peripherals.DMA
                 DestinationAddressValue = 0x38,
                 CurrentTransferedElementNumber = 0x3C,
                 CurrentTransferedFrameNumber = 0x40,
-                ColorKey = 0x44,
                 LinkListParameters = 0x50,
                 NextDescriptorPointer = 0x54,
                 CurrentActiveDescriptor = 0x5C
