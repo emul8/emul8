@@ -7,7 +7,9 @@
 //
 using System;
 using System.IO;
+#if !EMUL8_PLATFORM_WINDOWS
 using Mono.Unix.Native;
+#endif
 using System.Runtime.InteropServices;
 using Emul8.Exceptions;
 using Emul8.Core;
@@ -20,6 +22,7 @@ namespace Emul8.Utilities
         {
             try
             {
+#if !EMUL8_PLATFORM_WINDOWS                
                 if (ConfigurationManager.Instance.Get("file-system", "use-cow", false))
                 {
                     var sfd = Syscall.open(src, OpenFlags.O_RDONLY);
@@ -30,7 +33,8 @@ namespace Emul8.Utilities
                         return;
                     }
                 }
-                    
+#endif
+ 
                 var lastTime = CustomDateTime.Now;
                 using(var source = File.Open(src, FileMode.Open, FileAccess.Read))
                 {
@@ -66,8 +70,10 @@ namespace Emul8.Utilities
             }
         }
 
+#if !EMUL8_PLATFORM_WINDOWS
         [DllImport("libc")]
         private extern static int ioctl(int d, ulong request, int a);
+#endif
     }
 }
 
