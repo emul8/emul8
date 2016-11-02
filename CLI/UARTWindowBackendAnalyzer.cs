@@ -73,8 +73,7 @@ namespace Emul8.CLI
                     {TerminalTypes.XTerm, CreateXtermWindow},
                     {TerminalTypes.Putty, CreatePuttyWindow},
                     {TerminalTypes.GnomeTerminal, CreateGnomeTerminalWindow},
-                    {TerminalTypes.TerminalApp, CreateTerminalAppWindow},
-                    {TerminalTypes.Termsharp, CreateTermsharpWindow}
+                    {TerminalTypes.TerminalApp, CreateTerminalAppWindow}
                 };
 
                 var commandString = string.Format("screen {0}", Name);
@@ -324,39 +323,6 @@ namespace Emul8.CLI
                     if (proc.ExitCode != 0)
                     {
                         LogError("Terminal.app", arguments, proc.ExitCode);
-                    }
-                };
-                p.Start();
-                return true;
-            }
-            catch(Win32Exception)
-            {
-            }
-            p = null;
-            return false;
-        }
-
-        private bool CreateTermsharpWindow(string arg, out Process p)
-        {
-            try
-            {
-                p = new Process();
-                p.EnableRaisingEvents = true;
-
-                var arguments = string.Format("{0} {1}", Name, Name);
-                p.StartInfo = new ProcessStartInfo(Path.Combine(Directory.GetCurrentDirectory(), "External/TermsharpConsole/bin/Release/TermsharpConsole.exe"), arguments)
-                {
-                    UseShellExecute = false,
-                    RedirectStandardError = true,
-                    RedirectStandardOutput = true,
-                    RedirectStandardInput = true
-                };
-                p.Exited += (sender, e) =>
-                {
-                    var proc = sender as Process;
-                    if(proc.ExitCode != 0)
-                    {
-                        LogError("Termsharp", arguments, proc.ExitCode);
                     }
                 };
                 p.Start();
