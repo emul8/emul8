@@ -75,6 +75,7 @@
       <HintPath>..\..\External\Lib\Lucene.Net.dll</HintPath>
     </Reference>
   </ItemGroup>
+  <Import Project="../../target/properties.csproj" />
   <ItemGroup>
     <Compile Include="AssemblyInfo.cs" />
     <Compile Include="Peripherals\IPeripheral.cs" />
