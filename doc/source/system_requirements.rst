@@ -36,7 +36,6 @@ Before you start the build procedure make sure that the following components are
 * *llvm* (``llvm``)
 * *libtool* (``libtool``)
 * *g++* (``g++``)
-* *vte-sharp* (``libvte0.16-cil-dev``)
 * *gksudo* (``gksu``)
 * *libgtk* (``libgtk2.0-dev``)
 * *dialog* (``dialog``)

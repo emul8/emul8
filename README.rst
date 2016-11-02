@@ -38,7 +38,7 @@ The package names for prerequisites are given for Ubuntu 14.04 (please adjust th
    echo "deb http://download.mono-project.com/repo/debian wheezy main" | sudo tee /etc/apt/sources.list.d/mono-xamarin.list
    sudo apt-get update
    sudo apt-get install git mono-complete automake autoconf libtool g++ realpath \
-                        libvte0.16-cil-dev gksu libgtk2.0-dev dialog screen uml-utilities gtk-sharp2
+                        gksu libgtk2.0-dev dialog screen uml-utilities gtk-sharp2
 
 .. note::
 
