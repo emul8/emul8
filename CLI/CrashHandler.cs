@@ -22,9 +22,7 @@ namespace Emul8.CLI
             while(ex != null)
             {
                 Console.Error.WriteLine(ex.Message);
-                #if DEBUG
                 Console.Error.WriteLine(ex.StackTrace);
-                #endif
                 ex = ex.InnerException;
                 if(ex != null)
                 {
