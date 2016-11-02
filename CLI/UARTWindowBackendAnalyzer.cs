@@ -18,7 +18,9 @@ using Emul8.Exceptions;
 using System.ComponentModel;
 using AntShell.Terminal;
 using System.Threading;
+#if !EMUL8_PLATFORM_WINDOWS
 using Mono.Unix.Native;
+#endif
 using TermSharp.Vt100;
 using Xwt;
 
@@ -29,17 +31,27 @@ namespace Emul8.CLI
         // this constructor is needed by the monitor; do not remove it
         public UARTWindowBackendAnalyzer()
         {
+#if EMUL8_PLATFORM_WINDOWS
+            preferredTerminal = ConfigurationManager.Instance.Get("general", "terminal", TerminalTypes.Termsharp);
+            if(preferredTerminal != TerminalTypes.Termsharp)
+            {
+                Logger.LogAs(this, LogLevel.Warning, "Only >>Termsharp<< terminal is available on Windows - forcing to use it.");
+            }
+#else
             preferredTerminal = ConfigurationManager.Instance.Get("general", "terminal", TerminalTypes.XTerm);
             if(preferredTerminal == TerminalTypes.Termsharp)
             {
+#endif
                 terminalWidget = new TerminalWidget();
                 IO = terminalWidget.IO;
+#if !EMUL8_PLATFORM_WINDOWS
             }
             else
             {
                 var stream = new PtyUnixStream();
                 IO = new DetachableIO(new StreamIOSource(stream, stream.Name));
             }
+#endif
         }
 
         public UARTWindowBackendAnalyzer(DetachableIO io)
@@ -55,8 +67,10 @@ namespace Emul8.CLI
 
         public void Show()
         {
+#if !EMUL8_PLATFORM_WINDOWS
             if(terminalWidget != null)
             {
+#endif
                 Emul8.Plugins.XwtProviderPlugin.ApplicationExtensions.InvokeInUIThreadAndWait(() => {
                     window = new Window();
                     window.Title = "TERMINAL";
@@ -65,6 +79,7 @@ namespace Emul8.CLI
                     window.Content = terminalWidget;
                     window.Show();
                 });
+#if !EMUL8_PLATFORM_WINDOWS
             }
             else
             {
@@ -98,6 +113,7 @@ namespace Emul8.CLI
                 //
                 // This will be finally changed to our own implementation of VirtualTerminalEmulator.
             }
+#endif
         }
 
         public void Hide()
@@ -159,6 +175,7 @@ namespace Emul8.CLI
 
         private static Tuple<int, int> StartingPosition = Tuple.Create(10, 10);
 
+#if !EMUL8_PLATFORM_WINDOWS
         private bool CreateGnomeTerminalWindow(string command, out Process p)
         {
             try
@@ -334,6 +351,7 @@ namespace Emul8.CLI
             p = null;
             return false;
         }
+#endif
 
         private void LogError(string source, string arguments, int exitCode)
         {
