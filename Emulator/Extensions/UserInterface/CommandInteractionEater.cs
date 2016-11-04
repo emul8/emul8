@@ -76,9 +76,25 @@ namespace Emul8.UserInterface
 
         public void WriteError(string error)
         {
+            ErrorDetected = true;
             if(verbose)
             {
                 Console.WriteLine("ERROR: " + error);
+            }
+        }
+
+        public bool ErrorDetected 
+        { 
+            get
+            {
+                var result = errorDetected;
+                errorDetected = false;
+                return result;
+            }
+
+            private set
+            {
+                errorDetected = value;
             }
         }
 
@@ -87,6 +103,7 @@ namespace Emul8.UserInterface
         public bool QuitEnvironment { get; set; }
 
         private bool verbose;
+        private bool errorDetected;
     }
 }
 

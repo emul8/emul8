@@ -44,7 +44,7 @@ namespace Emul8.SystemTests
             // this must be set before creating monitor
             ConfigurationManager.Instance.SetNonPersistent("monitor", "consume-exceptions-from-command", false);
 
-            monitor = new Monitor { Interaction = new DummyCommandInteraction() };
+            monitor = new Monitor { Interaction = new DummyCommandInteraction(true) };
 
             context = ObjectCreator.Instance.OpenContext();
             context.RegisterSurrogate(typeof(Monitor), monitor);
@@ -88,6 +88,7 @@ namespace Emul8.SystemTests
                     };
                 };
                 Assert.IsTrue(monitor.TryExecuteScript(demo), "Failed to load script {0}", demo);
+                Assert.IsFalse(((DummyCommandInteraction)monitor.Interaction).ErrorDetected);
             }
             catch(ObjectDisposedException)
             {
