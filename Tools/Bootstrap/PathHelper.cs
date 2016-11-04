@@ -22,19 +22,28 @@ namespace Emul8.Bootstrap
         {
             var segmentedWorkingDirs = workingDirs.Select(x => x.Split(new [] { Path.DirectorySeparatorChar }, StringSplitOptions.RemoveEmptyEntries)).ToArray();
             var segmentsCount = segmentedWorkingDirs.Min(x => x.Length);
-            
+#if WINDOWS
+            // on Windows path starts with drive letter
             var prefixSegments = new List<string>();
+#else
+            // on linux/osx path starts with directory separator path
+            var prefixSegments = new List<string>() { Path.DirectorySeparatorChar.ToString() };
+#endif
+
             for (int i = 0; i < segmentsCount; i++)
             {
                 if(segmentedWorkingDirs.Select(x => x[i]).Distinct().Count() != 1)
                 {
                     break;
                 }
-                
-                prefixSegments.Add(segmentedWorkingDirs[0][i]);
+
+                // there are two reasons why we concatenate a segment with the directory separator:
+                // (1) on Windows, drive letter must be followed by this, otherwise combining will fail,
+                // (2) we want the resulting string to be ended with the separator;
+                prefixSegments.Add(string.Format("{0}{1}", segmentedWorkingDirs[0][i], Path.DirectorySeparatorChar));
             }
             
-            workingDirectory = Path.GetFullPath(Path.DirectorySeparatorChar + string.Join(Path.DirectorySeparatorChar.ToString(), prefixSegments)) + Path.DirectorySeparatorChar;
+            workingDirectory = Path.Combine(prefixSegments.ToArray());
         }
 
         /// <summary>
