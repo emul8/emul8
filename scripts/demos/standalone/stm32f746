@@ -4,8 +4,6 @@ using sysbus
 mach create
 include @platforms/boards/stm32f746
 
-plugins EnablePlugin "XwtProvider"
-
 showAnalyzer usart1
 showAnalyzer LTDC
 
