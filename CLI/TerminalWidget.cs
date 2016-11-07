@@ -40,9 +40,13 @@ namespace Emul8.CLI
             terminal.Cursor.Enabled = true;
             terminal.ContextMenu = CreatePopupMenu();
 
+#if EMUL8_PLATFORM_WINDOWS
+            terminal.CurrentFont = Xwt.Drawing.Font.SystemMonospaceFont;
+#else
             var fontFile = typeof(TerminalWidget).Assembly.FromResourceToTemporaryFile("RobotoMono-Regular.ttf");
             Xwt.Drawing.Font.RegisterFontFromFile(fontFile);
             terminal.CurrentFont = Xwt.Drawing.Font.FromName("Roboto Mono").WithSize(10);
+#endif
 
             var encoder = new TermSharp.Vt100.Encoder(x =>
             {
