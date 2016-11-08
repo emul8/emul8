@@ -42,7 +42,11 @@ namespace Emul8.CLI
 
             var fontFile = typeof(TerminalWidget).Assembly.FromResourceToTemporaryFile("RobotoMono-Regular.ttf");
             Xwt.Drawing.Font.RegisterFontFromFile(fontFile);
-            terminal.CurrentFont = Xwt.Drawing.Font.FromName("Roboto Mono").WithSize(10);
+            var robotoFont = Xwt.Drawing.Font.FromName("Roboto Mono").WithSize(10);
+            if(robotoFont.Family.Contains("Roboto Mono"))
+            {
+                terminal.CurrentFont = Xwt.Drawing.Font.FromName("Roboto Mono").WithSize(10);
+            }
 
             var encoder = new TermSharp.Vt100.Encoder(x =>
             {
