@@ -267,7 +267,9 @@ namespace Emul8.UserInterface
             var result = tokenizer.Tokenize(cmd);
             if(result.UnmatchedCharactersLeft != 0)
             {
-                if(result.Tokens.Any(x => x is VariableToken))
+                //Reevaluate the expression if the tokenization failed, but expanding the variables may help.
+                //E.g. i $ORIGIN/dir/script. This happens only if the variable is the last successful token.
+                if(result.Tokens.Last() is VariableToken)
                 {
                     var tokensAfter = ExpandVariables(result.Tokens);
                     var newString = tokensAfter.Select(x => x.OriginalValue).Stringify() + cmd.Substring(cmd.Length - result.UnmatchedCharactersLeft);
