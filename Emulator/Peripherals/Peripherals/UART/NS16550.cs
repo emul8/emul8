@@ -84,14 +84,21 @@ namespace Emul8.Peripherals.UART
                     }
                     Update();
 
-                    lineStatus |= LineStatus.TransmitHoldEmpty;
+                    if((fifoControl & FifoControl.IsEnabled) == 0 || (interruptEnable & InterruptEnableLevel.ProgrammableTransmitHoldEmptyInterruptMode) == 0)
+                    {
+                        lineStatus |= LineStatus.TransmitHoldEmpty;
+                    }
                     lineStatus |= LineStatus.TransmitterEmpty;
                     transmitNotPending = 1;
                     Update();
                     break;
 
                 case Register.InterruptEnable:
-                    interruptEnable = (InterruptEnableLevel)(value & 0x0F);
+                    interruptEnable = (InterruptEnableLevel)value;
+                    if((fifoControl & FifoControl.IsEnabled) != 0 && (interruptEnable & InterruptEnableLevel.ProgrammableTransmitHoldEmptyInterruptMode) != 0)
+                    {
+                        lineStatus &= ~LineStatus.TransmitHoldEmpty;
+                    }
 
                     if((lineStatus & LineStatus.TransmitHoldEmpty) != 0)
                     {
@@ -263,6 +270,7 @@ namespace Emul8.Peripherals.UART
                             lineStatus &= ~(LineStatus.BreakIrqIndicator | LineStatus.OverrunErrorIndicator);
                             Update();
                         }
+                        lineStatus &= ~(LineStatus.OverrunErrorIndicator | LineStatus.ParityErrorIndicator | LineStatus.FrameErrorIndicator | LineStatus.BreakIrqIndicator | LineStatus.ReceiverFIFOError);
                         break;
 
                     case Register.ModemStatusRegister:
@@ -332,7 +340,6 @@ namespace Emul8.Peripherals.UART
             lock(UARTLock)
             {
                 if((fifoControl & FifoControl.Enable) != 0 || true)//HACK : fifo always enabled
-                
                 {
                     recvFifo.Enqueue(value);
                     lineStatus |= LineStatus.DataReady;
@@ -472,6 +479,7 @@ namespace Emul8.Peripherals.UART
         [Flags]
         private enum InterruptEnableLevel : byte
         {
+            ProgrammableTransmitHoldEmptyInterruptMode = 0x80,
             ModemStatus = 0x08,
             ReceiverLineStatus = 0x04,
             TransmitterHoldingReg = 0x02,
@@ -517,6 +525,7 @@ namespace Emul8.Peripherals.UART
         [Flags]
         private enum LineStatus : byte
         {
+            ReceiverFIFOError = 0x80,
             TransmitterEmpty = 0x40,
             TransmitHoldEmpty = 0x20,
             BreakIrqIndicator = 0x10,
