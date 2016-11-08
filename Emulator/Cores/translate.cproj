@@ -136,8 +136,6 @@
 
   <Target Name="Clean">
       <MSBuild Projects="tcg.cproj" Targets="Clean" />
-      <Exec Command="rm -rf config" />
-      <Exec Command="rm -rf obj" />
-      <Exec Command="rm -rf bin" />
+      <RemoveDir Directories="config;obj;bin" />
   </Target>
 </Project>
