@@ -42,7 +42,7 @@ namespace Emul8.Peripherals.UART
 
         public void WriteByte(long offset, byte value)
         {
-            if(mode32 & ((offset % 4) == 0))
+            if(mode32 && ((offset % 4) == 0))
             {
                 offset = offset / 4;
             }
@@ -101,7 +101,6 @@ namespace Emul8.Peripherals.UART
                     break;
 
                 case Register.FIFOControl:
-                 //   this.DebugLog("fifo control write");
                     var val = (FifoControl)value;
                     if(fifoControl == val)
                     {
@@ -179,7 +178,7 @@ namespace Emul8.Peripherals.UART
 
         public byte ReadByte(long offset)
         {
-            if(mode32 & ((offset % 4) == 0))
+            if(mode32 && ((offset % 4) == 0))
             {
                 offset = offset / 4;
             }
@@ -320,14 +319,12 @@ namespace Emul8.Peripherals.UART
 
         public uint ReadDoubleWord(long offset)
         {
-            // this.NoisyLog("Read {0} double word", offset);
-            return (uint)ReadByte(offset >> 2);
+            return (uint)ReadByte(offset);
         }
 
         public void WriteDoubleWord(long offset, uint value)
         {
-            //    this.NoisyLog("Write {0} double word", offset, value);
-            WriteByte(offset >> 2, (byte)(value & 0xFF));
+            WriteByte(offset, (byte)(value & 0xFF));
         }
 
         private void WriteCharInner(byte value)
