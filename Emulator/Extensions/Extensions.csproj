@@ -153,20 +153,6 @@
     <Compile Include="Utilities\ICpuSupportingGdb.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
-  <ItemGroup>
-    <Folder Include="Utilities\" />
-    <Folder Include="UserInterface\" />
-    <Folder Include="Backends\" />
-    <Folder Include="Backends\Display\" />
-    <Folder Include="UserInterface\Commands\" />
-    <Folder Include="TAPHelper\" />
-    <Folder Include="Backends\Display\xInput\" />
-    <Folder Include="UserInterface\Exceptions\" />
-    <Folder Include="Time\" />
-    <Folder Include="Analyzers\" />
-    <Folder Include="Utilities\GDB\" />
-    <Folder Include="Utilities\GDB\Commands\" />
-  </ItemGroup>
   <ProjectExtensions>
     <Emul8>
       <ProjectInfo Type="Extension" />

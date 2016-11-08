@@ -109,9 +109,6 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Resources\" />
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Include="Resources\RobotoMono-Regular.ttf">
       <LogicalName>RobotoMono-Regular.ttf</LogicalName>
     </EmbeddedResource>

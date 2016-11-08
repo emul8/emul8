@@ -86,7 +86,4 @@
       <Name>Extensions</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Progress\" />
-  </ItemGroup>
 </Project>

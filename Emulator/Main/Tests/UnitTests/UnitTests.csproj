@@ -87,13 +87,6 @@
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
-    <Folder Include="Mocks\" />
-    <Folder Include="Collections\" />
-    <Folder Include="PythonPeripherals\" />
-    <Folder Include="Utilities\" />
-    <Folder Include="SymbolLookup\" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\..\Emulator.csproj">
       <Project>{2901AECB-A54F-4FD8-9AC1-033D86DC7257}</Project>
       <Name>Emulator</Name>

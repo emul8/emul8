@@ -57,13 +57,6 @@
     </Compile>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
-  <ItemGroup>
-    <Folder Include="Peripherals\" />
-    <Folder Include="Peripherals\CPU\" />
-    <Folder Include="Peripherals\UART\" />
-    <Folder Include="Peripherals\CPU\Disassembler\" />
-    <Folder Include="Peripherals\CPU\Registers\" />
-  </ItemGroup>
   <ProjectExtensions>
     <Emul8>
       <ProjectInfo Type="Extension" />

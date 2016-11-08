@@ -73,9 +73,6 @@
       <Name>Extensions</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Arm\Timers\" />
-  </ItemGroup>
   <ProjectExtensions>
     <Emul8>
       <ProjectInfo Type="CpuCore" />

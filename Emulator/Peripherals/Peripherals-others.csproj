@@ -163,22 +163,6 @@
     <Compile Include="Peripherals\Miscellaneous\STM32_SYSCFG.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
-  <ItemGroup>
-    <Folder Include="Peripherals\" />
-    <Folder Include="Peripherals\UART\" />
-    <Folder Include="Peripherals\CPU\" />
-    <Folder Include="Peripherals\MemoryCard\" />
-    <Folder Include="Peripherals\DMA\" />
-    <Folder Include="Peripherals\Miscellaneous\" />
-    <Folder Include="Peripherals\I2C\" />
-    <Folder Include="Peripherals\Cache\" />
-    <Folder Include="Peripherals\Bus\" />
-    <Folder Include="Peripherals\MemoryControllers\" />
-    <Folder Include="Peripherals\CAN\" />
-    <Folder Include="Peripherals\Input\" />
-    <Folder Include="Peripherals\MTD\" />
-    <Folder Include="Peripherals\GPIOPort\" />
-  </ItemGroup>
   <ProjectExtensions>
     <Emul8>
       <ProjectInfo Type="Extension" />

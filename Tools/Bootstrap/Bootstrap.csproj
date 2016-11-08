@@ -89,13 +89,6 @@
     </MonoDevelop>
   </ProjectExtensions>
   <ItemGroup>
-    <Folder Include="Dialog\" />
-    <Folder Include="Paging\" />
-    <Folder Include="Paging\Steps\" />
-    <Folder Include="Elements\" />
-    <Folder Include="Elements\Projects\" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\..\External\options-parser\OptionsParser.csproj">
       <Project>{C56AABEF-C01E-493F-A65F-09A572FE9B2E}</Project>
       <Name>OptionsParser</Name>
