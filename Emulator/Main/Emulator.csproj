@@ -240,7 +240,7 @@
     <Compile Include="Core\PropertyTagParser.cs" />
     <Compile Include="Peripherals\Timers\SimpleTicker.cs" />
     <Compile Include="Peripherals\Wireless\IRadio.cs" />
-    <Compile Include="Peripherals\Wireless\WirelessMedium.cs" />
+    <Compile Include="Peripherals\Wireless\AdvancedWirelessMedium.cs" />
     <Compile Include="Utilities\ProgressMonitor.cs" />
     <Compile Include="Utilities\IProgressMonitorHandler.cs" />
     <Compile Include="Peripherals\GPIOPort\BaseGPIOPort.cs" />
@@ -370,6 +370,9 @@
     <Compile Include="Peripherals\CPU\ExecutionMode.cs" />
     <Compile Include="Utilities\MemberReferenceExtensions.cs" />
     <Compile Include="Utilities\WindowsFileLocker.cs" />
+    <Compile Include="Peripherals\Wireless\Position.cs" />
+    <Compile Include="Peripherals\Wireless\IMediumFunction.cs" />
+    <Compile Include="Peripherals\Wireless\SimpleMediumFunction.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup />

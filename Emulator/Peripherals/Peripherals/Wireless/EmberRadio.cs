@@ -254,7 +254,7 @@ namespace Emul8.Peripherals.Wireless
                     var frameSent = FrameSent;
                     if(frameSent != null)
                     {
-                        frameSent(dataToSend);
+                        frameSent(this, dataToSend);
                     }
                 }
 
@@ -292,7 +292,7 @@ namespace Emul8.Peripherals.Wireless
 
         #region IRadio implementation
 
-        public event Action<byte[]> FrameSent;
+        public event Action<IRadio, byte[]> FrameSent;
 
         public void ReceiveFrame(byte[] frame)
         {

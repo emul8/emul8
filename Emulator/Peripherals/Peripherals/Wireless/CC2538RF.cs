@@ -338,14 +338,14 @@ namespace Emul8.Peripherals.Wireless
             var frameSent = FrameSent;
             if(frameSent != null && ackFrame != null)
             {
-                frameSent(ackFrame.Bytes);
+                frameSent(this, ackFrame.Bytes);
                 irqHandler.RequestInterrupt(InterruptSource.TxAckDone);
             }
 
             irqHandler.RequestInterrupt(InterruptSource.RxPktDone);
         }
 
-        public event Action<byte[]> FrameSent;
+        public event Action<IRadio, byte[]> FrameSent;
         public GPIO IRQ { get; private set; }
         public long Size { get { return 0x1000; } }
 
@@ -563,7 +563,7 @@ namespace Emul8.Peripherals.Wireless
             var frameSent = FrameSent;
             if(frameSent != null)
             {
-                frameSent(frame.Bytes);
+                frameSent(this, frame.Bytes);
             }
 
             irqHandler.RequestInterrupt(InterruptSource.TxDone);
