@@ -413,6 +413,7 @@
     </ProjectReference>
   </ItemGroup>
   <Target Name="CreateAssemblyVersionInfo" BeforeTargets="PrepareForBuild">
-    <Exec Command="bash -c ./createAssemblyVersionInfo.sh" />
+    <Exec Command="bash -c ./createAssemblyVersionInfo.sh" Condition="$(CurrentPlatform) != 'Windows'" />
+    <Exec Command="powershell -File createAssemblyVersionInfo.ps1 -ExecutionPolicy unrestricted" Condition="$(CurrentPlatform) == 'Windows'" />
   </Target>
 </Project>
