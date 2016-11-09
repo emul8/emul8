@@ -8,8 +8,9 @@
 using System;
 using System.Text;
 using System.Runtime.InteropServices;
+using Emul8.Peripherals.CPU.Disassembler;
 
-namespace Emul8.Peripherals.CPU.Disassembler
+namespace Emul8.Disassembler.LLVM
 {
     public static class CortexMAddressTranslator
     {

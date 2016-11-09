@@ -136,7 +136,7 @@ namespace Emul8.Peripherals.CPU.Disassembler
             return true;
         }
 
-        public DisassemblerType CurrentDisassemblerType { get { return disassembler == null ? DisassemblerType.None : disassembler.Type; } }
+        public string CurrentDisassemblerType { get { return disassembler == null ? string.Empty : disassembler.Name; } }
 
         private string Disassemble(uint pc, uint physical, uint size, uint flags)
         {

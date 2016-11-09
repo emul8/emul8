@@ -7,6 +7,8 @@
 //
 using System;
 using Emul8.Peripherals.CPU.Disassembler;
+using System.Reflection;
+using System.Linq;
 
 namespace Emul8.Peripherals.CPU.Disassembler
 {
@@ -15,7 +17,7 @@ namespace Emul8.Peripherals.CPU.Disassembler
     public interface IDisassembler
     {
         DisassemblyProvider Disassemble { get; }
-        DisassemblerType Type { get; }
+        string Name { get; }
     }
 }
 

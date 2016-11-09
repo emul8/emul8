@@ -9,7 +9,7 @@ using System;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace Emul8.Peripherals.CPU.Disassembler
+namespace Emul8.Disassembler.LLVM
 {
     public class LLVMDisasWrapper : IDisposable
     {
@@ -172,40 +172,40 @@ namespace Emul8.Peripherals.CPU.Disassembler
         private static bool _llvm_initialized = false;
         private static readonly object _init_locker = new object();
 
-        [DllImport("libLLVM.so")]
+        [DllImport("LLVM")]
         private static extern int LLVMDisasmInstruction(IntPtr dc, IntPtr bytes, UInt64 bytesSize, UInt64 PC, IntPtr outString, UInt32 outStringSize);
 
-        [DllImport("libLLVM.so")]
+        [DllImport("LLVM")]
         private static extern IntPtr LLVMCreateDisasmCPU(string tripleName, string cpu, IntPtr disInfo, int tagType, LLVMOpInfoCallback getOpInfo, LLVMSymbolLookupCallback symbolLookUp);
 
-        [DllImport("libLLVM.so")]
+        [DllImport("LLVM")]
         private static extern void LLVMDisasmDispose(IntPtr disasm);
 
-        [DllImport("libLLVM.so")]
+        [DllImport("LLVM")]
         private static extern void LLVMInitializeARMDisassembler();
 
-        [DllImport("libLLVM.so")]
+        [DllImport("LLVM")]
         private static extern void LLVMInitializeARMTargetMC();
 
-        [DllImport("libLLVM.so")]
+        [DllImport("LLVM")]
         private static extern void LLVMInitializeARMTargetInfo();
 
-        [DllImport("libLLVM.so")]
+        [DllImport("LLVM")]
         private static extern void LLVMInitializeMipsDisassembler();
 
-        [DllImport("libLLVM.so")]
+        [DllImport("LLVM")]
         private static extern void LLVMInitializeMipsTargetMC();
 
-        [DllImport("libLLVM.so")]
+        [DllImport("LLVM")]
         private static extern void LLVMInitializeMipsTargetInfo();
 
-        [DllImport("libLLVM.so")]
+        [DllImport("LLVM")]
         private static extern void LLVMInitializeX86Disassembler();
 
-        [DllImport("libLLVM.so")]
+        [DllImport("LLVM")]
         private static extern void LLVMInitializeX86TargetMC();
 
-        [DllImport("libLLVM.so")]
+        [DllImport("LLVM")]
         private static extern void LLVMInitializeX86TargetInfo();
 
         private static readonly ulong LLVMDisassembler_VariantKind_None = 0;
@@ -216,56 +216,56 @@ namespace Emul8.Peripherals.CPU.Disassembler
 
         private class LLVMOpInfo1
         {
-		private readonly IntPtr Ptr;
+    		private readonly IntPtr Ptr;
 
-		private readonly LLVMOpInfoSymbol1 addSymbol;
-		public LLVMOpInfoSymbol1 AddSymbol { get { return addSymbol; } }
+    		private readonly LLVMOpInfoSymbol1 addSymbol;
+    		public LLVMOpInfoSymbol1 AddSymbol { get { return addSymbol; } }
 
-		private readonly LLVMOpInfoSymbol1 subtractSymbol;
-		public LLVMOpInfoSymbol1 SubtractSymbol { get { return subtractSymbol; } }
+    		private readonly LLVMOpInfoSymbol1 subtractSymbol;
+    		public LLVMOpInfoSymbol1 SubtractSymbol { get { return subtractSymbol; } }
 
-		public UInt64 Value
-		{
-			get { return MarshalExtensions.ReadUInt64(Ptr, 2 * LLVMOpInfoSymbol1.Size); }
-			set { MarshalExtensions.WriteUInt64(Ptr, 2 * LLVMOpInfoSymbol1.Size, value); }
-		}
+    		public UInt64 Value
+    		{
+    			get { return MarshalExtensions.ReadUInt64(Ptr, 2 * LLVMOpInfoSymbol1.Size); }
+    			set { MarshalExtensions.WriteUInt64(Ptr, 2 * LLVMOpInfoSymbol1.Size, value); }
+    		}
 
-		public UInt64 VariantKind
-		{
-			get { return MarshalExtensions.ReadUInt64(Ptr, 2 * LLVMOpInfoSymbol1.Size + 8); }
-			set { MarshalExtensions.WriteUInt64(Ptr, 2 * LLVMOpInfoSymbol1.Size + 8, value); }
-		}
+    		public UInt64 VariantKind
+    		{
+    			get { return MarshalExtensions.ReadUInt64(Ptr, 2 * LLVMOpInfoSymbol1.Size + 8); }
+    			set { MarshalExtensions.WriteUInt64(Ptr, 2 * LLVMOpInfoSymbol1.Size + 8, value); }
+    		}
 
-		public LLVMOpInfo1(IntPtr ptr)
-		{
-			Ptr = ptr;
-			addSymbol = new LLVMOpInfoSymbol1(ptr);
-			subtractSymbol = new LLVMOpInfoSymbol1(ptr + LLVMOpInfoSymbol1.Size);
-		}
-	}
+    		public LLVMOpInfo1(IntPtr ptr)
+    		{
+    			Ptr = ptr;
+    			addSymbol = new LLVMOpInfoSymbol1(ptr);
+    			subtractSymbol = new LLVMOpInfoSymbol1(ptr + LLVMOpInfoSymbol1.Size);
+    		}
+    	}
 
         private class LLVMOpInfoSymbol1
         {
-	    private readonly IntPtr Ptr;
+    	    private readonly IntPtr Ptr;
 
-	    public UInt64 Present
-	    {
-		    get { return MarshalExtensions.ReadUInt64(Ptr, 0); }
-		    set { MarshalExtensions.WriteUInt64(Ptr, 0, value);   }
-	    }
+    	    public UInt64 Present
+    	    {
+    		    get { return MarshalExtensions.ReadUInt64(Ptr, 0); }
+    		    set { MarshalExtensions.WriteUInt64(Ptr, 0, value);   }
+    	    }
 
-	    public IntPtr Name
-	    {
-		    get { return Marshal.ReadIntPtr(Ptr, 8); }
-	    }
+    	    public IntPtr Name
+    	    {
+    		    get { return Marshal.ReadIntPtr(Ptr, 8); }
+    	    }
 
-	    public UInt64 Value
-	    {
-		    get { return MarshalExtensions.ReadUInt64(Ptr, 8 + IntPtr.Size); }
-		    set { MarshalExtensions.WriteUInt64(Ptr, 8 + IntPtr.Size, value); }
-	    }
+    	    public UInt64 Value
+    	    {
+    		    get { return MarshalExtensions.ReadUInt64(Ptr, 8 + IntPtr.Size); }
+    		    set { MarshalExtensions.WriteUInt64(Ptr, 8 + IntPtr.Size, value); }
+    	    }
 
-	    public static int Size { get { return 16 + IntPtr.Size; } }
+    	    public static int Size { get { return 16 + IntPtr.Size; } }
 
             public LLVMOpInfoSymbol1(IntPtr ptr)
             {

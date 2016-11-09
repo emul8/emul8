@@ -1630,7 +1630,7 @@ namespace Emul8.Peripherals.CPU
             }
         }
 
-        public DisassemblerType Disassembler
+        public string Disassembler
         {
             get
             {
@@ -1640,9 +1640,9 @@ namespace Emul8.Peripherals.CPU
             set
             {
                 IDisassembler disas = null;
-                if (value != DisassemblerType.None)
+                if(!string.IsNullOrEmpty(value))
                 {
-                    disas = DisassemblerManager.CreateDisassembler(value, this);
+                    disas = DisassemblerManager.Instance.CreateDisassembler(value, this);
                     if(disas == null)
                     {
                         throw new RecoverableException(string.Format("Could not create disassembler of type: {0}. Are you missing an extension library or a plugin?", value));
@@ -1653,9 +1653,9 @@ namespace Emul8.Peripherals.CPU
             }
         }
 
-        public DisassemblerType[] AvailableDisassemblers
+        public string[] AvailableDisassemblers
         {
-            get { return DisassemblerManager.GetAvailableDisassemblersForArchitecture(Architecture); }
+            get { return DisassemblerManager.Instance.GetAvailableDisassemblers(Architecture); }
         }
 
         public uint TranslateAddress(uint logicalAddress)

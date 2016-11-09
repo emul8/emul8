@@ -8,38 +8,42 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Emul8.Utilities;
+using System.Reflection;
 
 namespace Emul8.Peripherals.CPU.Disassembler
 {
-    public static class DisassemblerManager
+    public class DisassemblerManager
     {
-        public static DisassemblerType[] AvailableDisassemblers 
-        { 
-            get { return RegisteredDisassemblers.Where(d => d.Value.IsAvailable()).Select(d => d.Key).ToArray(); }
+        static DisassemblerManager()
+        {
+            Instance = new DisassemblerManager();
         }
 
-        public static DisassemblerType[] GetAvailableDisassemblersForArchitecture(string arch)
+        public static DisassemblerManager Instance { get; private set; }
+
+        public string[] GetAvailableDisassemblers(string cpuArchitecture = null)
         {
-            return RegisteredDisassemblers.Where(d => d.Value.IsAvailable() && d.Value.IsAvailableForArchitecture(arch)).Select(d => d.Key).ToArray();
+            var disassemblers = TypeManager.Instance.AutoLoadedTypes.Where(x => x.GetCustomAttribute<DisassemblerAttribute>() != null);
+            return disassemblers
+                        .Where(x => (cpuArchitecture == null) || 
+                                x.GetCustomAttribute<DisassemblerAttribute>().Architectures.Contains(cpuArchitecture))
+                        .Select(x => x.GetCustomAttribute<DisassemblerAttribute>().Name).ToArray();
         }
 
-        public static IDisassembler CreateDisassembler(DisassemblerType type, IDisassemblable cpu)
+        public IDisassembler CreateDisassembler(string type, IDisassemblable cpu)
         {
-            var disas = RegisteredDisassemblers[type];
-            return !(disas.IsAvailable() && disas.IsAvailableForArchitecture(cpu.Architecture)) ? null : RegisteredDisassemblers[type].Construct(cpu);
+            var disassemblerType = TypeManager.Instance.AutoLoadedTypes.Where(x => x.GetCustomAttribute<DisassemblerAttribute>() != null 
+                && x.GetCustomAttribute<DisassemblerAttribute>().Name == type
+                && x.GetCustomAttribute<DisassemblerAttribute>().Architectures.Contains(cpu.Architecture)).SingleOrDefault();
+ 
+            return disassemblerType == null
+                ? null
+                : (IDisassembler)disassemblerType.GetConstructor(new [] { typeof(IDisassemblable) }).Invoke(new [] { cpu });
         }
 
-        private static readonly Dictionary<DisassemblerType, DisassemblerDescriptor> RegisteredDisassemblers = new Dictionary<DisassemblerType, DisassemblerDescriptor> 
+        private DisassemblerManager()
         {
-            { DisassemblerType.LLVM, new DisassemblerDescriptor { IsAvailable = () => LLVMDisassembler.IsAvailable, IsAvailableForArchitecture = LLVMDisassembler.IsAvailableFor, Construct = cpu => new LLVMDisassembler(cpu) } },
-            { DisassemblerType.TCPU, new DisassemblerDescriptor { IsAvailable = () => TCPUDisassembler.IsAvailabale, IsAvailableForArchitecture = TCPUDisassembler.IsAvailableFor, Construct = cpu => new TCPUDisassembler(cpu) } }
-        };
-
-        private struct DisassemblerDescriptor
-        {
-            public Func<bool> IsAvailable;
-            public Func<string, bool> IsAvailableForArchitecture;
-            public Func<IDisassemblable, IDisassembler> Construct;
         }
     }
 }

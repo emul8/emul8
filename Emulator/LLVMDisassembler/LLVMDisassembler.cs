@@ -5,24 +5,17 @@
 // This file is part of the Emul8 project.
 // Full license details are defined in the 'LICENSE' file.
 //
+#if !EMUL8_PLATFORM_OSX
 using System;
 using System.Collections.Generic;
 using Emul8.Utilities;
+using Emul8.Peripherals.CPU.Disassembler;
 
-namespace Emul8.Peripherals.CPU.Disassembler
+namespace Emul8.Disassembler.LLVM
 {
-    public class LLVMDisassembler : IDisassembler
+    [DisassemblerAttribute("LLVM", new[] {"arm", "arm-m", "mips", "i386"})]
+    public class LLVMDisassembler : IAutoLoadType, IDisassembler
     {
-        public static bool IsAvailable
-        {
-            get { return SharedLibraries.Exists("libLLVM.so"); }
-        }
-
-        public static bool IsAvailableFor(string arch)
-        {
-            return SupportedArchitectures.ContainsKey(arch);
-        } 
-
         public LLVMDisassembler(IDisassemblable cpu) 
         {
             if (!SupportedArchitectures.ContainsKey(cpu.Architecture))
@@ -36,7 +29,7 @@ namespace Emul8.Peripherals.CPU.Disassembler
             Disassemble = cpu.Architecture == "arm-m" ? CortexMAddressTranslator.Wrap(LLVMDisassemble) : LLVMDisassemble;
         }
 
-        public DisassemblerType Type { get { return DisassemblerType.LLVM; } }
+        public string Name { get { return "LLVM"; } }
         public DisassemblyProvider Disassemble { get; private set; }
 
         private int LLVMDisassemble(ulong pc, IntPtr memory, ulong size, uint flags, IntPtr output, ulong outputSize)
@@ -83,3 +76,4 @@ namespace Emul8.Peripherals.CPU.Disassembler
         private readonly IDisassemblable cpu;
     }
 }
+#endif
