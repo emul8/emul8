@@ -5,5 +5,6 @@
   <CompilerPath>/usr/local/bin/gcc-4.9</CompilerPath>
   <LinkerPath>/usr/local/bin/gcc-4.9</LinkerPath>
   <CurrentPlatform>OSX</CurrentPlatform>
+  <DefineConstants>$(DefineConstants);EMUL8_PLATFORM_OSX</DefineConstants>
 </PropertyGroup>
 </Project>
