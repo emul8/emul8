@@ -42,7 +42,6 @@
     <Compile Include="Peripherals\CPU\Disassembler\IDisassembler.cs" />
     <Compile Include="Peripherals\CPU\Disassembler\LLVMDisasWrapper.cs" />
     <Compile Include="Peripherals\CPU\Disassembler\DisassemblerType.cs" />
-    <Compile Include="Peripherals\CPU\Disassembler\TCPUDisassembler.cs" />
     <Compile Include="Peripherals\CPU\Disassembler\LLVMDisassembler.cs" />
     <Compile Include="Peripherals\CPU\Disassembler\IDisassemblable.cs" />
     <Compile Include="Peripherals\CPU\Disassembler\DisassemblerManager.cs" />
