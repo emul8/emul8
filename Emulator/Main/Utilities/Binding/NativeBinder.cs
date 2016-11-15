@@ -49,7 +49,6 @@ namespace Emul8.Utilities.Binding
         public NativeBinder(IEmulationElement classToBind, string libraryFile)
         {
             delegateStore = new object[0];
-            handles = new GCHandle[0];
             this.classToBind = classToBind;
             libraryAddress = SharedLibraries.LoadLibrary(libraryFile);
             libraryFileName = libraryFile;
@@ -73,10 +72,6 @@ namespace Emul8.Utilities.Binding
 
         private void DisposeInner()
         {
-            foreach(var handle in handles)
-            {
-                handle.Free();
-            }
             if(libraryAddress != IntPtr.Zero)
             {
                 SharedLibraries.UnloadLibrary(libraryAddress);
@@ -135,7 +130,6 @@ namespace Emul8.Utilities.Binding
                 exportedMethods.Add(desiredMethodInfo);
                 // let's make the delegate instance
                 var attachee = Delegate.CreateDelegate(delegateType, classToBind, desiredMethodInfo);
-                handles = handles.Union(new [] { GCHandle.Alloc(attachee, GCHandleType.Pinned) }).ToArray();
                 delegateStore = delegateStore.Union(new [] { attachee }).ToArray();
                 // let's make the attaching function delegate
                 var attacherType = TypeFromShortTypeName(string.Format("Attach{0}", shortName));
@@ -200,7 +194,6 @@ namespace Emul8.Utilities.Binding
         // which would otherwise be garbage collected while native calls
         // can still use them
         private object[] delegateStore;
-        private GCHandle[] handles;
     }
 }
 
