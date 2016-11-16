@@ -1639,18 +1639,27 @@ namespace Emul8.Peripherals.CPU
 
             set
             {
-                IDisassembler disas = null;
-                if(!string.IsNullOrEmpty(value))
+                if(!TrySetDisassembler(value))
                 {
-                    disas = DisassemblerManager.Instance.CreateDisassembler(value, this);
-                    if(disas == null)
-                    {
-                        throw new RecoverableException(string.Format("Could not create disassembler of type: {0}. Are you missing an extension library or a plugin?", value));
-                    }
+                    throw new RecoverableException(string.Format("Could not create disassembler of type: {0}. Are you missing an extension library or a plugin?", value));
                 }
-
-                DisasEngine.SetDisassembler(disas);
             }
+        }
+
+        private bool TrySetDisassembler(string type)
+        {
+            IDisassembler disas = null;
+            if(!string.IsNullOrEmpty(type))
+            {
+                disas = DisassemblerManager.Instance.CreateDisassembler(type, this);
+                if(disas == null)
+                {
+                    return false;
+                }
+            }
+
+            DisasEngine.SetDisassembler(disas);
+            return true;
         }
 
         public string[] AvailableDisassemblers
@@ -1670,7 +1679,7 @@ namespace Emul8.Peripherals.CPU
             var diss = AvailableDisassemblers;
             if (diss.Length > 0)
             {
-                Disassembler = diss[0];
+                TrySetDisassembler(diss[0]);
             }
         }
 
