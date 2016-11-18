@@ -310,6 +310,19 @@ namespace Emul8.Peripherals.I2C
             }
         }
 
+        private void WriteToSlave(int slaveAddress, List<byte> data)
+        {
+            II2CPeripheral slave;
+            if(TryGetByAddress(slaveAddress, out slave))
+            {
+                slave.Write(data.ToArray());
+            }
+            else
+            {
+                this.Log(LogLevel.Warning, "Trying to write to nonexisting slave with address \"{0}\"", slaveAddress);
+            }
+        }
+
         private void HandleTransfer ()
         {
             // If transmit shift register contains data, package it and handle TXBL flags in status register and interrupt flag register
@@ -414,7 +427,7 @@ namespace Emul8.Peripherals.I2C
                 if(txpacket.Count > 0)
                 {
                     currentAddress = (int)slaveAddressForPacket << 1;
-                    GetByAddress(currentAddress).Write(txpacket.ToArray());
+                    WriteToSlave(currentAddress, txpacket);
                     txpacket.Clear();
                 }
                 transferState = TransferState.StartTrans;
@@ -426,7 +439,7 @@ namespace Emul8.Peripherals.I2C
                 if(txpacket.Count > 0)
                 {
                     currentAddress = (int)slaveAddressForPacket << 1;
-                    GetByAddress(currentAddress).Write(txpacket.ToArray());
+                    WriteToSlave(currentAddress, txpacket);
                     txpacket.Clear();
                 }
                 ReadData();
@@ -437,7 +450,7 @@ namespace Emul8.Peripherals.I2C
                 if(txpacket.Count > 0)
                 {
                     currentAddress = (int)slaveAddressForPacket << 1;
-                    GetByAddress(currentAddress).Write(txpacket.ToArray());
+                    WriteToSlave(currentAddress, txpacket);
                     txpacket.Clear ();
                 }
                 // If automatic stop on empty is enabled signal STOP
@@ -498,9 +511,14 @@ namespace Emul8.Peripherals.I2C
 
         private void ReadData ()
         {
-            // Fetch packet list from slave device 
-            // registrationPoint = new I2CRegistrationPoint (slaveAddressForPacket);
-            byte[] rxArray = GetByAddress(currentAddress).Read();
+            // Fetch packet list from slave device
+            II2CPeripheral slave;
+            if(!TryGetByAddress(currentAddress, out slave))
+            {
+                this.Log(LogLevel.Warning, "Trying to read from nonexisting slave with address \"{0}\"", currentAddress);
+                return;
+            }
+            byte[] rxArray = slave.Read();
             // Packet list should have a least one byte plus a CRC byte
             if(rxArray.Length > 1)
             {
