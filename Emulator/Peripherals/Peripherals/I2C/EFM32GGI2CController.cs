@@ -513,6 +513,7 @@ namespace Emul8.Peripherals.I2C
         {
             // Fetch packet list from slave device
             II2CPeripheral slave;
+            transferState = TransferState.Idle;
             if(!TryGetByAddress(currentAddress, out slave))
             {
                 this.Log(LogLevel.Warning, "Trying to read from nonexisting slave with address \"{0}\"", currentAddress);
@@ -524,7 +525,6 @@ namespace Emul8.Peripherals.I2C
             {
                 rxpacket = new List<byte>(rxArray);
                 this.Log (LogLevel.Noisy, "Read data - packet length = {0}", rxpacket.Count);
-                transferState = TransferState.Idle;
                 AddRxData ();
             }
         }
