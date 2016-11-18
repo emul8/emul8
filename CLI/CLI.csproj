@@ -42,10 +42,7 @@
     <Compile Include="CommandLineInterface.cs" />
     <Compile Include="CrashHandler.cs" />
     <Compile Include="Options.cs" />
-    <Compile Include="StdInOutHandler.cs" />
-    <Compile Include="StdInOutInteraction.cs" />
     <Compile Include="UARTWindowBackendAnalyzer.cs" />
-    <Compile Include="UARTMultiplexedBackendAnalyzer.cs" />
     <Compile Include="TerminalIOSource.cs" />
     <Compile Include="TerminalWidget.cs" />
   </ItemGroup>

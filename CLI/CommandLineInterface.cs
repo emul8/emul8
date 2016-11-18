@@ -50,88 +50,59 @@ namespace Emul8.CLI
                 var crashHandler = new CrashHandler();
                 AppDomain.CurrentDomain.UnhandledException += (sender, e) => crashHandler.HandleCrash(e);
 
-                if(options.StdInOut)
+                Shell shell = null;
+                Type preferredUARTAnalyzer = null;
+                if(options.Port > 0)
                 {
-                    Logger.AddBackend(new FileBackend("logger.log"), "file");
-                    var world = new StreamIOSource(Console.OpenStandardInput(), Console.OpenStandardOutput());
-                    var io = new DetachableIO(world);
-                    monitor.Quitted += Emulator.Exit;
-                    var handler = new StdInOutHandler(io, monitor, options.Plain);
-                    handler.Start();
+                    var io = new IOProvider(new SocketIOSource(options.Port));
+                    shell = ShellProvider.GenerateShell(io, monitor, true, false);
                 }
                 else
                 {
-                    Shell shell = null;
-                    Type preferredUARTAnalyzer = null;
-                    if(options.Port > 0)
+                    preferredUARTAnalyzer = typeof(UARTWindowBackendAnalyzer);
+
+                    var terminal = new UARTWindowBackendAnalyzer();
+                    shell = ShellProvider.GenerateShell(terminal.IO, monitor);
+                    monitor.Quitted += shell.Stop;
+
+                    try
                     {
-                        var io = new DetachableIO(new SocketIOSource(options.Port));
-                        shell = ShellProvider.GenerateShell(io, monitor, true, false);
+                        terminal.Show();
                     }
-                    else if(options.ConsoleMode)
+                    catch(InvalidOperationException ex)
                     {
-                        preferredUARTAnalyzer = typeof(UARTMultiplexedBackendAnalyzer);
-
-                        var stream = new PtyUnixStream("/dev/fd/1");
-                        var world = new StreamIOSource(stream);
-
-                        Logger.AddBackend(new FileBackend("logger.log"), "file");
-                        var consoleTerm = new ConsoleTerminal(world);
-                        UARTMultiplexedBackendAnalyzer.Multiplexer = consoleTerm;
-                   
-                        monitor.Console = consoleTerm;
-
-                        shell = ShellProvider.GenerateShell(monitor);
-                        consoleTerm.AttachTerminal("shell", shell.Terminal);
+                        Console.ForegroundColor = ConsoleColor.Red;
+                        Console.Error.WriteLine(ex.Message);
+                        Emulator.Exit();
                     }
-                    else
-                    {
-                        preferredUARTAnalyzer = typeof(UARTWindowBackendAnalyzer);
+                }
+                shell.Quitted += Emulator.Exit;
 
-                        var terminal = new UARTWindowBackendAnalyzer();
-                        terminal.Name = "Emul8 Monitor";
-                        shell = ShellProvider.GenerateShell(terminal.IO, monitor);
-                        monitor.Quitted += shell.Stop;
-
-                        try
-                        {
-                            terminal.Show();
-                        }
-                        catch(InvalidOperationException ex)
-                        {
-                            Console.ForegroundColor = ConsoleColor.Red;
-                            Console.Error.WriteLine(ex.Message);
-                            Emulator.Exit();
-                        }
-                    }
-                    shell.Quitted += Emulator.Exit;
-
-                    if(preferredUARTAnalyzer != null)
+                if(preferredUARTAnalyzer != null)
+                {
+                    EmulationManager.Instance.CurrentEmulation.BackendManager.SetPreferredAnalyzer(typeof(UARTBackend), preferredUARTAnalyzer);
+                    EmulationManager.Instance.EmulationChanged += () =>
                     {
                         EmulationManager.Instance.CurrentEmulation.BackendManager.SetPreferredAnalyzer(typeof(UARTBackend), preferredUARTAnalyzer);
-                        EmulationManager.Instance.EmulationChanged += () =>
-                        {
-                            EmulationManager.Instance.CurrentEmulation.BackendManager.SetPreferredAnalyzer(typeof(UARTBackend), preferredUARTAnalyzer);
-                        };
-                    }
-                    monitor.Interaction = shell.Writer;
-                    monitor.MachineChanged += emu => shell.SetPrompt(emu != null ? new Prompt(string.Format("({0}) ", emu), ConsoleColor.DarkYellow) : null);
-
-                    if(options.Execute != null)
-                    {
-                        shell.Started += s => s.InjectInput(string.Format("{0}\n", options.Execute));
-                    }
-                    else if(!string.IsNullOrEmpty(options.ScriptPath))
-                    {
-                        shell.Started += s => s.InjectInput(string.Format("i {0}{1}\n", Path.IsPathRooted(options.ScriptPath) ? "@" : "$CWD/", options.ScriptPath));
-                    }
-
-                    new Thread(x => shell.Start(true)) 
-                    { 
-                        IsBackground = true, 
-                        Name = "Shell thread" 
-                    }.Start();
+                    };
                 }
+                monitor.Interaction = shell.Writer;
+                monitor.MachineChanged += emu => shell.SetPrompt(emu != null ? new Prompt(string.Format("({0}) ", emu), ConsoleColor.DarkYellow) : null);
+
+                if(options.Execute != null)
+                {
+                    shell.Started += s => s.InjectInput(string.Format("{0}\n", options.Execute));
+                }
+                else if(!string.IsNullOrEmpty(options.ScriptPath))
+                {
+                    shell.Started += s => s.InjectInput(string.Format("i {0}{1}\n", Path.IsPathRooted(options.ScriptPath) ? "@" : "$CWD/", options.ScriptPath));
+                }
+
+                new Thread(x => shell.Start(true)) 
+                { 
+                    IsBackground = true, 
+                    Name = "Shell thread" 
+                }.Start();
 
                 Emulator.BeforeExit += () =>
                 {

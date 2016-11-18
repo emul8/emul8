@@ -86,7 +86,6 @@
     <Compile Include="UserInterface\Commands\StartCommand.cs" />
     <Compile Include="UserInterface\Commands\SetCommand.cs" />
     <Compile Include="UserInterface\Commands\PythonExecuteCommand.cs" />
-    <Compile Include="UserInterface\Commands\TerminalCommand.cs" />
     <Compile Include="UserInterface\Tokenizer\LeftBraceToken.cs" />
     <Compile Include="UserInterface\Tokenizer\RightBraceToken.cs" />
     <Compile Include="TAPHelper\DynamicModuleSpawner.cs" />
