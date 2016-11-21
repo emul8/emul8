@@ -483,9 +483,9 @@ namespace Emul8.Peripherals.CPU
 
         private void InnerPause(HaltArguments haltArgs)
         {
-            if(PauseEvent.WaitOne(0))
+            if(isAborted || PauseEvent.WaitOne(0))
             {
-                // cpu is already paused
+                // cpu is already paused or aborted
                 return;
             }
 
@@ -516,7 +516,7 @@ namespace Emul8.Peripherals.CPU
         {
             lock(pauseLock)
             {
-                if(!PauseEvent.WaitOne(0))
+                if(isAborted || !PauseEvent.WaitOne(0))
                 {
                     return;
                 }
@@ -536,6 +536,7 @@ namespace Emul8.Peripherals.CPU
 
         public virtual void Reset()
         {
+            isAborted = false;
             Pause();
             HandleRamSetup();
             TlibReset();
@@ -873,7 +874,7 @@ namespace Emul8.Peripherals.CPU
                 catch(CpuAbortException)
                 {
                     this.NoisyLog("CPU abort detected, halting.");
-                    machine.Pause();
+                    isAborted = true;
                     InvokeHalted(new HaltArguments(HaltReason.Abort));
                     break;
                 }
@@ -1276,6 +1277,7 @@ namespace Emul8.Peripherals.CPU
         private byte[] cpuState;
         private int instructionCountResiduum;
         private bool isHalted;
+        private bool isAborted;
 
         [Transient]
         private volatile bool started;
