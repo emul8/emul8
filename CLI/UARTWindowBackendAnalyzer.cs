@@ -62,6 +62,7 @@ namespace Emul8.CLI
                     window.Title = "TERMINAL";
                     window.Width = 700;
                     window.Height = 400;
+                    window.Padding = new WidgetSpacing();
                     window.Content = terminalWidget;
                     window.Show();
                 });
