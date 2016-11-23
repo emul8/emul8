@@ -100,7 +100,7 @@
           <LinkFlags Include="-lm" />
           <LinkFlags Include="-shared" />
           <LinkFlags Include="-z defs" Condition="$(CurrentPlatform) == 'Linux'" />
-          <LinkFlags Include="-Wl,-undefined,error" Condition="$(CurrentPlatform) == 'OSX'" />
+          <LinkFlags Include="-Wl,-undefined,error" Condition="$(CurrentPlatform) != 'Linux'" />
           <LinkFlags Include="-m32 " Condition="$(HostWordSize) == '32'" />
           <LinkFlags Include="$(AdditionalLinkFlags)" />
       </ItemGroup>
