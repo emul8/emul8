@@ -33,24 +33,24 @@ namespace Emul8.Utilities
         /// Whether relocation should be done immediately after loading or being deferred (lazy).
         /// The default option is to relocate immediately.
         /// </param>
-        public static IntPtr LoadLibrary(string path, Relocation relocation = Relocation.Now)
+        public static IntPtr LoadLibrary(string path)
         {
             IntPtr address;
-            if (!TryLoadLibrary(path, out address, relocation))
+            if (!TryLoadLibrary(path, out address))
             {
                 HandleError("opening");
             }
             return address;
         }
 
-        public static bool TryLoadLibrary(string path, out IntPtr address, Relocation relocation = Relocation.Now)
+        public static bool TryLoadLibrary(string path, out IntPtr address)
         {
 #if EMUL8_PLATFORM_WINDOWS
             address = WindowsLoadLibrary(path);
 #else
             //HACK: returns 0 on first call, somehow
             dlerror();
-            address = dlopen(path, (int)relocation);
+            address = dlopen(path, 2); //relocation now (RTLD_NOW)
 #endif
             return address != IntPtr.Zero;
         }
@@ -178,12 +178,6 @@ namespace Emul8.Utilities
         [DllImport("dl")]
         private static extern int dlclose(IntPtr handle);
 #endif
-    }
-
-    public enum Relocation
-    {
-        Lazy = 1,
-        Now = 2
     }
 }
 
