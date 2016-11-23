@@ -134,27 +134,6 @@ namespace Emul8.Utilities
             return address;
         }
 
-        /// <summary>
-        /// Verifies the existance of the shared libraries in the application
-        /// base directory.
-        /// </summary>
-        /// <returns>
-        /// True if the library was found.
-        /// <returns>
-        /// <param name='name'>
-        /// Name of the shared library.
-        /// </param>
-        public static bool Exists(string name)
-        {
-            IntPtr lib;
-            if(TryLoadLibrary(AppDomain.CurrentDomain.BaseDirectory + name, out lib, Relocation.Lazy))
-            {
-                UnloadLibrary(lib);
-                return true;
-            }
-            return false;
-        }
-
         private static void HandleError(string operation)
         {
             string message;
