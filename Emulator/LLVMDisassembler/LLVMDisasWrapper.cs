@@ -15,9 +15,9 @@ namespace Emul8.Disassembler.LLVM
     {
         public LLVMDisasWrapper(string cpu, string triple)
         {
-            lock (_init_locker) 
+            lock (_init_locker)
             {
-                if (!_llvm_initialized) 
+                if (!_llvm_initialized)
                 {
                     LLVMInitializeARMDisassembler();
                     LLVMInitializeARMTargetMC();
@@ -31,7 +31,7 @@ namespace Emul8.Disassembler.LLVM
                     _llvm_initialized = true;
                 }
             }
-            context = LLVMCreateDisasmCPU(triple, cpu, IntPtr.Zero, 0, new LLVMOpInfoCallback(OpInfoCallback), new LLVMSymbolLookupCallback(SymbolLoopbackCallback)); 
+            context = LLVMCreateDisasmCPU(triple, cpu, IntPtr.Zero, 0, new LLVMOpInfoCallback(OpInfoCallback), new LLVMSymbolLookupCallback(SymbolLoopbackCallback));
             if (context == IntPtr.Zero)
             {
                 throw new ArgumentOutOfRangeException("cpu", "CPU or triple name not detected by LLVM. Disassembling will not be possible.");
@@ -216,63 +216,63 @@ namespace Emul8.Disassembler.LLVM
 
         private class LLVMOpInfo1
         {
-    		private readonly IntPtr Ptr;
+            private readonly IntPtr Ptr;
 
-    		private readonly LLVMOpInfoSymbol1 addSymbol;
-    		public LLVMOpInfoSymbol1 AddSymbol { get { return addSymbol; } }
+            private readonly LLVMOpInfoSymbol1 addSymbol;
+            public LLVMOpInfoSymbol1 AddSymbol { get { return addSymbol; } }
 
-    		private readonly LLVMOpInfoSymbol1 subtractSymbol;
-    		public LLVMOpInfoSymbol1 SubtractSymbol { get { return subtractSymbol; } }
+            private readonly LLVMOpInfoSymbol1 subtractSymbol;
+            public LLVMOpInfoSymbol1 SubtractSymbol { get { return subtractSymbol; } }
 
-    		public UInt64 Value
-    		{
-    			get { return MarshalExtensions.ReadUInt64(Ptr, 2 * LLVMOpInfoSymbol1.Size); }
-    			set { MarshalExtensions.WriteUInt64(Ptr, 2 * LLVMOpInfoSymbol1.Size, value); }
-    		}
+            public UInt64 Value
+            {
+                get { return MarshalExtensions.ReadUInt64(Ptr, 2 * LLVMOpInfoSymbol1.Size); }
+                set { MarshalExtensions.WriteUInt64(Ptr, 2 * LLVMOpInfoSymbol1.Size, value); }
+            }
 
-    		public UInt64 VariantKind
-    		{
-    			get { return MarshalExtensions.ReadUInt64(Ptr, 2 * LLVMOpInfoSymbol1.Size + 8); }
-    			set { MarshalExtensions.WriteUInt64(Ptr, 2 * LLVMOpInfoSymbol1.Size + 8, value); }
-    		}
+            public UInt64 VariantKind
+            {
+                get { return MarshalExtensions.ReadUInt64(Ptr, 2 * LLVMOpInfoSymbol1.Size + 8); }
+                set { MarshalExtensions.WriteUInt64(Ptr, 2 * LLVMOpInfoSymbol1.Size + 8, value); }
+            }
 
-    		public LLVMOpInfo1(IntPtr ptr)
-    		{
-    			Ptr = ptr;
-    			addSymbol = new LLVMOpInfoSymbol1(ptr);
-    			subtractSymbol = new LLVMOpInfoSymbol1(ptr + LLVMOpInfoSymbol1.Size);
-    		}
-    	}
+            public LLVMOpInfo1(IntPtr ptr)
+            {
+                Ptr = ptr;
+                addSymbol = new LLVMOpInfoSymbol1(ptr);
+                subtractSymbol = new LLVMOpInfoSymbol1(ptr + LLVMOpInfoSymbol1.Size);
+            }
+        }
 
         private class LLVMOpInfoSymbol1
         {
-    	    private readonly IntPtr Ptr;
+            private readonly IntPtr Ptr;
 
-    	    public UInt64 Present
-    	    {
-    		    get { return MarshalExtensions.ReadUInt64(Ptr, 0); }
-    		    set { MarshalExtensions.WriteUInt64(Ptr, 0, value);   }
-    	    }
+            public UInt64 Present
+            {
+                get { return MarshalExtensions.ReadUInt64(Ptr, 0); }
+                set { MarshalExtensions.WriteUInt64(Ptr, 0, value);   }
+            }
 
-    	    public IntPtr Name
-    	    {
-    		    get { return Marshal.ReadIntPtr(Ptr, 8); }
-    	    }
+            public IntPtr Name
+            {
+                get { return Marshal.ReadIntPtr(Ptr, 8); }
+            }
 
-    	    public UInt64 Value
-    	    {
-    		    get { return MarshalExtensions.ReadUInt64(Ptr, 8 + IntPtr.Size); }
-    		    set { MarshalExtensions.WriteUInt64(Ptr, 8 + IntPtr.Size, value); }
-    	    }
+            public UInt64 Value
+            {
+                get { return MarshalExtensions.ReadUInt64(Ptr, 8 + IntPtr.Size); }
+                set { MarshalExtensions.WriteUInt64(Ptr, 8 + IntPtr.Size, value); }
+            }
 
-    	    public static int Size { get { return 16 + IntPtr.Size; } }
+            public static int Size { get { return 16 + IntPtr.Size; } }
 
             public LLVMOpInfoSymbol1(IntPtr ptr)
             {
                 Ptr = ptr;
             }
         }
-            
+
         private delegate int LLVMOpInfoCallback(IntPtr disInfo, UInt64 pc, UInt64 offset, UInt64 size, int tagType, IntPtr tagBuf);
 
         private delegate IntPtr LLVMSymbolLookupCallback(IntPtr disInfo, UInt64 referenceValue, ref IntPtr referenceType, UInt64 referencePC, IntPtr referenceName);
