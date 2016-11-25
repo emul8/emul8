@@ -103,6 +103,8 @@ namespace Emul8.Launcher
                 Environment.Exit(1);
             }
 
+#if !EMUL8_PLATFORM_WINDOWS
+	    // it is not so easy to remotely debug on .NET, so we do not support it
             var monoOptions = options.Debug ? "--debug" : string.Empty;
 
             if(options.DebuggerSocketPort != -1)
@@ -110,6 +112,7 @@ namespace Emul8.Launcher
                 monoOptions += string.Format(" --debugger-agent=transport=dt_socket,address=127.0.0.1:{0},server=y", options.DebuggerSocketPort);
                 Console.WriteLine("Listening on port {0}", options.DebuggerSocketPort);
             }
+#endif
 
             var optionsToPass = optionsParser.RecreateUnparsedArguments();
             if(addHelpSwitch)
@@ -119,8 +122,13 @@ namespace Emul8.Launcher
             }
 
             var process = new Process();
+#if EMUL8_PLATFORM_WINDOWS
+            process.StartInfo.FileName = selectedLaunchee.Path;
+            process.StartInfo.Arguments = optionsToPass;
+#else
             process.StartInfo.FileName = "mono";
             process.StartInfo.Arguments = string.Format("{0} {1} {2}", monoOptions, selectedLaunchee.Path, optionsToPass);
+#endif
 
             if(options.Quiet)
             {
