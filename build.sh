@@ -110,7 +110,7 @@ then
     then
         $params="$params -d"
     fi
-    Tools/packaging/make_linux_packages.sh $params
+    $ROOT_PATH/Tools/packaging/make_linux_packages.sh $params
 fi
 
 exit $result_code

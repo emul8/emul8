@@ -6,7 +6,6 @@ set -u
 #change dir to script location
 cd "${0%/*}"
 
-export PATH=`gem environment gemdir`/bin:$PATH
 TARGET="Release"
 BASE=../..
 
@@ -37,8 +36,14 @@ function is_dep_available {
         return 1
     fi
     return 0
-
 }
+
+if ! is_dep_available gem
+then
+    exit
+fi
+
+export PATH=`gem environment gemdir`/bin:$PATH
 
 #expand this list if needed. bsdtar is required for arch packages.
 if ! is_dep_available fpm ||\
@@ -65,9 +70,7 @@ do
             ;;
         n)
             DATE="+`date +%Y%m%d`"
-            pushd $BASE >/dev/null
             COMMIT="git`git rev-parse --short HEAD`"
-            popd >/dev/null
             ;;
         h)
             help
@@ -89,8 +92,7 @@ VERSION="$VERSION$DATE$COMMIT"
 DIR=emul8_$VERSION
 
 rm -rf $DIR
-mkdir -p $DIR/bin
-mkdir -p $DIR/licenses
+mkdir -p $DIR/{bin,licenses}
 
 #copy the main content
 cp -r $BASE/output/$TARGET/*.{dll,exe} $DIR/bin
@@ -101,7 +103,8 @@ cp -r $BASE/{scripts,platforms,.emul8root} $DIR
 find $BASE/Emulator $BASE/External -iname "*-license" -exec cp {} $DIR/licenses \;
 
 #others will need a parent directory name.
-find $BASE/Emulator $BASE/External -iname "license" -print0 | while IFS= read -r -d $'\0' file
+find $BASE/{Emulator,External} -iname "license" -print0 |\
+    while IFS= read -r -d $'\0' file
 do
     full_dirname=${file%/*}
     dirname=${full_dirname##*/}
@@ -116,8 +119,8 @@ OUTPUT=$BASE/$PACKAGES
 GENERAL_FLAGS=(\
     -f -n emul8 -v $VERSION --license MIT\
     --category devel --provides emul8 -a native\
-    -m 'Piotr Zierhoffer <pzierhoffer@antmicro.com>'\
-    --vendor 'Piotr Zierhoffer <pzierhoffer@antmicro.com>'\
+    -m 'Antmicro <emul8@antmicro.com>'\
+    --vendor 'Antmicro <emul8@antmicro.com>'\
     --description 'The Emul8 Framework'\
     --url 'www.emul8.org'\
     --after-install update_icon_cache.sh\
