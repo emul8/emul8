@@ -21,6 +21,7 @@ using System.Threading;
 using Mono.Unix.Native;
 using TermSharp.Vt100;
 using Xwt;
+using Emul8.Core;
 
 namespace Emul8.CLI
 {
@@ -37,20 +38,26 @@ namespace Emul8.CLI
             }
             else
             {
-                var stream = new PtyUnixStream();
-                IO = new DetachableIO(new StreamIOSource(stream, stream.Name));
+                ptyUnixStream = new PtyUnixStream();
+                IO = new DetachableIO(new StreamIOSource(ptyUnixStream, ptyUnixStream.Name));
             }
         }
 
-        public UARTWindowBackendAnalyzer(DetachableIO io)
+        public UARTWindowBackendAnalyzer(TerminalWidget widget)
         {
-            IO = io;
+            terminalWidget = widget;
         }
 
         public void AttachTo(UARTBackend backend)
         {
             backend.BindAnalyzer(IO);
             Backend = backend;
+
+            string uartName;
+            if(EmulationManager.Instance.CurrentEmulation.TryGetEmulationElementName(backend.UART, out uartName))
+            {
+                Name = uartName;
+            }
         }
 
         public void Show()
@@ -59,7 +66,7 @@ namespace Emul8.CLI
             {
                 Emul8.Plugins.XwtProviderPlugin.ApplicationExtensions.InvokeInUIThreadAndWait(() => {
                     window = new Window();
-                    window.Title = "TERMINAL";
+                    window.Title = Name;
                     window.Width = 700;
                     window.Height = 400;
                     window.Padding = new WidgetSpacing();
@@ -78,7 +85,7 @@ namespace Emul8.CLI
                     {TerminalTypes.Termsharp, CreateTermsharpWindow}
                 };
 
-                var commandString = string.Format("screen {0}", Name);
+                var commandString = string.Format("screen {0}", ptyUnixStream.Name);
                 //Try preferred terminal first, than any other. If all fail, throw.
                 if(!windowCreators.OrderByDescending(x => x.Key == preferredTerminal).Any(x => x.Value(commandString, out process)))
                 {
@@ -136,7 +143,7 @@ namespace Emul8.CLI
             process = null;
         }
 
-        public string Name { get { return IO.Source.Name; } }
+        public string Name { get; set; }
 
         public IAnalyzableBackend Backend { get; private set; }
 
@@ -378,6 +385,7 @@ namespace Emul8.CLI
         private Process process;
         private Xwt.Window window;
 
+        private readonly PtyUnixStream ptyUnixStream;
         private readonly TerminalWidget terminalWidget;
         private readonly TerminalTypes preferredTerminal;
         private const int WindowHeight = 500;

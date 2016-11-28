@@ -89,6 +89,7 @@ namespace Emul8.CLI
                         preferredUARTAnalyzer = typeof(UARTWindowBackendAnalyzer);
 
                         var terminal = new UARTWindowBackendAnalyzer();
+                        terminal.Name = "Emul8 Monitor";
                         shell = ShellProvider.GenerateShell(terminal.IO, monitor);
                         monitor.Quitted += shell.Stop;
 
