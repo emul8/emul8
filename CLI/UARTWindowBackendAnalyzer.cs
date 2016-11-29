@@ -177,7 +177,6 @@ namespace Emul8.CLI
                     RedirectStandardOutput = true,
                     RedirectStandardInput = true
                 };
-                EnsurePath(p.StartInfo);
                 p.Exited += (sender, e) => 
                 {
                     var proc = sender as Process;
@@ -276,7 +275,6 @@ namespace Emul8.CLI
                     RedirectStandardOutput = true,
                     RedirectStandardInput = true,
                 };
-                EnsurePath(p.StartInfo);
                 p.EnableRaisingEvents = true;
                 p.Exited += (sender, e) => 
                 { 
@@ -373,12 +371,6 @@ namespace Emul8.CLI
         private void LogError(string source, string arguments, int exitCode)
         {
             Logger.LogAs(this, LogLevel.Error, "There was an error while starting {2} with arguments: {0}. It exited with code: {1}. In order to use different terminal change preferences in configuration file.", arguments, exitCode, source);
-        }
-
-        private void EnsurePath(ProcessStartInfo info)
-        {
-            info.EnvironmentVariables["PATH"] = string.Format("{0}:{1}",
-                Path.Combine(Directory.GetCurrentDirectory(), "External", "bin"), Environment.GetEnvironmentVariable("PATH"));
         }
 
         private delegate bool CreateWindowDelegate(string command, out Process process);
