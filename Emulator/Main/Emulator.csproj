@@ -267,7 +267,6 @@
     <Compile Include="Utilities\Table.cs" />
     <Compile Include="Peripherals\Timers\ITimer.cs" />
     <Compile Include="Core\IPeripheralsGroup.cs" />
-    <Compile Include="Core\IPeripheralsShelf.cs" />
     <Compile Include="Utilities\TypeSorter.cs" />
     <Compile Include="Utilities\BlobManager.cs" />
     <Compile Include="Utilities\IBlobProvider.cs" />

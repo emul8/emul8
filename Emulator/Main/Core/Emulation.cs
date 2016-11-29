@@ -297,7 +297,7 @@ namespace Emul8.Core
             foreach(var candidate in Machines)
             {
                 var candidateAsMachine = candidate;
-                if(candidateAsMachine != null && candidateAsMachine.IsRegisteredOrOnShelf(p))
+                if(candidateAsMachine != null && candidateAsMachine.IsRegistered(p))
                 {
                     machine = candidateAsMachine;
                     return true;

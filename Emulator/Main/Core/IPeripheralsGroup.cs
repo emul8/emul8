@@ -17,7 +17,6 @@ namespace Emul8.Core
         IEnumerable<IPeripheral> Peripherals { get; }
 
         void Unregister();
-        void PutOnShelf();
     }
 }
 

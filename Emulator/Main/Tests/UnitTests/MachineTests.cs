@@ -21,69 +21,6 @@ namespace Emul8.UnitTests
     public class MachineTests
     {
         [Test]
-        public void ShouldPutOnShelfUnregisteredPeripheral()
-        {
-            var machine = new Machine();
-            var peripheral = new Mock<IPeripheral>();
-            machine.PutOnShelf(peripheral.Object, "something");
-
-            Assert.IsTrue(machine.Shelf.Contains(peripheral.Object));
-        }
-
-        [Test]
-        public void ShouldPutOnShelfRegisteredPeripheral()
-        {
-            var machine = new Machine();
-            var peripheral = new Mock<IDoubleWordPeripheral>();
-            machine.SystemBus.Register(peripheral.Object, new BusRangeRegistration(0.To(10)));
-            machine.SetLocalName(peripheral.Object, "something");
-            machine.PutOnShelf(peripheral.Object);
-
-            Assert.IsFalse(machine.IsRegistered(peripheral.Object));
-            Assert.IsTrue(machine.Shelf.Contains(peripheral.Object));
-        }
-
-        [Test]
-        public void ShouldPutPeripheralsTreeOnShelf()
-        {
-            var machine = new Machine();
-            var mother = new Mother(machine);
-            machine.SystemBus.Register(mother, 0.To(10));
-            machine.SetLocalName(mother, "mother");
-            var childMock = new Mock<IPeripheral>();
-            var child = childMock.Object;
-            mother.Register(child, NullRegistrationPoint.Instance);
-            machine.SetLocalName(child, "child");
-            machine.PutOnShelf(mother);
-
-            Assert.IsFalse(machine.IsRegistered(mother));
-            Assert.IsFalse(machine.IsRegistered(child));
-            Assert.IsTrue(machine.Shelf.Contains(mother));
-            Assert.IsTrue(machine.Shelf.Contains(child));
-        }
-
-        [Test]
-        public void ShouldHandleManagedThreadsOnShelf()
-        {
-            var machine = new Machine();
-            var peripheral = new PeripheralWithManagedThread(machine);
-            machine.SystemBus.Register(peripheral, 0.To(10));
-            machine.SetLocalName(peripheral, "test");
-
-            machine.Start();
-            Assert.IsTrue(peripheral.IsTheThreadRunning);
-            machine.Pause();
-            Assert.IsFalse(peripheral.IsTheThreadRunning);
-
-            machine.Start();
-            Assert.IsTrue(peripheral.IsTheThreadRunning);
-            machine.PutOnShelf(peripheral);
-            Assert.IsFalse(peripheral.IsTheThreadRunning);
-            machine.SystemBus.Register(peripheral, 0.To(10));
-            Assert.IsTrue(peripheral.IsTheThreadRunning);
-        }
-
-        [Test]
         public void ShouldThrowOnRegisteringAnotherPeripheralWithTheSameName()
         {
             var machine = new Machine();

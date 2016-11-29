@@ -40,7 +40,6 @@ namespace Emul8.Core
             clockSourceWrapper = new ClockSourceWrapper(hostTimeClockSource, this);
             stopwatch = new Stopwatch();
             localNames = new Dictionary<IPeripheral, string>();
-            shelf = new PeripheralsShelf(this);
             PeripheralsGroups = new PeripheralsGroupsManager(this);
             ownLifes = new HashSet<IHasOwnLife>();
             syncedManagedThreads = new List<SynchronizedManagedThread>();
@@ -139,85 +138,6 @@ namespace Emul8.Core
             OnMachinePeripheralsChanged(peripheral, PeripheralsChangedEventArgs.PeripheralChangeType.CompleteRemoval);
         }
 
-        [Obsolete("This method is intended for Monitor only. Do not call it directly, use PutOnShelf on group object instead.")]
-        public void PutOnShelf(string groupName)
-        {
-            IPeripheralsGroup group;
-            if(PeripheralsGroups.TryGetByName(groupName, out group))
-            {
-                group.PutOnShelf();
-            }
-        }
-
-        public void PutOnShelf(IPeripheral peripheral, string name = null)
-        {
-            using(ObtainPausedState())
-            {
-                lock(collectionSync)
-                {
-                    // if it's already on shelf, then just return
-                    if((shelf).Contains(peripheral))
-                    {
-                        return;
-                    }
-                    if(IsRegistered(peripheral))
-                    {
-                        CollectGarbageStamp();
-                        try
-                        {
-                            // if the given peripheral has children, they have to be unregistered first
-                            foreach(var child in registeredPeripherals.GetNode(peripheral).Children.Select(x => x.Value).ToArray())
-                            {
-                                PutOnShelf(child);
-                            }
-
-                            // deregistration
-                            if(!string.IsNullOrEmpty(name))
-                            {
-                                SetLocalName(peripheral, name);
-                            }
-                            else
-                            {
-                                // if there is no new name, but the peripheral didn't have an old one, you can't put it on shelf
-                                if(!TryGetLocalName(peripheral, out name))
-                                {
-                                    throw new RecoverableException(NoShelfForUnnamed);
-                                }
-                            }
-                            IPeripheralsGroup group;
-                            if(PeripheralsGroups.TryGetActiveGroupContaining(peripheral, out group))
-                            {
-                                throw new RegistrationException(string.Format("Given peripheral is a member of '{0}' peripherals group and cannot be directly put on shelf.", group.Name));
-                            }
-                            // we have to save all managed threads related to peripheral
-                            var relatedManagedThreads = ownLifes.OfType<ManagedThread>().Where(x => x.Owner == peripheral).ToArray();
-                            InnerUnregisterFromParent(peripheral);
-                            shelf.Add(peripheral, state, relatedManagedThreads);
-                            foreach(var thread in relatedManagedThreads)
-                            {
-                                ownLifes.Remove(thread);
-                            }
-                        }
-                        finally
-                        {
-                            CollectGarbage();
-                        }
-                    }
-                    else if(string.IsNullOrEmpty(name))
-                    {
-                        throw new RecoverableException(NoShelfForUnnamed);
-                    }
-                    else
-                    {
-                        shelf.Add(peripheral, state);
-                        SetLocalName(peripheral, name);
-                        return;
-                    }
-                }
-                OnMachinePeripheralsChanged(peripheral, PeripheralsChangedEventArgs.PeripheralChangeType.Removal);
-            }
-        }
-
         public IEnumerable<T> GetPeripheralsOfType<T>()
         {
             return GetPeripheralsOfType(typeof(T)).Cast<T>();
@@ -248,8 +168,6 @@ namespace Emul8.Core
 
         public bool TryGetByName<T>(string name, out T peripheral, out string longestMatch) where T : class, IPeripheral
         {
-            MultiTreeNode<IPeripheral, IRegistrationPoint> result;
-
             if(name == null)
             {
                 longestMatch = string.Empty;
@@ -257,22 +175,12 @@ namespace Emul8.Core
                 return false;
             }
             var splitPath = name.Split(new [] { '.' }, 2);
-            if(splitPath.Length == 1)
+            if(splitPath.Length == 1 && name == SystemBusName)
             {
-                var directlyAccessiblePeripherals = new [] { SystemBus }.Union(shelf.GetAll())
-                    .GroupBy(x => GetLocalName(x)).ToDictionary(x => x.Key, x => x.Single());
-                IPeripheral foundPeripheral;
-                if(!directlyAccessiblePeripherals.TryGetValue(splitPath[0], out foundPeripheral))
-                {
-                    longestMatch = string.Empty;
-                    peripheral = null;
-                    return false;
-                }
                 longestMatch = name;
-                peripheral = (T)foundPeripheral;
+                peripheral = (T)(IPeripheral)SystemBus;
                 return true;
             }
-
 
             if(splitPath[0] != SystemBusName)
             {
@@ -281,6 +189,7 @@ namespace Emul8.Core
                 return false;
             }
 
+            MultiTreeNode<IPeripheral, IRegistrationPoint> result;
             if(TryFindSubnodeByName(registeredPeripherals.GetNode(SystemBus), splitPath[1], out result, SystemBusName, out longestMatch))
             {
                 peripheral = (T)result.Value;
@@ -326,9 +235,9 @@ namespace Emul8.Core
             }
             lock(collectionSync)
             {
-                if(!registeredPeripherals.ContainsValue(peripheral) && !shelf.Contains(peripheral))
+                if(!registeredPeripherals.ContainsValue(peripheral))
                 {
-                    throw new RecoverableException("Cannot name peripheral which is not registered or on shelf.");
+                    throw new RecoverableException("Cannot name peripheral which is not registered.");
                 }
                 if(localNames.ContainsValue(name))
                 {
@@ -368,8 +277,6 @@ namespace Emul8.Core
                     globalName.Append(localName);
                     names.Add(globalName.ToString());
                 }, 0);
-                // also add all names from shelf
-                names.AddRange(shelf.GetAll().Select(x => GetLocalName(x)));
             }
             return new ReadOnlyCollection<string>(names);
         }
@@ -402,14 +309,6 @@ namespace Emul8.Core
             lock(collectionSync)
             {
                 return registeredPeripherals.ContainsValue(peripheral);
-            }
-        }
-
-        public bool IsRegisteredOrOnShelf(IPeripheral peripheral)
-        {
-            lock(collectionSync)
-            {
-                return registeredPeripherals.ContainsValue(peripheral) || shelf.Contains(peripheral);
             }
         }
 
@@ -760,8 +659,6 @@ namespace Emul8.Core
 
         public IPeripheralsGroupsManager PeripheralsGroups { get; private set; }
 
-        public IPeripheralsShelf Shelf { get { return shelf; } }
-
         public Platform Platform { get; set; }
 
         public bool IsPaused
@@ -877,37 +774,17 @@ namespace Emul8.Core
                     {
                         localNames[peripheral] = null;
                     }
-                    ShelfEntry shelfEntry;
-                    shelf.TryGet(peripheral, out shelfEntry);
                     var ownLife = peripheral as IHasOwnLife;
                     if(ownLife != null)
                     {
                         ownLifes.Add(ownLife);
-                        var oldState = shelfEntry != null ? shelfEntry.StateWhenShelved : State.NotStarted;
-                        if(state != oldState)
+                        if(state == State.Paused)
                         {
-                            if(state == State.Paused && oldState == State.NotStarted)
+                            executeAfterLock = delegate
                             {
-                                executeAfterLock = delegate
-                                {
-                                    ownLife.Start();
-                                    ownLife.Pause();
-                                };
-                            }
-                            if(oldState == State.Started)
-                            {
-                                throw new RecoverableException(string.Format("Unexpected state while registering peripheral peripheral state: {0}", oldState));
-                            }
-                        }
-                    }
-
-                    if(shelfEntry != null)
-                    {
-                        shelf.Remove(shelfEntry);
-                        // managed threads have to be restored
-                        foreach(var thread in shelfEntry.RelatedManagedThreads)
-                        {
-                            ownLifes.Add(thread);
+                                ownLife.Start();
+                                ownLife.Pause();
+                            };
                         }
                     }
                 }
@@ -990,10 +867,6 @@ namespace Emul8.Core
             lock(collectionSync)
             {
                 var paths = new List<string>();
-                if(shelf.Contains(peripheral))
-                {
-                    return new ReadOnlyCollection<string>(new [] { GetLocalName(peripheral) });
-                }
                 if(peripheral == SystemBus)
                 {
                     paths.Add(SystemBusName);
@@ -1108,10 +981,6 @@ namespace Emul8.Core
             }
             currentStamp = new List<IPeripheral>();
             registeredPeripherals.TraverseParentFirst((peripheral, level) => currentStamp.Add(peripheral), 0);
-            foreach(var peripheral in shelf.GetAll())
-            {
-                currentStamp.Add(peripheral);
-            }
         }
 
         private void CollectGarbage()
@@ -1121,14 +990,10 @@ namespace Emul8.Core
             {
                 return;
             }
-            var toDeleteFromRegistered = currentStamp.Where(x => !IsRegistered(x)).ToArray();
-            var toDelete = toDeleteFromRegistered.Where(x => !shelf.Contains(x)).ToArray();
-
-            // Why do we have two collections above? Since from some collections (like ownLifes) peripherals should be
-            // removed even if it is going to shelf
-
-
-            foreach(var value in toDeleteFromRegistered)
+            var toDelete = currentStamp.Where(x => !IsRegistered(x)).ToArray();
+            DetachIncomingInterrupts(toDelete);
+            DetachOutgoingInterrupts(toDelete);
+            foreach(var value in toDelete)
             {
                 ((PeripheralsGroupsManager)PeripheralsGroups).RemoveFromAllGroups(value);
                 var ownLife = value as IHasOwnLife;
@@ -1145,12 +1010,7 @@ namespace Emul8.Core
                     ownLifes.Remove(thread);
                 }
                 EmulationManager.Instance.CurrentEmulation.Connector.DisconnectFromAll(value);
-            }
-            DetachIncomingInterrupts(toDeleteFromRegistered);
-            DetachOutgoingInterrupts(toDeleteFromRegistered);
 
-            foreach(var value in toDelete)
-            {
                 localNames.Remove(value);
                 var disposable = value as IDisposable;
                 if(disposable != null)
@@ -1166,8 +1026,7 @@ namespace Emul8.Core
             foreach(var detachedPeripheral in detachedPeripherals)
             {
                 // find all peripherials' GPIOs and check which one is connected to detachedPeripherial
-                // we also take shelf into account since there could tree on shelf operations
-                foreach(var peripheral in registeredPeripherals.Children.Select(x => x.Value).Union(shelf.GetAll()).Distinct())
+                foreach(var peripheral in registeredPeripherals.Children.Select(x => x.Value).Distinct())
                 {
                     foreach(var gpio in peripheral.GetGPIOs().Select(x => x.Item2))
                     {
@@ -1264,7 +1123,6 @@ namespace Emul8.Core
         private readonly MultiTree<IPeripheral, IRegistrationPoint> registeredPeripherals;
         private readonly Dictionary<IPeripheral, string> localNames;
         private readonly HashSet<IHasOwnLife> ownLifes;
-        private readonly PeripheralsShelf shelf;
         private readonly HostTimeClockSource hostTimeClockSource;
         private readonly Stopwatch stopwatch;
         private readonly ClockSourceWrapper clockSourceWrapper;
@@ -1282,138 +1140,6 @@ namespace Emul8.Core
             NotStarted,
             Started,
             Paused
-        }
-
-        private sealed class PeripheralsShelf : IPeripheralsShelf
-        {
-            public PeripheralsShelf(Machine machine)
-            {
-                this.machine = machine;
-                collection = new HashSet<ShelfEntry>();
-            }
-
-            public bool TryGet(IPeripheral peripheral, out ShelfEntry shelfEntry)
-            {
-                shelfEntry = collection.FirstOrDefault(x => x.Peripheral == peripheral);
-                return shelfEntry != null;
-            }
-
-            public void Add(IPeripheral peripheral, State? stateWhenShelved = null, IEnumerable<ManagedThread> relatedManagedThreads = null)
-            {
-                collection.Add(new ShelfEntry(peripheral, stateWhenShelved, relatedManagedThreads));
-            }
-
-            public bool Contains(IPeripheral peripheral)
-            {
-                return collection.Contains(new ShelfEntry(peripheral));
-            }
-
-            public IEnumerable<IPeripheral> GetAll()
-            {
-                lock(machine.collectionSync)
-                {
-                    return collection.Select(x => x.Peripheral).ToArray();
-                }
-            }
-
-            public void Remove(IPeripheral peripheral)
-            {
-                Remove(new ShelfEntry(peripheral));
-            }
-
-            public void Remove(ShelfEntry entry)
-            {
-                using(machine.ObtainPausedState())
-                {
-                    lock(machine.collectionSync)
-                    {
-                        machine.CollectGarbageStamp();
-                        if(!collection.Remove(entry))
-                        {
-                            throw new RecoverableException("You cannot remove a peripheral which doesn't exist on shelf.");
-                        }
-                        machine.CollectGarbage();
-                    }
-
-                    machine.OnMachinePeripheralsChanged(entry.Peripheral, PeripheralsChangedEventArgs.PeripheralChangeType.CompleteRemoval);
-                }
-            }
-
-            public void Clear()
-            {
-                using(machine.ObtainPausedState())
-                {
-                    List<IPeripheral> removedPeripherals;
-                    lock(machine.collectionSync)
-                    {
-                        machine.CollectGarbageStamp();
-                        removedPeripherals = collection.Select(x => x.Peripheral).ToList();
-                        collection.Clear();
-                        machine.CollectGarbage();
-                    }
-
-                    foreach(var peripheral in removedPeripherals)
-                    {
-                        machine.OnMachinePeripheralsChanged(peripheral, PeripheralsChangedEventArgs.PeripheralChangeType.CompleteRemoval);
-                    }
-                }
-            }
-
-            private readonly HashSet<ShelfEntry> collection;
-            private readonly Machine machine;
-        }
-
-        private sealed class ShelfEntry
-        {
-            public ShelfEntry(IPeripheral peripheral, State? stateWhenShelved = null, IEnumerable<ManagedThread> relatedManagedThreads = null)
-            {
-                Peripheral = peripheral;
-                StateWhenShelved = stateWhenShelved;
-                RelatedManagedThreads = relatedManagedThreads != null ? new ReadOnlyCollection<ManagedThread>(relatedManagedThreads.ToArray())
-                    : new ReadOnlyCollection<ManagedThread>(new List<ManagedThread>());
-            }
-
-            // Analysis disable once MemberHidesStaticFromOuterClass
-            public override bool Equals(object obj)
-            {
-                // related managed threads are not taken into account
-                if(obj == null)
-                {
-                    return false;
-                }
-                if(ReferenceEquals(this, obj))
-                {
-                    return true;
-                }
-                if(obj.GetType() != typeof(ShelfEntry))
-                {
-                    return false;
-                }
-                var other = (ShelfEntry)obj;
-                if(Peripheral == other.Peripheral)
-                {
-                    if(StateWhenShelved == null || other.StateWhenShelved == null)
-                    {
-                        return true;
-                    }
-                    return StateWhenShelved == other.StateWhenShelved;
-                }
-                return false;
-            }
-
-            public override int GetHashCode()
-            {
-                unchecked
-                {
-                    return Peripheral.GetHashCode();
-                }
-            }
-
-            public IPeripheral Peripheral { get; private set; }
-
-            public State? StateWhenShelved { get; private set; }
-
-            public IReadOnlyCollection<ManagedThread> RelatedManagedThreads { get; private set; }
         }
 
         private sealed class ClockSourceWrapper : IClockSource
@@ -1898,18 +1624,6 @@ namespace Emul8.Core
                         }
                     }
                     ((PeripheralsGroupsManager)Machine.PeripheralsGroups).groups.Remove(this);
-                }
-
-                public void PutOnShelf()
-                {
-                    IsActive = false;
-                    using(Machine.ObtainPausedState())
-                    {
-                        foreach(var p in Peripherals.ToList())
-                        {
-                            Machine.PutOnShelf(p);
-                        }
-                    }
                 }
 
                 public string Name { get; private set; }
