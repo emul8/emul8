@@ -41,8 +41,6 @@ namespace Emul8.CLI
 
         public event Action<byte> ByteRead;
 
-        public string Name { get { return "Terminal"; } }
-
         private readonly TermSharp.Vt100.Decoder vt100decoder;
         private readonly ByteUtf8Decoder utfDecoder;
     }

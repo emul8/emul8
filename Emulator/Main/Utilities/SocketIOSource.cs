@@ -38,8 +38,6 @@ namespace Emul8.Utilities
             remove { server.DataReceived -= value; }
         }
 
-        public string Name { get { return "SocketIOSource"; } }
-
         private readonly SocketServerProvider server;
     }
 }

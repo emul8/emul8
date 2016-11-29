@@ -39,7 +39,7 @@ namespace Emul8.CLI
             else
             {
                 ptyUnixStream = new PtyUnixStream();
-                IO = new DetachableIO(new StreamIOSource(ptyUnixStream, ptyUnixStream.Name));
+                IO = new DetachableIO(new StreamIOSource(ptyUnixStream));
             }
         }
 
