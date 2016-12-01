@@ -130,7 +130,7 @@ namespace Emul8.Peripherals.Bus
             }
         }
 
-        public PeripheralAccessMethods FindAccessMethods(long address, out long startAddress, out long offset, out long endAddress)
+        public PeripheralAccessMethods FindAccessMethods(long address, out long startAddress, out long endAddress)
         {
             // no need to lock here yet, cause last block is in the thread local storage
             var lastBlock = lastBlockStorage.Value;
@@ -144,7 +144,6 @@ namespace Emul8.Peripherals.Bus
 #endif
                 startAddress = lastBlock.Start;
                 endAddress = lastBlock.End;
-                offset = lastBlock.Offset;
                 return lastBlock.AccessMethods;
             }
             lock(sync)
@@ -159,7 +158,6 @@ namespace Emul8.Peripherals.Bus
                     {
                         startAddress = 0;
                         endAddress = 0;
-                        offset = 0;
                         return null;
                     }
 #if DEBUG
@@ -174,7 +172,6 @@ namespace Emul8.Peripherals.Bus
                 }
 #endif
                 startAddress = block.Start;
-                offset = block.Offset;
                 endAddress = block.End;
                 lastBlockStorage.Value = block;
                 return block.AccessMethods;
@@ -256,7 +253,6 @@ namespace Emul8.Peripherals.Bus
         {
             public long Start;
             public long End;
-            public long Offset;
             public PeripheralAccessMethods AccessMethods;
             public IBusRegistered<IBusPeripheral> Peripheral;
         }
