@@ -48,11 +48,17 @@ namespace Emul8.Plugins.XwtProviderPlugin
 
         public static void StartXwtThread()
         {
+            var manualResetEvent = new ManualResetEventSlim();
             Emulator.ExecuteOnMainThread(() =>
-                {
-                    InitializeXwt();
-                    RunXwtInCurrentThread();
-                });
+            {
+                // XWT thread has to be initialized on the first thread at OSX
+                InitializeXwt();
+                manualResetEvent.Set();
+                RunXwtInCurrentThread();
+            });
+            // we should wait here for the initalization of XWT
+            // as further code might want to use it
+            manualResetEvent.Wait();
         }
 
         public static void StopXwtThread()
