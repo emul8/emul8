@@ -26,7 +26,6 @@ namespace Emul8.CLI
     {
         public static void Run(string[] args)
         {
-            Plugins.XwtProviderPlugin.XwtProvider.StartXwtThread();
             var options = new Options();
             var optionsParser = new OptionsParser();
             if(!optionsParser.Parse(options, args))
@@ -34,6 +33,7 @@ namespace Emul8.CLI
                 return;
             }
 
+            Plugins.XwtProviderPlugin.XwtProvider.StartXwtThread();
             using(var context = ObjectCreator.Instance.OpenContext())
             {
                 var monitor = new Emul8.UserInterface.Monitor();
