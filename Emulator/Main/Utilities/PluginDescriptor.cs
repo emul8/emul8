@@ -29,7 +29,7 @@ namespace Emul8.Utilities
                 var dependencies = pluginAttribute.Properties.SingleOrDefault(x => x.Name == "Dependencies").Argument.Value;
                 if(dependencies != null)
                 {
-                    Dependencies = ((CustomAttributeArgument[])dependencies).Select(x=>((TypeReference)x.Value).Resolve()).ToArray();
+                    Dependencies = ((CustomAttributeArgument[])dependencies).Select(x => ((TypeReference)x.Value).Resolve()).ToArray();
                 }
                 var modes = pluginAttribute.Properties.SingleOrDefault(x => x.Name == "Modes").Argument.Value;
                 Modes = modes != null ? ((CustomAttributeArgument[])modes).Select(x => x.Value).Cast<string>().ToArray() : new string[0];

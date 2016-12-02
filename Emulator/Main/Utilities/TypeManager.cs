@@ -14,7 +14,6 @@ using Emul8.Peripherals;
 using Mono.Cecil;
 using System.Reflection;
 using System.Collections.Generic;
-using Emul8.Utilities;
 using Emul8.Plugins;
 
 namespace Emul8.Utilities
@@ -39,11 +38,11 @@ namespace Emul8.Utilities
             {
                 // this lock is needed because it happens that two 
                 // threads add the event simulataneously and an exception is rised
-                lock (autoLoadedTypeLocker)
+                lock(autoLoadedTypeLocker)
                 {
                     if(value != null)
                     {
-                        foreach (var type in autoLoadedTypes) 
+                        foreach(var type in autoLoadedTypes)
                         {
                             value(type);
                         }
@@ -51,7 +50,7 @@ namespace Emul8.Utilities
                     }
                 }
             }
-            remove 
+            remove
             {
                 lock(autoLoadedTypeLocker)
                 {
@@ -166,7 +165,7 @@ namespace Emul8.Utilities
 
         public IEnumerable<TypeDescriptor> GetAvailablePeripherals(Type attachableTo = null)
         {
-            if (attachableTo == null)
+            if(attachableTo == null)
             {
                 return foundPeripherals.Where(td => td.IsClass && !td.IsAbstract && td.Methods.Any(m => m.IsConstructor && m.IsPublic)).Select(x => new TypeDescriptor(x));
             }
@@ -178,9 +177,9 @@ namespace Emul8.Utilities
                 .Select(i => i.GetGenericArguments()[0]).Distinct();
 
             return foundPeripherals
-               .Where(td => 
-                    td.IsClass && 
-                    !td.IsAbstract && 
+               .Where(td =>
+                    td.IsClass &&
+                    !td.IsAbstract &&
                     td.Methods.Any(m => m.IsConstructor && m.IsPublic) &&
                     ifaces.Any(iface => ImplementsInterface(td, iface)))
                 .Select(x => new TypeDescriptor(x));
@@ -204,15 +203,15 @@ namespace Emul8.Utilities
             return (type.BaseType != null && ImplementsInterface(type.BaseType.Resolve(), @interface)) || type.Interfaces.Any(i => ImplementsInterface(i.Resolve(), @interface));
         }
 
-        private TypeManager ()
+        private TypeManager()
         {
-            assembliesFromTypeName = new Dictionary<string, List<AssemblyDescription>> ();
-            assemblyFromTypeName = new Dictionary<string, AssemblyDescription> ();
-            assemblyFromAssemblyName = new Dictionary<string, AssemblyDescription> ();
-            extensionMethodsFromThisType = new Dictionary<Type, MethodInfo[]> ();
-            extensionMethodsTraceFromTypeFullName = new Dictionary<string, HashSet<MethodDescription>> ();
-            knownDirectories = new HashSet<string> ();
-            dictSync = new object ();
+            assembliesFromTypeName = new Dictionary<string, List<AssemblyDescription>>();
+            assemblyFromTypeName = new Dictionary<string, AssemblyDescription>();
+            assemblyFromAssemblyName = new Dictionary<string, AssemblyDescription>();
+            extensionMethodsFromThisType = new Dictionary<Type, MethodInfo[]>();
+            extensionMethodsTraceFromTypeFullName = new Dictionary<string, HashSet<MethodDescription>>();
+            knownDirectories = new HashSet<string>();
+            dictSync = new object();
             AppDomain.CurrentDomain.AssemblyResolve += ResolveAssembly;
 
             foundPeripherals = new List<TypeDefinition>();
@@ -328,7 +327,7 @@ namespace Emul8.Utilities
                 assemblyFromAssemblyPath.Add(assembly.Path, assembly);
             }
             Logger.LogAs(this, LogLevel.Noisy, "Assembly cache with {0} distinct assemblies built.", assemblyFromAssemblyPath.Count);
-        }      
+        }
 
         private bool ExtractExtensionMethods(TypeDefinition type)
         {
@@ -567,11 +566,11 @@ namespace Emul8.Utilities
             {
                 resolved = null;
             }
-           
+
             return resolved;
         }
 
-        private bool IsInterestingType (TypeDefinition type)
+        private bool IsInterestingType(TypeDefinition type)
         {
             if(type.CustomAttributes.Any(x => x.AttributeType.Resolve().Interfaces.Select(y => y.GetFullNameOfMember()).Contains(typeof(IInterestingType).FullName)))
             {
@@ -699,4 +698,3 @@ namespace Emul8.Utilities
         }
     }
 }
-
