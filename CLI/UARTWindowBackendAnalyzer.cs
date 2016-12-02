@@ -33,7 +33,9 @@ namespace Emul8.CLI
             preferredTerminal = ConfigurationManager.Instance.Get("general", "terminal", TerminalTypes.XTerm);
             if(preferredTerminal == TerminalTypes.Termsharp)
             {
-                terminalWidget = new TerminalWidget();
+                Emul8.Plugins.XwtProviderPlugin.ApplicationExtensions.InvokeInUIThreadAndWait(() => {
+                    terminalWidget = new TerminalWidget();
+                });
                 IO = terminalWidget.IO;
             }
             else
@@ -379,9 +381,9 @@ namespace Emul8.CLI
 
         private Process process;
         private Xwt.Window window;
+        private TerminalWidget terminalWidget;
 
         private readonly PtyUnixStream ptyUnixStream;
-        private readonly TerminalWidget terminalWidget;
         private readonly TerminalTypes preferredTerminal;
         private const int WindowHeight = 500;
         private const int WindowWidth = 670;
