@@ -43,11 +43,6 @@ namespace Emul8.CLI
             }
         }
 
-        public UARTWindowBackendAnalyzer(TerminalWidget widget)
-        {
-            terminalWidget = widget;
-        }
-
         public void AttachTo(UARTBackend backend)
         {
             backend.BindAnalyzer(IO);
