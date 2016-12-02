@@ -74,7 +74,7 @@ namespace Emul8.Utilities
                         Enumerable.SequenceEqual(Dependencies, objAsPluginDescriptor.Dependencies));
             }
 
-            return base.Equals(obj);
+            return false;
         }
 
         public override int GetHashCode()
