@@ -152,7 +152,7 @@ namespace Emul8.Plugins
                         var referencedPluginDescriptor = availablePlugins.SingleOrDefault(x => typeComparer.Equals(x.ThisType, referencedPlugin));
                         if(referencedPluginDescriptor == null)
                         {
-                            throw new RecoverableException("Plugin {0} not found.".FormatWith(referencedPlugin.FullName));
+                            throw new RecoverableException("Plugin {0} not found.".FormatWith(referencedPlugin.GetFullNameOfMember()));
                         }
                         if(enabledPlugins.Contains(referencedPluginDescriptor))
                         {

@@ -19,7 +19,7 @@ namespace Emul8.Utilities
         {
             ThisType = td;
             IsHidden = hidden;
-            var pluginAttribute = td.CustomAttributes.SingleOrDefault(x => x.AttributeType.FullName == typeof(PluginAttribute).FullName);
+            var pluginAttribute = td.CustomAttributes.SingleOrDefault(x => x.AttributeType.GetFullNameOfMember() == typeof(PluginAttribute).FullName);
             if(pluginAttribute != null)
             {
                 Version = Version.Parse((string)pluginAttribute.Properties.Single(x => x.Name == "Version").Argument.Value);
@@ -55,7 +55,7 @@ namespace Emul8.Utilities
 
         public object CreatePlugin()
         {
-            var type = TypeManager.Instance.GetTypeByName(ThisType.FullName);
+            var type = TypeManager.Instance.GetTypeByName(ThisType.GetFullNameOfMember());
             return ObjectCreator.Instance.Spawn(type);
         }
 

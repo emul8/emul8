@@ -196,7 +196,7 @@ namespace Emul8.Utilities
 
         private bool ImplementsInterface(TypeDefinition type, Type @interface)
         {
-            if (type.FullName == @interface.FullName)
+            if(type.GetFullNameOfMember() == @interface.FullName)
             {
                 return true;
             }
@@ -340,7 +340,7 @@ namespace Emul8.Utilities
             var methodAdded = false;
             foreach(var method in type.Methods)
             {
-                if(method.IsStatic && method.IsPublic && method.CustomAttributes.Any(x => x.AttributeType.FullName == typeof(System.Runtime.CompilerServices.ExtensionAttribute).FullName))
+                if(method.IsStatic && method.IsPublic && method.CustomAttributes.Any(x => x.AttributeType.GetFullNameOfMember() == typeof(System.Runtime.CompilerServices.ExtensionAttribute).FullName))
                 {
                     // so this is extension method
                     // let's check the type of the first parameter
@@ -354,23 +354,23 @@ namespace Emul8.Utilities
                             continue;
                         }
                         Logger.LogAs(this, LogLevel.Warning, "Could not resolve parameter type {0} for method {1} in class {2}.",
-                                 paramReference.ParameterType.FullName, method.FullName, type.FullName);
+                                 paramReference.ParameterType.GetFullNameOfMember(), method.GetFullNameOfMember(), type.GetFullNameOfMember());
                         continue;
                     }
                     if(IsInterestingType(paramType) ||
-                        (paramType.FullName == typeof(object).FullName
-                        && method.CustomAttributes.Any(x => x.AttributeType.FullName == typeof(ExtensionOnObjectAttribute).FullName)))
+                        (paramType.GetFullNameOfMember() == typeof(object).FullName
+                        && method.CustomAttributes.Any(x => x.AttributeType.GetFullNameOfMember() == typeof(ExtensionOnObjectAttribute).FullName)))
                     {
                         methodAdded = true;
                         // that's the interesting extension method
-                        var methodDescription = new MethodDescription(type.FullName, method.Name, GetMethodSignature(method), true);
-                        if(extensionMethodsTraceFromTypeFullName.ContainsKey(paramType.FullName))
+                        var methodDescription = new MethodDescription(type.GetFullNameOfMember(), method.Name, GetMethodSignature(method), true);
+                        if(extensionMethodsTraceFromTypeFullName.ContainsKey(paramType.GetFullNameOfMember()))
                         {
-                            extensionMethodsTraceFromTypeFullName[paramType.FullName].Add(methodDescription);
+                            extensionMethodsTraceFromTypeFullName[paramType.GetFullNameOfMember()].Add(methodDescription);
                         }
                         else
                         {
-                            extensionMethodsTraceFromTypeFullName.Add(paramType.FullName, new HashSet<MethodDescription> { methodDescription } );
+                            extensionMethodsTraceFromTypeFullName.Add(paramType.GetFullNameOfMember(), new HashSet<MethodDescription> { methodDescription });
                         }
                     }
                 }
@@ -475,15 +475,15 @@ namespace Emul8.Utilities
 
             foreach(var type in types)
             {
-                if(type.Interfaces.Any(i => i.Resolve().FullName == typeof(IPeripheral).FullName))
+                if(type.Interfaces.Any(i => i.Resolve().GetFullNameOfMember() == typeof(IPeripheral).FullName))
                 {
-                    Logger.LogAs(this, LogLevel.Noisy, "Peripheral type {0} found.", type.Resolve().FullName);
+                    Logger.LogAs(this, LogLevel.Noisy, "Peripheral type {0} found.", type.Resolve().GetFullNameOfMember());
                     foundPeripherals.Add(type);
                 }
 
-                if(type.CustomAttributes.Any(x => x.AttributeType.Resolve().FullName == typeof(PluginAttribute).FullName))
+                if(type.CustomAttributes.Any(x => x.AttributeType.Resolve().GetFullNameOfMember() == typeof(PluginAttribute).FullName))
                 {
-                    Logger.LogAs(this, LogLevel.Noisy, "Plugin type {0} found.", type.Resolve().FullName);
+                    Logger.LogAs(this, LogLevel.Noisy, "Plugin type {0} found.", type.Resolve().GetFullNameOfMember());
                     try
                     {
                         foundPlugins.Add(new PluginDescriptor(type, hidePluginsFromThisAssembly));
@@ -491,13 +491,13 @@ namespace Emul8.Utilities
                     catch(Exception e)
                     {
                         //This may happend due to, e.g., version parsing error. The plugin is ignored.
-                        Logger.LogAs(this, LogLevel.Error, "Plugin type {0} loading error: {1}.", type.FullName, e.Message);
+                        Logger.LogAs(this, LogLevel.Error, "Plugin type {0} loading error: {1}.", type.GetFullNameOfMember(), e.Message);
                     }
                 }
 
                 if(IsAutoLoadType(type))
                 {
-                    var typeName = string.Format("{0}, {1}", type.FullName, assembly.FullName);
+                    var typeName = string.Format("{0}, {1}", type.GetFullNameOfMember(), assembly.FullName);
                     var loadedType = GetTypeWithLazyLoad(typeName, path);
                     lock(autoLoadedTypeLocker)
                     {
@@ -516,7 +516,7 @@ namespace Emul8.Utilities
                 }
                 // type is interesting, we'll put it into our dictionaries
                 // after conflicts checking
-                var fullName = type.FullName;
+                var fullName = type.GetFullNameOfMember();
                 var newAssemblyDescription = GetAssemblyDescription(assembly.FullName, path);
                 Logger.LogAs(this, LogLevel.Noisy, "Type {0} added.", fullName);
                 if(assembliesFromTypeName.ContainsKey(fullName))
@@ -539,7 +539,7 @@ namespace Emul8.Utilities
 
         private static bool IsAutoLoadType(TypeDefinition type)
         {
-            var isAutoLoad = type.Interfaces.Select(x => x.FullName).Contains(typeof(IAutoLoadType).FullName);
+            var isAutoLoad = type.Interfaces.Select(x => x.GetFullNameOfMember()).Contains(typeof(IAutoLoadType).FullName);
             if(isAutoLoad)
             {
                 return true;
@@ -573,17 +573,17 @@ namespace Emul8.Utilities
 
         private bool IsInterestingType (TypeDefinition type)
         {
-            if(type.CustomAttributes.Any(x => x.AttributeType.Resolve().Interfaces.Select(y => y.FullName).Contains(typeof(IInterestingType).FullName)))
+            if(type.CustomAttributes.Any(x => x.AttributeType.Resolve().Interfaces.Select(y => y.GetFullNameOfMember()).Contains(typeof(IInterestingType).FullName)))
             {
                 return true;
             }
-            if (type.IsInterface && type.FullName == typeof(IInterestingType).FullName) 
+            if(type.IsInterface && type.GetFullNameOfMember() == typeof(IInterestingType).FullName)
             {
                 return true;
             }
             foreach(var iface in type.Interfaces)
             {
-                if(iface.FullName == typeof(IInterestingType).FullName)
+                if(iface.GetFullNameOfMember() == typeof(IInterestingType).FullName)
                 {
                     return true;
                 }
@@ -615,7 +615,7 @@ namespace Emul8.Utilities
 
         private static string GetMethodSignature(MethodDefinition definition)
         {
-            return definition.Parameters.Select(x => x.ParameterType.FullName).Aggregate((x, y) => x + "," + y);
+            return definition.Parameters.Select(x => x.ParameterType.GetFullNameOfMember()).Aggregate((x, y) => x + "," + y);
         }
 
         private static string GetMethodSignature(MethodInfo info)
