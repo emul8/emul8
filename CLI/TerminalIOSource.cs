@@ -12,12 +12,17 @@ using Emul8.Plugins.XwtProviderPlugin;
 
 namespace Emul8.CLI
 {
-    internal class TerminalIOSource : IActiveIOSource
+    internal class TerminalIOSource : IActiveIOSource, IDisposable
     {
         public TerminalIOSource(Terminal terminal)
         {
-            vt100decoder = new TermSharp.Vt100.Decoder(terminal, HandleInput, new ConsoleDecoderLogger());
+            vt100decoder = new TermSharp.Vt100.Decoder(terminal, b => HandleInput(b), new ConsoleDecoderLogger());
             utfDecoder = new ByteUtf8Decoder(vt100decoder.Feed);
+        }
+
+        public void Dispose()
+        {
+            HandleInput(-1);
         }
 
         public void Flush() 
@@ -30,7 +35,7 @@ namespace Emul8.CLI
             ApplicationExtensions.InvokeInUIThread(() => utfDecoder.Feed(b));
         }
 
-        public void HandleInput(byte b)
+        public void HandleInput(int b)
         {
             var br = ByteRead;
             if(br != null)
@@ -39,7 +44,9 @@ namespace Emul8.CLI
             }
         }
 
-        public event Action<byte> ByteRead;
+        public event Action<int> ByteRead;
+
+        public bool IsAnythingAttached { get { return ByteRead != null; } }
 
         private readonly TermSharp.Vt100.Decoder vt100decoder;
         private readonly ByteUtf8Decoder utfDecoder;

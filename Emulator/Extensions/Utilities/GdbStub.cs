@@ -96,9 +96,13 @@ namespace Emul8.Utilities
             }
         }
 
-        private void OnByteWritten(byte b)
+        private void OnByteWritten(int b)
         {
-            var result = pcktBuilder.AppendByte(b);
+            if(b == -1)
+            {
+                return;
+            }
+            var result = pcktBuilder.AppendByte((byte)b);
             if(result == null)
             {
                 return;

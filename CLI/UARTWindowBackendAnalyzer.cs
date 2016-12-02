@@ -39,7 +39,7 @@ namespace Emul8.CLI
             else
             {
                 ptyUnixStream = new PtyUnixStream();
-                IO = new DetachableIO(new StreamIOSource(ptyUnixStream));
+                IO = new IOProvider(new StreamIOSource(ptyUnixStream));
             }
         }
 
@@ -147,7 +147,7 @@ namespace Emul8.CLI
 
         public IAnalyzableBackend Backend { get; private set; }
 
-        public DetachableIO IO { get; private set; }
+        public IOProvider IO { get; private set; }
 
         private static Tuple<int, int> GetNextWindowPosition()
         {

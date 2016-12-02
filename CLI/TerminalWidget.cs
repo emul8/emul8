@@ -25,7 +25,7 @@ namespace Emul8.CLI
         {
             terminal = new Terminal();
             terminalInputOutputSource = new TerminalIOSource(terminal);
-            IO = new DetachableIO(terminalInputOutputSource);
+            IO = new IOProvider(terminalInputOutputSource);
             IO.BeforeWrite += b =>
             {
                 // we do not check if previous byte was '\r', because it should not cause any problem to 
@@ -112,7 +112,7 @@ namespace Emul8.CLI
             }
         }
 
-        public DetachableIO IO { get; private set; }
+        public IOProvider IO { get; private set; }
 
         protected override void Dispose(bool disposing)
         {

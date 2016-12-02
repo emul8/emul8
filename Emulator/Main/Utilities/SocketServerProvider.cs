@@ -62,8 +62,10 @@ namespace Emul8.Utilities
             queue.Add(b);
         }
 
+        public bool IsAnythingReceiving { get { return DataReceived != null; } }
+
         public event Action<Stream> ConnectionAccepted;
-        public event Action<byte> DataReceived;
+        public event Action<int> DataReceived;
 
         private void WriterThreadBody(Stream stream)
         {
@@ -102,16 +104,16 @@ namespace Emul8.Utilities
                     value = -1;
                 }
 
+                var dataReceived = DataReceived;
+                if(dataReceived != null)
+                {
+                    dataReceived(value);
+                }
+
                 if(value == -1)
                 {
                     Logger.LogAs(this, LogLevel.Debug, "Client disconnected, stream closed.");
                     break;
-                }
-
-                var dataReceived = DataReceived;
-                if(dataReceived != null)
-                {
-                    dataReceived((byte)value);
                 }
             }
         }

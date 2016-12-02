@@ -31,10 +31,10 @@ namespace Emul8.Peripherals.UART
             };
         }
 
-        public void BindAnalyzer(DetachableIO io)
+        public void BindAnalyzer(IOProvider io)
         {
             this.io = io;
-            io.ByteRead += UART.WriteChar;
+            io.ByteRead += b => UART.WriteChar((byte)b);
 
             Task.Run(() => 
             {
@@ -70,7 +70,7 @@ namespace Emul8.Peripherals.UART
             }
         }
 
-        private DetachableIO io;
+        private IOProvider io;
         private readonly CircularBuffer<byte> history;
 
         private const int BUFFER_SIZE = 100000;
