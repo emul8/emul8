@@ -70,15 +70,41 @@ void emul_set_count_threshold(int32_t value)
   cpu->instructions_count_threshold = value;
 }
 
+int32_t block_trimming_enabled;
+
+void emul_set_block_trimming(int32_t value)
+{
+  block_trimming_enabled = value;
+}
+
+int32_t emul_get_block_trimming()
+{
+  return block_trimming_enabled;
+}
+
 void tlib_update_instruction_counter(int32_t value)
 {
-  cpu->instructions_count_value += value;
-  if(cpu->instructions_count_value < cpu->instructions_count_threshold)
+  if(cpu->instructions_count_value + value >= cpu->instructions_count_threshold && value != 1 && block_trimming_enabled)
   {
-     return;
+    size_of_next_block_to_translate = cpu->instructions_count_threshold - cpu->instructions_count_value - 1;
+    if(size_of_next_block_to_translate == 0)
+    {
+      size_of_next_block_to_translate = 1;
+    }
+    cpu->tb_restart_request = 1;
+    tb_phys_invalidate(cpu->current_tb, -1);
+    cpu->current_tb = NULL;
   }
-  update_instruction_counter_inner(cpu->instructions_count_value);
-  cpu->instructions_count_value = 0;
+  else
+  {
+    cpu->instructions_count_value += value;
+    if(cpu->instructions_count_value < cpu->instructions_count_threshold)
+    {
+      return;
+    }
+    update_instruction_counter_inner(cpu->instructions_count_value);
+    cpu->instructions_count_value = 0;
+  }
 }
 
 EXTERNAL_AS(func_int32, GetCpuIndex, tlib_get_cpu_index)
