@@ -74,8 +74,8 @@ namespace Emul8.Utilities
             var typeDefinition = underlyingType as TypeDefinition;
             if (typeDefinition != null)
             {
-                return TypeResolver.ResolveType(typeDefinition.FullName) ??
-                    TypeManager.Instance.GetTypeByName(typeDefinition.FullName);
+                return TypeResolver.ResolveType(typeDefinition.GetFullNameOfMember()) ??
+                    TypeManager.Instance.GetTypeByName(typeDefinition.GetFullNameOfMember());
             }
 
             throw new ArgumentException("Unsupported underlying type: " + underlyingType.GetType().FullName);
