@@ -243,7 +243,7 @@ namespace Emul8.Peripherals.CPU
 
         public bool ThreadSentinelEnabled { get; set; }
 
-        public bool BlockTrimmingEnabled
+        public bool ClocksourceBlockTrimming
         {
             get
             {
