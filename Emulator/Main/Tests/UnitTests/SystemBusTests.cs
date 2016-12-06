@@ -91,7 +91,7 @@ namespace UnitTests
 			{
 				if(random.Next(100) < 10)
 				{
-					sysbus.Unregister(regPoints[i]);
+					sysbus.UnregisterFromAddress(regPoints[i]);
 					regPoints[i] = -regPoints[i];
 				}
 			}

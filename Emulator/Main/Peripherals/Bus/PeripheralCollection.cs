@@ -103,6 +103,20 @@ namespace Emul8.Peripherals.Bus
             }
         }
 
+        public void Remove(long start, long end)
+        {
+            lock(sync)
+            {
+                blocks = blocks.Where(x => x.Start > end || x.End < start).ToArray();
+                var toRemove = shortBlocks.Where(x => x.Value.Start >= start && x.Value.End <= end).Select(x => x.Key).ToArray();
+                foreach(var keyToRemove in toRemove)
+                {
+                    shortBlocks.Remove(keyToRemove);
+                }
+                InvalidateLastBlock();
+            }
+        }
+
         public void VisitAccessMethods(IBusPeripheral peripheral, Func<PeripheralAccessMethods, PeripheralAccessMethods> onPam)
         {
             lock(sync)

@@ -76,6 +76,15 @@ namespace Emul8.Peripherals.Bus
             }
         }
 
+        public void Unregister(IBusRegistered<IBusPeripheral> busRegisteredPeripheral)
+        {
+            using(Machine.ObtainPausedState())
+            {
+                machine.UnregisterAsAChildOf(this, busRegisteredPeripheral.RegistrationPoint);
+                UnregisterInner(busRegisteredPeripheral);
+            }
+        }
+
         public void Register(IBusPeripheral peripheral, BusMultiRegistration registrationPoint)
         {
             var methods = PeripheralAccessMethods.CreateWithLock();
@@ -260,16 +269,23 @@ namespace Emul8.Peripherals.Bus
             }
         }
 
-        public void Unregister(long address)
+        /// <summary>
+        /// Unregister peripheral from the specified address.
+        /// 
+        /// NOTE: After calling this method, peripheral may still be
+        /// registered in the SystemBus at another address. In order
+        /// to remove peripheral completely use 'Unregister' method.
+        /// </summary>
+        /// <param name="address">Address on system bus where the peripheral is registered.</param>
+        public void UnregisterFromAddress(long address)
         {
-            // TODO: whole device or not?
-            var peripheral = WhatIsAt(address);
-            if(peripheral == null)
+            var busRegisteredPeripheral = WhatIsAt(address);
+            if(busRegisteredPeripheral == null)
             {
                 throw new RecoverableException(string.Format(
                     "There is no peripheral registered at 0x{0:X}.", address));
             }
-            Unregister(peripheral.Peripheral);
+            Unregister(busRegisteredPeripheral);
         }
 
         public void Dispose()
@@ -861,6 +877,26 @@ namespace Emul8.Peripherals.Bus
                 mappingsForPeripheral.Remove(peripheral);
             }
             peripherals.Remove(peripheral);
+        }
+
+        private void UnregisterInner(IBusRegistered<IBusPeripheral> registrationPoint)
+        {
+            if(mappingsForPeripheral.ContainsKey(registrationPoint.Peripheral))
+            {
+                var toRemove = new HashSet<MappedSegmentWrapper>();
+                // it is assumed that mapped segment cannot be partially outside the registration point range
+                foreach(var mapping in mappingsForPeripheral[registrationPoint.Peripheral].Where(x => registrationPoint.RegistrationPoint.Range.Contains(x.StartingOffset)))
+                {
+                    UnmapMemory(new Range(mapping.StartingOffset, mapping.Size));
+                    toRemove.Add(mapping);
+                }
+                mappingsForPeripheral[registrationPoint.Peripheral].RemoveAll(x => toRemove.Contains(x));
+                if(mappingsForPeripheral[registrationPoint.Peripheral].Count == 0)
+                {
+                    mappingsForPeripheral.Remove(registrationPoint.Peripheral);
+                }
+            }
+            peripherals.Remove(registrationPoint.RegistrationPoint.Range.StartAddress, registrationPoint.RegistrationPoint.Range.EndAddress);
         }
 
         private void FillAccessMethodsWithTaggedMethods(IBusPeripheral peripheral, string tag, ref PeripheralAccessMethods methods)
@@ -1498,6 +1534,30 @@ namespace Emul8.Peripherals.Bus
                 }
             }
 
+            public override bool Equals(object obj)
+            {
+                var objAsMappedSegmentWrapper = obj as MappedSegmentWrapper;
+                if(objAsMappedSegmentWrapper == null)
+                {
+                    return false;
+                }
+
+                return wrappedSegment.Equals(objAsMappedSegmentWrapper.wrappedSegment) 
+                    && peripheralOffset == objAsMappedSegmentWrapper.peripheralOffset
+                    && usedSize == objAsMappedSegmentWrapper.usedSize;
+            }
+
+            public override int GetHashCode()
+            {
+                unchecked
+                {
+                    var hash = 17;
+                    hash = hash * 23 + wrappedSegment.GetHashCode();
+                    hash = hash * 23 + (int)peripheralOffset;
+                    hash = hash * 23 + (int)usedSize;
+                    return hash;
+                }
+            }
 
             private readonly IMappedSegment wrappedSegment;
             private readonly long peripheralOffset;
