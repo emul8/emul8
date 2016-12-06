@@ -108,6 +108,7 @@ namespace Emul8.Core
                 try
                 {
                     var parentNode = registeredPeripherals.GetNode(peripheralParent);
+                    IPeripheral removedPeripheral = null;
                     parentNode.RemoveChild(registrationPoint, p =>
                     {
                         IPeripheralsGroup group;
@@ -115,11 +116,14 @@ namespace Emul8.Core
                         {
                             throw new RegistrationException(string.Format("Given peripheral is a member of '{0}' peripherals group and cannot be directly removed.", group.Name));
                         }
-
-                        EmulationManager.Instance.CurrentEmulation.BackendManager.HideAnalyzersFor(p);
+                        removedPeripheral = p;
                         return true;
                     });
                     CollectGarbage();
+                    if(removedPeripheral != null && registeredPeripherals.TryGetNode(removedPeripheral) == null)
+                    {
+                        EmulationManager.Instance.CurrentEmulation.BackendManager.HideAnalyzersFor(removedPeripheral);
+                    }
                 }
                 catch(RegistrationException)
                 {
