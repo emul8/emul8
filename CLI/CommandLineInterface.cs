@@ -106,11 +106,11 @@ namespace Emul8.CLI
 
                 Emulator.BeforeExit += () =>
                 {
-                    Plugins.XwtProviderPlugin.XwtProvider.StopXwtThread();
                     Emulator.DisposeAll();
                 };
 
                 Emulator.WaitForExit();
+                Plugins.XwtProviderPlugin.XwtProvider.StopXwtThread();
             }
         }
     }
