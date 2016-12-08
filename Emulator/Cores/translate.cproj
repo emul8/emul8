@@ -85,10 +85,10 @@
 
           <CompilationFlags Include="-DTARGET_ARCH=&quot;$(EmulatedTarget)&quot;" />
           <CompilationFlags Include="-DTARGET_$(EmulatedTargetUpper)=1" />
-          <CompilationFlags Include="-DTARGET_PHYS_ADDR_BITS=$(TargetWordSize)" />
           <CompilationFlags Include="-DCONFIG_$(HostUpper)_DIS=1" />
           <CompilationFlags Include="-DCONFIG_$(EmulatedTargetUpper)_DIS=1" />
           <CompilationFlags Include="-DTARGET_WORDS_BIGENDIAN=1" Condition=" $(TargetEndianess) == 'be' " />
+          <CompilationFlags Include="-DTARGET_LONG_BITS=$(TargetWordSize)" />
 
           <CompilationFlags Include="$(AdditionalCompilationFlags)" />
 
