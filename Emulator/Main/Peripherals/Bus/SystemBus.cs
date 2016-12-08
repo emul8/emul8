@@ -87,6 +87,11 @@ namespace Emul8.Peripherals.Bus
 
         public void Register(IBusPeripheral peripheral, BusMultiRegistration registrationPoint)
         {
+            if(peripheral is IMapped)
+            {
+                throw new ConstructionException(string.Format("It is not allowed to register `{0}` peripheral using `{1}`", typeof(IMapped).Name, typeof(BusMultiRegistration).Name));
+            }
+
             var methods = PeripheralAccessMethods.CreateWithLock();
             FillAccessMethodsWithTaggedMethods(peripheral, registrationPoint.ConnectionRegionName, ref methods);
             RegisterInner(peripheral, methods, registrationPoint);
