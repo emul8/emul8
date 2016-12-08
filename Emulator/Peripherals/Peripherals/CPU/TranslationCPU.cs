@@ -33,7 +33,6 @@ using System.Net.Sockets;
 
 namespace Emul8.Peripherals.CPU
 {
-    [GPIO(NumberOfInputs = 2)]  // TODO: maybe we should support more?
     public abstract class TranslationCPU : IGPIOReceiver, ICpuSupportingGdb, IDisposable, IDisassemblable, IClockSource
     {
         public Endianess Endianness { get; protected set; }

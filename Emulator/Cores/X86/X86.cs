@@ -11,6 +11,7 @@ using Emul8.Utilities.Binding;
 
 namespace Emul8.Peripherals.CPU
 {
+    [GPIO(NumberOfInputs = 1)]
     public partial class X86 : TranslationCPU
     {
         const Endianess endianness = Endianess.LittleEndian;

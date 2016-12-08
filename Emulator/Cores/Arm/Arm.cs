@@ -22,6 +22,7 @@ using Endianess = ELFSharp.ELF.Endianess;
 
 namespace Emul8.Peripherals.CPU
 {
+    [GPIO(NumberOfInputs = 2)]
     public partial class Arm : TranslationCPU, ICPUWithHooks, IPeripheralRegister<SemihostingUart, NullRegistrationPoint>
     {
         public Arm(string cpuType, Machine machine, Endianess endianness = Endianess.LittleEndian): base(cpuType, machine, endianness)

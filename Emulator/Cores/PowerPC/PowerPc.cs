@@ -19,6 +19,7 @@ using ELFSharp.UImage;
 
 namespace Emul8.Peripherals.CPU
 {
+    [GPIO(NumberOfInputs = 1)]
     public partial class PowerPc : TranslationCPU, ICPUWithHooks
     {
         public PowerPc(string cpuType, Machine machine, Endianess endianness = Endianess.BigEndian) : base(cpuType, machine, endianness)
