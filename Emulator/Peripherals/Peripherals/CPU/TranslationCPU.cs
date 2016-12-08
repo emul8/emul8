@@ -1024,12 +1024,6 @@ namespace Emul8.Peripherals.CPU
             });
         }
 
-        private IntPtr DoLookupSymbol(uint offset)
-        {
-            var symbol = DoLookupSymbolInner(offset);
-            return Mono.Unix.UnixMarshal.StringToHeap(string.Format("0x{0:X} ", offset) + symbol == null ? String.Empty : symbol.Name);
-        }
-
         [Export]
         private void OnTranslationCacheSizeChange(int realSize)
         {
