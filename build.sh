@@ -13,14 +13,16 @@ if [ -z "$ROOT_PATH" -a -x "$(command -v realpath)" ]; then
     ROOT_PATH="`dirname \`realpath $0\``"
 fi
 
+VERSION=1.0
 TARGET="./target/Emul8.sln"
 
 export CLEAN=false
 export INSTALL=false
 export DEBUG=false
 export VERBOSE=false
+export PACKAGES=false
 
-while getopts ":cidv" opt; do
+while getopts ":cidvp" opt; do
   case $opt in
     c)
       CLEAN=true
@@ -33,6 +35,9 @@ while getopts ":cidv" opt; do
       ;;
     v)
       VERBOSE=true
+      ;;
+    p)
+      PACKAGES=true
       ;;
     \?)
       echo "Invalid option: -$OPTARG" >&2
@@ -96,6 +101,16 @@ then
     INSTALLATION_PATH="/usr/local/bin/emul8"
     echo "Installing Emul8 in: $INSTALLATION_PATH"
     sudo ln -sf $ROOT_PATH/run.sh $INSTALLATION_PATH
+fi
+
+if $PACKAGES
+then
+    params="$VERSION -n"
+    if $DEBUG
+    then
+        $params="$params -d"
+    fi
+    $ROOT_PATH/Tools/packaging/make_linux_packages.sh $params
 fi
 
 exit $result_code

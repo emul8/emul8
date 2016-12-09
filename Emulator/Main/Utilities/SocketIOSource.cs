@@ -32,13 +32,13 @@ namespace Emul8.Utilities
             server.SendByte(b);
         }
 
-        public event System.Action<byte> ByteRead
+        public event System.Action<int> ByteRead
         {
             add { server.DataReceived += value; }
             remove { server.DataReceived -= value; }
         }
 
-        public string Name { get { return "SocketIOSource"; } }
+        public bool IsAnythingAttached { get { return server.IsAnythingReceiving; } }
 
         private readonly SocketServerProvider server;
     }

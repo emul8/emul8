@@ -493,22 +493,6 @@ namespace Emul8.UserInterface
             return true;
         }
 
-        public ConsoleTerminal Console
-        {
-            get
-            {
-                return console;
-            }
-            set
-            {
-                console = value;
-                if(console != null)
-                {
-                    Commands.Add(new TerminalCommand(this, console));
-                }
-            }
-        }
-
         private string GetVariableName(string variableName)
         {
             var elements = variableName.Split(new []{'.'}, 2);
@@ -526,8 +510,6 @@ namespace Emul8.UserInterface
             }
             return variableName;
         }
-
-        private ConsoleTerminal console;
       
         private bool TryCompilePlugin(string filename, ICommandInteraction writer)
         {

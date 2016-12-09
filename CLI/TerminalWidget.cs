@@ -25,7 +25,7 @@ namespace Emul8.CLI
         {
             terminal = new Terminal();
             terminalInputOutputSource = new TerminalIOSource(terminal);
-            IO = new DetachableIO(terminalInputOutputSource);
+            IO = new IOProvider(terminalInputOutputSource);
             IO.BeforeWrite += b =>
             {
                 // we do not check if previous byte was '\r', because it should not cause any problem to 
@@ -42,7 +42,14 @@ namespace Emul8.CLI
 
             var fontFile = typeof(TerminalWidget).Assembly.FromResourceToTemporaryFile("RobotoMono-Regular.ttf");
             Xwt.Drawing.Font.RegisterFontFromFile(fontFile);
-            terminal.CurrentFont = Xwt.Drawing.Font.FromName("Roboto Mono").WithSize(10);
+            // here we try to load the robot font; unfortunately it is loaded even if there is
+            // no such font available; because of that we have to check whether it is in fact
+            // the font wanted
+            var robotoFont = Xwt.Drawing.Font.FromName("Roboto Mono").WithSize(10);
+            if(robotoFont.Family.Contains("Roboto Mono"))
+            {
+                terminal.CurrentFont = robotoFont;
+            }
 
             var encoder = new TermSharp.Vt100.Encoder(x =>
             {
@@ -105,7 +112,7 @@ namespace Emul8.CLI
             }
         }
 
-        public DetachableIO IO { get; private set; }
+        public IOProvider IO { get; private set; }
 
         protected override void Dispose(bool disposing)
         {

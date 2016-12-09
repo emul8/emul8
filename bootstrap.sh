@@ -107,20 +107,21 @@ popd > /dev/null
 # Update references to Xwt
 if [ -e ${ROOT_PATH:=.}/External/TermsharpConsole/TermsharpConsole.csproj ]
 then
-    sed -i='' 's/"termsharp\\xwt\\Xwt\\Xwt.csproj"/"..\\xwt\\Xwt\\Xwt.csproj"/' ${ROOT_PATH:=.}/External/TermsharpConsole/TermsharpConsole.csproj
-    sed -i='' 's/"termsharp\\xwt\\Xwt.Gtk\\Xwt.Gtk.csproj"/"..\\xwt\\Xwt.Gtk\\Xwt.Gtk.csproj"/' ${ROOT_PATH:=.}/External/TermsharpConsole/TermsharpConsole.csproj
+    sed -i.bak 's/"termsharp\\xwt\\Xwt\\Xwt.csproj"/"..\\xwt\\Xwt\\Xwt.csproj"/'                 ${ROOT_PATH:=.}/External/TermsharpConsole/TermsharpConsole.csproj
+    sed -i.bak 's/"termsharp\\xwt\\Xwt.Gtk\\Xwt.Gtk.csproj"/"..\\xwt\\Xwt.Gtk\\Xwt.Gtk.csproj"/' ${ROOT_PATH:=.}/External/TermsharpConsole/TermsharpConsole.csproj
+    rm ${ROOT_PATH:=.}/External/TermsharpConsole/TermsharpConsole.csproj.bak
 fi
 if [ -e ${ROOT_PATH:=.}/External/TermsharpConsole/TermsharpConsole.sln ]
 then
-    sed -i='' 's/"termsharp\\xwt\\Xwt\\Xwt.csproj"/"..\\xwt\\Xwt\\Xwt.csproj"/' ${ROOT_PATH:=.}/External/TermsharpConsole/TermsharpConsole.sln
-    sed -i='' 's/"termsharp\\xwt\\Xwt.Gtk\\Xwt.Gtk.csproj"/"..\\xwt\\Xwt.Gtk\\Xwt.Gtk.csproj"/' ${ROOT_PATH:=.}/External/TermsharpConsole/TermsharpConsole.sln
+    sed -i.bak 's/"termsharp\\xwt\\Xwt\\Xwt.csproj"/"..\\xwt\\Xwt\\Xwt.csproj"/'                 ${ROOT_PATH:=.}/External/TermsharpConsole/TermsharpConsole.sln
+    sed -i.bak 's/"termsharp\\xwt\\Xwt.Gtk\\Xwt.Gtk.csproj"/"..\\xwt\\Xwt.Gtk\\Xwt.Gtk.csproj"/' ${ROOT_PATH:=.}/External/TermsharpConsole/TermsharpConsole.sln
+    rm ${ROOT_PATH:=.}/External/TermsharpConsole/TermsharpConsole.sln.bak
 fi
 if [ -e ${ROOT_PATH:=.}/External/TermsharpConsole/termsharp/TermSharp.csproj ]
 then
-    sed -i='' 's/"xwt\\Xwt\\Xwt.csproj"/"..\\..\\xwt\\Xwt\\Xwt.csproj"/' ${ROOT_PATH:=.}/External/TermsharpConsole/termsharp/TermSharp.csproj
+    sed -i.bak 's/"xwt\\Xwt\\Xwt.csproj"/"..\\..\\xwt\\Xwt\\Xwt.csproj"/'                        ${ROOT_PATH:=.}/External/TermsharpConsole/termsharp/TermSharp.csproj
+    rm ${ROOT_PATH:=.}/External/TermsharpConsole/termsharp/TermSharp.csproj.bak
 fi
-
-
 
 BOOTSTRAPER_DIR=$ROOT_PATH/Tools/Bootstrap
 BOOTSTRAPER_BIN=$BOOTSTRAPER_DIR/bin/Release/Bootstrap.exe

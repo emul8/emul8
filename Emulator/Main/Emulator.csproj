@@ -171,7 +171,6 @@
     <Compile Include="Peripherals\Input\MouseButton.cs" />
     <Compile Include="Peripherals\Input\IPointerInput.cs" />
     <Compile Include="Backends\Terminals\PromptTerminal.cs" />
-    <Compile Include="Backends\Terminals\ConsoleTerminal.cs" />
     <Compile Include="Core\ExternalsManager.cs" />
     <Compile Include="Core\IExternal.cs" />
     <Compile Include="Core\Connector.cs" />
@@ -369,6 +368,7 @@
     <Compile Include="Peripherals\CPU\BreakpointType.cs" />
     <Compile Include="Peripherals\CPU\HaltArguments.cs" />
     <Compile Include="Peripherals\CPU\ExecutionMode.cs" />
+    <Compile Include="Utilities\MemberReferenceExtensions.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup />

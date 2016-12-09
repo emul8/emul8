@@ -21,6 +21,7 @@ using System.Threading;
 using Mono.Unix.Native;
 using TermSharp.Vt100;
 using Xwt;
+using Emul8.Core;
 
 namespace Emul8.CLI
 {
@@ -32,25 +33,28 @@ namespace Emul8.CLI
             preferredTerminal = ConfigurationManager.Instance.Get("general", "terminal", TerminalTypes.XTerm);
             if(preferredTerminal == TerminalTypes.Termsharp)
             {
-                terminalWidget = new TerminalWidget();
+                Emul8.Plugins.XwtProviderPlugin.ApplicationExtensions.InvokeInUIThreadAndWait(() => {
+                    terminalWidget = new TerminalWidget();
+                });
                 IO = terminalWidget.IO;
             }
             else
             {
-                var stream = new PtyUnixStream();
-                IO = new DetachableIO(new StreamIOSource(stream, stream.Name));
+                ptyUnixStream = new PtyUnixStream();
+                IO = new IOProvider(new StreamIOSource(ptyUnixStream));
             }
-        }
-
-        public UARTWindowBackendAnalyzer(DetachableIO io)
-        {
-            IO = io;
         }
 
         public void AttachTo(UARTBackend backend)
         {
             backend.BindAnalyzer(IO);
             Backend = backend;
+
+            string uartName;
+            if(EmulationManager.Instance.CurrentEmulation.TryGetEmulationElementName(backend.UART, out uartName))
+            {
+                Name = uartName;
+            }
         }
 
         public void Show()
@@ -59,9 +63,10 @@ namespace Emul8.CLI
             {
                 Emul8.Plugins.XwtProviderPlugin.ApplicationExtensions.InvokeInUIThreadAndWait(() => {
                     window = new Window();
-                    window.Title = "TERMINAL";
+                    window.Title = Name;
                     window.Width = 700;
                     window.Height = 400;
+                    window.Padding = new WidgetSpacing();
                     window.Content = terminalWidget;
                     window.Show();
                 });
@@ -77,7 +82,7 @@ namespace Emul8.CLI
                     {TerminalTypes.Termsharp, CreateTermsharpWindow}
                 };
 
-                var commandString = string.Format("screen {0}", Name);
+                var commandString = string.Format("screen {0}", ptyUnixStream.Name);
                 //Try preferred terminal first, than any other. If all fail, throw.
                 if(!windowCreators.OrderByDescending(x => x.Key == preferredTerminal).Any(x => x.Value(commandString, out process)))
                 {
@@ -135,11 +140,11 @@ namespace Emul8.CLI
             process = null;
         }
 
-        public string Name { get { return IO.Source.Name; } }
+        public string Name { get; set; }
 
         public IAnalyzableBackend Backend { get; private set; }
 
-        public DetachableIO IO { get; private set; }
+        public IOProvider IO { get; private set; }
 
         private static Tuple<int, int> GetNextWindowPosition()
         {
@@ -176,7 +181,6 @@ namespace Emul8.CLI
                     RedirectStandardOutput = true,
                     RedirectStandardInput = true
                 };
-                EnsurePath(p.StartInfo);
                 p.Exited += (sender, e) => 
                 {
                     var proc = sender as Process;
@@ -275,7 +279,6 @@ namespace Emul8.CLI
                     RedirectStandardOutput = true,
                     RedirectStandardInput = true,
                 };
-                EnsurePath(p.StartInfo);
                 p.EnableRaisingEvents = true;
                 p.Exited += (sender, e) => 
                 { 
@@ -301,7 +304,7 @@ namespace Emul8.CLI
             var script = TemporaryFilesManager.Instance.GetTemporaryFile();
             File.WriteAllLines(script, new [] {
                 "#!/bin/bash",
-                string.Format("/usr/bin/screen {0}", Name)
+                string.Format("/usr/bin/screen {0}", ptyUnixStream.Name)
             });
 
             try
@@ -374,18 +377,13 @@ namespace Emul8.CLI
             Logger.LogAs(this, LogLevel.Error, "There was an error while starting {2} with arguments: {0}. It exited with code: {1}. In order to use different terminal change preferences in configuration file.", arguments, exitCode, source);
         }
 
-        private void EnsurePath(ProcessStartInfo info)
-        {
-            info.EnvironmentVariables["PATH"] = string.Format("{0}:{1}",
-                Path.Combine(Directory.GetCurrentDirectory(), "External", "bin"), Environment.GetEnvironmentVariable("PATH"));
-        }
-
         private delegate bool CreateWindowDelegate(string command, out Process process);
 
         private Process process;
         private Xwt.Window window;
+        private TerminalWidget terminalWidget;
 
-        private readonly TerminalWidget terminalWidget;
+        private readonly PtyUnixStream ptyUnixStream;
         private readonly TerminalTypes preferredTerminal;
         private const int WindowHeight = 500;
         private const int WindowWidth = 670;

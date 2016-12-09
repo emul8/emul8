@@ -25,7 +25,7 @@ namespace Emul8.Backends.Terminals
         public ServerSocketTerminal(int port, bool emitConfigBytes = true)
         {
             server = new SocketServerProvider();
-            server.DataReceived += CallCharReceived;
+            server.DataReceived += b => CallCharReceived((byte)b);
             server.ConnectionAccepted += s =>
             {
                 if(!emitConfigBytes)

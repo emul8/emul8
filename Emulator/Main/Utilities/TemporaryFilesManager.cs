@@ -56,8 +56,9 @@ namespace Emul8.Utilities
                     && !x.EndsWith(CrashSuffix, StringComparison.Ordinal)))
             {
                 var pid = entry.Substring(otherEmulatorTempPrefix.Length);
-                if(IsAlive(pid))
-                {
+                int processId;
+                if(pid != null && int.TryParse(pid, out processId) && IsProcessAlive(processId))
+                { 
                     continue;
                 }
                 ClearDirectory(entry);
@@ -65,8 +66,6 @@ namespace Emul8.Utilities
         }
 
         public event Action<string> OnFileCreated;
-
-        public Func<int, bool> AppDomainLivenessValidator { get; set; }
 
         public string EmulatorTemporaryPath
         {
@@ -94,40 +93,6 @@ namespace Emul8.Utilities
                 Directory.CreateDirectory(emulatorTemporaryPath);
             }
             Cleanup();
-        }
-      
-        private bool IsAlive(string pid)
-        {
-            int processId;
-            if(pid == null)
-            {
-                return false;
-            }
-            if(pid.Contains(Separator))
-            {
-                var idParts = pid.Split(Separator);
-                if(!int.TryParse(idParts[0], out processId))
-                {
-                    return false;
-                }
-                if(processId != Process.GetCurrentProcess().Id)
-                {
-                    return IsProcessAlive(processId);
-                }
-                int appDomainId;
-                var appDomainLivenessValidator = AppDomainLivenessValidator;
-                if(!int.TryParse(idParts[1], out appDomainId) || appDomainLivenessValidator == null)
-                {
-                    // no means to validate application domain
-                    return false;
-                }
-                return appDomainLivenessValidator(appDomainId);
-            }
-            if(!int.TryParse(pid, out processId))
-            { 
-                return false;
-            }
-            return IsProcessAlive(processId);
         }
 
         private static bool IsProcessAlive(int pid)
@@ -169,6 +134,5 @@ namespace Emul8.Utilities
         private readonly string id;
 
         private const string DirectoryPrefix = "emul8-";
-        private const char Separator = ':';
     }
 }

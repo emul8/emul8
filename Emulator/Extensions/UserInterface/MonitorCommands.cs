@@ -1118,7 +1118,7 @@ namespace Emul8.UserInterface
                     {
                         if(parameters[i].IsOptional)
                         {
-                            result.Add(parameters[i].RawDefaultValue);
+                            result.Add(parameters[i].DefaultValue);
                         }
                         else
                         {

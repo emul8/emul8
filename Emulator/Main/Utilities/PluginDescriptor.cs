@@ -19,7 +19,7 @@ namespace Emul8.Utilities
         {
             ThisType = td;
             IsHidden = hidden;
-            var pluginAttribute = td.CustomAttributes.SingleOrDefault(x => x.AttributeType.FullName == typeof(PluginAttribute).FullName);
+            var pluginAttribute = td.CustomAttributes.SingleOrDefault(x => x.AttributeType.GetFullNameOfMember() == typeof(PluginAttribute).FullName);
             if(pluginAttribute != null)
             {
                 Version = Version.Parse((string)pluginAttribute.Properties.Single(x => x.Name == "Version").Argument.Value);
@@ -29,7 +29,7 @@ namespace Emul8.Utilities
                 var dependencies = pluginAttribute.Properties.SingleOrDefault(x => x.Name == "Dependencies").Argument.Value;
                 if(dependencies != null)
                 {
-                    Dependencies = ((CustomAttributeArgument[])dependencies).Select(x=>((TypeReference)x.Value).Resolve()).ToArray();
+                    Dependencies = ((CustomAttributeArgument[])dependencies).Select(x => ((TypeReference)x.Value).Resolve()).ToArray();
                 }
                 var modes = pluginAttribute.Properties.SingleOrDefault(x => x.Name == "Modes").Argument.Value;
                 Modes = modes != null ? ((CustomAttributeArgument[])modes).Select(x => x.Value).Cast<string>().ToArray() : new string[0];
@@ -55,7 +55,7 @@ namespace Emul8.Utilities
 
         public object CreatePlugin()
         {
-            var type = TypeManager.Instance.GetTypeByName(ThisType.FullName);
+            var type = TypeManager.Instance.GetTypeByName(ThisType.GetFullNameOfMember());
             return ObjectCreator.Instance.Spawn(type);
         }
 
@@ -74,7 +74,7 @@ namespace Emul8.Utilities
                         Enumerable.SequenceEqual(Dependencies, objAsPluginDescriptor.Dependencies));
             }
 
-            return base.Equals(obj);
+            return false;
         }
 
         public override int GetHashCode()

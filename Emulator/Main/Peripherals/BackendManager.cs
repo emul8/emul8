@@ -14,6 +14,7 @@ using Antmicro.Migrant.Hooks;
 using Emul8.Logging;
 using Emul8.Utilities.Collections;
 using Emul8.UserInterface;
+using Emul8.Core;
 
 namespace Emul8.Peripherals
 {
@@ -131,6 +132,22 @@ namespace Emul8.Peripherals
         {
             var toRemove = new List<IAnalyzableBackendAnalyzer>();
             foreach(var analyzer in activeAnalyzers.Where(x => x.Backend.AnalyzableElement == peripheral))
+            {
+                analyzer.Hide();
+                toRemove.Add(analyzer);
+            }
+
+            foreach(var rem in toRemove)
+            {
+                activeAnalyzers.Remove(rem);
+            }
+        }
+
+        public void HideAnalyzersFor(Machine machine)
+        {
+            string name;
+            var toRemove = new List<IAnalyzableBackendAnalyzer>();
+            foreach(var analyzer in activeAnalyzers.Where(x => machine.TryGetLocalName(x.Backend.AnalyzableElement as IPeripheral, out name)))
             {
                 analyzer.Hide();
                 toRemove.Add(analyzer);

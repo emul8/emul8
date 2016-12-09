@@ -541,6 +541,8 @@ namespace Emul8.Core
             {
                 disposed(this, new MachineStateChangedEventArgs(MachineStateChangedEventArgs.State.Disposed));
             }
+
+            EmulationManager.Instance.CurrentEmulation.BackendManager.HideAnalyzersFor(this);
         }
 
         public IManagedThread ObtainManagedThread(Action action, object owner, int frequency, string name = null, bool synchronized = true)

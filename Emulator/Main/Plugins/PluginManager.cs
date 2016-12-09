@@ -35,7 +35,7 @@ namespace Emul8.Plugins
         }
 
         public void EnablePlugin(string name)
-        {           
+        {
             EnablePlugin(FindPluginFromName(name));
         }
 
@@ -83,7 +83,7 @@ namespace Emul8.Plugins
         {
             enabledModes = new HashSet<string>(modes);
             var enabledPlugins = ConfigurationManager.Instance.Get(ConfigSection, ConfigOption, string.Empty);
-            foreach(var pluginName in enabledPlugins.Split(new [] { ',' }, StringSplitOptions.RemoveEmptyEntries))
+            foreach(var pluginName in enabledPlugins.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
             {
                 try
                 {
@@ -152,7 +152,7 @@ namespace Emul8.Plugins
                         var referencedPluginDescriptor = availablePlugins.SingleOrDefault(x => typeComparer.Equals(x.ThisType, referencedPlugin));
                         if(referencedPluginDescriptor == null)
                         {
-                            throw new RecoverableException("Plugin {0} not found.".FormatWith(referencedPlugin.FullName));
+                            throw new RecoverableException("Plugin {0} not found.".FormatWith(referencedPlugin.GetFullNameOfMember()));
                         }
                         if(enabledPlugins.Contains(referencedPluginDescriptor))
                         {

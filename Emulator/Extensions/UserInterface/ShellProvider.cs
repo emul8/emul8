@@ -16,12 +16,7 @@ namespace Emul8.UserInterface
 {
     public static class ShellProvider
     {
-        public static Shell GenerateShell(Monitor monitor, bool forceVCursor = false, bool clearScreen = true)
-        {
-            return GenerateShell(new DetachableIO(), monitor, forceVCursor, clearScreen);
-        }
-
-        public static Shell GenerateShell(DetachableIO io, Monitor monitor, bool forceVCursor = false, bool clearScreen = true)
+        public static Shell GenerateShell(IOProvider io, Monitor monitor, bool forceVCursor = false, bool clearScreen = true)
         {
             var settings = new ShellSettings { 
                 NormalPrompt = new Prompt("(monitor) ", ConsoleColor.DarkRed),
