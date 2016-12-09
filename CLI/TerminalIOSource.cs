@@ -9,6 +9,7 @@ using AntShell.Terminal;
 using TermSharp;
 using TermSharp.Vt100;
 using Emul8.Plugins.XwtProviderPlugin;
+using Emul8.Logging;
 
 namespace Emul8.CLI
 {
@@ -16,7 +17,7 @@ namespace Emul8.CLI
     {
         public TerminalIOSource(Terminal terminal)
         {
-            vt100decoder = new TermSharp.Vt100.Decoder(terminal, b => HandleInput(b), new ConsoleDecoderLogger());
+            vt100decoder = new TermSharp.Vt100.Decoder(terminal, b => HandleInput(b), new TerminalToEmul8Logger(terminal));
             utfDecoder = new ByteUtf8Decoder(vt100decoder.Feed);
         }
 
@@ -50,6 +51,21 @@ namespace Emul8.CLI
 
         private readonly TermSharp.Vt100.Decoder vt100decoder;
         private readonly ByteUtf8Decoder utfDecoder;
+
+        private class TerminalToEmul8Logger : IDecoderLogger
+        {
+            public TerminalToEmul8Logger(Terminal t)
+            {
+                terminal = t;
+            }
+
+            public void Log(string format, params object[] args)
+            {
+                Logger.LogAs(terminal, LogLevel.Warning, format, args);
+            }
+
+            private readonly Terminal terminal;
+        }
     }
 }
 
