@@ -14,6 +14,7 @@ using Antmicro.OptionsParser;
 using Emul8.Bootstrap.Elements;
 using Emul8.Bootstrap.Paging.Steps;
 using Emul8.Bootstrap.Elements.Projects;
+using Emul8.Bootstrap.Logging;
 
 namespace Emul8.Bootstrap
 {
@@ -28,6 +29,7 @@ namespace Emul8.Bootstrap
                 return 1;
             }
 
+            Logger.Instance.Silent = !options.Verbose;
             if(options.Interactive)
             {
                 return HandleInteractive(options.Directories.ToList(), options.BinariesDirectory, options.OutputDirectory, options.GenerateEntryProject);

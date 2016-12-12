@@ -12,6 +12,9 @@ namespace Emul8.Bootstrap
 {
     public class Options : IValidatedOptions
     {
+        [Name('v'), Description("Show diagnostic messages")]
+        public bool Verbose { get; set; }
+
         [Name('i', "interactive"), Description("Run bootstrapper in the interactive mode based on ncurses.")]
         public bool Interactive { get; set; }
         

@@ -72,6 +72,7 @@
     <Compile Include="Elements\Projects\UiProject.cs" />
     <Compile Include="Elements\Projects\UnknownProject.cs" />
     <Compile Include="Elements\IInterestingElement.cs" />
+    <Compile Include="Logging\Logger.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ProjectExtensions>

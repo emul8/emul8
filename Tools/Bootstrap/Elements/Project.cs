@@ -14,6 +14,7 @@ using System.Linq;
 using System.IO;
 using System.Diagnostics;
 using Emul8.Bootstrap.Elements.Projects;
+using Emul8.Bootstrap.Logging;
 
 namespace Emul8.Bootstrap.Elements
 {
@@ -50,11 +51,13 @@ namespace Emul8.Bootstrap.Elements
             }
             catch(DirectoryNotFoundException)
             {
+                Logger.Instance.Warning("Could not load project from path {0}: directory not found", path);
                 project = null;
                 return false;
             }
             catch(FileNotFoundException)
             {
+                Logger.Instance.Warning("Could not load project from path {0}: file not found", path);
                 project = null;
                 return false;
             }
@@ -68,6 +71,7 @@ namespace Emul8.Bootstrap.Elements
             }
             if(nameNode == null)
             {
+                Logger.Instance.Info("Not loading project from path {0}: name node not found", path);
                 project = null;
                 return false;
             }
@@ -76,6 +80,7 @@ namespace Emul8.Bootstrap.Elements
                 var skippedNode = projectInfoNode.Attribute("Skip");
                 if(skippedNode != null && skippedNode.Value == "true")
                 {
+                    Logger.Instance.Info("Not loading project from path {0}: it is marked to be skipped", path);
                     project = null;
                     return false;
                 }
@@ -175,6 +180,7 @@ namespace Emul8.Bootstrap.Elements
                 Project project;
                 if(!Project.TryLoadFromFile(path, out project))
                 {
+                    Logger.Instance.Warning("Could not load project from path {0}: could not load reference {1}", Path, path);
                     return false;
                 }
                 references.Add(project);

@@ -26,8 +26,10 @@ BATCH_MODE=false
 KEEP_SUBMODULES=false
 OUTPUT_DIRECTORY="target"
 BINARIES_DIRECTORY="bin"
+VERBOSE=false
+PARAMS=()
 
-while getopts "ad:o:b:s:hk" opt
+while getopts "ad:o:b:s:hkv" opt
 do
     case "$opt" in
         a)
@@ -47,6 +49,10 @@ do
             ;;
         k)
             KEEP_SUBMODULES=true
+            ;;
+        v)
+            PARAMS+=(-v)
+            VERBOSE=true
             ;;
         h)
             echo "Emul8 bootstrapping script"
@@ -154,7 +160,7 @@ else
 fi
 cp $PROP_FILE $OUTPUT_DIRECTORY/properties.csproj
 
-PARAMS=( --directories `get_path ${DIRECTORY:-.}` --output-directory `get_path $OUTPUT_DIRECTORY` --binaries-directory `get_path $BINARIES_DIRECTORY` )
+PARAMS+=( --directories `get_path ${DIRECTORY:-.}` --output-directory `get_path $OUTPUT_DIRECTORY` --binaries-directory `get_path $BINARIES_DIRECTORY` )
 if $BATCH_MODE
 then
     $LAUNCHER $BOOTSTRAPER_BIN GenerateAll --generate-entry-project ${PARAMS[@]}
@@ -166,7 +172,10 @@ else
     $LAUNCHER $BOOTSTRAPER_BIN --interactive --generate-entry-project ${PARAMS[@]}
     result=$?
     set -e
-    clear
+    if ! $VERBOSE
+    then
+        clear
+    fi
     case $result in
         0) echo "Solution file generated in $OUTPUT_DIRECTORY/Emul8.sln. Now you can run ./build.sh" ;;
         1) echo "Solution file generation cancelled." ;;
