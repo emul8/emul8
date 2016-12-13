@@ -30,6 +30,7 @@
     <WarningLevel>4</WarningLevel>
     <Externalconsole>true</Externalconsole>
   </PropertyGroup>
+  <Import Project="../target/properties.csproj" />
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="Mono.Posix" />
@@ -103,9 +104,6 @@
       <Project>{6946CE8C-6A63-431F-95CC-1D517C9AA7C9}</Project>
       <Name>XwtProviderPlugin</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Resources\" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\RobotoMono-Regular.ttf">

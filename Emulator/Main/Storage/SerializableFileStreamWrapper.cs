@@ -39,8 +39,11 @@ namespace Emul8.Storage
             return new BlobDescriptor { Stream = Stream, Size = Stream.Length };
         }
 
-        [field: Transient]
-        public FileStreamLimitWrapper Stream { get; private set; }
+        public FileStreamLimitWrapper Stream 
+        {
+            get { return stream; }
+            private set { stream = value; }
+        }
 
         [PreSerialization]
         [PostDeserialization]
@@ -50,6 +53,8 @@ namespace Emul8.Storage
         }
 
         private readonly BlobManager blobManager;
+        [Transient]
+        private FileStreamLimitWrapper stream;
     }
 }
 

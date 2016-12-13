@@ -75,6 +75,7 @@
       <HintPath>..\..\External\Lib\Lucene.Net.dll</HintPath>
     </Reference>
   </ItemGroup>
+  <Import Project="../../target/properties.csproj" />
   <ItemGroup>
     <Compile Include="AssemblyInfo.cs" />
     <Compile Include="Peripherals\IPeripheral.cs" />
@@ -369,6 +370,7 @@
     <Compile Include="Peripherals\CPU\HaltArguments.cs" />
     <Compile Include="Peripherals\CPU\ExecutionMode.cs" />
     <Compile Include="Utilities\MemberReferenceExtensions.cs" />
+    <Compile Include="Utilities\WindowsFileLocker.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup />
@@ -386,41 +388,6 @@
       </Properties>
     </MonoDevelop>
   </ProjectExtensions>
-  <ItemGroup>
-    <Folder Include="Peripherals\Network\" />
-    <Folder Include="Utilities\Binding\" />
-    <Folder Include="Peripherals\SPI\" />
-    <Folder Include="Core\Structure\" />
-    <Folder Include="Peripherals\Bus\" />
-    <Folder Include="Peripherals\CPU\" />
-    <Folder Include="Utilities\Collections\" />
-    <Folder Include="Storage\" />
-    <Folder Include="Exceptions\" />
-    <Folder Include="Peripherals\Bus\Wrappers\" />
-    <Folder Include="Peripherals\IRQControllers\" />
-    <Folder Include="Logging\" />
-    <Folder Include="Peripherals\CAN\" />
-    <Folder Include="Peripherals\DMA\" />
-    <Folder Include="Time\" />
-    <Folder Include="Peripherals\I2C\" />
-    <Folder Include="Peripherals\Input\" />
-    <Folder Include="Backends\" />
-    <Folder Include="Backends\Display\" />
-    <Folder Include="Testing\" />
-    <Folder Include="Network\" />
-    <Folder Include="Peripherals\Python\" />
-    <Folder Include="Peripherals\Miscellaneous\" />
-    <Folder Include="Peripherals\Wireless\" />
-    <Folder Include="Peripherals\GPIOPort\" />
-    <Folder Include="Peripherals\Video\" />
-    <Folder Include="Plugins\" />
-    <Folder Include="UserInterface\" />
-    <Folder Include="Foreign\" />
-    <Folder Include="Core\Structure\Registers\" />
-    <Folder Include="Logging\Backends\" />
-    <Folder Include="Logging\Lucene\" />
-    <Folder Include="Peripherals\Memory\" />
-  </ItemGroup>
   <ItemGroup>
     <None Include="Peripherals\Bus\SystemBusGenerated.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
@@ -446,6 +413,7 @@
     </ProjectReference>
   </ItemGroup>
   <Target Name="CreateAssemblyVersionInfo" BeforeTargets="PrepareForBuild">
-    <Exec Command="bash -c ./createAssemblyVersionInfo.sh" />
+    <Exec Command="bash -c ./createAssemblyVersionInfo.sh" Condition="$(CurrentPlatform) != 'Windows'" />
+    <Exec Command="powershell -File createAssemblyVersionInfo.ps1 -ExecutionPolicy unrestricted" Condition="$(CurrentPlatform) == 'Windows'" />
   </Target>
 </Project>

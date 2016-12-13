@@ -40,14 +40,9 @@
     <Compile Include="AssemblyInfo.cs" />
     <Compile Include="Peripherals\CPU\TranslationCPU.cs" />
     <Compile Include="Peripherals\CPU\Disassembler\IDisassembler.cs" />
-    <Compile Include="Peripherals\CPU\Disassembler\LLVMDisasWrapper.cs" />
-    <Compile Include="Peripherals\CPU\Disassembler\DisassemblerType.cs" />
-    <Compile Include="Peripherals\CPU\Disassembler\TCPUDisassembler.cs" />
-    <Compile Include="Peripherals\CPU\Disassembler\LLVMDisassembler.cs" />
     <Compile Include="Peripherals\CPU\Disassembler\IDisassemblable.cs" />
     <Compile Include="Peripherals\CPU\Disassembler\DisassemblerManager.cs" />
     <Compile Include="Peripherals\CPU\Disassembler\DisassemblyEngine.cs" />
-    <Compile Include="Peripherals\CPU\Disassembler\CortexMAddressTranslator.cs" />
     <Compile Include="Peripherals\CPU\Registers\IRegisters.cs" />
     <Compile Include="Peripherals\CPU\CpuAbortException.cs" />
     <Compile Include="Peripherals\CPU\Registers\RegistersGroup.cs" />
@@ -55,15 +50,9 @@
     <Compile Include="..\Cores\Common\RegisterEnumParser.cs">
       <DependentUpon>RegisterEnumParser.tt</DependentUpon>
     </Compile>
+    <Compile Include="Peripherals\CPU\Disassembler\DisassemblerAttribtue.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
-  <ItemGroup>
-    <Folder Include="Peripherals\" />
-    <Folder Include="Peripherals\CPU\" />
-    <Folder Include="Peripherals\UART\" />
-    <Folder Include="Peripherals\CPU\Disassembler\" />
-    <Folder Include="Peripherals\CPU\Registers\" />
-  </ItemGroup>
   <ProjectExtensions>
     <Emul8>
       <ProjectInfo Type="Extension" />

@@ -46,9 +46,6 @@
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
-    <Folder Include="Handlers\" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\..\External\AntShell\AntShell\AntShell.csproj">
       <Project>{0A473566-F4C6-455E-A56E-B3963FBABDFF}</Project>
       <Name>AntShell</Name>

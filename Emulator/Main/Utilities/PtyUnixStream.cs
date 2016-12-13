@@ -5,6 +5,7 @@
 // This file is part of the Emul8 project.
 // Full license details are defined in the 'LICENSE' file.
 //
+#if !EMUL8_PLATFROM_WINDOWS
 using System;
 using Mono.Unix.Native;
 using Mono.Unix;
@@ -17,10 +18,9 @@ namespace Emul8.Utilities
 {
     public class PtyUnixStream : Stream
     {
-        public PtyUnixStream(string name)
+        public PtyUnixStream(string name) : this()
         {
-            this.name = name;
-            Init();
+            Name = name;
         }
 
         public PtyUnixStream()
@@ -31,10 +31,9 @@ namespace Emul8.Utilities
         [PostDeserialization]
         private void Init()
         {
-            if (name != null)
+            if (Name != null)
             {
-                OpenPty(name);
-                Name = name;
+                OpenPty(Name);
             }
             else
             {
@@ -42,10 +41,13 @@ namespace Emul8.Utilities
             }
         }
 
+        [Transient]
         private string name;
-
-        [field: Transient]
-        public string Name { get; private set; }
+        public string Name 
+        { 
+            get { return name; }
+            private set { name = value; }
+        }
 
         protected override void Dispose(bool disposing)
         {
@@ -225,4 +227,4 @@ namespace Emul8.Utilities
         private bool disposed;
     }
 }
-
+#endif

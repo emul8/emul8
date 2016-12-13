@@ -12,7 +12,7 @@ namespace Emul8.EventRecording
     // this is struct to prevent open stream serializer from caching all classes
     internal struct RecordEntryBase
     {
-        public RecordEntryBase(string name, Delegate handler, long syncNumber)
+        public RecordEntryBase(string name, Delegate handler, long syncNumber) : this()
         {
             this.Name = name;
             this.SyncNumber = syncNumber;

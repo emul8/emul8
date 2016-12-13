@@ -81,10 +81,6 @@
       <Project>{66400796-0C5B-4386-A859-50A2AC3F3DB5}</Project>
       <Name>Peripherals-TranslationCPU</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\Cores\disas-llvm\llvm-disas.csproj">
-      <Project>{12A9F08D-6C63-4C20-910F-0F0E851D3A22}</Project>
-      <Name>llvm-disas</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\..\VideoAnalyzer\VideoAnalyzerExtension.csproj">
       <Project>{D40F4996-59A7-4495-A162-D414FEC22AC2}</Project>
       <Name>VideoAnalyzerExtension</Name>
@@ -104,6 +100,10 @@
     <ProjectReference Include="..\..\..\Cores\cores-arm-m.csproj">
       <Project>{43222114-707C-4EFD-8289-2728351FB7E9}</Project>
       <Name>cores-arm-m</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\LLVMDisassembler\LLVMDisassembler.csproj">
+      <Project>{5B9F2FDE-8223-4211-899E-306FE25EAA5C}</Project>
+      <Name>LLVMDisassembler</Name>
     </ProjectReference>
   </ItemGroup>
   <ProjectExtensions>

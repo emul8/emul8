@@ -26,8 +26,8 @@ def make_csharp_def(args, return_type):
 	cs_name = make_delegate_name(args, return_type)
 	number_iterator = range(i).__iter__()
 	cs_args = map(lambda x: "%s param%d" % (x, number_iterator.next()), args)
-	csharpdef = "public delegate %s %s(%s);" % (return_type, cs_name, "" if not cs_args else reduce(lambda x, y: x + ", " + y, cs_args))
-	attacherdef = "public delegate void Attach%s(%s param);" % (cs_name, cs_name)
+	csharpdef = "[UnmanagedFunctionPointer(CallingConvention.Cdecl)]\npublic delegate %s %s(%s);" % (return_type, cs_name, "" if not cs_args else reduce(lambda x, y: x + ", " + y, cs_args))
+	attacherdef = "[UnmanagedFunctionPointer(CallingConvention.Cdecl)]\npublic delegate void Attach%s(%s param);" % (cs_name, cs_name)
 	return (csharpdef, attacherdef)
 
 def make_typedef_name(args, return_type):

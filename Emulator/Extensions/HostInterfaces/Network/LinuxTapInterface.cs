@@ -5,6 +5,7 @@
 // This file is part of the Emul8 project.
 // Full license details are defined in the 'LICENSE' file.
 //
+#if EMUL8_PLATFORM_LINUX
 using System;
 using Emul8.Core;
 using Emul8.Core.Structure;
@@ -27,7 +28,6 @@ using Antmicro.Migrant;
 
 namespace Emul8.HostInterfaces.Network
 {
-
     public sealed class LinuxTapInterface : ITapInterface, IHasOwnLife, IDisposable
     {
         public LinuxTapInterface(string name, bool persistent)
@@ -262,3 +262,4 @@ namespace Emul8.HostInterfaces.Network
         private Thread thread;
     }
 }
+#endif

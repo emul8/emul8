@@ -40,6 +40,9 @@ namespace Emul8.CLI
             terminal.Cursor.Enabled = true;
             terminal.ContextMenu = CreatePopupMenu();
 
+#if EMUL8_PLATFORM_WINDOWS
+            terminal.CurrentFont = Xwt.Drawing.Font.SystemMonospaceFont;
+#else
             var fontFile = typeof(TerminalWidget).Assembly.FromResourceToTemporaryFile("RobotoMono-Regular.ttf");
             Xwt.Drawing.Font.RegisterFontFromFile(fontFile);
             // here we try to load the robot font; unfortunately it is loaded even if there is
@@ -50,6 +53,7 @@ namespace Emul8.CLI
             {
                 terminal.CurrentFont = robotoFont;
             }
+#endif
 
             var encoder = new TermSharp.Vt100.Encoder(x =>
             {

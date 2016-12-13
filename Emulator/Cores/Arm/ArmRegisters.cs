@@ -145,10 +145,15 @@ namespace Emul8.Peripherals.CPU
 
         }
 
+        // 649:  Field '...' is never assigned to, and will always have its default value null
+        #pragma warning disable 649
+
         [Import(Name = "tlib_set_register_value_32")]
         protected ActionInt32UInt32 SetRegisterValue32;
         [Import(Name = "tlib_get_register_value_32")]
         protected FuncUInt32Int32 GetRegisterValue32;
+
+        #pragma warning restore 649
 
         private Dictionary<int, ArmRegisters> indexValueMapR;
     }

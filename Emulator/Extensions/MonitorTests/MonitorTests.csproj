@@ -81,9 +81,6 @@
       <Name>Migrant</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="CommandTests\" />
-  </ItemGroup>
   <ProjectExtensions>
     <Emul8>
       <ProjectInfo Type="Tests" />

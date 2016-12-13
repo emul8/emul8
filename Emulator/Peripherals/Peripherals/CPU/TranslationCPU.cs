@@ -1024,12 +1024,6 @@ namespace Emul8.Peripherals.CPU
             });
         }
 
-        private IntPtr DoLookupSymbol(uint offset)
-        {
-            var symbol = DoLookupSymbolInner(offset);
-            return Mono.Unix.UnixMarshal.StringToHeap(string.Format("0x{0:X} ", offset) + symbol == null ? String.Empty : symbol.Name);
-        }
-
         [Export]
         private void OnTranslationCacheSizeChange(int realSize)
         {
@@ -1630,7 +1624,7 @@ namespace Emul8.Peripherals.CPU
             }
         }
 
-        public DisassemblerType Disassembler
+        public string Disassembler
         {
             get
             {
@@ -1639,23 +1633,32 @@ namespace Emul8.Peripherals.CPU
 
             set
             {
-                IDisassembler disas = null;
-                if (value != DisassemblerType.None)
+                if(!TrySetDisassembler(value))
                 {
-                    disas = DisassemblerManager.CreateDisassembler(value, this);
-                    if(disas == null)
-                    {
-                        throw new RecoverableException(string.Format("Could not create disassembler of type: {0}. Are you missing an extension library or a plugin?", value));
-                    }
+                    throw new RecoverableException(string.Format("Could not create disassembler of type: {0}. Are you missing an extension library or a plugin?", value));
                 }
-
-                DisasEngine.SetDisassembler(disas);
             }
         }
 
-        public DisassemblerType[] AvailableDisassemblers
+        private bool TrySetDisassembler(string type)
         {
-            get { return DisassemblerManager.GetAvailableDisassemblersForArchitecture(Architecture); }
+            IDisassembler disas = null;
+            if(!string.IsNullOrEmpty(type))
+            {
+                disas = DisassemblerManager.Instance.CreateDisassembler(type, this);
+                if(disas == null)
+                {
+                    return false;
+                }
+            }
+
+            DisasEngine.SetDisassembler(disas);
+            return true;
+        }
+
+        public string[] AvailableDisassemblers
+        {
+            get { return DisassemblerManager.Instance.GetAvailableDisassemblers(Architecture); }
         }
 
         public uint TranslateAddress(uint logicalAddress)
@@ -1670,7 +1673,7 @@ namespace Emul8.Peripherals.CPU
             var diss = AvailableDisassemblers;
             if (diss.Length > 0)
             {
-                Disassembler = diss[0];
+                TrySetDisassembler(diss[0]);
             }
         }
 
@@ -1726,6 +1729,9 @@ namespace Emul8.Peripherals.CPU
         protected virtual void AfterLoad(IntPtr statePtr)
         {
         }
+
+        // 649:  Field '...' is never assigned to, and will always have its default value null
+        #pragma warning disable 649
 
         [Import]
         private FuncInt32String TlibInit;
@@ -1816,6 +1822,8 @@ namespace Emul8.Peripherals.CPU
 
         [Import]
         private FuncInt32 TlibGetStateSize;
+
+        #pragma warning restore 649
 
         private readonly HashSet<long> pagesAccessedByIo;
 

@@ -222,6 +222,9 @@ namespace Emul8.Peripherals.CPU
         private bool entryPointInitialized;
         private bool isPowerDown;
 
+        // 649:  Field '...' is never assigned to, and will always have its default value null
+        #pragma warning disable 649
+
         [Import]
         private ActionInt32 TlibSetSlot;
 
@@ -239,6 +242,8 @@ namespace Emul8.Peripherals.CPU
 
         [Import]
         private ActionIntPtr TlibAfterLoad;
+
+        #pragma warning restore 649
     }
 }
 

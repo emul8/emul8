@@ -190,6 +190,7 @@ namespace Emul8.Utilities
             PluginManager.Dispose();
         }
 
+        public Type[] AutoLoadedTypes { get { return autoLoadedTypes.ToArray (); } }
         public IEnumerable<PluginDescriptor> AvailablePlugins { get { return foundPlugins.ToArray(); } }
         public PluginManager PluginManager { get; set; }
 

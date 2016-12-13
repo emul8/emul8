@@ -210,6 +210,9 @@ namespace Emul8.Peripherals.CPU
 
         private SemihostingUart semihostingUart = null;
 
+        // 649:  Field '...' is never assigned to, and will always have its default value null
+        #pragma warning disable 649
+
         [Import]
         private ActionUInt32 TlibSetCpuId;
 
@@ -218,6 +221,8 @@ namespace Emul8.Peripherals.CPU
 
         [Import]
         private ActionInt32 SetThumb;
+
+        #pragma warning restore 649
     }
 }
 
