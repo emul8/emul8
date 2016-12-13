@@ -101,10 +101,6 @@
       <Project>{43222114-707C-4EFD-8289-2728351FB7E9}</Project>
       <Name>cores-arm-m</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\LLVMDisassembler\LLVMDisassembler.csproj">
-      <Project>{5B9F2FDE-8223-4211-899E-306FE25EAA5C}</Project>
-      <Name>LLVMDisassembler</Name>
-    </ProjectReference>
   </ItemGroup>
   <ProjectExtensions>
     <Emul8>
