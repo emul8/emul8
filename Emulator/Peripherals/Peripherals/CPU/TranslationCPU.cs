@@ -243,6 +243,18 @@ namespace Emul8.Peripherals.CPU
 
         public bool ThreadSentinelEnabled { get; set; }
 
+        public bool ClocksourceBlockTrimming
+        {
+            get
+            {
+                return EmulGetBlockTrimming() != 0;
+            }
+            set
+            {
+                EmulSetBlockTrimming(value ? 1 : 0);
+            }
+        }
+
         private bool logTranslationBlockFetchEnabled;
 
         public long ExecutedInstructions { get; private set; }
@@ -1825,6 +1837,11 @@ namespace Emul8.Peripherals.CPU
         [Import]
         private FuncInt32 TlibGetStateSize;
 
+        [Import]
+        private ActionInt32 EmulSetBlockTrimming;
+
+        [Import]
+        private FuncInt32 EmulGetBlockTrimming;
         #pragma warning restore 649
 
         private readonly HashSet<long> pagesAccessedByIo;
