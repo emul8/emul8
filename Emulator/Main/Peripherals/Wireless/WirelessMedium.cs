@@ -13,6 +13,14 @@ using Emul8.Logging;
 
 namespace Emul8.Peripherals.Wireless
 {
+    public static class WirelessExtensions
+    {
+        public static void CreateWirelessMedium(this Emulation emulation, string name)
+        {
+            emulation.ExternalsManager.AddExternal(new WirelessMedium(), name);
+        }
+    }
+
     public sealed class WirelessMedium : SynchronizedExternalBase, IExternal, IConnectable<IRadio>
     {
         public WirelessMedium()
