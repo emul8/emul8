@@ -13,9 +13,9 @@ using Emul8.Logging;
 
 namespace Emul8.Peripherals.Wireless
 {
-    public sealed class AdvancedWirelessMedium : SynchronizedExternalBase, IExternal, IConnectable<IRadio>
+    public sealed class WirelessMedium : SynchronizedExternalBase, IExternal, IConnectable<IRadio>
     {
-        public AdvancedWirelessMedium()
+        public WirelessMedium()
         {
             packetsToSend = new Queue<PacketWithSender>();
             radios = new Dictionary<IRadio, Position>();

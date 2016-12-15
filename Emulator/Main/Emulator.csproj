@@ -240,7 +240,7 @@
     <Compile Include="Core\PropertyTagParser.cs" />
     <Compile Include="Peripherals\Timers\SimpleTicker.cs" />
     <Compile Include="Peripherals\Wireless\IRadio.cs" />
-    <Compile Include="Peripherals\Wireless\AdvancedWirelessMedium.cs" />
+    <Compile Include="Peripherals\Wireless\WirelessMedium.cs" />
     <Compile Include="Utilities\ProgressMonitor.cs" />
     <Compile Include="Utilities\IProgressMonitorHandler.cs" />
     <Compile Include="Peripherals\GPIOPort\BaseGPIOPort.cs" />
