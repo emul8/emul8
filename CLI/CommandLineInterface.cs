@@ -33,6 +33,7 @@ namespace Emul8.CLI
                 return;
             }
 
+            Emulator.UserInterfaceProvider = new Plugins.XwtProviderPlugin.WindowedUserInterfaceProvider();
             Plugins.XwtProviderPlugin.XwtProvider.StartXwtThread();
             using(var context = ObjectCreator.Instance.OpenContext())
             {
