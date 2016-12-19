@@ -7,9 +7,9 @@
 //
 using Emul8.Utilities;
 using Xwt;
-using Emul8.Plugins.XwtProviderPlugin;
+using Emul8.CLI;
 
-namespace Emul8.Plugins.XwtProviderPlugin.Progress
+namespace Emul8.CLI.Progress
 {
     public class ProgressWidget : Widget
     {

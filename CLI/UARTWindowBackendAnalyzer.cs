@@ -43,7 +43,7 @@ namespace Emul8.CLI
             if(preferredTerminal == TerminalTypes.Termsharp)
             {
 #endif
-                Emul8.Plugins.XwtProviderPlugin.ApplicationExtensions.InvokeInUIThreadAndWait(() => {
+                ApplicationExtensions.InvokeInUIThreadAndWait(() => {
                     terminalWidget = new TerminalWidget();
                 });
                 IO = terminalWidget.IO;
@@ -75,7 +75,7 @@ namespace Emul8.CLI
             if(terminalWidget != null)
             {
 #endif
-                Emul8.Plugins.XwtProviderPlugin.ApplicationExtensions.InvokeInUIThreadAndWait(() => {
+                ApplicationExtensions.InvokeInUIThreadAndWait(() => {
                     window = new Window();
                     window.Title = Name;
                     window.Width = 700;
@@ -126,7 +126,7 @@ namespace Emul8.CLI
             var w = window;
             if(w != null)
             {
-                Emul8.Plugins.XwtProviderPlugin.ApplicationExtensions.InvokeInUIThreadAndWait(() =>
+                ApplicationExtensions.InvokeInUIThreadAndWait(() =>
                 {
                     w.Hide();
                 });

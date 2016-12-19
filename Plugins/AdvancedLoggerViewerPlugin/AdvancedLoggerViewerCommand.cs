@@ -7,9 +7,9 @@
 //
 ﻿using Emul8.UserInterface.Commands;
 using Emul8.UserInterface;
-using Emul8.Plugins.XwtProviderPlugin;
 using Xwt;
 using Emul8.Logging.Backends;
+using Emul8.CLI;
 
 namespace Emul8.Plugins.AdvancedLoggerViewer
 {

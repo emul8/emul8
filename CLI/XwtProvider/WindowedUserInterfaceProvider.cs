@@ -11,7 +11,7 @@ using System.Collections.Generic;
 using Emul8.Peripherals;
 using Emul8.UserInterface;
 
-namespace Emul8.Plugins.XwtProviderPlugin
+namespace Emul8.CLI
 {
     public class WindowedUserInterfaceProvider : IUserInterfaceProvider
     {

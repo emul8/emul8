@@ -10,7 +10,6 @@ using Emul8.Peripherals.Video;
 using Emul8.Core;
 using Emul8.Peripherals.Input;
 using Xwt;
-using Emul8.Plugins.XwtProviderPlugin;
 using Emul8.Utilities;
 using Antmicro.Migrant;
 using System.IO;
@@ -18,6 +17,7 @@ using Xwt.Drawing;
 using System.Collections.Generic;
 using Emul8.Peripherals;
 using System;
+using Emul8.CLI;
 
 namespace Emul8.Extensions.Analyzers.Video
 {

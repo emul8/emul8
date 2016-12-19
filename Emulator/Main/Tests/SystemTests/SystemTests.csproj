@@ -49,10 +49,6 @@
       <Project>{0A473566-F4C6-455E-A56E-B3963FBABDFF}</Project>
       <Name>AntShell</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\..\Plugins\XwtProviderPlugin\XwtProviderPlugin.csproj">
-      <Project>{6946CE8C-6A63-431F-95CC-1D517C9AA7C9}</Project>
-      <Name>XwtProviderPlugin</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\Emulator.csproj">
       <Project>{2901AECB-A54F-4FD8-9AC1-033D86DC7257}</Project>
       <Name>Emulator</Name>
@@ -100,6 +96,10 @@
     <ProjectReference Include="..\..\..\Cores\cores-arm-m.csproj">
       <Project>{43222114-707C-4EFD-8289-2728351FB7E9}</Project>
       <Name>cores-arm-m</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\CLI\CLI.csproj">
+      <Project>{AEFE490F-85AC-42AF-9CAE-2B7FC7167E0E}</Project>
+      <Name>CLI</Name>
     </ProjectReference>
   </ItemGroup>
   <ProjectExtensions>

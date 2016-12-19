@@ -15,10 +15,10 @@ using Emul8.Logging;
 using Emul8.Utilities;
 using Emul8.Core;
 using Emul8.Peripherals.UART;
-using Emul8.Plugins.XwtProviderPlugin;
 using Emul8.Peripherals;
 using Emul8.Backends.Video;
 using Emul8.Extensions.Analyzers.Video;
+using Emul8.CLI;
 
 namespace Emul8.SystemTests
 {
@@ -39,7 +39,7 @@ namespace Emul8.SystemTests
             // plugins in configuration that will start at this moment
             // (so the environment must be already prepared)
             new System.Threading.Thread(Emulator.ExecuteAsMainThread) { IsBackground = true }.Start();
-            xwtProvider = new XwtProvider();
+            xwtProvider = new XwtProvider(new WindowedUserInterfaceProvider());
 
             // this must be set before creating monitor
             ConfigurationManager.Instance.SetNonPersistent("monitor", "consume-exceptions-from-command", false);

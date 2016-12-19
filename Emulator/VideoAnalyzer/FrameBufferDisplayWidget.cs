@@ -14,8 +14,8 @@ using Emul8.Peripherals.Input;
 using Emul8.Core;
 using Emul8.Peripherals;
 using ELFSharp.ELF;
-using Emul8.Plugins.XwtProviderPlugin;
 using Emul8.Extensions.Analyzers.Video.Handlers;
+using Emul8.CLI;
 
 namespace Emul8.Extensions.Analyzers.Video
 {

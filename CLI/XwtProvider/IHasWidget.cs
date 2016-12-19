@@ -7,7 +7,7 @@
 //
 using Xwt;
 
-namespace Emul8.Plugins.XwtProviderPlugin
+namespace Emul8.CLI
 {
     public interface IHasWidget
     {

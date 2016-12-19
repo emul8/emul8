@@ -8,47 +8,96 @@
 using System;
 using System.IO;
 using Emul8.Utilities;
+using Xwt;
+using System.Text;
+using System.Linq;
+using System.Threading;
 
 namespace Emul8.CLI 
 {
     public class CrashHandler
     {
-        public void HandleCrash(UnhandledExceptionEventArgs eObject)
+        public static void HandleCrash(Exception e, bool exit = true)
         {
-            var e = (Exception)eObject.ExceptionObject;
-            var ex = e;
+            var message = GetFullStackTrace(e);
+            SaveErrorToFile(TemporaryFilesManager.Instance.EmulatorTemporaryPath + TemporaryFilesManager.CrashSuffix, message);
+            ShowErrorInConsole(message);
+            try 
+            {
+                ShowErrorWindow(message);
+            } 
+            catch(Exception)
+            {
+                // there is nothing to do here    
+            }
+            if(exit)
+            {
+                Environment.Exit(-1);
+            }
+        }
+
+        private static void ShowErrorWindow(string message)
+        {
+            var dialog = new Dialog();
+            dialog.Title = "Fatal error";
+            var markdown = new MarkdownView();
+            markdown.Markdown = message.Split(new [] { '\n' }).Select(x => "\t" + x).Aggregate((x, y) => x + "\n" + y);
+
+            var copyButton = new Button("Copy to clipboard");
+            copyButton.Clicked += (sender, ev) => Clipboard.SetText(message);
+
+            var box = new VBox();
+
+            box.PackStart(new Label("Got unhandled exception") { Font = global::Xwt.Drawing.Font.SystemFont.WithSize(15).WithWeight(Xwt.Drawing.FontWeight.Bold) });
+            box.PackStart(new ScrollView(markdown), true, true);
+            box.PackStart(copyButton);
+
+            dialog.Content = box;
+
+            dialog.Buttons.Add(new DialogButton(Command.Ok));
+            dialog.Width = 350;
+            dialog.Height = 300;
+
+            var mre = new ManualResetEvent(false);
+            ApplicationExtensions.InvokeInUIThread(() => {
+                dialog.Run();
+                dialog.Dispose();
+                mre.Set();
+            });
+
+            mre.WaitOne();
+        }
+
+        private static void SaveErrorToFile(string location, string message)
+        {
+            Directory.CreateDirectory(location);
+            var filename = CustomDateTime.Now.ToString("yyyyMMddHHmmssfff");
+            File.AppendAllText(filename, message);
+        }
+
+        private static void ShowErrorInConsole(string message)
+        {
             Console.ForegroundColor = ConsoleColor.Red;
             Console.Error.WriteLine("Fatal error:");
-            while(ex != null)
-            {
-                Console.Error.WriteLine(ex.Message);
-                Console.Error.WriteLine(ex.StackTrace);
-                ex = ex.InnerException;
-                if(ex != null)
-                {
-                    Console.Error.WriteLine("Inner exception:");
-                }
-            }
+            Console.Error.WriteLine(message);
             Console.ResetColor();
-            var path = TemporaryFilesManager.Instance.EmulatorTemporaryPath + TemporaryFilesManager.CrashSuffix;
-            Directory.CreateDirectory(path);
-            var filename = CustomDateTime.Now.ToString("yyyyMMddHHmmssfff");
-            ex = e;
-            using(var file = File.CreateText(Path.Combine(path, filename)))
+        }
+
+        private static string GetFullStackTrace(Exception e)
+        {
+            var result = new StringBuilder();
+            var current = e;
+            while(current != null)
             {
-                while(ex != null)
+                result.AppendLine(current.Message);
+                result.AppendLine(current.StackTrace);
+                current = current.InnerException;
+                if(current != null)
                 {
-                    file.WriteLine(ex.Message);
-                    file.WriteLine(ex.StackTrace);
-                    ex = ex.InnerException;
-                    if(ex != null)
-                    {
-                        file.WriteLine("Inner exception:");
-                    }
+                    result.AppendLine("Inner exception:");
                 }
             }
-
-            Environment.Exit(-1);
+            return result.ToString();
         }
     }
 }

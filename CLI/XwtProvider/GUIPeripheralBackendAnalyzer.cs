@@ -10,7 +10,7 @@ using Emul8.Core;
 using Xwt;
 using Emul8.Exceptions;
 
-namespace Emul8.Plugins.XwtProviderPlugin
+namespace Emul8.CLI
 {
     public abstract class GUIPeripheralBackendAnalyzer<T> : BasicPeripheralBackendAnalyzer<T>, IHasWidget where T: IAnalyzableBackend 
     {

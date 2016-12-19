@@ -8,7 +8,6 @@ using System;
 using AntShell.Terminal;
 using TermSharp;
 using TermSharp.Vt100;
-using Emul8.Plugins.XwtProviderPlugin;
 using Emul8.Logging;
 
 namespace Emul8.CLI

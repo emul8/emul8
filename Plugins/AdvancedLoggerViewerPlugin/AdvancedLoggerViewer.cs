@@ -8,12 +8,11 @@
 ﻿using System;
 using Emul8.Plugins;
 using Emul8.UserInterface;
-using Emul8.Plugins.XwtProviderPlugin;
 using Emul8.Logging.Backends;
 
 namespace Emul8.Plugins.AdvancedLoggerViewer
 {
-    [Plugin(Name = "AdvancedLoggerViewer", Version = "0.1", Description = "Viewer for advanced logger", Vendor = "Antmicro", Dependencies = new [] { typeof(XwtProvider) })]
+    [Plugin(Name = "AdvancedLoggerViewer", Version = "0.1", Description = "Viewer for advanced logger", Vendor = "Antmicro")]
     public class AdvancedLoggerViewer : IDisposable
     {
         public AdvancedLoggerViewer(Monitor monitor)

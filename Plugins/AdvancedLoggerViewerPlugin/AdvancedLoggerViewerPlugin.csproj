@@ -95,9 +95,9 @@
       <Project>{5F87C357-09FB-4F53-BE37-41FE5BD88957}</Project>
       <Name>Migrant</Name>
     </ProjectReference>
-    <ProjectReference Include="..\XwtProviderPlugin\XwtProviderPlugin.csproj">
-      <Project>{6946CE8C-6A63-431F-95CC-1D517C9AA7C9}</Project>
-      <Name>XwtProviderPlugin</Name>
+    <ProjectReference Include="..\..\CLI\CLI.csproj">
+      <Project>{AEFE490F-85AC-42AF-9CAE-2B7FC7167E0E}</Project>
+      <Name>CLI</Name>
     </ProjectReference>
   </ItemGroup>
 </Project>

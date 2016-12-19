@@ -10,7 +10,7 @@ using Xwt;
 using System.Threading;
 using System.Collections.Concurrent;
 
-namespace Emul8.Plugins.XwtProviderPlugin
+namespace Emul8.CLI
 {
     public static class ApplicationExtensions
     {

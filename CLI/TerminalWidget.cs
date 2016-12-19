@@ -15,7 +15,6 @@ using TermSharp.Vt100;
 using System.Text;
 using System.Collections.Generic;
 using System.IO;
-using Emul8.Plugins.XwtProviderPlugin;
 
 namespace Emul8.CLI
 {

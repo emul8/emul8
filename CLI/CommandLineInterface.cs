@@ -33,8 +33,7 @@ namespace Emul8.CLI
                 return;
             }
 
-            Emulator.UserInterfaceProvider = new Plugins.XwtProviderPlugin.WindowedUserInterfaceProvider();
-            Plugins.XwtProviderPlugin.XwtProvider.StartXwtThread();
+            using(var xwt = new XwtProvider(new WindowedUserInterfaceProvider()))
             using(var context = ObjectCreator.Instance.OpenContext())
             {
                 var monitor = new Emul8.UserInterface.Monitor();
@@ -47,9 +46,7 @@ namespace Emul8.CLI
                 Logger.AddBackend(ConsoleBackend.Instance, "console");
 
                 EmulationManager.Instance.ProgressMonitor.Handler = new CLIProgressMonitor();
-
-                var crashHandler = new CrashHandler();
-                AppDomain.CurrentDomain.UnhandledException += (sender, e) => crashHandler.HandleCrash(e);
+                AppDomain.CurrentDomain.UnhandledException += (sender, e) => CrashHandler.HandleCrash((Exception)e.ExceptionObject);
 
                 Shell shell = null;
                 Type preferredUARTAnalyzer = null;
@@ -111,7 +108,6 @@ namespace Emul8.CLI
                 };
 
                 Emulator.WaitForExit();
-                Plugins.XwtProviderPlugin.XwtProvider.StopXwtThread();
             }
         }
     }

@@ -13,11 +13,11 @@ using System;
 using Emul8.Utilities;
 using System.Threading.Tasks;
 using System.Threading;
-using Emul8.Plugins.XwtProviderPlugin;
-using Emul8.Plugins.XwtProviderPlugin.Progress;
 using Lucene.Net.QueryParsers;
 using Emul8.Logging.Backends;
 using Emul8.Logging.Lucene;
+using Emul8.CLI;
+using Emul8.CLI.Progress;
 
 namespace Emul8.Plugins.AdvancedLoggerViewer
 {
