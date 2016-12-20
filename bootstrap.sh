@@ -105,17 +105,6 @@ then
     git submodule update --init --recursive
 fi
 
-
-# Create Sandbox project
-pushd ${ROOT_PATH:=.}/Misc/Sandbox > /dev/null
-if [ ! -e Sandbox.csproj ]
-then
-  echo " >> Creating Sandbox.csproj..."
-  cp Sandbox.csproj-template Sandbox.csproj
-  cp SandboxMain.cs-template SandboxMain.cs
-fi
-popd > /dev/null
-
 # Update references to Xwt
 TERMSHARP_CONSOLE_PROJECT=${ROOT_PATH:=.}/External/TermsharpConsole/TermsharpConsole.csproj
 if [ -e $TERMSHARP_CONSOLE_PROJECT ]
