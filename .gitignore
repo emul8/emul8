@@ -38,3 +38,10 @@ packages
 
 #tests
 Tools/scripts/tests
+
+#libraries
+Emulator/LLVMDisassembler/Resources
+External/.emul8_libs_fetched
+External/Lib
+External/Tools
+External/emul8-libraries

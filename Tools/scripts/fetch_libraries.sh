@@ -9,7 +9,7 @@ cd "${0%/*}"
 cd ../../External
 if [ -e .emul8_libs_fetched ]
 then
-    echo "Already downloaded. To repeat the process remove External/.emul8_libs_fetched file."
+    echo "Required libraries already downloaded. To repeat the process remove External/.emul8_libs_fetched file."
     exit
 fi
 

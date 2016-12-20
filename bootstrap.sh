@@ -138,6 +138,8 @@ then
     rm $TERMSHARP_PROJECT.bak
 fi
 
+${ROOT_PATH}/Tools/scripts/fetch_libraries.sh
+
 BOOTSTRAPER_DIR=$ROOT_PATH/Tools/Bootstrap
 BOOTSTRAPER_BIN=$BOOTSTRAPER_DIR/bin/Release/Bootstrap.exe
 
