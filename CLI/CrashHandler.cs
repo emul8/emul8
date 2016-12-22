@@ -72,7 +72,7 @@ namespace Emul8.CLI
         {
             Directory.CreateDirectory(location);
             var filename = CustomDateTime.Now.ToString("yyyyMMddHHmmssfff");
-            File.AppendAllText(filename, message);
+            File.AppendAllText(Path.Combine(location, filename), message);
         }
 
         private static void ShowErrorInConsole(string message)
