@@ -1071,6 +1071,15 @@ namespace Emul8.UserInterface
         {
             
             result = new List<object>();
+            int autoFilledCount = 0;
+            //this might be expanded - try all parameters with the attribute, try to fill from factory based on it's type
+            if(parameters.Count > 0 && parameters[0].ParameterType == typeof(Machine)
+                && Attribute.IsDefined(parameters[0], typeof(AutoParameterAttribute)) && currentMachine is Machine)
+            {
+                result.Add((Machine)currentMachine);
+                autoFilledCount++;
+            }
+
             //Too many arguments
             if(values.Count > parameters.Count)
             {
@@ -1078,15 +1087,7 @@ namespace Emul8.UserInterface
             }
 
             try
-            { 
-                int autoFilledCount = 0;
-                //this might be expanded - try all parameters with the attribute, try to fill from factory based on it's type
-                if(parameters.Count > 0 && parameters[0].ParameterType == typeof(Machine) 
-                    && Attribute.IsDefined(parameters[0], typeof(AutoParameterAttribute)) && currentMachine is Machine)
-                {
-                    result.Add((Machine)currentMachine);
-                    autoFilledCount++;
-                }
+            {
                 int i;
                 //Convert all given parameters
                 for(i = 0; i < values.Count; ++i)
