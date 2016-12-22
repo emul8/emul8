@@ -1290,26 +1290,28 @@ namespace Emul8.UserInterface
                     object value;
                     if(TryPrepareParameters(getParameters, indexerParameters, out parameters))
                     {
-                        if(setValue != null)
+                        try
                         {
-                            try
+                            if(setValue != null)
                             {
                                 value = ConvertValue(setValue.GetObjectValue(), foundIndexer.PropertyType);
+
+
+                                InvokeSetIndex(name, foundIndexer, parameters.Concat(new[] { value }).ToList());
+                                return null;
                             }
-                            catch(Exception e)
+                            else
                             {
-                                if(e is FormatException || e is RuntimeBinderException)
-                                {
-                                    throw new RecoverableException(e);
-                                }
-                                throw;
+                                return InvokeGetIndex(name, foundIndexer, parameters);
                             }
-                            InvokeSetIndex(name, foundIndexer, parameters.Concat(new [] { value }).ToList());
-                            return null;
                         }
-                        else
+                        catch(Exception e)
                         {
-                            return InvokeGetIndex(name, foundIndexer, parameters);
+                            if(e is FormatException || e is RuntimeBinderException || e is KeyNotFoundException)
+                            {
+                                throw new RecoverableException(e);
+                            }
+                            throw;
                         }
                     }
                 }
