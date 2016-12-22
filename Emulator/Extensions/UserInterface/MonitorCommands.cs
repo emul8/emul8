@@ -1292,7 +1292,7 @@ namespace Emul8.UserInterface
                     {
                         try
                         {
-                            if(setValue != null)
+                            if(setValue != null && foundIndexer.IsCurrentlySettable(CurrentBindingFlags))
                             {
                                 value = ConvertValue(setValue.GetObjectValue(), foundIndexer.PropertyType);
 
