@@ -1263,15 +1263,14 @@ namespace Emul8.UserInterface
             else if(foundIndexers.Any())
             {
                 setValue = null;
-                var leftBrace = parameterArray[0];
-                if(!(leftBrace is LeftBraceToken))
+                if(parameterArray.Length < 3 || !(parameterArray[0] is LeftBraceToken))
                 {
-                    throw new RecoverableException("");
+                    throw new ParametersMismatchException();
                 }
                 var index = parameterArray.IndexOf(x => x is RightBraceToken);
                 if(index == -1)
                 {
-                    throw new RecoverableException("");
+                    throw new ParametersMismatchException();
                 }
                 if(index == parameterArray.Length - 2)
                 {
@@ -1279,7 +1278,7 @@ namespace Emul8.UserInterface
                 }
                 else if(index != parameterArray.Length - 1)
                 {
-                    throw new RecoverableException("");
+                    throw new ParametersMismatchException();
                 }
                 var getParameters = parameterArray.Skip(1).Take(index - 1).ToArray();
                 foreach(var foundIndexer in foundIndexers.OrderBy(x=>x.GetIndexParameters ().Count())
@@ -1314,6 +1313,7 @@ namespace Emul8.UserInterface
                         }
                     }
                 }
+                throw new ParametersMismatchException();
             }
             if(command is LiteralToken)
             {
