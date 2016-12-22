@@ -858,153 +858,115 @@ namespace Emul8.UserInterface
         {
             var device = FromStaticMapping(name);
             var iface = GetExternalInterfaceOrNull(name);
-            if(currentMachine is Machine || device != null || iface != null)
-            {
-                device = device ?? FromMapping(name) ?? iface ?? (object)((Machine)currentMachine)[name];
-            }
+            device = device ?? FromMapping(name) ?? iface ?? (object)currentMachine[name];
             return device;
         }
 
         private object InvokeGet(string name, MemberInfo info)
         {
             var device = IdentifyDevice(name);
-            if(device != null)
+            var context = CreateInvocationContext(device, info);
+            if(context != null)
             {
-                var context = CreateInvocationContext(device, info);
-                if(context != null)
-                {
-                    return Dynamic.InvokeGet(context, info.Name);  
-                }
-                else
-                {
-                    var propInfo = info as PropertyInfo;
-                    var fieldInfo = info as FieldInfo;
-                    if(fieldInfo != null)
-                    {
-                        return fieldInfo.GetValue(null);
-                    }
-                    if(propInfo != null)
-                    {
-                        return propInfo.GetValue(!propInfo.IsStatic() ? device : null, null);
-                    }
-                    throw new NotImplementedException(String.Format("Unsupported field {0} in InvokeGet", info.Name));
-                }
+                return Dynamic.InvokeGet(context, info.Name);  
             }
-            else/* if(machine is RemoteMachine)*/
+            else
             {
-                throw new NotImplementedException("Remote machines not supported");
+                var propInfo = info as PropertyInfo;
+                var fieldInfo = info as FieldInfo;
+                if(fieldInfo != null)
+                {
+                    return fieldInfo.GetValue(null);
+                }
+                if(propInfo != null)
+                {
+                    return propInfo.GetValue(!propInfo.IsStatic() ? device : null, null);
+                }
+                throw new NotImplementedException(String.Format("Unsupported field {0} in InvokeGet", info.Name));
             }
         }
 
         private void InvokeSet(string name, MemberInfo info, object parameter)
         {
             var device = IdentifyDevice(name);
-            if(device != null)
+            var context = CreateInvocationContext(device, info);
+            if(context != null)
             {
-                var context = CreateInvocationContext(device, info);
-                if(context != null)
-                {
-                    Dynamic.InvokeSet(context, info.Name, parameter);
-                }
-                else
-                {
-                    var propInfo = info as PropertyInfo;
-                    var fieldInfo = info as FieldInfo;
-                    if(fieldInfo != null)
-                    {
-                        fieldInfo.SetValue(null, parameter);
-                        return;
-                    }
-                    if(propInfo != null)
-                    {
-                        propInfo.SetValue(!propInfo.IsStatic() ? device : null, parameter, null);
-                        return;
-                    }
-                    throw new NotImplementedException(String.Format("Unsupported field {0} in InvokeSet", info.Name));
-                }
+                Dynamic.InvokeSet(context, info.Name, parameter);
             }
-            else/* if(machine is RemoteMachine)*/
+            else
             {
-                throw new NotImplementedException("Remote machines not supported");
+                var propInfo = info as PropertyInfo;
+                var fieldInfo = info as FieldInfo;
+                if(fieldInfo != null)
+                {
+                    fieldInfo.SetValue(null, parameter);
+                    return;
+                }
+                if(propInfo != null)
+                {
+                    propInfo.SetValue(!propInfo.IsStatic() ? device : null, parameter, null);
+                    return;
+                }
+                throw new NotImplementedException(String.Format("Unsupported field {0} in InvokeSet", info.Name));
             }
         }
 
         private object InvokeExtensionMethod(string name, MethodInfo method, List<object> parameters)
         { 
             var device = IdentifyDevice(name);
-            if(device != null)
+            var context = InvokeContext.CreateStatic(method.ReflectedType);
+            if(context != null)
             {
-                var context = InvokeContext.CreateStatic(method.ReflectedType);
-                if(context != null)
-                {
-                    return InvokeWithContext(context, method, (new [] { device }.Concat(parameters)).ToArray());
-                }
-                else
-                {
-                    throw new NotImplementedException(String.Format("Unsupported field {0} in InvokeExtensionMethod", method.Name));
-                }
+                return InvokeWithContext(context, method, (new [] { device }.Concat(parameters)).ToArray());
             }
-            return null;
+            else
+            {
+                throw new NotImplementedException(String.Format("Unsupported field {0} in InvokeExtensionMethod", method.Name));
+            }
         }
 
         private object InvokeMethod(string name, MethodInfo method, List<object> parameters)
         {
             var device = IdentifyDevice(name);
-            if(device != null)
-            {
-                var context = CreateInvocationContext(device, method);
-                if(context != null)
-                {
-                    return InvokeWithContext(context, method, parameters.ToArray());
-                }
-                else
-                {
-                    throw new NotImplementedException(String.Format("Unsupported field {0} in InvokeMethod", method.Name));
-                }
-            }
-            return null;
 
+            var context = CreateInvocationContext(device, method);
+            if(context != null)
+            {
+                return InvokeWithContext(context, method, parameters.ToArray());
+            }
+            else
+            {
+                throw new NotImplementedException(String.Format("Unsupported field {0} in InvokeMethod", method.Name));
+            }
         }
 
         private void InvokeSetIndex(string name, PropertyInfo property, List<object> parameters)
         {
             var device = IdentifyDevice(name);
-            if(device != null)
+
+            var context = CreateInvocationContext(device, property);
+            if(context != null)
             {
-                var context = CreateInvocationContext(device, property);
-                if(context != null)
-                {
-                    Dynamic.InvokeSetIndex(context, parameters.ToArray());
-                }
-                else
-                {
-                    throw new NotImplementedException(String.Format("Unsupported field {0} in InvokeSetIndex", property.Name));
-                }
+                Dynamic.InvokeSetIndex(context, parameters.ToArray());
             }
-            else/* if(machine is RemoteMachine)*/
+            else
             {
-                throw new NotImplementedException("Remote machines not supported");
+                throw new NotImplementedException(String.Format("Unsupported field {0} in InvokeSetIndex", property.Name));
             }
         }
 
         private object InvokeGetIndex(string name, PropertyInfo property, List<object> parameters)
         {
             var device = IdentifyDevice(name);
-            if(device != null)
+            var context = CreateInvocationContext(device, property);
+            if(context != null)
             {
-                var context = CreateInvocationContext(device, property);
-                if(context != null)
-                {
-                    return Dynamic.InvokeGetIndex(context, parameters.ToArray());
-                }
-                else
-                {
-                    throw new NotImplementedException(String.Format("Unsupported field {0} in InvokeGetIndex", property.Name));
-                }
+                return Dynamic.InvokeGetIndex(context, parameters.ToArray());
             }
-            else/* if(machine is RemoteMachine)*/
+            else
             {
-                throw new NotImplementedException("Remote machines not supported");
+                throw new NotImplementedException(String.Format("Unsupported field {0} in InvokeGetIndex", property.Name));
             }
         }
 
@@ -1074,9 +1036,9 @@ namespace Emul8.UserInterface
             int autoFilledCount = 0;
             //this might be expanded - try all parameters with the attribute, try to fill from factory based on it's type
             if(parameters.Count > 0 && parameters[0].ParameterType == typeof(Machine)
-                && Attribute.IsDefined(parameters[0], typeof(AutoParameterAttribute)) && currentMachine is Machine)
+                && Attribute.IsDefined(parameters[0], typeof(AutoParameterAttribute)))
             {
-                result.Add((Machine)currentMachine);
+                result.Add(currentMachine);
                 autoFilledCount++;
             }
 
