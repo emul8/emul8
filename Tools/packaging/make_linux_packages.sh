@@ -91,27 +91,7 @@ VERSION="$VERSION$DATE$COMMIT"
 
 DIR=emul8_$VERSION
 
-rm -rf $DIR
-mkdir -p $DIR/{bin,licenses}
-
-#copy the main content
-cp -r $BASE/output/$TARGET/*.{dll,exe} $DIR/bin
-cp -r $BASE/{scripts,platforms,.emul8root} $DIR
-
-#copy the licenses
-#some files already include the library name
-find $BASE/Emulator $BASE/External -iname "*-license" -exec cp {} $DIR/licenses \;
-
-#others will need a parent directory name.
-find $BASE/{Emulator,External} -iname "license" -print0 |\
-    while IFS= read -r -d $'\0' file
-do
-    full_dirname=${file%/*}
-    dirname=${full_dirname##*/}
-    cp $file $DIR/licenses/$dirname-license
-done
-
-cp $BASE/LICENSE $DIR/licenses/LICENSE
+. common_copy_files.sh
 
 PACKAGES=packages/$TARGET
 OUTPUT=$BASE/$PACKAGES
@@ -123,12 +103,12 @@ GENERAL_FLAGS=(\
     --vendor 'Antmicro <emul8@antmicro.com>'\
     --description 'The Emul8 Framework'\
     --url 'www.emul8.org'\
-    --after-install update_icon_cache.sh\
-    --after-remove update_icon_cache.sh\
+    --after-install linux/update_icon_cache.sh\
+    --after-remove linux/update_icon_cache.sh\
     $DIR/=/opt/emul8\
-    emul8.sh=/usr/bin/emul8\
-    Emul8.desktop=/usr/share/applications/Emul8.desktop\
-    icons/=/usr/share/icons/hicolor
+    linux/emul8.sh=/usr/bin/emul8\
+    linux/Emul8.desktop=/usr/share/applications/Emul8.desktop\
+    linux/icons/=/usr/share/icons/hicolor
     )
 
 ### create debian package
@@ -172,4 +152,3 @@ if $REMOVE_WORKDIR
 then
     rm -rf $DIR
 fi
-
