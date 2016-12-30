@@ -20,9 +20,9 @@ namespace Emul8.CLI
 {
     public class TerminalWidget : Widget
     {
-        public TerminalWidget()
+        public TerminalWidget(Func<bool> focusProvider)
         {
-            terminal = new Terminal();
+            terminal = new Terminal(focusProvider);
             terminalInputOutputSource = new TerminalIOSource(terminal);
             IO = new IOProvider(terminalInputOutputSource);
             IO.BeforeWrite += b =>
@@ -89,12 +89,12 @@ namespace Emul8.CLI
             Content = terminal;
         }
 
-        public TerminalWidget(UARTBackend backend) : this()
+        public TerminalWidget(UARTBackend backend, Func<bool> focusProvider) : this(focusProvider)
         {
             backend.BindAnalyzer(IO);
         }
 
-        public TerminalWidget(UARTBackend backend, Func<TerminalWidget, MenuItem[]> menuItemProvider) : this(backend)
+        public TerminalWidget(UARTBackend backend, Func<bool> focusProvider, Func<TerminalWidget, MenuItem[]> menuItemProvider) : this(backend, focusProvider)
         {
             additionlMenuItemProvider = menuItemProvider;
             terminal.ContextMenu = CreatePopupMenu();

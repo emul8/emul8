@@ -44,7 +44,7 @@ namespace Emul8.CLI
             {
 #endif
                 ApplicationExtensions.InvokeInUIThreadAndWait(() => {
-                    terminalWidget = new TerminalWidget();
+                    terminalWidget = new TerminalWidget(() => window.HasFocus);
                 });
                 IO = terminalWidget.IO;
 #if !EMUL8_PLATFORM_WINDOWS
