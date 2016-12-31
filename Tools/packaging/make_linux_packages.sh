@@ -26,7 +26,6 @@ function help {
     echo -e "-d\tuse Debug configuration"
     echo -e "-n\tcreate a nightly build with date and commit SHA"
     echo -e "-l\tdo not remove workdir after building"
-    echo -e "-h\tprint this help message"
 }
 
 function is_dep_available {
@@ -71,10 +70,6 @@ do
         n)
             DATE="+`date +%Y%m%d`"
             COMMIT="git`git rev-parse --short HEAD`"
-            ;;
-        h)
-            help
-            exit
             ;;
         l)
             REMOVE_WORKDIR=false

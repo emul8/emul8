@@ -26,7 +26,6 @@ function help {
     echo -e "-d\tuse Debug configuration"
     echo -e "-n\tcreate a nightly build with date and commit SHA"
     echo -e "-l\tleave .app directory as is"
-    echo -e "-h\tprint this help message"
 }
 
 if [ $# -lt 1 ]
@@ -47,10 +46,6 @@ do
         n)
             DATE="+`date +%Y%m%d`"
             COMMIT="git`git rev-parse --short HEAD`"
-            ;;
-        h)
-            help
-            exit
             ;;
         l)
             REMOVE_WORKDIR=false
