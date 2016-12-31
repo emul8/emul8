@@ -37,6 +37,12 @@ function is_dep_available {
     return 0
 }
 
+if [ $# -lt 1 ]
+then
+    usage
+    exit
+fi
+
 if ! is_dep_available gem
 then
     exit
@@ -49,12 +55,6 @@ if ! is_dep_available fpm ||\
     ! is_dep_available rpm ||\
     ! is_dep_available bsdtar
 then
-    exit
-fi
-
-if [ $# -lt 1 ]
-then
-    usage
     exit
 fi
 
