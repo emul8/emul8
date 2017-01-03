@@ -111,12 +111,23 @@ fi
 
 if $PACKAGES
 then
+    if $ON_WINDOWS
+    then
+        echo "Creating packages is not supported on Windows."
+        exit 1
+    fi
     params="$VERSION -n"
     if $DEBUG
     then
         $params="$params -d"
     fi
-    $ROOT_PATH/Tools/packaging/make_linux_packages.sh $params
+    if $ON_LINUX
+    then
+      $ROOT_PATH/Tools/packaging/make_linux_packages.sh $params
+    elif $ON_OSX
+    then
+      $ROOT_PATH/Tools/packaging/make_macos_packages.sh $params
+    fi
 fi
 
 exit $result_code
