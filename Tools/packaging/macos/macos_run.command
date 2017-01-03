@@ -35,17 +35,5 @@ then
 	exit 1
 fi
 
-#get an exec command that will work on the current OS version
-OSX_VERSION=$(uname -r | cut -f1 -d.)
-if [ $OSX_VERSION -lt 9 ]; then  # If OSX version is 10.4
-	MONO_EXEC="exec mono"
-else
-	MONO_EXEC="exec -a \"$PROCESS_NAME\" mono"
-fi
-
-#create log file directory if it doesn't exist
-LOG_FILE="$HOME/Library/Logs/$APPNAME/$APPNAME.log"
-mkdir -p "`dirname \"$LOG_FILE\"`"
-
 #run app using mono
-$MONO_EXEC $MONO_OPTIONS "$EXE_PATH" $*
+exec -a \"$PROCESS_NAME\" mono $MONO_OPTIONS "$EXE_PATH" $*

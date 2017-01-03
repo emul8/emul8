@@ -14,14 +14,8 @@ REMOVE_WORKDIR=true
 DATE=""
 COMMIT=""
 
-RPM_MIN_DIST="f23"
-
-function usage {
-    echo "$0 {version-number} [-d] [-n] [-h] [-l]"
-}
-
 function help {
-    usage
+    echo "$0 {version-number} [-d] [-n] [-l]"
     echo
     echo -e "-d\tuse Debug configuration"
     echo -e "-n\tcreate a nightly build with date and commit SHA"
@@ -30,14 +24,14 @@ function help {
 
 if [ $# -lt 1 ]
 then
-    usage
+    help
     exit
 fi
 
 VERSION=$1
 
 shift
-while getopts "dhnl" opt
+while getopts "dnl" opt
 do
     case $opt in
         d)
@@ -52,7 +46,7 @@ do
             ;;
         \?)
             echo "Invalid option: -$OPTARG"
-            usage
+            help
             exit
             ;;
     esac
@@ -62,8 +56,7 @@ VERSION="$VERSION$DATE$COMMIT"
 
 # create MacOS app structure
 MACOS_APP_DIR=Emul8.app
-mkdir -p $MACOS_APP_DIR/Contents/MacOS/
-mkdir -p $MACOS_APP_DIR/Contents/Resources/
+mkdir -p $MACOS_APP_DIR/Contents/{MacOS,Resources}/
 
 DIR=$MACOS_APP_DIR/Contents/MacOS
 

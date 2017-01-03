@@ -16,12 +16,8 @@ COMMIT=""
 
 RPM_MIN_DIST="f23"
 
-function usage {
-    echo "$0 {version-number} [-d] [-n] [-h] [-l]"
-}
-
 function help {
-    usage
+    echo "$0 {version-number} [-d] [-n] [-l]"
     echo
     echo -e "-d\tuse Debug configuration"
     echo -e "-n\tcreate a nightly build with date and commit SHA"
@@ -39,7 +35,7 @@ function is_dep_available {
 
 if [ $# -lt 1 ]
 then
-    usage
+    help
     exit
 fi
 
@@ -61,7 +57,7 @@ fi
 VERSION=$1
 
 shift
-while getopts "dhnl" opt
+while getopts "dnl" opt
 do
     case $opt in
         d)
@@ -76,7 +72,7 @@ do
             ;;
         \?)
             echo "Invalid option: -$OPTARG"
-            usage
+            help
             exit
             ;;
     esac
