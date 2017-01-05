@@ -62,9 +62,6 @@ fi
 # Build CCTask in Release configuration
 $CS_COMPILER /p:Configuration=Release `get_path $ROOT_PATH/External/cctask/CCTask.sln` > /dev/null
 
-# Build Termsharp in Release configuration
-$CS_COMPILER /p:Configuration=Release `get_path $ROOT_PATH/External/TermsharpConsole/TermsharpConsole.sln`
-
 if $CLEAN
 then
     $CS_COMPILER /t:Clean /p:Configuration=Debug $TARGET

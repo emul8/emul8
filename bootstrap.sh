@@ -106,21 +106,7 @@ then
 fi
 
 # Update references to Xwt
-TERMSHARP_CONSOLE_PROJECT=${ROOT_PATH:=.}/External/TermsharpConsole/TermsharpConsole.csproj
-if [ -e $TERMSHARP_CONSOLE_PROJECT ]
-then
-    sed -i.bak 's/"termsharp\\xwt\\Xwt\\Xwt.csproj"/"..\\xwt\\Xwt\\Xwt.csproj"/'                 $TERMSHARP_CONSOLE_PROJECT
-    sed -i.bak 's/"termsharp\\xwt\\Xwt.Gtk\\Xwt.Gtk.csproj"/"..\\xwt\\Xwt.Gtk\\Xwt.Gtk.csproj"/' $TERMSHARP_CONSOLE_PROJECT
-    rm $TERMSHARP_CONSOLE_PROJECT.bak
-fi
-TERMSHARP_CONSOLE_SOLUTION=${ROOT_PATH:=.}/External/TermsharpConsole/TermsharpConsole.sln
-if [ -e $TERMSHARP_CONSOLE_SOLUTION ]
-then
-    sed -i.bak 's/"termsharp\\xwt\\Xwt\\Xwt.csproj"/"..\\xwt\\Xwt\\Xwt.csproj"/'                 $TERMSHARP_CONSOLE_SOLUTION
-    sed -i.bak 's/"termsharp\\xwt\\Xwt.Gtk\\Xwt.Gtk.csproj"/"..\\xwt\\Xwt.Gtk\\Xwt.Gtk.csproj"/' $TERMSHARP_CONSOLE_SOLUTION
-    rm $TERMSHARP_CONSOLE_SOLUTION.bak
-fi
-TERMSHARP_PROJECT=${ROOT_PATH:=.}/External/TermsharpConsole/termsharp/TermSharp.csproj
+TERMSHARP_PROJECT=${ROOT_PATH:=.}/External/termsharp/TermSharp.csproj
 if [ -e $TERMSHARP_PROJECT ]
 then
     sed -i.bak 's/"xwt\\Xwt\\Xwt.csproj"/"..\\..\\xwt\\Xwt\\Xwt.csproj"/'                        $TERMSHARP_PROJECT
