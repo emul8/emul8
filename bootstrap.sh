@@ -109,7 +109,7 @@ fi
 TERMSHARP_PROJECT=${ROOT_PATH:=.}/External/termsharp/TermSharp.csproj
 if [ -e $TERMSHARP_PROJECT ]
 then
-    sed -i.bak 's/"xwt\\Xwt\\Xwt.csproj"/"..\\..\\xwt\\Xwt\\Xwt.csproj"/'                        $TERMSHARP_PROJECT
+    sed -i.bak 's/"xwt\\Xwt\\Xwt.csproj"/"..\\xwt\\Xwt\\Xwt.csproj"/'                        $TERMSHARP_PROJECT
     rm $TERMSHARP_PROJECT.bak
 fi
 

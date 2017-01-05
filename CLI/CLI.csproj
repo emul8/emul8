@@ -97,7 +97,7 @@
       <Project>{CC6D2193-B747-42F0-8F80-6569ED04338D}</Project>
       <Name>LaunchAttributes</Name>
     </ProjectReference>
-    <ProjectReference Include="..\External\TermsharpConsole\termsharp\TermSharp.csproj">
+    <ProjectReference Include="..\External\termsharp\TermSharp.csproj">
       <Project>{25FAECC1-55F0-4608-88BD-4207A7F993B0}</Project>
       <Name>Terminal</Name>
     </ProjectReference>
