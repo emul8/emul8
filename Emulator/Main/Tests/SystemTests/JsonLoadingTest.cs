@@ -23,7 +23,26 @@ namespace Emul8.SystemTests
         public void LoadAllJsons(string json)
         {
             var machine = new Machine();
-            new DevicesConfig(json, machine);
+            new DevicesConfig(ReadFileContents(json), machine);
+        }
+
+        private string ReadFileContents(string filename)
+        {
+            if(!File.Exists(filename))
+            {
+                throw new ArgumentException(string.Format(
+                    "Cannot load devices configuration from file {0} as it does not exist.",
+                    filename
+                )
+                );
+            }
+            
+            string text = "";
+            using(TextReader tr = File.OpenText(filename))
+            {
+                text = tr.ReadToEnd();
+            }
+	    return text;
         }
 
         private static IEnumerable<string> GetJsons()

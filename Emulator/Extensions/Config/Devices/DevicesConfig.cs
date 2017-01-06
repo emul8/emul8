@@ -443,10 +443,8 @@ namespace Emul8.Config.Devices
             }
         }
 
-        public DevicesConfig(string filename, Machine machine)
+        public DevicesConfig(string text, Machine machine)
         {
-            var text = ReadFileContents(filename);
-
             try
             {
                 SimpleJson.DeserializeObject<dynamic>(text);
@@ -555,25 +553,6 @@ namespace Emul8.Config.Devices
             {
                 machine.SetLocalName(device.Peripheral, device.Name);
             }
-        }
-
-        private string ReadFileContents(string filename)
-        {
-            if(!File.Exists(filename))
-            {
-                throw new RecoverableException(string.Format(
-                    "Cannot load devices configuration from file {0} as it does not exist.",
-                    filename
-                )
-                );
-            }
-            
-            string text = "";
-            using(TextReader tr = File.OpenText(filename))
-            {
-                text = tr.ReadToEnd();
-            }
-	    return text;
         }
 
         private void RegisterInParents(DeviceInfo device, IDictionary<string, IPeripheral> parents)
