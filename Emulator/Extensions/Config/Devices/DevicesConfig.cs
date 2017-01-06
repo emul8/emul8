@@ -447,7 +447,8 @@ namespace Emul8.Config.Devices
         {
             try
             {
-                var devices = InitializeJSON(filename);
+                var text = ReadFileContents(filename);
+                var devices = SimpleJson.DeserializeObject<dynamic>(text);
                 this.machine = machine;
                 //Every main node is one peripheral/device
                 foreach(var dev in devices)
@@ -526,6 +527,10 @@ namespace Emul8.Config.Devices
                     InitializeGPIOsFrom(device);
                 }
             }
+            catch(SerializationException e)
+            {
+                throw new RecoverableException("Invalid JSON string.", e);
+            }
             catch(RuntimeBinderException e)
             {
                 throw new RecoverableException("The config file could not be analyzed. You should reset your current emulation.", e);
@@ -542,7 +547,7 @@ namespace Emul8.Config.Devices
             }
         }
 
-        private static dynamic InitializeJSON(string filename)
+        private string ReadFileContents(string filename)
         {
             if(!File.Exists(filename))
             {
@@ -553,22 +558,12 @@ namespace Emul8.Config.Devices
                 );
             }
             
-            string text;
+            string text = "";
             using(TextReader tr = File.OpenText(filename))
             {
                 text = tr.ReadToEnd();
             }
-            dynamic devices;
-
-            try
-            {
-                devices = SimpleJson.DeserializeObject<dynamic>(text);
-            }
-            catch(SerializationException e)
-            {
-                throw new RecoverableException("Invalid JSON string.", e);
-            }
-            return devices;
+	    return text;
         }
 
         private void RegisterInParents(DeviceInfo device, IDictionary<string, IPeripheral> parents)
