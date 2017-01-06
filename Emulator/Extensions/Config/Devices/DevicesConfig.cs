@@ -445,9 +445,19 @@ namespace Emul8.Config.Devices
 
         public DevicesConfig(string filename, Machine machine)
         {
+            var text = ReadFileContents(filename);
+
             try
             {
-                var text = ReadFileContents(filename);
+                SimpleJson.DeserializeObject<dynamic>(text);
+            }
+            catch(SerializationException)
+            {
+                text = "{" + text + "}";
+            }
+
+            try
+            {
                 var devices = SimpleJson.DeserializeObject<dynamic>(text);
                 this.machine = machine;
                 //Every main node is one peripheral/device
