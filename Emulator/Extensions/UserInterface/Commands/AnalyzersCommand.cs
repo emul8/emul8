@@ -10,6 +10,7 @@ using AntShell.Commands;
 using Emul8.UserInterface.Tokenizer;
 using Emul8.Peripherals;
 using Emul8.Core;
+using Emul8.Exceptions;
 
 namespace Emul8.UserInterface.Commands
 {
@@ -31,10 +32,12 @@ namespace Emul8.UserInterface.Commands
         {
             var emu = EmulationManager.Instance.CurrentEmulation;
             IPeripheral p;
-            string fake;
 
-            var m = monitor.Machine;
-            if(m == null || !m.TryGetByName(peripheralName.Value, out p, out fake))
+            try
+            {
+                p = (IPeripheral)monitor.ConvertValueOrThrowRecoverable(peripheralName.Value, typeof(IPeripheral));
+            }
+            catch(RecoverableException)
             {
                 writer.WriteError(string.Format("Peripheral not found: {0}", peripheralName.Value));
                 return;
