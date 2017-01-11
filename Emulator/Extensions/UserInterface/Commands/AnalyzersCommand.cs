@@ -50,9 +50,10 @@ namespace Emul8.UserInterface.Commands
                 return;
             }
 
+            var def = emu.BackendManager.GetPreferredAnalyzerFor(backend);
             foreach(var a in emu.BackendManager.GetAvailableAnalyzersFor(backend))
             {
-                writer.WriteLine(a);
+                writer.WriteLine(String.Format("{0}{1}", a, a == def ? " (default)" : String.Empty));
             }
         }
 
