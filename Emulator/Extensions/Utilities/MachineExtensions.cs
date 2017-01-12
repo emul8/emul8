@@ -11,7 +11,6 @@ using Emul8.Config.Devices;
 using Emul8.Core;
 using Emul8.Peripherals.Bus;
 using System.Collections.Generic;
-using Emul8.Utilities;
 using Machine = Emul8.Core.Machine;
 using Emul8.Core.Structure;
 using System.IO;
@@ -22,27 +21,36 @@ using Emul8.Exceptions;
 
 namespace Emul8.Utilities
 {
-	public static class MachineExtensions
-	{
-		public static void LoadPeripherals(this Machine machine, String fileName)
-		{
-            new DevicesConfig(fileName, machine);
-		}
+    public static class MachineExtensions
+    {
+        public static void LoadPeripherals(this Machine machine, String fileName)
+        {
+            if(!File.Exists(fileName))
+            {
+                throw new RecoverableException("Cannot load devices configuration from file {0} as it does not exist.".FormatWith(fileName));
+            }
+            new DevicesConfig(File.ReadAllText(fileName), machine);
+        }
 
-		public static void LoadAtags(this SystemBus bus, String bootargs, uint memorySize, uint beginAddress)
-		{
-			var atags = Misc.CreateAtags(bootargs, memorySize);
-			//Fill ATAGs
-			var addr = beginAddress;
-			foreach(var elem in atags)
-			{
-				bus.WriteDoubleWord(addr, elem);
-				addr += 4;
-			}
+        public static void LoadPeripheralsFromString(this Machine machine, String text)
+        {
+            new DevicesConfig(text, machine);
+        }
 
-		}
+        public static void LoadAtags(this SystemBus bus, String bootargs, uint memorySize, uint beginAddress)
+        {
+            var atags = Misc.CreateAtags(bootargs, memorySize);
+            //Fill ATAGs
+            var addr = beginAddress;
+            foreach(var elem in atags)
+            {
+                bus.WriteDoubleWord(addr, elem);
+                addr += 4;
+            }
 
-        public static void LoadFdt(this SystemBus sysbus, string file, long address, string bootargs = null, bool append = true, string excludedNodes="")
+        }
+
+        public static void LoadFdt(this SystemBus sysbus, string file, long address, string bootargs = null, bool append = true, string excludedNodes = "")
         {
             var fdtBlob = File.ReadAllBytes(file);
             if(bootargs == null)
@@ -74,8 +82,8 @@ namespace Emul8.Utilities
             }
             bootargsProperty.PutDataAsString(bootargs);
 
-            var excludedNodeNames = excludedNodes.Split(new [] {' '}, StringSplitOptions.RemoveEmptyEntries);
-            byte[] disabledValue = Encoding.ASCII.GetBytes ("disabled");
+            var excludedNodeNames = excludedNodes.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            byte[] disabledValue = Encoding.ASCII.GetBytes("disabled");
             foreach(var deviceName in excludedNodeNames)
             {
                 TreeNode node = fdt.Root.Descendants.FirstOrDefault(x => x.Name == deviceName);
@@ -85,12 +93,13 @@ namespace Emul8.Utilities
                 }
                 else
                 {
-                    Property statusProperty = node.Properties.FirstOrDefault (x => x.Name == "status");
-                    if (statusProperty != null) {
-                        node.Properties.Remove (statusProperty);
+                    Property statusProperty = node.Properties.FirstOrDefault(x => x.Name == "status");
+                    if(statusProperty != null)
+                    {
+                        node.Properties.Remove(statusProperty);
                     }
-                    statusProperty = new Property ("status", disabledValue);
-                    node.Properties.Add (statusProperty);
+                    statusProperty = new Property("status", disabledValue);
+                    node.Properties.Add(statusProperty);
                 }
             }
 
@@ -103,11 +112,11 @@ namespace Emul8.Utilities
             var result = new Dictionary<PeripheralTreeEntry, IEnumerable<IRegistrationPoint>>();
 
             var peripheralEntries = machine.GetRegisteredPeripherals().ToArray();
-            foreach(var entryList in peripheralEntries.OrderBy(x=>x.Name).GroupBy(x => x.Peripheral))
+            foreach(var entryList in peripheralEntries.OrderBy(x => x.Name).GroupBy(x => x.Peripheral))
             {
                 var uniqueEntryList = entryList.DistinctBy(x => x.RegistrationPoint).ToArray();
                 var entry = uniqueEntryList.FirstOrDefault();
-                if (entry != null)
+                if(entry != null)
                 {
                     result.Add(entry, uniqueEntryList.Select(x => x.RegistrationPoint).ToList());
                 }
@@ -115,6 +124,5 @@ namespace Emul8.Utilities
 
             return result;
         }
-	}
+    }
 }
-

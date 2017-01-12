@@ -443,11 +443,11 @@ namespace Emul8.Config.Devices
             }
         }
 
-        public DevicesConfig(string filename, Machine machine)
+        public DevicesConfig(string text, Machine machine)
         {
             try
             {
-                var devices = InitializeJSON(filename);
+                var devices = SimpleJson.DeserializeObject<dynamic>(text);
                 this.machine = machine;
                 //Every main node is one peripheral/device
                 foreach(var dev in devices)
@@ -526,6 +526,10 @@ namespace Emul8.Config.Devices
                     InitializeGPIOsFrom(device);
                 }
             }
+            catch(SerializationException e)
+            {
+                throw new RecoverableException("Invalid JSON string.", e);
+            }
             catch(RuntimeBinderException e)
             {
                 throw new RecoverableException("The config file could not be analyzed. You should reset your current emulation.", e);
@@ -542,38 +546,9 @@ namespace Emul8.Config.Devices
             }
         }
 
-        private static dynamic InitializeJSON(string filename)
-        {
-            if(!File.Exists(filename))
-            {
-                throw new RecoverableException(string.Format(
-                    "Cannot load devices configuration from file {0} as it does not exist.",
-                    filename
-                )
-                );
-            }
-            
-            string text;
-            using(TextReader tr = File.OpenText(filename))
-            {
-                text = tr.ReadToEnd();
-            }
-            dynamic devices;
-
-            try
-            {
-                devices = SimpleJson.DeserializeObject<dynamic>(text);
-            }
-            catch(SerializationException e)
-            {
-                throw new RecoverableException("Invalid JSON string.", e);
-            }
-            return devices;
-        }
-
         public static IEnumerable<DeviceInfo> GetShortInfo(string filename)
         {
-            var devices = ((JsonObject)InitializeJSON(filename)).ToList();
+            var devices = ((JsonObject)SimpleJson.DeserializeObject<dynamic>(File.ReadAllText(filename))).ToList();
             // flattening peripheral groups
             var arrays = devices.Where(d => d.Value is JsonArray).ToList();
             arrays.ForEach(a => devices.Remove(a));
@@ -588,20 +563,20 @@ namespace Emul8.Config.Devices
                 {
                     FailDevice(device.Key);
                 }
-	
+
                 if(!devContent.ContainsKey(TYPE_NODE))
                 {
                     FailDevice(device.Key, TYPE_NODE);
                 }
                 var typeName = (string)devContent[TYPE_NODE];
-	            
+
                 var devType = GetDeviceTypeFromName(typeName);
                 if(devType == null)
                 {
                     FailDevice(device.Key, TYPE_NODE);
                 }
                 info.Type = devType;
-				
+
                 if(devContent.ContainsKey(CONNECTION_NODE))
                 {
                     InitializeConnections(info, devContent[CONNECTION_NODE]);
@@ -610,7 +585,6 @@ namespace Emul8.Config.Devices
             }
         }
 
-		
         private void RegisterInParents(DeviceInfo device, IDictionary<string, IPeripheral> parents)
         {
             foreach(var parentName in device.Connections.Keys)
