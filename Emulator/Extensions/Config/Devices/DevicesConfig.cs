@@ -447,15 +447,6 @@ namespace Emul8.Config.Devices
         {
             try
             {
-                SimpleJson.DeserializeObject<dynamic>(text);
-            }
-            catch(SerializationException)
-            {
-                text = "{" + text + "}";
-            }
-
-            try
-            {
                 var devices = SimpleJson.DeserializeObject<dynamic>(text);
                 this.machine = machine;
                 //Every main node is one peripheral/device
@@ -552,6 +543,45 @@ namespace Emul8.Config.Devices
             foreach(var device in deviceList)
             {
                 machine.SetLocalName(device.Peripheral, device.Name);
+            }
+        }
+
+        public static IEnumerable<DeviceInfo> GetShortInfo(string filename)
+        {
+            var devices = ((JsonObject)SimpleJson.DeserializeObject<dynamic>(File.ReadAllText(filename))).ToList();
+            // flattening peripheral groups
+            var arrays = devices.Where(d => d.Value is JsonArray).ToList();
+            arrays.ForEach(a => devices.Remove(a));
+            arrays.Select(a => a.Value).Cast<JsonArray>().SelectMany(y => y).Cast<JsonObject>().ToList().ForEach(x => devices.AddRange(x));
+
+            foreach(var device in devices)
+            {
+                var info = new DeviceInfo();
+                info.Name = device.Key;
+                dynamic devContent = device.Value;
+                if(devContent == null)
+                {
+                    FailDevice(device.Key);
+                }
+
+                if(!devContent.ContainsKey(TYPE_NODE))
+                {
+                    FailDevice(device.Key, TYPE_NODE);
+                }
+                var typeName = (string)devContent[TYPE_NODE];
+
+                var devType = GetDeviceTypeFromName(typeName);
+                if(devType == null)
+                {
+                    FailDevice(device.Key, TYPE_NODE);
+                }
+                info.Type = devType;
+
+                if(devContent.ContainsKey(CONNECTION_NODE))
+                {
+                    InitializeConnections(info, devContent[CONNECTION_NODE]);
+                }
+                yield return info;
             }
         }
 
