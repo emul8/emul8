@@ -70,12 +70,17 @@ namespace Emul8.UserInterface
 
             try
             {
-                return ((int)Engine.Operations.Invoke(comm, parameters) == 1);
+                var result = Engine.Operations.Invoke(comm, parameters);
+                if(result != null && (!(result is bool) || !(bool)result))
+                {
+                    writer.WriteError(String.Format("Command {0} failed, returning \"{1}\".", command_name, result));
+                }
             }
             catch(Exception e)
             {
                 throw new RecoverableException(e);
             }
+            return true;
         }
 
         public bool TryExecutePythonScript(string fileName, ICommandInteraction writer)

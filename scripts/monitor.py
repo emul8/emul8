@@ -6,25 +6,22 @@ def mc_next_value(offset = 0):
 	global current_value
 	print "%d" % (current_value + offset)
 	current_value = current_value + 1
-	return 1
 
 def mc_sleep(time):
 	sleep(float(time))
-	return 1
 
 def mc_echo(*value):
         if len(value) == 2:
                 if value[0] == "-n":
                         sys.stdout.write(value[1])
-                        return 1
+                        return
         elif len(value) == 1:
                 print value[0]
-                return 1
+                return
         elif len(value) == 0:
                 print
-                return 1
+                return
         print "usage: echo [-n] [string]"
-        return 1
 
 def mc_dump(mem_start_val, mem_count_val, wid_val = 16):
 	wid = int(wid_val)
@@ -44,7 +41,6 @@ def mc_dump(mem_start_val, mem_count_val, wid_val = 16):
 			else:
 				print "%c." % chr(8) ,
 		print
-	return 1
 
 def mc_uboot_dump_load(filename):
         sysbus = self.Machine["sysbus"]
@@ -77,7 +73,6 @@ def mc_uboot_dump_load(filename):
                         count += 4
                 print
         fl.Close()
-        return 1
 
 def mc_dump_file(mem_start_val, mem_count_val, filename):
 	sysbus = self.Machine["sysbus"]
@@ -87,10 +82,8 @@ def mc_dump_file(mem_start_val, mem_count_val, filename):
 	fl = System.IO.FileStream(filename, System.IO.FileMode.Create, System.IO.FileAccess.Write)
 	fl.Write(tab, 0, mem_count)
 	fl.Close()
-	return 1
 
 def mc_get_environ(variable):
 	v = System.Environment.GetEnvironmentVariable(variable)
 	if v != None:
 		print v
-	return 1
