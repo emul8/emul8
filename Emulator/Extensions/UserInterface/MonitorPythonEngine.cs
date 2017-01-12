@@ -30,7 +30,7 @@ namespace Emul8.UserInterface
         {
             string emul8Path;
             if(!Misc.TryGetEmul8Directory(out emul8Path) && !Misc.TryGetEmul8Directory(Directory.GetCurrentDirectory(), out emul8Path))
-            { 
+            {
                 throw new RecoverableException("Could not find emul8 root directory.");
             }
             var monitorPath = Path.Combine(emul8Path, MonitorPyPath);
@@ -48,7 +48,7 @@ namespace Emul8.UserInterface
             Scope.SetVariable("self", monitor);
             Scope.SetVariable("monitor", monitor);
         }
-            
+
         [PreSerialization]
         protected void BeforeSerialization()
         {
