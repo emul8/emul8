@@ -51,10 +51,7 @@ namespace Emul8.Core
             foreach(var segment in segments)
             {
                 var loadAddress = useVirtualAddress ? segment.Address : segment.PhysicalAddress;
-                if(maxLoadAddress > loadAddress + segment.Size)
-                {
-                    maxLoadAddress = loadAddress + segment.Size;
-                }
+                maxLoadAddress = Math.Max(maxLoadAddress, loadAddress + segment.Size);
             }
         }
 
@@ -67,10 +64,7 @@ namespace Emul8.Core
             var symbolToAdd = GetUnique(symbol);
             symbols.Add(symbolToAdd);
             symbolsByName.Add(symbol.Name, symbol);
-            if(symbol.End > maxLoadAddress)
-            {
-                maxLoadAddress = symbol.End;
-            }
+            maxLoadAddress = Math.Max(maxLoadAddress, symbol.End);
         }
 
         /// <summary>
@@ -106,10 +100,7 @@ namespace Emul8.Core
             foreach(var symbolToAdd in symbolsToAdd)
             {
                 AddSymbolToNameLookup(symbolToAdd);
-                if(symbolToAdd.End > maxLoadAddress)
-                {
-                    maxLoadAddress = symbolToAdd.End;
-                }
+                maxLoadAddress = Math.Max(maxLoadAddress, symbolToAdd.End);
             }
 
             // Add symbols to interval set
