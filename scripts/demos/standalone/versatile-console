@@ -23,15 +23,15 @@ machine CFIFlashFromFile @http://emul8.org/emul8_files/binaries/flash_versatile.
 macro reset
 """
     ### set registers ###
-    
+
     sysbus.cpu SetRegisterUnsafe 0 0x0
     sysbus.cpu SetRegisterUnsafe 1 0x183     # board id
     sysbus.cpu SetRegisterUnsafe 2 0x100     # atags
-    
+
     ### load binaries ###
-    
+
     sysbus LoadELF @http://emul8.org/emul8_files/binaries/versatile--vmlinux-versatile-buildroot--b2f53187e2d5fd0f74e1b0c8922378605052915e false
-    
+
     sysbus LoadAtags "console=ttyAMA0,115200 noinitrd root=/dev/mtdblock0 rw rootfstype=jffs2 mtdparts=armflash.0:64m@0x0 earlyprintk mem=256M" 0x10000000 0x100
     cpu PC 0x8000
 """

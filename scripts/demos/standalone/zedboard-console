@@ -32,13 +32,13 @@ TTC1 SetFrequency 2 33333333
 macro reset
 """
     ### set registers ###
-    
+
     cpu SetRegisterUnsafe 0 0x000
     cpu SetRegisterUnsafe 1 0xD32 # board id
     cpu SetRegisterUnsafe 2 0x100 # device tree address
-    
+
     ### load binaries ###
-    
+
     sysbus LoadELF @http://emul8.org/emul8_files/binaries/zedboard-console--vmlinux-zedboard--f85b95c95b7c8c2e34db859d255d9632fd15a8c9
     sysbus LoadBinary @http://emul8.org/emul8_files/binaries/zedboard-console--devicetree-zedboard.dtb--7f202b8521d5c0e1b2120e07e677591b8917c788 0x100
     sysbus ZeroRange 0x1f645000 0x800000
