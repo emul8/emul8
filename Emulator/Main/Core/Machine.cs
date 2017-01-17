@@ -222,8 +222,7 @@ namespace Emul8.Core
         {
             lock(collectionSync)
             {
-                var found = localNames.TryGetValue(peripheral, out name);
-                return found && !string.IsNullOrEmpty(name);
+                return localNames.TryGetValue(peripheral, out name);
             }
         }
 
@@ -769,11 +768,6 @@ namespace Emul8.Core
                 {
                     var parentNode = registeredPeripherals.GetNode(parent);
                     parentNode.AddChild(peripheral, registrationPoint);
-                    string localName;
-                    if(!TryGetLocalName(peripheral, out localName)) // can be already registered
-                    {
-                        localNames[peripheral] = null;
-                    }
                     var ownLife = peripheral as IHasOwnLife;
                     if(ownLife != null)
                     {
