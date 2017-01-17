@@ -15,6 +15,7 @@ using TermSharp.Vt100;
 using System.Text;
 using System.Collections.Generic;
 using System.IO;
+using TermSharp.Rows;
 
 namespace Emul8.CLI
 {
@@ -128,6 +129,17 @@ namespace Emul8.CLI
             }
         }
 
+        protected override void OnBoundsChanged()
+        {
+            var availableScreenSize = terminal.ScreenSize + terminal.InnerMarginBottom - MinimalBottomMargin;
+            var rowHeight = ((MonospaceTextRow)terminal.GetScreenRow(0, false)).LineHeight;
+            var fullLinesCount = Math.Floor(availableScreenSize / rowHeight);
+            var desiredScreenSize = rowHeight * fullLinesCount;
+            terminal.InnerMarginBottom = Math.Floor((availableScreenSize - desiredScreenSize + MinimalBottomMargin));
+
+            base.OnBoundsChanged();
+        }
+
         private Menu CreatePopupMenu()
         {
             var popup = new Menu();
@@ -170,6 +182,8 @@ namespace Emul8.CLI
         private readonly Terminal terminal;
         private readonly TerminalIOSource terminalInputOutputSource;
         private bool modifyLineEndings;
+
+        private const int MinimalBottomMargin = 2;
     }
 }
 
