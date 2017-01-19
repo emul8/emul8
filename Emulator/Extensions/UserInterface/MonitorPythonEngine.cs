@@ -127,6 +127,11 @@ namespace Emul8.UserInterface
             var streamToEventConverterForError = new StreamToEventConverter();
             var utf8WithoutBom = new UTF8Encoding(false);
 
+            var inputStream = writer.GetRawInputStream();
+            if(inputStream != null)
+            {
+                Engine.Runtime.IO.SetInput(inputStream, utf8WithoutBom);
+            }
             Engine.Runtime.IO.SetOutput(streamToEventConverter, utf8WithoutBom);
             Engine.Runtime.IO.SetErrorOutput(streamToEventConverterForError, utf8WithoutBom);
             streamToEventConverter.BytesWritten += bytes => writer.Write(utf8WithoutBom.GetString(bytes).Replace("\n", "\r\n"));

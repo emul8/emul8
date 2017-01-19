@@ -8,6 +8,7 @@
 using System;
 using AntShell.Commands;
 using System.Text;
+using System.IO;
 
 namespace Emul8.UserInterface
 {
@@ -50,6 +51,11 @@ namespace Emul8.UserInterface
             return error.ToString();
         }
 
+        public Stream GetRawInputStream()
+        {
+            return null;
+        }
+
         private readonly StringBuilder data = new StringBuilder();
         private readonly StringBuilder error = new StringBuilder();
     }
@@ -81,6 +87,11 @@ namespace Emul8.UserInterface
             {
                 Console.WriteLine("ERROR: " + error);
             }
+        }
+
+        public Stream GetRawInputStream()
+        {
+            return null;
         }
 
         public bool ErrorDetected 
