@@ -135,7 +135,7 @@ namespace Emul8.CLI
             var rowHeight = ((MonospaceTextRow)terminal.GetScreenRow(0, false)).LineHeight;
             var fullLinesCount = Math.Floor(availableScreenSize / rowHeight);
             var desiredScreenSize = rowHeight * fullLinesCount;
-            terminal.InnerMarginBottom = Math.Floor((availableScreenSize - desiredScreenSize + MinimalBottomMargin));
+            terminal.InnerMarginBottom = Math.Floor(availableScreenSize - desiredScreenSize + MinimalBottomMargin);
 
             base.OnBoundsChanged();
         }
