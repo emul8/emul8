@@ -9,8 +9,17 @@ cd "${0%/*}"
 cd ../../External
 if [ -e .emul8_libs_fetched ]
 then
-    echo "Required libraries already downloaded. To repeat the process remove External/.emul8_libs_fetched file."
-    exit
+    top_ref=`git ls-remote -h https://github.com/antmicro/emul8-libraries.git master | cut -f1`
+    pushd emul8-libraries >/dev/null
+    cur_ref=`git rev-parse HEAD`
+    popd >/dev/null
+    if [ $top_ref == $cur_ref ]
+    then
+        echo "Required libraries already downloaded. To repeat the process remove External/.emul8_libs_fetched file."
+        exit
+    else
+        echo "Required libraries are available in a new version. The libraries will be redownloaded..."
+    fi
 fi
 
 rm -rf emul8-libraries Lib Tools ../Emulator/LLVMDisassembler/Resources/
