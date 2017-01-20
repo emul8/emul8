@@ -48,12 +48,14 @@ def run(args):
 # parsing cmd-line arguments
 parser = argparse.ArgumentParser()
 parser.add_argument("tests", help="List of test files", nargs='*')
-parser.add_argument("-f", "--fixture", dest="fixture", help="Fixture to test", metavar="FIXTURE")
-parser.add_argument("-n", "--repeat", dest="repeat_count", nargs="?", type=int, const=0, default=1, help="Repeat tests a number of times (no-flag: 1, no-value: infinite)")
-parser.add_argument("-d", "--debug", dest="debug_mode", action="store_true", default=False, help="Debug mode")
-parser.add_argument("-o", "--output", dest="output", action="store", default=None, help="Output file, default STDOUT.")
-parser.add_argument("-b", "--buildbot", dest="buildbot", action="store_true", default=False, help="Buildbot mode. Before running tests prepare environment, i.e., create tap0 interface.")
-parser.add_argument("-t", "--tests", dest="tests_file", action="store", default=None, help="Path to a file with a list of assemblies with tests to run.")
+parser.add_argument("-f", "--fixture",  dest="fixture", help="Fixture to test", metavar="FIXTURE")
+parser.add_argument("-n", "--repeat",   dest="repeat_count", nargs="?", type=int, const=0, default=1, help="Repeat tests a number of times (no-flag: 1, no-value: infinite)")
+parser.add_argument("-d", "--debug",    dest="debug_mode",  action="store_true",  default=False, help="Debug mode")
+parser.add_argument("-o", "--output",   dest="output",      action="store",       default=None,  help="Output file, default STDOUT.")
+parser.add_argument("-b", "--buildbot", dest="buildbot",    action="store_true",  default=False, help="Buildbot mode. Before running tests prepare environment, i.e., create tap0 interface.")
+parser.add_argument("-t", "--tests",    dest="tests_file",  action="store",       default=None,  help="Path to a file with a list of assemblies with tests to run.")
+parser.add_argument("-p", "--port",     dest="port",        action="store",       default=None,  help="Debug port.")
+parser.add_argument("-s", "--suspend",  dest="suspend",     action="store_true",  default=False, help="Suspend test waiting for a debugger.")
 options  = parser.parse_args()
 
 if options.buildbot:
@@ -68,6 +70,9 @@ if options.buildbot:
         sys.exit(ret_code)
 if options.debug_mode:
     print("Running in debug mode.")
+elif options.port is not None or options.suspend:
+    print('Port/suspend options can be used in debug mode only.')
+    sys.exit(1)
 if 'FIXTURE' in os.environ:
     options.fixture = os.environ['FIXTURE']
 if options.fixture:
@@ -109,7 +114,15 @@ while options.repeat_count == 0 or counter < options.repeat_count:
             copied_nunit_path = os.path.join(bin_directory, 'nunit-console.exe')
             if not os.path.isfile(copied_nunit_path):
                 subprocess.call(['bash', '-c', 'cp -r ' + os.path.dirname(nunit_path) + '/* ' + bin_directory])
+
             args = ['mono', copied_nunit_path, '-noshadow', '-nologo', '-labels', '-domain:None', filename.replace("csproj", "dll")]
+            if options.port is not None:
+                if options.suspend:
+                    print('Waiting for a debugger at port: {}'.format(options.port))
+                args.insert(1, '--debug')
+                args.insert(2, '--debugger-agent=transport=dt_socket,server=y,suspend={0},address=127.0.0.1:{1}'.format('y' if options.suspend else 'n', options.port))
+            elif options.debug_mode:
+                args.insert(1, '--debug')
             if options.fixture:
                 args.append('-run:' + options.fixture)
         elif project.endswith('robot'):
