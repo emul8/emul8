@@ -1286,24 +1286,27 @@ namespace Emul8.Peripherals.Bus
 
         private void AddMappings(IEnumerable<MappedSegmentWrapper> newMappings, IBusPeripheral owner)
         {
-            lock(cpuSync)
+            using(machine.ObtainPausedState())
             {
-                var mappingsList = newMappings.ToList();
+                lock(cpuSync)
                 {
-                    if(mappingsForPeripheral.ContainsKey(owner))
+                    var mappingsList = newMappings.ToList();
                     {
-                        mappingsForPeripheral[owner].AddRange(newMappings);
-                    }
-                    else
-                    {
-                        mappingsForPeripheral[owner] = mappingsList;
-                    }
-                    // old mappings are given to the CPU in the moment of its registration
-                    foreach(var cpu in idByCpu.Keys)
-                    {
-                        foreach(var mapping in mappingsList)
+                        if(mappingsForPeripheral.ContainsKey(owner))
                         {
-                            cpu.MapMemory(mapping);
+                            mappingsForPeripheral[owner].AddRange(newMappings);
+                        }
+                        else
+                        {
+                            mappingsForPeripheral[owner] = mappingsList;
+                        }
+                        // old mappings are given to the CPU in the moment of its registration
+                        foreach(var cpu in idByCpu.Keys)
+                        {
+                            foreach(var mapping in mappingsList)
+                            {
+                                cpu.MapMemory(mapping);
+                            }
                         }
                     }
                 }
