@@ -4,9 +4,9 @@ Debugging
 Execution Mode
 --------------
 
-Normally, a CPU executes code in so-called *continuous* mode, i.e., until a pause command is issued by the user or any breakpoint/watchpoint is hit.
+Normally, a CPU executes code in so-called ``Continuous`` mode, i.e., until a pause command is issued by the user or any breakpoint/watchpoint is hit.
 
-It is possible, however, to switch into *single step* mode where the CPU is halted after every single instruction. In this scenario stepping is necessary to advance::
+It is possible, however, to switch into ``SingleStep`` mode where the CPU is halted after every single instruction. In this scenario stepping is necessary to advance::
 
     sysbus.cpu ExecutionMode SingleStep
     sysbus.cpu Step [number of instructions]
@@ -99,7 +99,7 @@ where:
 * ``sysbus.cpu`` - the name of the CPU peripheral
 * ``port`` - port number to listen for GDB
 
-This will put CPU into ``SingleStep`` execution mode which will block before executing every instruction waiting for GDB commands.
+This will put the CPU into ``SingleStep`` execution mode which will block before executing every instruction waiting for GDB commands.
 
 To connect GDB to Emul8 and optionaly load symbols, run GDB and execute (**in the GDB console**)::
 
