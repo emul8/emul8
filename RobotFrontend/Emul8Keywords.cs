@@ -33,6 +33,7 @@ namespace Emul8.RobotFrontend
         public void ResetEmulation()
         {
             EmulationManager.Instance.Clear();
+            testers.Clear();
         }
 
         [RobotFrameworkKeyword]
