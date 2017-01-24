@@ -11,6 +11,7 @@ ${CONFIGURATION}        Release
 ${PORT_NUMBER}          9999
 ${DIRECTORY}            ${CURDIR}/../output/${CONFIGURATION}
 ${BINARY_NAME}          ./RobotFrontend.exe
+${HOTSPOT_ACTION}       "None"
 
 *** Keywords ***
 Setup
@@ -34,3 +35,6 @@ Teardown
 
     Run Keyword Unless  ${SKIP_RUNNING_SERVER}
     ...   Wait For Process
+
+Hot Spot
+    Handle Hot Spot  ${HOTSPOT_ACTION}

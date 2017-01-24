@@ -50,6 +50,7 @@
     <Compile Include="Keyword.cs" />
     <Compile Include="SmartParser.cs" />
     <Compile Include="KeywordException.cs" />
+    <Compile Include="HotSpotAction.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Emulator\Extensions\Extensions.csproj">

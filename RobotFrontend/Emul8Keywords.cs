@@ -11,6 +11,7 @@ using Emul8.Peripherals.UART;
 using Emul8.Robot;
 using Emul8.Testing;
 using Emul8.UserInterface;
+using Emul8.Utilities;
 
 namespace Emul8.RobotFrontend
 {
@@ -117,6 +118,35 @@ namespace Emul8.RobotFrontend
         public void WriteLine(string peripheralName, string content)
         {
             GetTesterOrThrowException(peripheralName).WriteLine(content);
+        }
+        
+        [RobotFrameworkKeyword]
+        public void HandleHotSpot(string actionAsString)
+        {
+            HotSpotAction action;
+            if(!Enum.TryParse(actionAsString, out action))
+            {
+                throw new KeywordException("Unrecognized hot spot action: {0}", actionAsString);
+            }
+
+            switch(action)
+            {
+                case HotSpotAction.None:
+                    // do nothing
+                    break;
+                case HotSpotAction.Pause:
+                    EmulationManager.Instance.CurrentEmulation.PauseAll();
+                    EmulationManager.Instance.CurrentEmulation.StartAll();
+                    break;
+                case HotSpotAction.Serialize:
+                    var fileName = TemporaryFilesManager.Instance.GetTemporaryFile();
+                    EmulationManager.Instance.Save(fileName);
+                    EmulationManager.Instance.Load(fileName);
+                    EmulationManager.Instance.CurrentEmulation.StartAll();
+                    break;
+                default:
+                    throw new KeywordException("Hot spot action {0} is not currently supported", action);
+            }
         }
 
         private TerminalTester GetTesterOrThrowException(string peripheralName)
