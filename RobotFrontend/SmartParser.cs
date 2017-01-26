@@ -54,12 +54,7 @@ namespace Emul8.Robot
 
         public object[] Parse(string[] input, Type[] outputType)
         {
-            if(input.Length != outputType.Length)
-            {
-                throw new ArgumentException();
-            }
-
-            var result = new object[input.Length];
+            var result = new object[Math.Min(input.Length, outputType.Length)];
             for(var i = 0; i < input.Length; i++)
             {
                 result[i] = Parse(input[i], outputType[i]);

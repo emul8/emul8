@@ -22,10 +22,20 @@ namespace Emul8.Robot
             var obj = manager.GetOrCreateObject(methodInfo.DeclaringType);
             var parameters = methodInfo.GetParameters();
 
-            return methodInfo.Invoke(obj, 
-                 parameters.Length == 1 && parameters[0].ParameterType == typeof(string[]) ?
-                 new object[] { arguments } : 
-                 SmartParser.Instance.Parse(arguments, parameters.Select(x => x.ParameterType).ToArray()));
+            var parsedArguments = parameters.Length == 1 && parameters[0].ParameterType == typeof(string[]) 
+                ? new object[] { arguments } 
+                : SmartParser.Instance.Parse(arguments, parameters.Select(x => x.ParameterType).ToArray());
+
+            if(parameters.Length > parsedArguments.Length && parameters[parsedArguments.Length].HasDefaultValue)
+            {
+                parsedArguments = parsedArguments.Union(parameters.Skip(parsedArguments.Length).Select(x => x.DefaultValue)).ToArray();
+            }
+            else if(parameters.Length != parsedArguments.Length)
+            {
+                throw new KeywordException("Wrong number of arguments passed.");
+            }
+
+            return methodInfo.Invoke(obj, parsedArguments);
         }
 
         private readonly MethodInfo methodInfo;
