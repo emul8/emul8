@@ -42,6 +42,7 @@
     <Compile Include="RobotFrontend.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Emul8Keywords.cs" />
+    <Compile Include="UartKeywords.cs" />
     <Compile Include="XmlRpcServer.cs" />
     <Compile Include="HttpServer.cs" />
     <Compile Include="IRobotFrameworkKeywordProvider.cs" />

@@ -15,6 +15,7 @@ using Emul8.Core;
 using Mono.Linq.Expressions;
 using Emul8.Logging;
 using Emul8.Utilities;
+using System.Text;
 
 namespace Emul8.Testing
 {
@@ -158,6 +159,24 @@ namespace Emul8.Testing
             WaitForEvent(x => x is Prompt ? EventResult.Success : EventResult.Continue,
                         timeout, new Assertion { Type = AssertionType.WaitForPrompt });
             return this;
+        }
+
+        public string ReadToPrompt(TimeSpan? timeout = null)
+        {
+            var result = new StringBuilder();
+            WaitForEvent(x =>
+                {
+                    var line = x as Line;
+                    if(line != null)
+                    {
+                        result.AppendLine(line.Content);
+                        return EventResult.Continue;
+                    }
+
+                    return x is Prompt ? EventResult.Success : EventResult.Continue;
+                },
+                timeout, new Assertion { Type = AssertionType.WaitForPrompt });
+            return result.ToString();
         }
         
         public TerminalTester WriteLine(string line = "", bool doNotEatEvent = false)

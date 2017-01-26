@@ -7,9 +7,7 @@
 using System;
 using System.Collections.Generic;
 using Emul8.Core;
-using Emul8.Peripherals.UART;
 using Emul8.Robot;
-using Emul8.Testing;
 using Emul8.UserInterface;
 using Emul8.Utilities;
 
@@ -19,10 +17,7 @@ namespace Emul8.RobotFrontend
     {
         public Emul8Keywords()
         {
-            interaction = new CommandInteractionEater();
-            monitor = new Monitor();
-            testers = new Dictionary<string, TerminalTester>();
-            monitor.Interaction = interaction;
+            monitor = new Monitor { Interaction = new CommandInteractionEater() };
         }
 
         public void Dispose()
@@ -33,7 +28,6 @@ namespace Emul8.RobotFrontend
         public void ResetEmulation()
         {
             EmulationManager.Instance.Clear();
-            testers.Clear();
         }
 
         [RobotFrameworkKeyword]
@@ -52,6 +46,7 @@ namespace Emul8.RobotFrontend
         // as there is no option to split a single parameter.
         public string ExecuteCommand(string[] commandFragments)
         {
+            var interaction = monitor.Interaction as CommandInteractionEater;
             interaction.Clear();
             var command = string.Join(" ", commandFragments);
             if(!monitor.Parse(command))
@@ -65,6 +60,7 @@ namespace Emul8.RobotFrontend
         [RobotFrameworkKeyword]
         public string ExecuteScript(string path)
         {
+            var interaction = monitor.Interaction as CommandInteractionEater;
             interaction.Clear();
             
             if(!monitor.TryExecuteScript(path))
@@ -81,46 +77,6 @@ namespace Emul8.RobotFrontend
             RobotFrontend.Shutdown();
         }
 
-        [RobotFrameworkKeyword]
-        public void CreateTerminalTester(string peripheralName)
-        {
-            if(testers.ContainsKey(peripheralName))
-            {
-                throw new KeywordException("Terminal tester for peripheral {0} already exists");
-            }
-            
-            IUART uart;
-            if(!monitor.Machine.TryGetByName(peripheralName, out uart))
-            {
-                throw new KeywordException("Peripheral not found or of wrong type: {0}", peripheralName);
-            }
-
-            var tester = new TerminalTester(new TimeSpan(0, 0, 30));
-            tester.Terminal.AttachTo(uart);
-
-            testers.Add(peripheralName, tester);
-        }
-
-        [RobotFrameworkKeyword]
-        public void WaitForLine(string peripheralName, string content)
-        {
-            GetTesterOrThrowException(peripheralName).WaitUntilLine(x => x.Contains(content));
-        }
-
-        [RobotFrameworkKeyword]
-        public void WaitForPrompt(string peripheralName, string prompt)
-        {
-            var tester = GetTesterOrThrowException(peripheralName);
-            tester.NowPromptIs(prompt);
-            tester.WaitForPrompt();
-        }
-
-        [RobotFrameworkKeyword]
-        public void WriteLine(string peripheralName, string content)
-        {
-            GetTesterOrThrowException(peripheralName).WriteLine(content);
-        }
-        
         [RobotFrameworkKeyword]
         public void HandleHotSpot(string actionAsString)
         {
@@ -150,19 +106,7 @@ namespace Emul8.RobotFrontend
             }
         }
 
-        private TerminalTester GetTesterOrThrowException(string peripheralName)
-        {
-            TerminalTester tester;
-            if(!testers.TryGetValue(peripheralName, out tester))
-            {
-                throw new KeywordException("Terminal tester for peripheral {0} not found. Did you forget to call `CreateTerminalTester`?", peripheralName);
-            }
-            return tester;
-         }
-
-        private readonly Dictionary<string, TerminalTester> testers;
         private readonly Monitor monitor;
-        private readonly CommandInteractionEater interaction;
     }
 }
 
