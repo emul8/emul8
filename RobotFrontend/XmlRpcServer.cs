@@ -5,6 +5,8 @@
 // Full license details are defined in the 'LICENSE' file.
 //
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using CookComputing.XmlRpc;
 
@@ -28,31 +30,42 @@ namespace Emul8.Robot
         {
             var result = new XmlRpcStruct();
 
-            Keyword keyword;
-            if(!keywordManager.TryGetKeyword(keywordName, out keyword))
+            List<Keyword> keywords;
+            if(!keywordManager.TryGetKeyword(keywordName, out keywords))
             {
                 throw new XmlRpcFaultException(1, string.Format("Keyword \"{0}\" not found", keywordName));
             }
 
-            try
+            foreach(var keyword in keywords)
             {
-                var keywordResult = keyword.Execute(arguments);
-                if(keywordResult != null)
+                object[] parsedArguments;
+                if(!keyword.TryMatchArguments(arguments, out parsedArguments))
                 {
-                    result.Add(KeywordResultValue, keywordResult.ToString());
+                    continue;
                 }
-                result.Add(KeywordResultStatus, KeywordResultPass);
-            }
-            catch(Exception e)
-            {
-                result.Clear();
 
-                result.Add(KeywordResultStatus, KeywordResultFail);
-                result.Add(KeywordResultError, BuildRecursiveErrorMessage(e));
-                result.Add(KeywordResultTraceback, e.StackTrace);
+                try
+                {
+                    var keywordResult = keyword.Execute(parsedArguments);
+                    if(keywordResult != null)
+                    {
+                        result.Add(KeywordResultValue, keywordResult.ToString());
+                    }
+                    result.Add(KeywordResultStatus, KeywordResultPass);
+                }
+                catch(Exception e)
+                {
+                    result.Clear();
+
+                    result.Add(KeywordResultStatus, KeywordResultFail);
+                    result.Add(KeywordResultError, BuildRecursiveErrorMessage(e));
+                    result.Add(KeywordResultTraceback, e.StackTrace);
+                }
+
+                return result;
             }
 
-            return result;
+            throw new XmlRpcFaultException(2, string.Format("Arguments types do not much any available keyword \"{0}\"", keywordName));
         }
 
         [XmlRpcMethod("stop_remote_server")]

@@ -17,25 +17,34 @@ namespace Emul8.Robot
             methodInfo = info;
         }
 
-        public object Execute(string[] arguments)
+        public bool TryMatchArguments(string[] arguments, out object[] parsedArguments)
         {
-            var obj = manager.GetOrCreateObject(methodInfo.DeclaringType);
             var parameters = methodInfo.GetParameters();
 
-            var parsedArguments = parameters.Length == 1 && parameters[0].ParameterType == typeof(string[]) 
+            parsedArguments = parameters.Length == 1 && parameters[0].ParameterType == typeof(string[]) 
                 ? new object[] { arguments } 
                 : SmartParser.Instance.Parse(arguments, parameters.Select(x => x.ParameterType).ToArray());
 
             if(parameters.Length > parsedArguments.Length && parameters[parsedArguments.Length].HasDefaultValue)
             {
-                parsedArguments = parsedArguments.Union(parameters.Skip(parsedArguments.Length).Select(x => x.DefaultValue)).ToArray();
-            }
-            else if(parameters.Length != parsedArguments.Length)
-            {
-                throw new KeywordException("Wrong number of arguments passed.");
+                parsedArguments = parsedArguments.Concat(parameters.Skip(parsedArguments.Length).Select(x => x.DefaultValue)).ToArray();
             }
 
-            return methodInfo.Invoke(obj, parsedArguments);
+            return parameters.Length == parsedArguments.Length;
+        }
+
+        public object Execute(object[] arguments)
+        {
+            var obj = manager.GetOrCreateObject(methodInfo.DeclaringType);
+            return methodInfo.Invoke(obj, arguments);
+        }
+
+        public int NumberOfArguments 
+        {
+            get
+            {
+                return methodInfo.GetParameters().Length;
+            }
         }
 
         private readonly MethodInfo methodInfo;

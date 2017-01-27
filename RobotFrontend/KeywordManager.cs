@@ -15,7 +15,7 @@ namespace Emul8.Robot
     {
         public KeywordManager()
         {
-            keywords = new Dictionary<string, Keyword>();
+            keywords = new Dictionary<string, List<Keyword>>();
             objects = new Dictionary<Type, IRobotFrameworkKeywordProvider>();
         }
 
@@ -32,7 +32,12 @@ namespace Emul8.Robot
                 if(attr != null)
                 {
                     var keyword = attr.Name ?? method.Name;
-                    keywords.Add(keyword, new Keyword(this, method));
+                    if(!keywords.ContainsKey(keyword))
+                    {
+                        keywords.Add(keyword, new List<Keyword>());
+                    }
+
+                    keywords[keyword].Add(new Keyword(this, method));
                 }
             }
         }
@@ -49,7 +54,7 @@ namespace Emul8.Robot
             return result;
         }
 
-        public bool TryGetKeyword(string keyword, out Keyword result)
+        public bool TryGetKeyword(string keyword, out List<Keyword> result)
         {
             return keywords.TryGetValue(keyword, out result);
         }
@@ -67,7 +72,7 @@ namespace Emul8.Robot
             }
         }
 
-        private readonly Dictionary<string, Keyword> keywords;
+        private readonly Dictionary<string, List<Keyword>> keywords;
         private readonly Dictionary<Type, IRobotFrameworkKeywordProvider> objects;
     }
 }
