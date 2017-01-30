@@ -55,6 +55,7 @@
     <Compile Include="XwtProvider\WindowedUserInterfaceProvider.cs" />
     <Compile Include="XwtProvider\XwtProvider.cs" />
     <Compile Include="XwtProvider\Progress\ProgressWidget.cs" />
+    <Compile Include="LogoRow.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <Import Project="$(MSBuildProjectDirectory)\BuildAdditionalProjects-CLI.csproj.targets" Condition="Exists('$(MSBuildProjectDirectory)\BuildAdditionalProjects-CLI.csproj.targets')" />
