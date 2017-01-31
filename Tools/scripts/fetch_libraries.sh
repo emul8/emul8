@@ -15,14 +15,19 @@ then
     top_ref=`git ls-remote -h $REMOTE master | cut -f1`
     pushd $DIR >/dev/null
     cur_ref=`git rev-parse HEAD`
+    master_ref=`git rev-parse master`
+    if [ $master_ref != $cur_ref ]
+    then
+        echo "The libraries repository is not on the local master branch. This situation should be handled manually."
+        exit
+    fi
     popd >/dev/null
     if [ $top_ref == $cur_ref ]
     then
         echo "Required libraries already downloaded. To repeat the process remove External/.emul8_libs_fetched file."
         exit
-    else
-        echo "Required libraries are available in a new version. The libraries will be redownloaded..."
     fi
+    echo "Required libraries are available in a new version. The libraries will be redownloaded..."
 fi
 
 rm -rf $DIR Lib Tools ../Emulator/LLVMDisassembler/Resources/
