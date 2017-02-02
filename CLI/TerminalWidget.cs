@@ -54,6 +54,16 @@ namespace Emul8.CLI
                 terminal.CurrentFont = robotoFont;
             }
 #endif
+            if(!FirstWindowAlreadyShown)
+            {
+                terminal.AppendRow(new LogoRow());
+                FirstWindowAlreadyShown = true;
+                firstWindow = true;
+            }
+            else
+            {
+                terminal.AppendRow(new MonospaceTextRow(""));
+            }
 
             var encoder = new TermSharp.Vt100.Encoder(x =>
             {
@@ -131,11 +141,14 @@ namespace Emul8.CLI
 
         protected override void OnBoundsChanged()
         {
-            var availableScreenSize = terminal.ScreenSize + terminal.InnerMarginBottom - MinimalBottomMargin;
-            var rowHeight = ((MonospaceTextRow)terminal.GetScreenRow(0, false)).LineHeight;
-            var fullLinesCount = Math.Floor(availableScreenSize / rowHeight);
-            var desiredScreenSize = rowHeight * fullLinesCount;
-            terminal.InnerMarginBottom = Math.Floor(availableScreenSize - desiredScreenSize + MinimalBottomMargin);
+            if(!firstWindow)
+            {
+                var availableScreenSize = terminal.ScreenSize + terminal.InnerMarginBottom - MinimalBottomMargin;
+                var rowHeight = ((MonospaceTextRow)terminal.GetScreenRow(0, false)).LineHeight;
+                var fullLinesCount = Math.Floor(availableScreenSize / rowHeight);
+                var desiredScreenSize = rowHeight * fullLinesCount;
+                terminal.InnerMarginBottom = Math.Floor(availableScreenSize - desiredScreenSize + MinimalBottomMargin);
+            }
 
             base.OnBoundsChanged();
         }
@@ -182,6 +195,9 @@ namespace Emul8.CLI
         private readonly Terminal terminal;
         private readonly TerminalIOSource terminalInputOutputSource;
         private bool modifyLineEndings;
+        private bool firstWindow;
+
+        private static bool FirstWindowAlreadyShown;
 
         private const int MinimalBottomMargin = 2;
     }
