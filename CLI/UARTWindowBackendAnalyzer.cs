@@ -83,6 +83,15 @@ namespace Emul8.CLI
                     window.Padding = new WidgetSpacing();
                     window.Content = terminalWidget;
                     window.Show();
+                    if(NextWindowLocation != default(Point))
+                    {
+                        window.Location = NextWindowLocation;
+                        NextWindowLocation = NextWindowLocation.Offset(WindowOffset);
+                    }
+                    else
+                    {
+                        NextWindowLocation = window.Location.Offset(WindowOffset);
+                    }
                 });
 #if !EMUL8_PLATFORM_WINDOWS
             }
@@ -369,6 +378,10 @@ namespace Emul8.CLI
 
         private readonly PtyUnixStream ptyUnixStream;
         private readonly TerminalTypes preferredTerminal;
+
+        private static Point NextWindowLocation;
+        private static readonly Point WindowOffset = new Point(30, 50);
+
         private const int WindowHeight = 500;
         private const int WindowWidth = 670;
         private const int MaxWidth = 1700;
