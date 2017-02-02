@@ -15,7 +15,7 @@ namespace Emul8.CLI
 {
     public class LogoRow : MonospaceTextRow
     {
-        public LogoRow(string content) : base(content)
+        public LogoRow() : base("")
         {
             image = Image.FromFile("External/emul8-libraries/Graphics/logo.png");
         }
