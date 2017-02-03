@@ -83,6 +83,7 @@ class RobotTestSuite(TestSuite):
 
     def __init__(self, path):
         super(RobotTestSuite, self).__init__(path)
+        self._dependencies_met = set()
 
     def prepare(self):
         if RobotTestSuite.instances_count > 0:
@@ -101,29 +102,39 @@ class RobotTestSuite(TestSuite):
     def run(self, fixture=None):
         result = True
 
-        tests_with_hotspots = {}
-        for hotspot in RobotTestSuite.hotspot_action:
-            tests_with_hotspots[hotspot] = []
+        tests_with_hotspots = []
         tests_without_hotspots = []
         _suite = robot.parsing.model.TestData(source=self.path)
         for test in _suite.testcase_table.tests:
-            found_anything = False
-            for step in test.steps:
-                if step.name == 'Hot Spot':
-                    for hotspot in RobotTestSuite.hotspot_action:
-                        tests_with_hotspots[hotspot].append('{0}.{1}'.format(RobotTestSuite._create_suite_name(_suite.name, hotspot), test.name))
-                    found_anything = True
-                    break
-            if not found_anything:
-                tests_without_hotspots.append('{0}.{1}'.format(_suite.name, test.name))
+            if any(step.name == 'Hot Spot' for step in test.steps):
+                tests_with_hotspots.append(test.name)
+            else:
+                tests_without_hotspots.append(test.name)
 
-        if len(tests_without_hotspots) > 0:
+        if any(tests_without_hotspots):
             result = result and self._run_inner(fixture, None, tests_without_hotspots)
-        for hotspot in RobotTestSuite.hotspot_action:
-            if len(tests_with_hotspots[hotspot]) > 0:
-                result = result and self._run_inner(fixture, hotspot, tests_with_hotspots[hotspot])
+        if any(tests_with_hotspots):
+            for hotspot in RobotTestSuite.hotspot_action:
+                result = result and self._run_inner(fixture, hotspot, tests_with_hotspots)
 
         return result
+
+    def _get_dependencies(self, test_case):
+        _suite = robot.parsing.model.TestData(source=self.path)
+        test = next(t for t in _suite.testcase_table.tests if t.name == test_case)
+        requirements = [s.args[0] for s in test.steps if s.name == 'Requires']
+        if len(requirements) == 0:
+            return set()
+        if len(requirements) > 1:
+            raise Exception('Too many requirements for a single test. At most one is allowed.')
+        providers = [t for t in _suite.testcase_table.tests if any(s.name == 'Provides' and s.args[0] == requirements[0] for s in t.steps)]
+        if len(providers) > 1:
+            raise Exception('Too many providers for state {0} found: {1}'.format(requirements[0], ', '.join(providers.name)))
+        if len(providers) == 0:
+            raise Exception('No provider for state {0} found'.format(requirements[0]))
+        res = self._get_dependencies(providers[0].name)
+        res.add(providers[0].name)
+        return res
 
     def cleanup(self):
         RobotTestSuite.instances_count -= 1
@@ -139,24 +150,38 @@ class RobotTestSuite(TestSuite):
     def _create_suite_name(test_name, hotspot):
         return test_name + (' [HotSpot action: {0}]'.format(hotspot) if hotspot else '')
 
-    def _run_inner(self, fixture, hotspot, test_cases):
+    def _run_dependencies(self, test_cases_names):
+        test_cases_names.difference_update(self._dependencies_met)
+        if not any(test_cases_names):
+            return True
+        self._dependencies_met.update(test_cases_names)
+        return self._run_inner(None, None, test_cases_names)
+
+    def _run_inner(self, fixture, hotspot, test_cases_names):
         file_name = os.path.splitext(os.path.basename(self.path))[0]
-        log_file = os.path.join(results_directory, '{0}{1}.xml'.format(file_name, '_' + hotspot if hotspot else ''))
         suite_name = RobotTestSuite._create_suite_name(file_name, hotspot)
-        metadata = 'HotSpot_Action:{0}'.format(hotspot if hotspot else '-')
 
         variables = ['SKIP_RUNNING_SERVER:True']
         if hotspot:
             variables.append('HOTSPOT_ACTION:' + hotspot)
         if options.debug_mode:
-            variables.extend('CONFIGURATION:Debug')
+            variables.append('CONFIGURATION:Debug')
+
+        test_cases = [(test_name, '{0}.{1}'.format(suite_name, test_name)) for test_name in test_cases_names]
         if fixture:
-            test_cases = fnmatch.filter(test_cases, fixture)
+            test_cases = [x for x in test_cases if fnmatch.fnmatch(x[1], fixture)]
             if len(test_cases) == 0:
                 return True
+            deps = set()
+            for test_name in (t[0] for t in test_cases):
+                deps.update(self._get_dependencies(test_name))
+            if not self._run_dependencies(deps):
+                return False
 
+        metadata = 'HotSpot_Action:{0}'.format(hotspot if hotspot else '-')
+        log_file = os.path.join(results_directory, '{0}{1}.xml'.format(file_name, '_' + hotspot if hotspot else ''))
         RobotTestSuite.log_files.append(log_file)
-        return robot.run(self.path, runemptysuite=True, output=log_file, log=None, report=None, metadata=metadata, name=suite_name, variable=variables, test=test_cases) == 0
+        return robot.run(self.path, runemptysuite=True, output=log_file, log=None, report=None, metadata=metadata, name=suite_name, variable=variables, test=[t[1] for t in test_cases]) == 0
 
 # parsing cmd-line arguments
 parser = argparse.ArgumentParser()
