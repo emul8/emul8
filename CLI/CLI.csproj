@@ -115,5 +115,9 @@
     <EmbeddedResource Include="Resources\RobotoMono-Regular.ttf">
       <LogicalName>RobotoMono-Regular.ttf</LogicalName>
     </EmbeddedResource>
+    <EmbeddedResource Include="..\External\emul8-libraries\Graphics\logo.png">
+      <Link>Resources\logo.png</Link>
+      <LogicalName>logo.png</LogicalName>
+    </EmbeddedResource>
   </ItemGroup>
 </Project>

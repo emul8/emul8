@@ -17,7 +17,7 @@ namespace Emul8.CLI
     {
         public LogoRow() : base("")
         {
-            image = Image.FromFile("External/emul8-libraries/Graphics/logo.png");
+            image = Image.FromResource("logo.png");
         }
 
         public override double PrepareForDrawing(ILayoutParameters parameters)
