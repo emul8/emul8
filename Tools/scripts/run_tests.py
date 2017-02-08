@@ -8,6 +8,7 @@ import argparse
 import subprocess
 import robot
 import fnmatch
+import nunit_results_merger
 
 this_path = os.path.abspath(os.path.dirname(__file__))
 results_directory = os.path.join(this_path, 'tests')
@@ -35,11 +36,14 @@ class TestSuite(object):
 
 class NUnitTestSuite(TestSuite):
     nunit_path = os.path.join(this_path, './../../External/Tools/nunit-console.exe')
+    output_files = []
+    instances_count = 0
 
     def __init__(self, path):
         super(NUnitTestSuite, self).__init__(path)
 
     def prepare(self):
+        NUnitTestSuite.instances_count += 1
         print("Building {0}".format(self.path))
         result = subprocess.call(['xbuild', '/p:OutputPath={0}'.format(results_directory), '/nologo', '/verbosity:quiet', '/p:OutputDir=tests_output', '/p:Configuration={0}'.format(configuration), self.path])
         if result != 0:
@@ -52,7 +56,10 @@ class NUnitTestSuite(TestSuite):
         copied_nunit_path = os.path.join(results_directory, 'nunit-console.exe')
         if not os.path.isfile(copied_nunit_path):
             subprocess.call(['bash', '-c', 'cp -r {0}/* {1}'.format(os.path.dirname(NUnitTestSuite.nunit_path), results_directory)])
-        args = ['mono', copied_nunit_path, '-domain:None', '-noshadow', '-nologo', '-labels', os.path.split(self.path)[1].replace("csproj", "dll")]
+
+        project_file = os.path.split(self.path)[1]
+        output_file = project_file.replace('csproj', 'xml')
+        args = ['mono', copied_nunit_path, '-domain:None', '-noshadow', '-nologo', '-labels', '-xml:{}'.format(output_file), project_file.replace("csproj", "dll")]
         if options.port is not None:
             if options.suspend:
                 print('Waiting for a debugger at port: {}'.format(options.port))
@@ -63,6 +70,7 @@ class NUnitTestSuite(TestSuite):
         if fixture:
             args.append('-run:' + fixture)
 
+        NUnitTestSuite.output_files.append(os.path.join(results_directory, output_file))
         process = subprocess.Popen(args, cwd=results_directory, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         while True:
             line = process.stdout.readline()
@@ -73,7 +81,13 @@ class NUnitTestSuite(TestSuite):
                 output.write(line)
 
     def cleanup(self):
-        pass
+        NUnitTestSuite.instances_count -= 1
+        if NUnitTestSuite.instances_count == 0:
+            # merge nunit results
+            print("Aggregating all nunit results")
+            output = os.path.join(results_directory, 'nunit_output.xml')
+            nunit_results_merger.merge(NUnitTestSuite.output_files, output)
+            print('Output:  {}'.format(output))
 
 class RobotTestSuite(TestSuite):
     instances_count = 0
@@ -86,9 +100,9 @@ class RobotTestSuite(TestSuite):
         self._dependencies_met = set()
 
     def prepare(self):
-        if RobotTestSuite.instances_count > 0:
-            return
         RobotTestSuite.instances_count += 1
+        if RobotTestSuite.instances_count > 1:
+            return
 
         emul8_robot_frontend_binary_folder = os.path.join(this_path, '../../output/{0}'.format(configuration))
         emul8_robot_frontend_binary = os.path.join(emul8_robot_frontend_binary_folder, 'RobotFrontend.exe')
@@ -144,7 +158,7 @@ class RobotTestSuite(TestSuite):
                 RobotTestSuite.emul8_robot_frontend_process.wait()
             if len(RobotTestSuite.log_files) > 0:
                 print("Aggregating all robot results")
-                robot.rebot(*RobotTestSuite.log_files, processemptysuite=True, name='Emul8 Suite', outputdir=results_directory, output='output.xml')
+                robot.rebot(*RobotTestSuite.log_files, processemptysuite=True, name='Emul8 Suite', outputdir=results_directory, output='robot_output.xml')
 
     @staticmethod
     def _create_suite_name(test_name, hotspot):
