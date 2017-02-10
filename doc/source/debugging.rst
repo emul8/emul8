@@ -30,10 +30,12 @@ where:
 * ``address`` - address on which the hook is set;
 * ``script`` - python script that is executed whenever the hook is triggered.
 
-Within the script, two local variables are available:
+Within the script, the following variables are available:
 
 * ``pc`` - the address on which the hook was executed;
-* ``self`` - the CPU object the hook belongs to.
+* ``self`` - the CPU object the hook belongs to;
+* ``cpu`` - an alias for ``self`` variable;
+* ``machine`` - the current machine object.
 
 Multiple hooks can be used with the same address. There is no guarantee on the order of execution for multiple hooks.
 
