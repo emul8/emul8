@@ -57,7 +57,7 @@ namespace Emul8.Peripherals
 		case DeviceInformationOffset.PART:
 		    return (uint)((productRevision << 24) | (deviceFamily << 16) | deviceNumber);
 		case DeviceInformationOffset.DEVINFOREV:
-		    return 0xFFFFFF07; // efr32
+		    return 0xFFFFFF00 | 0x01;
                 default:
                     this.LogUnhandledRead(offset);
                     return 0;
