@@ -141,20 +141,18 @@
     },
     "size":0x20000
   },
-  "EFMSysDevIce":
+  "DeviceInformation":
   {
-    "_type":"EfmSystemDevice",
-	"family":72,
-	"partNo":1,
-	"flash":1024,
-	"ram":128,
-	"rev":0,
+    "_type":"EFM32DeviceInformation",
+	"deviceFamily": 0x48 /* EFM32GG  */,
+	"deviceNumber": 1,
+	"flashSize": 1024,
+	"sramSize": 128,
     "_connection":
     {
       "sysbus":
       {
-        "address":0x0fe081f0,
-	"size":0xf,
+        "address":0x0fe081b0,
       },
     },
   },

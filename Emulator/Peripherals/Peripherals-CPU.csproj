@@ -49,6 +49,7 @@
     <Compile Include="Peripherals\Miscellaneous\ArmSysCtl.cs" />
     <Compile Include="Peripherals\DMA\OmapDma.cs" />
     <Compile Include="Peripherals\EfmSystemDevice.cs" />
+    <Compile Include="Peripherals\Miscellaneous\EFM32DeviceInformation.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ProjectExtensions>
