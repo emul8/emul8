@@ -11,6 +11,7 @@ using System.IO;
 using Emul8.UserInterface.Commands;
 using Emul8.Utilities;
 using AntShell.Terminal;
+using System.Linq;
 
 namespace Emul8.UserInterface
 {
@@ -20,7 +21,7 @@ namespace Emul8.UserInterface
         {
             var settings = new ShellSettings { 
                 NormalPrompt = new Prompt("(monitor) ", ConsoleColor.DarkRed),
-                Banner = VersionCommand.VersionString,
+                Banner = Enumerable.Repeat(Environment.NewLine, NumberOfDummyLines).Aggregate((x, y) => x + y) + VersionCommand.VersionString,
                 UseBuiltinQuit = false,
                 UseBuiltinHelp = false,
                 UseBuiltinSave = false,
@@ -39,6 +40,8 @@ namespace Emul8.UserInterface
 
             return shell;
         }
+
+        public static int NumberOfDummyLines;
     }
 }
 
