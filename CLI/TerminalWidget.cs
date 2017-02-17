@@ -56,7 +56,7 @@ namespace Emul8.CLI
 #endif
             if(!FirstWindowAlreadyShown)
             {
-                terminal.AppendRow(new LogoRow());
+                terminal.AppendRow(new MonospaceTextRow(""));
                 FirstWindowAlreadyShown = true;
                 firstWindow = true;
             }
