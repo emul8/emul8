@@ -21,10 +21,6 @@ To run Emul8, use the :program:`run.sh` script, with the optional ``file`` param
 
 .. program:: run.sh
 
-.. option:: --console
-
-   Do not open a separate terminal for the CLI but use the one from which it is run.
-
 .. option:: -p
 
    Run in plain mode (do not output colours).
@@ -34,15 +30,14 @@ To run Emul8, use the :program:`run.sh` script, with the optional ``file`` param
    Run in Debug mode (more debug information, but slower).
    Remember to use :option:`build.sh -d` first.
 
-.. option:: -s
-
-   Run from stdin.
-   This way, you can pipe data e.g. from a file into Emul8.
-
 .. option:: -e command
 
    Execute the given command on startup.
    This option cannot be used together with the ``file`` parameter.
+
+.. option:: -P port
+
+   Instead of opening a Monitor window, listen on a specified port for commands.
 
 .. option:: -h
 

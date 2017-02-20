@@ -97,16 +97,12 @@ After bootstrapping the configuration (i.e., when an *Emul8.sln* file is created
 
 with optional flags::
 
-   --console   Use the console window for output instead of many terminals
-   -s          Use STDIO - for use in pipes (this is exclusive with -e and startup
-               script passed as an argument)
-   -p          Remove steering codes (e.g., colours) from output
-   -P          Listen on a port for monitor commands instead of opening a window
    -v          verbose mode
    -d          debug mode
    -c          clean instead of building
    -i          install (create a symbolic link in the */usr/local/bin directory*)
                so that Emul8 is available system-wide as *emul8*
+   -p          create deb/rpm/arch packages
 
 Running Emul8
 -------------
@@ -119,6 +115,8 @@ with optional flags::
 
    -d            debug mode
    -e COMMAND    execute command on startup (does not allow the [file] argument)
+   -p            remove steering codes (e.g., colours) from output
+   -P PORT       listen on a port for monitor commands instead of opening a window
    -h            help & usage
 
 where ``[file]`` is an optional argument - path to a script that should be loaded on startup.
