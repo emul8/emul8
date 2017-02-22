@@ -5,6 +5,8 @@
 // Full license details are defined in the 'LICENSE' file.
 //
 using System;
+using System.Linq;
+using Emul8.UserInterface;
 using TermSharp;
 using TermSharp.Misc;
 using TermSharp.Rows;
@@ -25,29 +27,15 @@ namespace Emul8.CLI
             var baseResult = base.PrepareForDrawing(parameters);
             imageHeightInLines = (int)Math.Ceiling(image.Height / LineHeight);
             ceiledImageHeight = imageHeightInLines * LineHeight;
-            return baseResult + ceiledImageHeight;
+            ShellProvider.NumberOfDummyLines = imageHeightInLines;
+            return baseResult;
         }
 
         public override void Draw(Context ctx, Rectangle selectedArea, SelectionDirection selectionDirection, TermSharp.SelectionMode selectionMode)
         {
             ctx.DrawImage(image, new Point());
-            ctx.Translate(0, ceiledImageHeight);
-            base.Draw(ctx, selectedArea, selectionDirection, selectionMode);
-        }
-
-        public override void DrawCursor(Context ctx, int offset, bool focused)
-        {
-            ctx.Translate(0, ceiledImageHeight);
-            base.DrawCursor(ctx, offset, focused);
             ctx.Translate(0, -ceiledImageHeight);
-        }
-
-        public override int SublineCount
-        {
-            get
-            {
-                return base.SublineCount + imageHeightInLines;
-            }
+            base.Draw(ctx, selectedArea, selectionDirection, selectionMode);
         }
 
         private int imageHeightInLines;
