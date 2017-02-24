@@ -153,6 +153,7 @@
     <Compile Include="Peripherals\Wireless\CC2538\InterruptRegister.cs" />
     <Compile Include="Peripherals\Wireless\CC2538\InterruptSource.cs" />
     <Compile Include="Peripherals\Wireless\CC2538RF.cs" />
+    <Compile Include="Peripherals\Wireless\AT86RF233.cs" />
     <Compile Include="Peripherals\I2C\STM32F7_I2C.cs" />
     <Compile Include="Peripherals\Input\FT5336.cs" />
     <Compile Include="Peripherals\Miscellaneous\STM32_SYSCFG.cs" />
