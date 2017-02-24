@@ -96,7 +96,7 @@ namespace Emul8.Peripherals.I2C
 
         private void CreateRegisters()
         {
-            var control1 = new DoubleWordRegister(this).WithFlag(15, writeCallback: SoftwareResetWrite, name:"SWRST").WithFlag(9, FieldMode.Read, name:"StopGen")
+            var control1 = new DoubleWordRegister(this).WithFlag(15, writeCallback: SoftwareResetWrite, name:"SWRST").WithFlag(9, FieldMode.Read, name:"StopGen", writeCallback: StopWrite)
                 .WithFlag(8, FieldMode.Read, writeCallback: StartWrite, name:"StartGen").WithFlag(0, writeCallback: PeripheralEnableWrite, name:"PeriEn");
             var control2 = new DoubleWordRegister(this).WithValueField(0, 6, name:"Freq");
             var status1 = new DoubleWordRegister(this);
@@ -209,6 +209,10 @@ namespace Emul8.Peripherals.I2C
                     {
                         state = State.AwaitingData;
                         dataToTransfer = new List<byte>();
+                        dataToTransfer.Add((byte)newValue);
+
+                        startBit.Value = false;
+                        addressSentOrMatched.Value = true;
                     }
                 }
                 else
@@ -220,11 +224,9 @@ namespace Emul8.Peripherals.I2C
                 break;
             case State.AwaitingData:
                 dataToTransfer.Add((byte)newValue);
-                dataRegisterEmpty.Value = true;
                 machine.ExecuteIn(() =>
                 {
-                    byteTransferFinished.Value = true;
-                    state = State.AwaitingRestartOrStop;
+                    startBit.Value = false;
                     Update();
                 });
                 Update();
@@ -240,6 +242,23 @@ namespace Emul8.Peripherals.I2C
             if(newValue)
             {
                 Reset();
+            }
+        }
+
+        private void StopWrite(bool oldValue, bool newValue)
+        {
+            this.DebugLog("Setting STOP bit to {0}", newValue);
+            if(!newValue)
+            {
+                return;
+            }
+
+            if(selectedSlave != null && dataToTransfer != null && dataToTransfer.Count > 0)
+            {
+                selectedSlave.Write(dataToTransfer.ToArray());
+                dataToTransfer.Clear();
+                state = State.Idle;
+                Update();
             }
         }
 
