@@ -10,14 +10,25 @@ using System.Linq;
 using System.Text;
 using Emul8.Utilities;
 
-namespace Emul8.Peripherals.Wireless.CC2538
+namespace Emul8.Peripherals.Wireless.IEEE802_15_4
 {
-    internal class Frame
+    public class Frame
     {
+        public static bool IsAcknowledgeRequested(byte[] frame)
+        {
+            return (frame[0] & 0x20) != 0;
+        }
+
+        public static Frame CreateAckForFrame(byte[] frame)
+        {
+            var sequenceNumber = frame[2];
+            // TODO: here we set pending bit as false
+            return CreateACK(sequenceNumber, false);
+        }
+
         public static Frame CreateACK(byte sequenceNumber, bool pending)
         {
             var result = new Frame();
-            result.Length = 5;
             result.Type = FrameType.ACK;
             result.FramePending = pending;
             result.DataSequenceNumber = sequenceNumber;
@@ -32,7 +43,7 @@ namespace Emul8.Peripherals.Wireless.CC2538
             Decode(data);
         }
 
-        public byte Length { get; private set; }
+        public byte Length { get { return (byte)Bytes.Length; } }
         public FrameType Type { get; private set; }
         public bool SecurityEnabled { get; private set; }
         public bool FramePending { get; set; }
@@ -95,35 +106,28 @@ namespace Emul8.Peripherals.Wireless.CC2538
 
         private void Decode(byte[] data)
         {
-            Length = data[0];
-            if(Length > 127)
+            if(data.Length > 127)
             {
                 throw new Exception("Frame length should not exceed 127 bytes.");
             }
-            if(data.Length - 1 != Length)
-            {
-                throw new Exception("Frame length is inconsistent");
-            }
 
-            Type = (FrameType)(data[1] & 0x7);
-            SecurityEnabled = (data[1] & 0x8) != 0;
-            FramePending = (data[1] & 0x10) != 0;
-            AcknowledgeRequest = (data[1] & 0x20) != 0;
-            IntraPAN = (data[1] & 0x40) != 0;
-            DestinationAddressingMode = (AddressingMode)((data[2] >> 2) & 0x3);
-            FrameVersion = (byte)((data[2] >> 4) & 0x3);
-            SourceAddressingMode = (AddressingMode)(data[2] >> 6);
+            Type = (FrameType)(data[0] & 0x7);
+            SecurityEnabled = (data[0] & 0x8) != 0;
+            FramePending = (data[0] & 0x10) != 0;
+            AcknowledgeRequest = IsAcknowledgeRequested(data);
+            IntraPAN = (data[0] & 0x40) != 0;
+            DestinationAddressingMode = (AddressingMode)((data[1] >> 2) & 0x3);
+            FrameVersion = (byte)((data[1] >> 4) & 0x3);
+            SourceAddressingMode = (AddressingMode)(data[1] >> 6);
 
-            DataSequenceNumber = data[3];
-            AddressInformation = new AddressInformation(DestinationAddressingMode, SourceAddressingMode, IntraPAN, new ArraySegment<byte>(data, 4, GetAddressingFieldsLength()));
+            DataSequenceNumber = data[2];
+            AddressInformation = new AddressInformation(DestinationAddressingMode, SourceAddressingMode, IntraPAN, new ArraySegment<byte>(data, 3, GetAddressingFieldsLength()));
             Payload = new ArraySegment<byte>(data, 3 + AddressInformation.Bytes.Count, Length - (5 + AddressInformation.Bytes.Count));
         }
 
         private void Encode()
         {
             var bytes = new List<byte>();
-
-            bytes.Add(Length);
             var frameControlByte0 = (byte)Type;
             if(FramePending)
             {
@@ -142,7 +146,7 @@ namespace Emul8.Peripherals.Wireless.CC2538
                 bytes.AddRange(Payload);
             }
 
-            var crc = CalculateCRC(bytes.Skip(1));
+            var crc = CalculateCRC(bytes);
             bytes.Add(crc[0]);
             bytes.Add(crc[1]);
 
@@ -151,7 +155,7 @@ namespace Emul8.Peripherals.Wireless.CC2538
 
         public bool CheckCRC()
         {
-            var crc = CalculateCRC(Bytes.Skip(1).Take(Bytes.Length - 3));
+            var crc = CalculateCRC(Bytes.Take(Bytes.Length - 2));
             return Bytes[Bytes.Length - 2] == crc[0] && Bytes[Bytes.Length - 1] == crc[1];
         }
 

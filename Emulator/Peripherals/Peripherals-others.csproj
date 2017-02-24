@@ -150,17 +150,17 @@
     <Compile Include="Peripherals\DMA\Dma2DColorMode.cs" />
     <Compile Include="Peripherals\DMA\STM32DMA2D.cs" />
     <Compile Include="Peripherals\Video\STM32LTDC.cs" />
-    <Compile Include="Peripherals\Wireless\CC2538\Address.cs" />
-    <Compile Include="Peripherals\Wireless\CC2538\AddressInformation.cs" />
-    <Compile Include="Peripherals\Wireless\CC2538\AddressingMode.cs" />
-    <Compile Include="Peripherals\Wireless\CC2538\Frame.cs" />
-    <Compile Include="Peripherals\Wireless\CC2538\FrameType.cs" />
     <Compile Include="Peripherals\Wireless\CC2538\InterruptRegister.cs" />
     <Compile Include="Peripherals\Wireless\CC2538\InterruptSource.cs" />
     <Compile Include="Peripherals\Wireless\CC2538RF.cs" />
     <Compile Include="Peripherals\I2C\STM32F7_I2C.cs" />
     <Compile Include="Peripherals\Input\FT5336.cs" />
     <Compile Include="Peripherals\Miscellaneous\STM32_SYSCFG.cs" />
+    <Compile Include="Peripherals\Wireless\IEEE802_15_4\Frame.cs" />
+    <Compile Include="Peripherals\Wireless\IEEE802_15_4\FrameType.cs" />
+    <Compile Include="Peripherals\Wireless\IEEE802_15_4\AddressingMode.cs" />
+    <Compile Include="Peripherals\Wireless\IEEE802_15_4\AddressInformation.cs" />
+    <Compile Include="Peripherals\Wireless\IEEE802_15_4\Address.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ProjectExtensions>

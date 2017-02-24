@@ -6,9 +6,9 @@
 //
 using System;
 
-namespace Emul8.Peripherals.Wireless.CC2538
+namespace Emul8.Peripherals.Wireless.IEEE802_15_4
 {
-    internal enum AddressingMode : byte
+    public enum AddressingMode : byte
     {
         None = 0x0,
         Reserved = 0x1,
@@ -18,7 +18,7 @@ namespace Emul8.Peripherals.Wireless.CC2538
         ExtendedAddress = 0x3
     }
 
-    internal static class AddressingModeExtensions
+    public static class AddressingModeExtensions
     {
         public static int GetBytesLength(this AddressingMode mode)
         {

@@ -5,9 +5,9 @@
 // Full license details are defined in the 'LICENSE' file.
 //
 
-namespace Emul8.Peripherals.Wireless.CC2538
+namespace Emul8.Peripherals.Wireless.IEEE802_15_4
 {
-    internal enum FrameType : byte
+    public enum FrameType : byte
     {
         Beacon = 0x0,
         Data = 0x1,

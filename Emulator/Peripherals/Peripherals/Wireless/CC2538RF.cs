@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using Emul8.Core;
 using Emul8.Utilities;
 using Antmicro.Migrant;
+using Emul8.Peripherals.Wireless.IEEE802_15_4;
 using Emul8.Peripherals.Wireless.CC2538;
 using Emul8.Core.Structure.Registers;
 
@@ -206,7 +207,7 @@ namespace Emul8.Peripherals.Wireless
             {
                 registers.Reset();
 
-                currentFrameOffset = 0;
+                currentFrameOffset = -1;
                 txPendingCounter = 0;
                 rxQueue.Clear();
 
@@ -502,7 +503,7 @@ namespace Emul8.Peripherals.Wireless
                         if(rxQueue.Count != 0)
                         {
                             this.Log(LogLevel.Warning, "Dropping unreceived frame.");
-                            currentFrameOffset = 0;
+                            currentFrameOffset = -1;
                             rxQueue.Clear();
                         }
                     }
@@ -526,11 +527,17 @@ namespace Emul8.Peripherals.Wireless
                 }
 
                 var currentFrame = rxQueue.Peek();
+                if(currentFrameOffset == -1)
+                {
+                    // we need to send packet length first
+                    currentFrameOffset++;
+                    return currentFrame.Length;
+                }
                 var result = currentFrame.Bytes[currentFrameOffset++];
                 if(currentFrameOffset == currentFrame.Bytes.Length)
                 {
                     rxQueue.Dequeue();
-                    currentFrameOffset = 0;
+                    currentFrameOffset = -1;
 
                     if(rxQueue.Count > 0)
                     {
@@ -555,10 +562,12 @@ namespace Emul8.Peripherals.Wireless
                 this.Log(LogLevel.Warning, "Attempted to transmit an empty frame.");
                 return;
             }
+            // first byte is length - we don't need it
+            txQueue.Dequeue();
 
             irqHandler.RequestInterrupt(InterruptSource.StartOfFrameDelimiter);
 
-            var crc = Frame.CalculateCRC(txQueue.Skip(1));
+            var crc = Frame.CalculateCRC(txQueue);
             var frame = new Frame(txQueue.Concat(crc).ToArray());
 
             this.DebugLog("Sending frame {0}.", frame.Bytes.Select(x => "0x{0:X}".FormatWith(x)).Stringify());

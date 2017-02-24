@@ -8,9 +8,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Emul8.Peripherals.Wireless.CC2538
+namespace Emul8.Peripherals.Wireless.IEEE802_15_4
 {
-    internal class Address
+    public class Address
     {
         public Address(AddressingMode mode)
         {

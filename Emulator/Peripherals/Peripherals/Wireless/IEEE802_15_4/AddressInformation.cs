@@ -7,9 +7,9 @@
 using System;
 using System.Collections.Generic;
 
-namespace Emul8.Peripherals.Wireless.CC2538
+namespace Emul8.Peripherals.Wireless.IEEE802_15_4
 {
-    internal class AddressInformation
+    public class AddressInformation
     {
         public AddressInformation(AddressingMode destinationAddressingMode, AddressingMode sourceAddressingMode, bool intraPan, ArraySegment<byte> data)
         {
