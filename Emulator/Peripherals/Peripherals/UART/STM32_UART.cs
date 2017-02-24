@@ -14,7 +14,7 @@ using Antmicro.Migrant;
 
 namespace Emul8.Peripherals.UART
 {
-    [AllowedTranslations(AllowedTranslation.WordToDoubleWord)]
+    [AllowedTranslations(AllowedTranslation.WordToDoubleWord | AllowedTranslation.ByteToDoubleWord)]
     public class STM32_UART :  IDoubleWordPeripheral, IUART
     {
         public STM32_UART(Machine machine)
