@@ -2,31 +2,29 @@
 using System.Linq;
 using System.Collections.Generic;
 using Emul8.Core;
-using Emul8.Exceptions;
 using Microsoft.Scripting.Hosting;
 using Emul8.Logging;
+using Emul8.Time;
 
 namespace Emul8.UserInterface
 {
     public static class MonitorExecutorExtensions
     {
-        public static void ExecutePythonEvery(this Machine machine, string name, int seconds, string script)
+        public static void ExecutePythonEvery(this Machine machine, string name, int milliseconds, string script)
         {
-            var engine = new ExecutorPythonEngine(machine, name, script, seconds);
-            machine.StateChanged += (m, s) => UnregisterEvent(m, name, s);
-            try
+            var engine = new ExecutorPythonEngine(machine, script);
+            var clockEntry = new ClockEntry(milliseconds, ClockEntry.FrequencyToRatio(machine, 1000), engine.Action);
+            machine.ObtainClockSource().AddClockEntry(clockEntry);
+
+            if(events.TryAdd(machine, name, engine.Action))
             {
-                engine.AddAction();
-                events.Add(machine, name);
-            }
-            catch(InvalidOperationException e)
-            {
-                throw new RecoverableException(e);
+                machine.StateChanged += (m, s) => UnregisterEvent(m, name, s);
             }
         }
 
         public static void StopPythonExecution(this Machine machine, string name)
         {
+            machine.ObtainClockSource().RemoveClockEntry(events.WithdrawAction(machine, name));
             events.Remove(machine, name);
         }
 
@@ -42,46 +40,45 @@ namespace Emul8.UserInterface
 
         private sealed class ExecutorPythonEngine : PythonEngine
         {
-            public ExecutorPythonEngine(Machine machine, string name, string script, int seconds)
+            public ExecutorPythonEngine(Machine machine, string script)
             {
                 this.machine = machine;
-                this.timeout = TimeSpan.FromSeconds(seconds);
                 Scope.SetVariable("machine", machine);
                 Scope.SetVariable("self", machine);
-                source = new Lazy<ScriptSource>(() => Engine.CreateScriptSourceFromString(script));
-                Action = () =>
-                {
-                    if(events.HasEvent(machine, name))
-                    {
-                        source.Value.Execute(Scope);
-                        AddAction();
-                    }
-                };
-            }
 
-            public void AddAction()
-            {
-                machine.ExecuteIn(Action, timeout);
+                source = new Lazy<ScriptSource>(() => Engine.CreateScriptSourceFromString(script));
+                Action = () => source.Value.Execute(Scope);
             }
 
             public Action Action { get; private set; }
 
-            private TimeSpan timeout;
             private Lazy<ScriptSource> source;
             private readonly Machine machine;
         }
 
         private sealed class PeriodicEventsRegister
         {
-            public void Add(Machine machine, String name)
+            public bool TryAdd(Machine machine, string name, Action action)
             {
                 lock(periodicEvents)
                 {
                     if(HasEvent(machine, name))
                     {
                         machine.Log(LogLevel.Error, "Periodic event '{0}' already registered in this machine.", name);
+                        return false;
                     }
-                    periodicEvents.Add(Tuple.Create(machine, name));
+                    periodicEvents.Add(Tuple.Create(machine, name, action));
+                    return true;
+                }
+            }
+
+            public Action WithdrawAction(Machine machine, string name)
+            {
+                lock(periodicEvents)
+                {
+                    var action = periodicEvents.Single(x => x.Item1 == machine && x.Item2 == name).Item3;
+                    Remove(machine, name);
+                    return action;
                 }
             }
 
@@ -101,7 +98,7 @@ namespace Emul8.UserInterface
                 }
             }
 
-            private static readonly List<Tuple<Machine, String>> periodicEvents = new List<Tuple<Machine, string>>();
+            private static readonly List<Tuple<Machine, string, Action>> periodicEvents = new List<Tuple<Machine, string, Action>>();
         }
     }
 }
