@@ -58,7 +58,7 @@ namespace Emul8.Peripherals.Wireless
         {
             lock(packetsToSend)
             {
-                packetsToSend.Enqueue(new PacketWithSender(packet, sender, radios[sender]));
+                packetsToSend.Enqueue(new PacketWithSender(packet, sender.Channel, sender, radios[sender]));
                 if(executeOnSyncAlreadyQueued)
                 {
                     return;
@@ -90,7 +90,7 @@ namespace Emul8.Peripherals.Wireless
                         currentEmulation.TryGetEmulationElementName(sender, out senderName);
                         currentEmulation.TryGetEmulationElementName(receiver, out receiverName);
 
-                        if(mediumFunction.CanReach(senderPosition, receiverPosition))
+                        if(mediumFunction.CanReach(senderPosition, receiverPosition) && receiver.Channel == packet.Channel)
                         {
                             this.NoisyLog("Packet {0} -> {1} delivered, size {2}.", senderName, receiverName, packet.Frame.Length);
                             receiver.ReceiveFrame(packet.Frame);
@@ -115,13 +115,15 @@ namespace Emul8.Peripherals.Wireless
 
         private sealed class PacketWithSender
         {
-            public PacketWithSender(byte[] frame, IRadio sender, Position senderPosition)
+            public PacketWithSender(byte[] frame, int channel, IRadio sender, Position senderPosition)
             {
                 Frame = frame;
+                Channel = channel;
                 Sender = sender;
                 SenderPosition = senderPosition;
             }
 
+            public int Channel { get; private set; }
             public byte[] Frame { get; private set; }
             public IRadio Sender { get; private set; }
             public Position SenderPosition { get; private set; }

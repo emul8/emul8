@@ -31,6 +31,8 @@ namespace Emul8.Peripherals.Wireless
             Reset();
         }
 
+        public int Channel { get; set; }
+
         uint macRxConfig;
 
         public void Reset()

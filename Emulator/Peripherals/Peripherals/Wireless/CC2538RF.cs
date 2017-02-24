@@ -147,6 +147,8 @@ namespace Emul8.Peripherals.Wireless
             Reset();
         }
 
+        public int Channel { get; set; }
+
         public uint ReadDoubleWord(long offset)
         {
             uint result;
