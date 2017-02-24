@@ -247,7 +247,7 @@ namespace Emul8.Peripherals.I2C
 
         private void StopWrite(bool oldValue, bool newValue)
         {
-            this.DebugLog("Setting STOP bit to {0}", newValue);
+            this.NoisyLog("Setting STOP bit to {0}", newValue);
             if(!newValue)
             {
                 return;
@@ -264,8 +264,10 @@ namespace Emul8.Peripherals.I2C
 
         private void StartWrite(bool oldValue, bool newValue)
         {
+            this.NoisyLog("Setting START bit to {0}", newValue);
             if(selectedSlave != null && dataToTransfer != null && dataToTransfer.Count > 0)
             {
+                // repeated start condition
                 selectedSlave.Write(dataToTransfer.ToArray());
                 dataToTransfer.Clear();
             }
