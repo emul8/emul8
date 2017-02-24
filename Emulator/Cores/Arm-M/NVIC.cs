@@ -150,16 +150,8 @@ namespace Emul8.Peripherals.IRQControllers
             case Registers.SysTickControl:
                 systick.EventEnabled = ((value & 2) >> 1) != 0;
                 this.NoisyLog("Systick interrupt {0}.", systick.EventEnabled ? "enabled" : "disabled");
-                if((value & 1) != 0)
-                {
-                    this.NoisyLog("Systick timer enabled.");
-                    systick.Enable();
-                }
-                else
-                {
-                    this.NoisyLog("Systick timer disabled.");
-                    systick.Disable();
-                }
+                systick.Enabled = (value & 1) != 0;
+                this.NoisyLog("Systick timer {0}.", systick.Enabled ? "enabled" : "disabled");
                 break;
             case Registers.SysTickReloadValue:
                 systick.Limit = value;
