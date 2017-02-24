@@ -92,7 +92,7 @@ namespace Emul8.Peripherals.DMA
             {
                 var ourBit1 = 4 * i;
                 var ourBit2 = ourBit1 + 1;
-                if((value & ourBit1) != 0 || (value & ourBit2) != 0)
+                if((value & (1 << ourBit1)) != 0 || (value & (1 << ourBit2)) != 0)
                 {
                     channels[i].ClearInterrupt();
                 }
