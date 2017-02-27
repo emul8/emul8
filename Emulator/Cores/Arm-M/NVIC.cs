@@ -48,9 +48,14 @@ namespace Emul8.Peripherals.IRQControllers
 
         public ManualResetEvent MaskedInterruptPresent { get { return maskedInterruptPresent; } }
 
-        public IEnumerable<int> GetEnabledInterrupts()
+        public IEnumerable<int> GetEnabledExternalInterrupts()
         {
-            return irqs.Select((x,i)=>new {x,i}).Where(y => (y.x & IRQState.Enabled) != 0).Select(y=>y.i).OrderBy(x=>x);
+            return irqs.Skip(16).Select((x,i)=>new {x,i}).Where(y => (y.x & IRQState.Enabled) != 0).Select(y=>y.i).OrderBy(x=>x);
+        }
+
+        public IEnumerable<int> GetEnabledInternalInterrupts()
+        {
+            return irqs.Take(16).Select((x,i)=>new {x,i}).Where(y => (y.x & IRQState.Enabled) != 0).Select(y=>y.i).OrderBy(x=>x);
         }
 
         public int Divider
