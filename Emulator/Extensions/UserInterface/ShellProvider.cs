@@ -21,7 +21,7 @@ namespace Emul8.UserInterface
         {
             var settings = new ShellSettings { 
                 NormalPrompt = new Prompt("(monitor) ", ConsoleColor.DarkRed),
-                Banner = Enumerable.Repeat(Environment.NewLine, NumberOfDummyLines).Aggregate((x, y) => x + y) + VersionCommand.VersionString,
+                Banner = Enumerable.Repeat(Environment.NewLine, NumberOfDummyLines).Aggregate(String.Empty, (x, y) => x + y) + VersionCommand.VersionString,
                 UseBuiltinQuit = false,
                 UseBuiltinHelp = false,
                 UseBuiltinSave = false,
