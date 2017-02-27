@@ -209,8 +209,7 @@ namespace Emul8.UserInterface
             Commands.Add(new PeripheralsCommand(this, () => currentMachine));
             Commands.Add(new MonitorPathCommand(this, monitorPath));
             Commands.Add(new UsingCommand(this, () => usings));
-            Commands.Add(new StartCommand(this, () => currentMachine, includeCommand));
-            Commands.Add(new HaltCommand(this, () => currentMachine));
+            Commands.Add(new StartCommand(this, includeCommand));
             Commands.Add(new SetCommand(this, "set", "variable", (x, y) => SetVariable(x, y, variables), (x, y) => EnableStringEater(x, y, false),
                 DisableStringEater, () => stringEaterMode, GetVariableName));
             Commands.Add(new SetCommand(this, "macro", "macro", (x, y) => SetVariable(x, y, macros), (x, y) => EnableStringEater(x, y, true),
