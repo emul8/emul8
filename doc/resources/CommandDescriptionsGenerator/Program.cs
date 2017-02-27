@@ -79,7 +79,7 @@ namespace Emul8.CommandDescriptionsGenerator
             },
             {"start", new []{
                     "**start <PATH>**",
-                    "   just like :term:`include \\<PATH\\> <include>`, but also start all machines created in the script."
+                    "   just like :term:`include \\<PATH\\> <include>`, but also start the emulation."
                 }
             },
             {"using", new []{

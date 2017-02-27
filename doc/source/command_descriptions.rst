@@ -16,15 +16,10 @@
    execute
       executes a command or the content of a variable.
 
-   halt
-      stops the emulation.
-
-      short: **h**
-
    help
       prints this help message or info about specified command.
 
-      short: **?**
+      short: **?, h**
 
    include
       loads a monitor script, python code or a plugin class.
@@ -94,6 +89,11 @@
       **path reset**
          Reset ``PATH`` to it's default value.
 
+   pause
+      pauses the emulation.
+
+      short: **p**
+
    peripherals
       prints list of registered and named peripherals.
 
@@ -129,7 +129,7 @@
       short: **s**
 
       **start <PATH>**
-         just like :term:`include \<PATH\> <include>`, but also start all machines created in the script.
+         just like :term:`include \<PATH\> <include>`, but also start the emulation.
 
    string
       treat given arguments as a single string.
