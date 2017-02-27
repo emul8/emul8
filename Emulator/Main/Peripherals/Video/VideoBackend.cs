@@ -25,7 +25,7 @@ namespace Emul8.Backends.Video
         {
             if(frame != null)
             {
-                Frame = (byte[])frame.Clone();
+                Frame = frame;
             }
         }
 
