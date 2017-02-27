@@ -1,10 +1,11 @@
 ﻿using System;
-using System.Linq;
 using System.Collections.Generic;
 using Emul8.Core;
 using Microsoft.Scripting.Hosting;
 using Emul8.Logging;
 using Emul8.Time;
+using Emul8.Exceptions;
+using Emul8.Utilities;
 
 namespace Emul8.UserInterface
 {
@@ -16,10 +17,8 @@ namespace Emul8.UserInterface
             var clockEntry = new ClockEntry(milliseconds, ClockEntry.FrequencyToRatio(machine, 1000), engine.Action);
             machine.ObtainClockSource().AddClockEntry(clockEntry);
 
-            if(events.TryAdd(machine, name, engine.Action))
-            {
-                machine.StateChanged += (m, s) => UnregisterEvent(m, name, s);
-            }
+            events.Add(machine, name, engine.Action);
+            machine.StateChanged += (m, s) => UnregisterEvent(m, name, s);
         }
 
         public static void StopPythonExecution(this Machine machine, string name)
@@ -42,7 +41,6 @@ namespace Emul8.UserInterface
         {
             public ExecutorPythonEngine(Machine machine, string script)
             {
-                this.machine = machine;
                 Scope.SetVariable("machine", machine);
                 Scope.SetVariable("self", machine);
 
@@ -53,22 +51,19 @@ namespace Emul8.UserInterface
             public Action Action { get; private set; }
 
             private Lazy<ScriptSource> source;
-            private readonly Machine machine;
         }
 
         private sealed class PeriodicEventsRegister
         {
-            public bool TryAdd(Machine machine, string name, Action action)
+            public void Add(Machine machine, string name, Action action)
             {
                 lock(periodicEvents)
                 {
                     if(HasEvent(machine, name))
                     {
-                        machine.Log(LogLevel.Error, "Periodic event '{0}' already registered in this machine.", name);
-                        return false;
+                        throw new RecoverableException("Periodic event '{0}' already registered in this machine.".FormatWith(name));
                     }
-                    periodicEvents.Add(Tuple.Create(machine, name, action));
-                    return true;
+                    periodicEvents.Add(Tuple.Create(machine, name), action);
                 }
             }
 
@@ -76,7 +71,7 @@ namespace Emul8.UserInterface
             {
                 lock(periodicEvents)
                 {
-                    var action = periodicEvents.Single(x => x.Item1 == machine && x.Item2 == name).Item3;
+                    var action = periodicEvents[Tuple.Create(machine, name)];
                     Remove(machine, name);
                     return action;
                 }
@@ -86,7 +81,7 @@ namespace Emul8.UserInterface
             {
                 lock(periodicEvents)
                 {
-                    periodicEvents.RemoveAll(x => x.Item1 == machine && x.Item2 == name);
+                    periodicEvents.Remove(Tuple.Create(machine, name));
                 }
             }
 
@@ -94,11 +89,11 @@ namespace Emul8.UserInterface
             {
                 lock(periodicEvents)
                 {
-                    return periodicEvents.Any(x => x.Item1 == machine && x.Item2 == name);
+                    return periodicEvents.ContainsKey(Tuple.Create(machine, name));
                 }
             }
 
-            private static readonly List<Tuple<Machine, string, Action>> periodicEvents = new List<Tuple<Machine, string, Action>>();
+            private static readonly Dictionary<Tuple<Machine, string>, Action> periodicEvents = new Dictionary<Tuple<Machine, string>, Action>();
         }
     }
 }
