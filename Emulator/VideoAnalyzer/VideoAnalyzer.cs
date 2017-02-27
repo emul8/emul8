@@ -48,11 +48,12 @@ namespace Emul8.Extensions.Analyzers.Video
 
         protected override void OnAttach(VideoBackend backend)
         {
-            Init((AutoRepaintingVideo)backend.Video);
+            Init(backend);
         }
         
-        private void Init(AutoRepaintingVideo videoPeripheral)
+        private void Init(VideoBackend backend)
         {
+            var videoPeripheral = (AutoRepaintingVideo)backend.Video;
             element = videoPeripheral;
             lastRewrite = CustomDateTime.Now;
             EnsureAnalyserWidget();
@@ -71,6 +72,17 @@ namespace Emul8.Extensions.Analyzers.Video
                     pointersComboBox.SelectedItem = i;
                 }
             };
+
+            if(backend.Frame != null)
+            {
+                // this must be called after setting `ConfigurationChanged` event;
+                // otherwise the frame set here would be overrwritten by a new, empty, instance
+                ApplicationExtensions.InvokeInUIThreadAndWait(() => 
+                {
+                    displayWidget.SetDisplayParameters(backend.Width, backend.Height, backend.Format, backend.Endianess);
+                    displayWidget.DrawFrame(backend.Frame);
+                });
+            }
         }
 
         private void EnsureAnalyserWidget()
