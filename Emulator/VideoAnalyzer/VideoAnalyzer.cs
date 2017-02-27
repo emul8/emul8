@@ -48,11 +48,6 @@ namespace Emul8.Extensions.Analyzers.Video
 
         protected override void OnAttach(VideoBackend backend)
         {
-            Init(backend);
-        }
-        
-        private void Init(VideoBackend backend)
-        {
             var videoPeripheral = (AutoRepaintingVideo)backend.Video;
             element = videoPeripheral;
             lastRewrite = CustomDateTime.Now;
