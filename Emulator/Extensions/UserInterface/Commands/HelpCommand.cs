@@ -44,7 +44,7 @@ namespace Emul8.UserInterface.Commands
 
         private readonly Func<IEnumerable<ICommandDescription>> GetCommands;
 
-        public HelpCommand(Monitor monitor, Func<IEnumerable<ICommandDescription>> getCommands) : base(monitor, "help", "prints this help message or info about specified command.", "?")
+        public HelpCommand(Monitor monitor, Func<IEnumerable<ICommandDescription>> getCommands) : base(monitor, "help", "prints this help message or info about specified command.", "?", "h")
         {
             GetCommands = getCommands;
         }
