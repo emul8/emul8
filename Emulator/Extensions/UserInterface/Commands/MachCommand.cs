@@ -111,7 +111,6 @@ namespace Emul8.UserInterface.Commands
             switch(action.Value)
             {
             case "clear":
-                // TODO: is that all that should be done on clear?
                 SetCurrentMachine(null);
                 break;
             case "create":
@@ -122,8 +121,8 @@ namespace Emul8.UserInterface.Commands
             }
         }
 
-        private Func<Machine> GetCurrentMachine;
-        private Action<Machine> SetCurrentMachine;
+        private readonly Func<Machine> GetCurrentMachine;
+        private readonly Action<Machine> SetCurrentMachine;
 
         public MachCommand(Monitor monitor, Func<Machine> getCurrentMachine, Action<Machine> setCurrentMachine) 
             : base(monitor, "mach", "list and manipulate machines available in the environment.")
