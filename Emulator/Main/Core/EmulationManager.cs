@@ -13,6 +13,7 @@ using IronPython.Runtime;
 using Emul8.Peripherals.Python;
 using Emul8.Utilities;
 using System.Diagnostics;
+using System.Threading;
 
 namespace Emul8.Core
 {
@@ -40,8 +41,8 @@ namespace Emul8.Core
             }
             set
             {
-                currentEmulation.Dispose();
-                currentEmulation = value;
+                var oldEmulation = Interlocked.Exchange(ref currentEmulation, value);
+                oldEmulation.Dispose();
                 InvokeEmulationChanged();
             }
         }
