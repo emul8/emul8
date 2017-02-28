@@ -66,12 +66,13 @@ namespace Emul8.UserInterface.Commands
         }
 
         [Runnable]
-        public void Run(ICommandInteraction writer, [Values("set", "add", "rem")] LiteralToken action, StringToken name)
+        public void Run(ICommandInteraction writer, [Values("set", "add", "rem", "create")] LiteralToken action, StringToken name)
         {
+            Machine machine;
             switch(action.Value)
             {
             case "add":       
-                var machine = new Machine();
+                machine = new Machine();
                 EmulationManager.Instance.CurrentEmulation.AddMachine(machine, name.Value);
                 if(GetCurrentMachine() == null)
                 {
@@ -95,6 +96,11 @@ namespace Emul8.UserInterface.Commands
                 {
                     SetCurrentMachine(null);
                 }
+                break;
+            case "create":
+                machine = new Machine();
+                EmulationManager.Instance.CurrentEmulation.AddMachine(machine, name.Value);
+                SetCurrentMachine(machine);
                 break;
             }
         }
