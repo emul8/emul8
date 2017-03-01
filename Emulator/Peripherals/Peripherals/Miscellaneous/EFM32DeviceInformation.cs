@@ -4,32 +4,54 @@
 // This file is part of the Emul8 project.
 // Full license details are defined in the 'LICENSE' file.
 //
-using System;
 using Emul8.Logging;
 using Emul8.Peripherals.Bus;
-using Emul8.Utilities;
 
 namespace Emul8.Peripherals
 {
     [AllowedTranslations(AllowedTranslation.ByteToDoubleWord)]
     public class EFM32DeviceInformation: IDoubleWordPeripheral, IKnownSize
     {
-        public EFM32DeviceInformation(byte deviceFamily, ushort deviceNumber, ushort flashSize, ushort sramSize, byte productRevision = 0)
+        public EFM32DeviceInformation(Family deviceFamily, ushort deviceNumber, ushort flashSize, ushort sramSize, byte productRevision = 0)
         {
             this.deviceFamily = deviceFamily;
             this.flashSize = flashSize;
             this.sramSize = sramSize;
             this.productRevision = productRevision;
             this.deviceNumber = deviceNumber;
-	    eui = 0x57195799ffff0001;
-            unique = 0xfe19579900000001;
         }
 
-	public ulong unique;
-	public ulong eui;
-     
         public void Reset()
         {
+        }
+
+        public uint ReadDoubleWord(long offset)
+        {
+            switch((DeviceInformationOffset)offset)
+            {
+            case DeviceInformationOffset.EUI48L:
+                return (uint)(EUI >> 32);
+            case DeviceInformationOffset.EUI48H:
+                return (uint)(EUI & 0xFFFFFFFF);
+            case DeviceInformationOffset.UNIQUEL:
+                return (uint)(Unique >> 32);
+            case DeviceInformationOffset.UNIQUEH:
+                return (uint)(Unique & 0xFFFFFFFF);
+            case DeviceInformationOffset.MSIZE:
+                return (uint)((sramSize << 16) | (flashSize & 0xFFFF));
+            case DeviceInformationOffset.PART:
+                return (uint)((productRevision << 24) | ((byte)deviceFamily << 16) | deviceNumber);
+            case DeviceInformationOffset.DEVINFOREV:
+                return 0xFFFFFF00 | 0x01;
+            default:
+                this.LogUnhandledRead(offset);
+                return 0;
+            }
+        }
+
+        public void WriteDoubleWord(long offset, uint value)
+        {
+            this.LogUnhandledWrite(offset, value);
         }
 
         public long Size
@@ -40,40 +62,22 @@ namespace Emul8.Peripherals
             }
         }
 
-        public uint ReadDoubleWord(long offset)
-        {
-            switch((DeviceInformationOffset)offset)
-            {
-		case DeviceInformationOffset.EUI48L:
-		    return (uint)(eui >> 32);
-		case DeviceInformationOffset.EUI48H:
-		    return (uint)(eui & 0xFFFFFFFF);
-		case DeviceInformationOffset.UNIQUEL:
-		    return (uint)(unique >> 32);
-		case DeviceInformationOffset.UNIQUEH:
-		    return (uint)(unique & 0xFFFFFFFF);
-                case DeviceInformationOffset.MSIZE:
-		    return (uint)((sramSize << 16) | (flashSize & 0xFFFF));
-		case DeviceInformationOffset.PART:
-		    return (uint)((productRevision << 24) | (deviceFamily << 16) | deviceNumber);
-		case DeviceInformationOffset.DEVINFOREV:
-		    return 0xFFFFFF00 | 0x01;
-                default:
-                    this.LogUnhandledRead(offset);
-                    return 0;
-            }
-        }
+        public ulong EUI { get; set; }
+        public ulong Unique { get; set; }
 
-        public void WriteDoubleWord(long offset, uint value)
-        {
-            throw new NotImplementedException();
-        }
+        private readonly Family deviceFamily;
+        private readonly ushort flashSize;
+        private readonly ushort sramSize;
+        private readonly byte productRevision;
+        private readonly ushort deviceNumber;
 
-        private byte deviceFamily;
-        private ushort flashSize;
-        private ushort sramSize;
-        private byte productRevision;
-        private ushort deviceNumber;
+        public enum Family : byte
+        {
+            Gecko = 0x47,
+            GiantGecko = 0x48,
+            TinyGecko = 0x49,
+            LeopardGecko = 0x4A
+        }
 
         // more info can be found in efr32bg1b_devinfo.h
         private enum DeviceInformationOffset : long
@@ -88,7 +92,6 @@ namespace Emul8.Peripherals
             MSIZE            = 0x048, // Flash and SRAM Memory size in kB
             PART             = 0x04C, // Part description
             DEVINFOREV       = 0x050, // Device information page revision
-	    /*
             EMUTEMP          = 0x054, // EMU Temperature Calibration Information
             ADC0CAL0         = 0x060, // ADC0 calibration register 0
             ADC0CAL1         = 0x064, // ADC0 calibration register 1
@@ -122,7 +125,6 @@ namespace Emul8.Peripherals
             DCDCLPVCTRL3     = 0x178, // DCDC Low-power VREF Trim Register 3
             DCDCLPCMPHYSSEL0 = 0x17C, // DCDC LPCMPHYSSEL Trim Register 0
             DCDCLPCMPHYSSEL1 = 0x180, // DCDC LPCMPHYSSEL Trim Register 1
-	    */
         }
     }
 }

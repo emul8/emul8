@@ -144,7 +144,7 @@
   "DeviceInformation":
   {
     "_type":"EFM32DeviceInformation",
-	"deviceFamily": 0x48 /* EFM32GG  */,
+	"deviceFamily": "GiantGecko",
 	"deviceNumber": 1,
 	"flashSize": 1024,
 	"sramSize": 128,
