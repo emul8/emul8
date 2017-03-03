@@ -1265,7 +1265,12 @@ namespace Emul8.Peripherals.CPU
             ExecutedInstructions += value;
             var instructionsThisTurn = value + instructionCountResiduum;
             instructionCountResiduum = instructionsThisTurn % PerformanceInMips;
+            // timer update can result in a pause; it should be precise at this point
+            // because it happens after executing instructions in this block and those
+            // instructions are accounted for at this point
+            pauseGuard.Leave();
             ClockSource.Advance(instructionsThisTurn / PerformanceInMips);
+            pauseGuard.Enter();
         }
 
         [Export]
