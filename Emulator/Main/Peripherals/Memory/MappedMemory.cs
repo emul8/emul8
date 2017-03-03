@@ -244,7 +244,7 @@ namespace Emul8.Peripherals.Memory
                 this.NoisyLog(string.Format("Segment no {1} allocated at 0x{0:X} (aligned to 0x{2:X}).",
                     allocSeg.ToInt64(), segmentNo, alignedPointer.ToInt64()));
                 originalPointers[segmentNo] = allocSeg;
-                MemSet(allocSeg, (byte)0, SegmentSize);
+                MemSet(alignedPointer, (byte)0, SegmentSize);
                 var segmentTouched = SegmentTouched;
                 if(segmentTouched != null)
                 {
