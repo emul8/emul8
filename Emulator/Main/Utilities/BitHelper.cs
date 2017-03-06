@@ -208,6 +208,21 @@ namespace Emul8.Utilities
             return (uint)((reg >> offset) & ((0x1ul << size) - 1));
         }
 
+        public static uint GetValueFromBitsArray(IEnumerable<bool> array)
+        {
+            var ret = 0u;
+            var i = 0;
+            foreach(var item in array)
+            {
+                if(item)
+                {
+                    ret |= 1u << i;
+                }
+                i++;
+            }
+            return ret;
+        }
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static uint CalculateMask(int width, int position)
         {
