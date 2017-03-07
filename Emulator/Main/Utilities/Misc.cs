@@ -339,8 +339,8 @@ namespace Emul8.Utilities
 
         public static int LastIndexOf<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate)
         {
-            var revSource = source.Reverse().ToArray();
-            var i = revSource.Length - 1;
+            var revSource = source.Reverse();
+            var i = revSource.Count() - 1;
             foreach (var element in revSource)
             {
                 if (predicate(element))
