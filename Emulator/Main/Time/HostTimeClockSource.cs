@@ -101,6 +101,14 @@ namespace Emul8.Time
             }
         }
 
+        public int? UpdateThreadId
+        {
+            get
+            {
+                return updateThreadId;
+            }
+        }
+
         private void UpdateThread(CancellationToken token)
         {
             while(!token.IsCancellationRequested)
@@ -116,6 +124,7 @@ namespace Emul8.Time
                 }
             }
             threadFinished.Set();
+            updateThreadId = null;
         }
 
         private void CheckThread()
@@ -137,12 +146,16 @@ namespace Emul8.Time
                     };
                     threadFinished.Reset();
                     thread.Start();
+                    updateThreadId = thread.ManagedThreadId;
                 }
                 else
                 {
                     tokenSource.Cancel();
                     QuicklyRestartUpdateThread();
-                    threadFinished.Wait();
+                    if(Thread.CurrentThread.ManagedThreadId != updateThreadId)
+                    {
+                        threadFinished.Wait();   
+                    }
                 }
                 isStarted = toBeStarted;
             }
@@ -170,6 +183,9 @@ namespace Emul8.Time
 
         [Transient]
         private bool paused;
+
+        [Transient]
+        private int? updateThreadId;
 
         private readonly object startStopSync;
         private readonly object updateSync;
