@@ -133,4 +133,19 @@
     "cpuType":"x86",
     "lapic":"lapic",
   },
+
+  "PWM":
+  {
+      "_type":"X86.PWM",
+      "_connection":
+      {
+          "sysbus":[
+              { "address": 0xB0000800 }
+          ]
+      },
+      "_irq":
+      {
+          "ioapic":["IRQ", 9]
+      }
+  }
 }

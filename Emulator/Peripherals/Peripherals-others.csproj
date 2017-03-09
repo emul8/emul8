@@ -117,6 +117,7 @@
     <Compile Include="Peripherals\GPIOPort\XilinxGPIOPS.cs" />
     <Compile Include="Peripherals\USB\USBTablet.cs" />
     <Compile Include="Peripherals\GPIOPort\Emios.cs" />
+    <Compile Include="Peripherals\GPIOPort\PWM.cs" />
     <Compile Include="Peripherals\IRQControllers\MPC5567_INTC.cs" />
     <Compile Include="Peripherals\UART\MPC5567_UART.cs" />
     <Compile Include="Peripherals\Timers\CC2538SleepTimer.cs" />
