@@ -42,24 +42,11 @@ The package names for prerequisites are given for Ubuntu 14.04 (please adjust th
 
 .. note::
 
-   The system ``mono-complete`` package will be later superseded by a stable Mono compiled from source (see: `Mono (Linux)`_ below), but it is necessary to begin with.
+   Emul8 requires mono version 4.6 or newer.
 
 If you want to modify or extend the source code of Emul8, it is recommended to install the *MonoDevelop* IDE.
 
 For a detailed information on the required packages, please consult the *System requirements* section in the documentation.
-
-Mono (Linux)
-~~~~~~~~~~~~
-
-Emul8 requires a specific version of Mono compiled from source if running on Linux::
-
-   git clone https://github.com/mono/mono.git
-   cd mono
-   git checkout 37f2657ac778d3934a1b3245076849816ff9e6f9
-   ./autogen.sh --prefix=/usr
-   make get-monolite-latest
-   make
-   sudo make install
 
 Getting the source
 ++++++++++++++++++

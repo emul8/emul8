@@ -17,22 +17,18 @@ Some less frequently used features (*tun* networking, advanced logger etc.) will
 Prerequisites (Linux)
 ---------------------
 
-In order to run the Emul8 framework, a specific version of *mono* is required.
-As we use a development version from the mainline *mono* git repository, it is necessary to build it from source.
-
-Our current fixed version of *mono* is: **37f2657ac778d3934a1b3245076849816ff9e6f9**.
-
-Since the build process of *mono* requires you to have a recent version already installed, begin with the following commands::
+In order to run the Emul8 framework, *mono* 4.6 or newer is required. To get it, begin with the following commands::
 
    sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF
    echo "deb http://download.mono-project.com/repo/debian wheezy main" | sudo tee /etc/apt/sources.list.d/mono-xamarin.list
    sudo apt-get update
+   sudo apt-get install mono-complete
 
 Before you start the build procedure make sure that the following components are installed in your system (Ubuntu/Debian package names are given in brackets):
 
 * *autoconf* (``autoconf``)
 * *automake* (``automake``)
-* *mono* (``version 37f2657ac778d3934a1b3245076849816ff9e6f9``)
+* *mono* (``mono-complete``)
 * *llvm* (``llvm``)
 * *libtool* (``libtool``)
 * *g++* (``g++``)
@@ -47,72 +43,4 @@ Before you start the build procedure make sure that the following components are
 * *gtk-sharp2* (``gtk-sharp2``) for GTK2-based plugins
 
 Instead of *gksudo* you may have *beesu* or *kdesudo*.
-
-Guidelines for building *mono* (Linux)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. note::
-
-   As part of the *mono* framework is written in *C#*, it is required to have a *C#* compiler already installed when compiling *mono* from source.
-   The recommended procedure is to install the *mono* package available in your distribution and overwrite it with a compiled version.
-
-#. Make sure you have *mono* (preferably from packages) already installed in your system and check its location:
-
-   ``whereis mono``
-
-#. Clone the *mono* repository from *github* using:
-
-   ``git clone https://github.com/mono/mono``
-
-#. Change current directory to *mono*:
-
-   ``cd mono``
-
-#. Checkout to our fixed commit using:
-
-   ``git checkout 37f2657ac778d3934a1b3245076849816ff9e6f9``
-
-#. Configure sources with your current *mono* installation location, using a prefix value equal to the part of the path before ``/bin/mono``, e.g. if ``whereis mono`` returned ``/usr/bin/mono`` then your prefix location is ``/usr``:
-
-   ``./autogen.sh --prefix=/usr``
-
-   .. note::
-
-      The configuration process uses external tools: ``autoconf``, ``libtool``, ``automake``, ``g++`` so make sure you have them installed on your system.
-
-#. Build:
-
-   ``make -j9``
-
-   .. note::
-
-      The ``-j9`` switch means that ``make`` can be run in parallel in up to 9 processes. Change this value according to your hardware capabilities.
-
-#. Install using a *root* account:
-
-   ``sudo make install``
-
-   .. warning::
-
-      After updating packages in your system make sure that *mono* was not overwritten by an older version. If so, please reinstall by repeating this step.
-
-#. Verify your installation:
-
-   ``mono --version``
-
-   If the procedure was successfully executed, you should see something like:
-
-   .. code-block:: none
-
-	Mono JIT compiler version 4.3.0 (explicit/37f2657 śro, 25 lis 2015, 17:10:07 CET)
-	Copyright (C) 2002-2014 Novell, Inc, Xamarin Inc and Contributors. www.mono-project.com
-		TLS:           __thread
-		SIGSEGV:       altstack
-		Notifications: epoll
-		Architecture:  amd64
-		Disabled:      none
-		Misc:          softdebug 
-		LLVM:          supported, not enabled.
-		GC:            sgen
-
 
