@@ -44,3 +44,9 @@ void tlib_write_double_word_to_port(uint16_t address, uint32_t value)
 {
   return write_double_word_to_port(address, value);
 }
+
+EXTERNAL(func_int32, get_pending_interrupt)
+int tlib_get_pending_interrupt()
+{
+  return get_pending_interrupt();
+}
