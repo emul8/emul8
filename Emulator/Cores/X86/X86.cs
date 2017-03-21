@@ -8,6 +8,7 @@
 using Endianess = ELFSharp.ELF.Endianess;
 using Emul8.Core;
 using Emul8.Utilities.Binding;
+using Emul8.Peripherals.IRQControllers;
 
 namespace Emul8.Peripherals.CPU
 {
@@ -16,7 +17,10 @@ namespace Emul8.Peripherals.CPU
     {
         const Endianess endianness = Endianess.LittleEndian;
 
-        public X86(string cpuType, Machine machine): base(cpuType, machine, endianness) { }
+        public X86(string cpuType, Machine machine, LAPIC lapic): base(cpuType, machine, endianness)
+        {
+            this.lapic = lapic;
+        }
 
         public override string Architecture { get { return "i386"; } }
 
@@ -66,6 +70,13 @@ namespace Emul8.Peripherals.CPU
             WriteDoubleWordToBus(IoPortBaseAddress + address, value);
         }
 
+        [Export]
+        private int GetPendingInterrupt()
+        {
+            return lapic.GetPendingInterrupt();
+        }
+
+        private readonly LAPIC lapic;
         private const uint IoPortBaseAddress = 0xE0000000;
     }
 }
