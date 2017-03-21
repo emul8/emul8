@@ -38,6 +38,7 @@
       <DependentUpon>X86Registers.tt</DependentUpon>
     </Compile>
     <Compile Include="X86\LAPIC.cs" />
+    <Compile Include="X86\IOAPIC.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="X86\X86Registers.tt">
