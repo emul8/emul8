@@ -38,6 +38,7 @@
   "uart0":
   {
     "_type":"UART.NS16550",
+    "wideRegisters":true,
     "_connection":
     {
       "sysbus":
@@ -53,6 +54,7 @@
   "uart1":
   {
     "_type":"UART.NS16550",
+    "wideRegisters":true,
     "_connection":
     {
       "sysbus":
@@ -68,6 +70,7 @@
   "uart2":
   {
     "_type":"UART.NS16550",
+    "wideRegisters":true,
     "_connection":
     {
       "sysbus":
@@ -80,6 +83,7 @@
   "uart3":
   {
     "_type":"UART.NS16550",
+    "wideRegisters":true,
     "_connection":
     {
       "sysbus":
@@ -95,6 +99,7 @@
   "uart4":
   {
     "_type":"UART.NS16550",
+    "wideRegisters":true,
     "_connection":
     {
       "sysbus":
@@ -110,6 +115,7 @@
   "uart5":
   {
     "_type":"UART.NS16550",
+    "wideRegisters":true,
     "_connection":
     {
       "sysbus":
@@ -125,6 +131,7 @@
   "uart6":
   {
     "_type":"UART.NS16550",
+    "wideRegisters":true,
     "_connection":
     {
       "sysbus":
@@ -140,6 +147,7 @@
   "uart7":
   {
     "_type":"UART.NS16550",
+    "wideRegisters":true,
     "_connection":
     {
       "sysbus":
