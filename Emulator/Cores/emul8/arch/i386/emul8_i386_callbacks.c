@@ -50,3 +50,9 @@ int tlib_get_pending_interrupt()
 {
   return get_pending_interrupt();
 }
+
+EXTERNAL(func_uint64, get_instruction_count)
+uint64_t tlib_get_instruction_count()
+{
+    return get_instruction_count();
+}

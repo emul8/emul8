@@ -76,6 +76,12 @@ namespace Emul8.Peripherals.CPU
             return lapic.GetPendingInterrupt();
         }
 
+        [Export]
+        private ulong GetInstructionCount()
+        {
+            return (ulong)this.ExecutedInstructions;
+        }
+
         private readonly LAPIC lapic;
         private const uint IoPortBaseAddress = 0xE0000000;
     }
