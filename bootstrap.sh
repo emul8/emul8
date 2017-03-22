@@ -57,7 +57,7 @@ do
         h)
             echo "Emul8 bootstrapping script"
             echo "=========================="
-            echo "Usage: $0 [-a] [-d directory] [-b directory] [-o directory] [-s csproj_file] [-h]"
+            echo "Usage: $0 [-a] [-d directory] [-b directory] [-o directory] [-s csproj_file] [-v] [-h]"
             echo "  -a              batch mode, generates the 'All projects' solution without"
             echo "                  any interaction with the user"
             echo "  -d directory    location of the base directory to scan"
@@ -65,6 +65,7 @@ do
             echo "  -o directory    location of generated project files"
             echo "  -s csproj_file  location of the project file"
             echo "  -k              keep submodules intact (do not update them)"
+            echo "  -v              show diagnostic messages"
             echo "  -h              prints this help"
             exit 0
     esac
