@@ -686,6 +686,14 @@ namespace Emul8.Core
             }
         }
 
+        public HostTimeClockSource HostTimeClockSource
+        {
+            get
+            {
+                return hostTimeClockSource;
+            }
+        }
+
         public ISynchronizationDomain SyncDomain
         {
             get

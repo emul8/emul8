@@ -507,12 +507,14 @@ namespace Emul8.Peripherals.CPU
 
                 if(Thread.CurrentThread.ManagedThreadId != cpuThread.ManagedThreadId)
                 {
-                    this.NoisyLog("Waiting for thread to pause.");
                     sync.Pass();
-                    cpuThread.Join();
-                    this.NoisyLog("Paused.");
+                    if(Thread.CurrentThread.ManagedThreadId != machine.HostTimeClockSource.UpdateThreadId)
+                    {
+                        this.NoisyLog("Waiting for thread to pause.");
+                        cpuThread.Join();
+                        this.NoisyLog("Paused.");
+                    }
                     cpuThread = null;
-                    TlibClearPaused();
                 }
                 else
                 {
