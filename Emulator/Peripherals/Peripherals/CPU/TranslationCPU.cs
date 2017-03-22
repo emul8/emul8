@@ -1489,7 +1489,7 @@ namespace Emul8.Peripherals.CPU
                 int oldSize;
                 if(!ourPointers.TryRemove(ptr, out oldSize))
                 {
-                    throw new InvalidOperationException("Trying to free pointer which wasn't allocated by this memory manager.");
+                    throw new InvalidOperationException("Trying to free pointer \"{0}\" which wasn't allocated by this memory manager.".FormatWith(ptr));
                 }
                 Marshal.FreeHGlobal(ptr);
                 Interlocked.Add(ref allocated, -oldSize);
