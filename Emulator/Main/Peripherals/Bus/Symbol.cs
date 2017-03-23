@@ -196,7 +196,7 @@ namespace Emul8.Core
 
         public string ToStringRelative(TAddress offset)
         {
-            if(this.Name == null)
+            if(string.IsNullOrWhiteSpace(this.Name))
             {
                 return String.Empty;
             }
