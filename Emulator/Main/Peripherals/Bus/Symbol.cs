@@ -157,11 +157,11 @@ namespace Emul8.Core
         /// <param name="second">Symbol to compare with.</param>
         public bool IsMoreImportantThan(Symbol second)
         {
-            if(string.IsNullOrWhiteSpace(Name))
+            if(string.IsNullOrWhiteSpace(Name) || !Enum.IsDefined(typeof(SymbolType), Type))
             {
                 return false;
             }
-            if(string.IsNullOrWhiteSpace(second.Name))
+            if(string.IsNullOrWhiteSpace(second.Name) || !Enum.IsDefined(typeof(SymbolType), second.Type))
             {
                 return true;
             }
