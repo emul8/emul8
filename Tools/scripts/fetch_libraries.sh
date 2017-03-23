@@ -31,11 +31,13 @@ then
 fi
 
 rm -rf $DIR Lib Tools ../Emulator/LLVMDisassembler/Resources/
-touch .emul8_libs_fetched
 
 mkdir -p ../Emulator/LLVMDisassembler/Resources/
 git clone $REMOTE
 ln -s $DIR/Lib Lib
 ln -s $DIR/Tools Tools
-cd ../Emulator/LLVMDisassembler/Resources
+pushd ../Emulator/LLVMDisassembler/Resources >/dev/null
 ln -s ../../../External/$DIR/llvm/* .
+popd >/dev/null
+
+touch .emul8_libs_fetched
