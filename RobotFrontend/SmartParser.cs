@@ -22,6 +22,10 @@ namespace Emul8.Robot
             {
                 return input;
             }
+            if(outputType.IsEnum)
+            {
+                return Enum.Parse(outputType, input);
+            }
 
             NumberStyles style;
             if(input.StartsWith("0x", StringComparison.OrdinalIgnoreCase))

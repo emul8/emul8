@@ -78,14 +78,8 @@ namespace Emul8.RobotFrontend
         }
 
         [RobotFrameworkKeyword]
-        public void HandleHotSpot(string actionAsString)
+        public void HandleHotSpot(HotSpotAction action)
         {
-            HotSpotAction action;
-            if(!Enum.TryParse(actionAsString, out action))
-            {
-                throw new KeywordException("Unrecognized hot spot action: {0}", actionAsString);
-            }
-
             switch(action)
             {
                 case HotSpotAction.None:
