@@ -2,12 +2,11 @@
 # pylint: disable=C0301,C0103,C0111
 from __future__ import print_function
 import os
-import re
 import sys
 import argparse
 import subprocess
-import robot
 import fnmatch
+import robot
 import nunit_results_merger
 
 this_path = os.path.abspath(os.path.dirname(__file__))
