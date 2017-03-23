@@ -18,7 +18,7 @@ namespace Emul8.Robot
 
         public object Parse(string input, Type outputType)
         {
-            if(input.GetType() == outputType)
+            if(outputType == typeof(string))
             {
                 return input;
             }
