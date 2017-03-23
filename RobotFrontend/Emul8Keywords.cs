@@ -28,6 +28,7 @@ namespace Emul8.RobotFrontend
         public void ResetEmulation()
         {
             EmulationManager.Instance.Clear();
+            Recorder.Instance.ClearEvents();
         }
 
         [RobotFrameworkKeyword]
@@ -97,6 +98,27 @@ namespace Emul8.RobotFrontend
                     break;
                 default:
                     throw new KeywordException("Hot spot action {0} is not currently supported", action);
+            }
+        }
+
+        [RobotFrameworkKeyword]
+        public void Provides(string state)
+        {
+            Recorder.Instance.SaveCurrentState(state);
+        }
+
+        [RobotFrameworkKeyword]
+        public void Requires(string state)
+        {
+            List<Recorder.Event> events;
+            if(!Recorder.Instance.TryGetState(state, out events))
+            {
+                throw new KeywordException("Required state {0} not found.", state);
+            }
+            ResetEmulation();
+            foreach(var e in events)
+            {
+                RobotFrontend.ExecuteKeyword(e.Name, e.Arguments);
             }
         }
 

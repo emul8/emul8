@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using CookComputing.XmlRpc;
+using Emul8.RobotFrontend;
 
 namespace Emul8.Robot
 {
@@ -46,6 +47,7 @@ namespace Emul8.Robot
 
                 try
                 {
+                    Recorder.Instance.RecordEvent(keywordName, arguments);
                     var keywordResult = keyword.Execute(parsedArguments);
                     if(keywordResult != null)
                     {

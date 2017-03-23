@@ -47,6 +47,8 @@ namespace Emul8.Robot
             xmlRpcServer.Dispose();
         }
 
+        public XmlRpcServer Processor { get { return xmlRpcServer; } }
+
         private void Runner()
         {
             listener.Start();

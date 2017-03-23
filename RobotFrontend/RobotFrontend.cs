@@ -30,6 +30,11 @@ namespace Emul8.RobotFrontend
             server.Dispose();
         }
 
+        public static void ExecuteKeyword(string name, string[] arguments)
+        {
+            server.Processor.RunKeyword(name, arguments);
+        }
+
         public static void Shutdown()
         {
             server.Shutdown();
