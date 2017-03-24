@@ -154,12 +154,17 @@ namespace Emul8.Time
 
             public void Sync()
             {
+                var localcts = cts;
+                if(localcts.IsCancellationRequested)
+                {
+                    return;
+                }
                 currentValue--;
                 if(currentValue == 0)
                 {
                     try
                     {
-                        domain.barrier.SignalAndWait(cts.Token);
+                        domain.barrier.SignalAndWait(localcts.Token);
                     }
                     catch(OperationCanceledException)
                     {
