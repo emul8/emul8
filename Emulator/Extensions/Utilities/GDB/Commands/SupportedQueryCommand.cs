@@ -15,7 +15,7 @@ namespace Emul8.Utilities.GDB.Commands
         [Execute("qSupported")]
         public PacketData Execute()
         {
-            return new PacketData(string.Format("PacketSize={0:x4}", 4096));
+            return new PacketData(string.Format("PacketSize={0:x4};swbreak+;hwbreak+", 4096));
         }
     }
 }

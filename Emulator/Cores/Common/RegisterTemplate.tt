@@ -169,15 +169,15 @@ namespace Emul8.Peripherals.CPU
     foreach(var width in parser.RegisterGroups.Select(x => x.Width).Union(parser.Registers.Select(x => x.Width)).Except(ignoredWidths).Distinct())
     {
 #>
-        // CS0649:  Field '...' is never assigned to, and will always have its default value null
-        #pragma warning disable CS0649
+        // 649:  Field '...' is never assigned to, and will always have its default value null
+        #pragma warning disable 649
 
         [Import(Name = "tlib_set_register_value_<#=width#>")]
         protected ActionInt32<#=RegisterTypeHelper.GetTypeName(width)#> SetRegisterValue<#=width#>;
         [Import(Name = "tlib_get_register_value_<#=width#>")]
         protected Func<#=RegisterTypeHelper.GetTypeName(width)#>Int32 GetRegisterValue<#=width#>;
 
-        #pragma warning restore CS0649
+        #pragma warning restore 649
 
 <#
     }

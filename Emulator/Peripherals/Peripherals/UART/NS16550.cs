@@ -42,7 +42,7 @@ namespace Emul8.Peripherals.UART
 
         public void WriteByte(long offset, byte value)
         {
-            if(mode32 & ((offset % 4) == 0))
+            if(mode32 && ((offset % 4) == 0))
             {
                 offset = offset / 4;
             }
@@ -84,14 +84,21 @@ namespace Emul8.Peripherals.UART
                     }
                     Update();
 
-                    lineStatus |= LineStatus.TransmitHoldEmpty;
+                    if((fifoControl & FifoControl.IsEnabled) == 0 || (interruptEnable & InterruptEnableLevel.ProgrammableTransmitHoldEmptyInterruptMode) == 0)
+                    {
+                        lineStatus |= LineStatus.TransmitHoldEmpty;
+                    }
                     lineStatus |= LineStatus.TransmitterEmpty;
                     transmitNotPending = 1;
                     Update();
                     break;
 
                 case Register.InterruptEnable:
-                    interruptEnable = (InterruptEnableLevel)(value & 0x0F);
+                    interruptEnable = (InterruptEnableLevel)value;
+                    if((fifoControl & FifoControl.IsEnabled) != 0 && (interruptEnable & InterruptEnableLevel.ProgrammableTransmitHoldEmptyInterruptMode) != 0)
+                    {
+                        lineStatus &= ~LineStatus.TransmitHoldEmpty;
+                    }
 
                     if((lineStatus & LineStatus.TransmitHoldEmpty) != 0)
                     {
@@ -101,7 +108,6 @@ namespace Emul8.Peripherals.UART
                     break;
 
                 case Register.FIFOControl:
-                 //   this.DebugLog("fifo control write");
                     var val = (FifoControl)value;
                     if(fifoControl == val)
                     {
@@ -179,7 +185,7 @@ namespace Emul8.Peripherals.UART
 
         public byte ReadByte(long offset)
         {
-            if(mode32 & ((offset % 4) == 0))
+            if(mode32 && ((offset % 4) == 0))
             {
                 offset = offset / 4;
             }
@@ -264,6 +270,7 @@ namespace Emul8.Peripherals.UART
                             lineStatus &= ~(LineStatus.BreakIrqIndicator | LineStatus.OverrunErrorIndicator);
                             Update();
                         }
+                        lineStatus &= ~(LineStatus.OverrunErrorIndicator | LineStatus.ParityErrorIndicator | LineStatus.FrameErrorIndicator | LineStatus.BreakIrqIndicator | LineStatus.ReceiverFIFOError);
                         break;
 
                     case Register.ModemStatusRegister:
@@ -320,14 +327,12 @@ namespace Emul8.Peripherals.UART
 
         public uint ReadDoubleWord(long offset)
         {
-            // this.NoisyLog("Read {0} double word", offset);
-            return (uint)ReadByte(offset >> 2);
+            return (uint)ReadByte(offset);
         }
 
         public void WriteDoubleWord(long offset, uint value)
         {
-            //    this.NoisyLog("Write {0} double word", offset, value);
-            WriteByte(offset >> 2, (byte)(value & 0xFF));
+            WriteByte(offset, (byte)(value & 0xFF));
         }
 
         private void WriteCharInner(byte value)
@@ -335,7 +340,6 @@ namespace Emul8.Peripherals.UART
             lock(UARTLock)
             {
                 if((fifoControl & FifoControl.Enable) != 0 || true)//HACK : fifo always enabled
-                
                 {
                     recvFifo.Enqueue(value);
                     lineStatus |= LineStatus.DataReady;
@@ -475,6 +479,7 @@ namespace Emul8.Peripherals.UART
         [Flags]
         private enum InterruptEnableLevel : byte
         {
+            ProgrammableTransmitHoldEmptyInterruptMode = 0x80,
             ModemStatus = 0x08,
             ReceiverLineStatus = 0x04,
             TransmitterHoldingReg = 0x02,
@@ -520,6 +525,7 @@ namespace Emul8.Peripherals.UART
         [Flags]
         private enum LineStatus : byte
         {
+            ReceiverFIFOError = 0x80,
             TransmitterEmpty = 0x40,
             TransmitHoldEmpty = 0x20,
             BreakIrqIndicator = 0x10,
