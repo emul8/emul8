@@ -356,11 +356,17 @@ namespace Emul8.Time
                         clockEntries[i] = clockEntry;
                     }
                 }
-                foreach(var action in toNotify)
+                try
                 {
-                    action();
+                    foreach(var action in toNotify)
+                    {
+                        action();
+                    }
                 }
-                toNotify.Clear();
+                finally
+                {
+                    toNotify.Clear();
+                }
             }
             finally
             {
