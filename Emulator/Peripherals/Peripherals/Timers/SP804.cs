@@ -77,15 +77,14 @@ namespace Emul8.Peripherals.Timers
             timers = new InnerTimer[2];
             for(var i = 0; i < timers.Length; i++)
             {
+                var j = i;
                 timers[i].CoreTimer = new LimitTimer(machine, TimerFrequency);
+                timers[i].CoreTimer.AutoUpdate = true;
+                timers[i].CoreTimer.LimitReached += () => UpdateInterrupt(j, true);
                 timers[i].Control = InnerTimer.ControlRegister.InterruptEnable;
             }
             timers[0].CoreTimer.Limit = 0xFFFFFFFF;
             timers[1].CoreTimer.Limit = 0xFFFF;
-            timers[0].CoreTimer.AutoUpdate = true;
-            timers[1].CoreTimer.AutoUpdate = true;
-            timers[0].CoreTimer.LimitReached += () => UpdateInterrupt(0, true);
-            timers[1].CoreTimer.LimitReached += () => UpdateInterrupt(1, true);
         }
 
         private uint ReadTimer(int timerNo, long offset)

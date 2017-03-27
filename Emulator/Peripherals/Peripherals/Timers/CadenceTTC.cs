@@ -27,12 +27,9 @@ namespace Emul8.Peripherals.Timers
             timers = new InnerTimer[NumberOfTimers];
             for(var i = 0; i < timers.Length; i++)
             {
-                timers[i].CoreTimer = new LimitTimer(machine, TimerFrequency, limit: InitialLimit, direction : Direction.Ascending);
-            }
-            for(var i = 0; i < timers.Length; i++)
-            {
                 // this line must stay to avoid access to modified closure
                 var j = i;
+                timers[i].CoreTimer = new LimitTimer(machine, TimerFrequency, limit: InitialLimit, direction : Direction.Ascending);
                 timers[i].CoreTimer.LimitReached += () => OnTimerAlarm(j);
             }
 
