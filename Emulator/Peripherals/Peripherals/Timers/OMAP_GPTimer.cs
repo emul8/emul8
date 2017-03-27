@@ -77,14 +77,7 @@ namespace Emul8.Peripherals.Timers
                 {
                     Divider = (int)Math.Pow(2, 0);
                 }
-                if((value & 1) > 0)
-                {
-                    Enable();
-                }
-                else
-                {
-                    Disable();
-                }
+                Enabled = ((value & 1) > 0);
             }
             if(offset == 0x2C)
             {

@@ -55,8 +55,6 @@ namespace Emul8.Peripherals.Timers
             return 0;
         }
 
-        private bool enabled;
-     
         public void WriteDoubleWord(long offset, uint value)
         {
             if(offset == 0x00)
@@ -78,10 +76,9 @@ namespace Emul8.Peripherals.Timers
             {
                 if((value & 0x1) == 0x1)
                 {
-                    if(!enabled)
+                    if(!Enabled)
                     {
-                        Enable();
-                        enabled = true;
+                        Enabled = true;
                     }
                     this.NoisyLog("Timer started");
                 } 

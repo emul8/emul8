@@ -136,7 +136,7 @@ namespace Emul8.Peripherals.Timers
 
             case Register.PeriodIntervalModeRegister:
                 PeriodIntervalTimer.Limit = value;
-                PeriodIntervalTimer.Enable();
+                PeriodIntervalTimer.Enabled = true;
                 break;
 
             case Register.InterruptDisableRegister:
@@ -287,7 +287,7 @@ namespace Emul8.Peripherals.Timers
 
             public void Enable()
             {
-                timer.Enable();
+                timer.Enabled = true;
             }
         }
     }

@@ -67,12 +67,12 @@ namespace Emul8.Peripherals.Timers
 			this.NoisyLog("CTRL, prescaler = {0}",prescaler);
 		}
 		if ((offset == 0x4) && ((value & 0x1)==0x1)) {
-			this.Enable();
+			this.Enabled = true;
 			this.NoisyLog("Timer started");
 		}
 		if ((offset == 0x4) && ((value & 0x2)==0x2)) {
                 IRQ.Set(false);
-			this.Disable();
+			this.Enabled = false;
 			this.NoisyLog("Timer stopped");
 		}
 		if (offset == 0x0C) {

@@ -129,19 +129,12 @@ namespace Emul8.Peripherals.Timers
                 if((value & 0x10) > 0)
                 {
                     timers[timerNo].CoreTimer.Value = 0; //reset count value 
-                    timers[timerNo].CoreTimer.Enable();  //enable counting
+                    timers[timerNo].CoreTimer.Enabled = true;  //enable counting
                     
                 }
                 if(((timers[timerNo].CounterControl ^ value) & 0x1) > 0)
                 { // start / stop
-                    if((value & 0x1) == 0)
-                    { 
-                       timers[timerNo].CoreTimer.Enable();
-                    } else
-                    {
-                       timers[timerNo].CoreTimer.Disable();
-                            
-                    }
+                    timers[timerNo].CoreTimer.Enabled = ((value & 0x1) == 0);
                 }
                 if((value & 0x2) != 0)
                 {//set interval
@@ -209,7 +202,7 @@ namespace Emul8.Peripherals.Timers
             for(var i = 0; i < timers.Length; i++)
             {
                 // could deadlock if in lock
-                timers[i].CoreTimer.Disable();
+                timers[i].CoreTimer.Enabled = false;
                 lock(timers[i].CoreTimer)
                 {
                     timers[i].CoreTimer.Limit = InitialLimit;

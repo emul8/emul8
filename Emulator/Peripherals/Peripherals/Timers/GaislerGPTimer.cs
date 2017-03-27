@@ -122,12 +122,12 @@ namespace Emul8.Peripherals.Timers
                     {
                         if(!timer.CoreTimer.Enabled)
                         {
-                            timer.CoreTimer.Enable();
+                            timer.CoreTimer.Enabled = true;
                         }
                     }
                     else//disable timer
                     {
-                        timer.CoreTimer.Disable();
+                        timer.CoreTimer.Enabled = false;
                     }
                     
                     if(timer.Control.Restart)//set mode to periodical

@@ -93,21 +93,11 @@ namespace Emul8.Peripherals.Timers
                 int prescaler;
                 uint irqEnable;
                 bool autoReload;
-                bool enable;
                 
                 prescaler = (byte)(value >> 8);
                 irqEnable = (uint)(value & 1u << 2);
                 autoReload = ((value & 1u << 1) != 0);
-                enable = ((value & 1u << 0) != 0);
-                
-                if(enable)
-                {
-                    Enable();
-                }
-                else
-                {
-                    Disable();
-                }
+                Enabled = ((value & 1u << 0) != 0);
                 EventEnabled = irqEnable != 0;
                 AutoUpdate = autoReload;
                 Divider = prescaler + 1;

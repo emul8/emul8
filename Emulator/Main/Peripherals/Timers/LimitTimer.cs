@@ -122,20 +122,6 @@ namespace Emul8.Peripherals.Timers
 
         public bool AutoUpdate { get; set; }
 
-        public void Enable()
-        {
-            clockSource.ExchangeClockEntryWith(OnLimitReached, oldEntry => oldEntry.With(enabled: true),
-                () => { throw new InvalidOperationException("Should not reach here."); });
-            // should not reach here - limit should already be set in ctor
-        }
-
-        public void Disable()
-        {
-            clockSource.ExchangeClockEntryWith(OnLimitReached, oldEntry => oldEntry.With(enabled: false),
-                () => { throw new InvalidOperationException("Should not reach here."); });
-            // should not reach here - limit should already be set in ctor
-        }
-
         public bool Enabled
         {
             get
@@ -144,14 +130,9 @@ namespace Emul8.Peripherals.Timers
             }
             set
             {
-                if(value)
-                {
-                    Enable();
-                }
-                else
-                {
-                    Disable();
-                }
+                clockSource.ExchangeClockEntryWith(OnLimitReached, oldEntry => oldEntry.With(enabled: value),
+                    () => { throw new InvalidOperationException("Should not reach here."); });
+                    // should not reach here - limit should already be set in ctor
             }
         }
 

@@ -180,7 +180,7 @@ namespace Emul8.Peripherals.IRQControllers
                                     localTimer.Mode = v ? WorkMode.Periodic : WorkMode.OneShot;
                                     if(v)
                                     {
-                                        localTimer.Enable();
+                                        localTimer.Enabled = true;
                                     }
                                     this.Log(LogLevel.Info, "Local timer mode set to {0}", localTimer.Mode);
                                 })
@@ -215,7 +215,7 @@ namespace Emul8.Peripherals.IRQControllers
                                     this.Log(LogLevel.Info, "Setting local timer initial value to {0}", val);
                                     localTimer.Limit = val;
                                     localTimer.ResetValue();
-                                    localTimer.Enable();
+                                    localTimer.Enabled = true;
                                 })
                 },
                 {(long)Registers.LocalVectorTableTimerCurrentCount, new DoubleWordRegister(this)

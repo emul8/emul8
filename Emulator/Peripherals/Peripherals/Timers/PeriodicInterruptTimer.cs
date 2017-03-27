@@ -151,14 +151,7 @@ namespace Emul8.Peripherals.Timers
                     {
                         if((value & ControlRegister.Enable) != (control & ControlRegister.Enable))
                         {
-                            if((value & ControlRegister.Enable) != 0)
-                            {
-                                CoreTimer.Enable();
-                            }
-                            else
-                            {
-                                CoreTimer.Disable();
-                            }
+                            CoreTimer.Enabled = (value & ControlRegister.Enable) != 0;
                         }
                         CoreTimer.EventEnabled = (value & ControlRegister.InterruptEnable) != 0;
                         control = value;
