@@ -152,6 +152,8 @@ namespace Emul8.Core
         /// types are equal, the Binding of the symbol. For example, Function symbol is more
         /// important than Object symbol, and Global Function symbol is more important than
         /// Weak Function symbol.
+        /// As the symbol types may be architecture specific, we only take into consideration
+        /// those types that we are aware of.
         /// </summary>
         /// <returns><c>true</c> if this instance is more important than the specified second; otherwise, <c>false</c>.</returns>
         /// <param name="second">Symbol to compare with.</param>
