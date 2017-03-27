@@ -21,9 +21,15 @@ namespace Emul8.Robot
         {
             var parameters = methodInfo.GetParameters();
 
-            parsedArguments = parameters.Length == 1 && parameters[0].ParameterType == typeof(string[]) 
-                ? new object[] { arguments } 
-                : SmartParser.Instance.Parse(arguments, parameters.Select(x => x.ParameterType).ToArray());
+
+            if(parameters.Length == 1 && parameters[0].ParameterType == typeof(string[]))
+            {
+                parsedArguments = new object[] { arguments };
+            }
+            else if(!SmartParser.Instance.TryParse(arguments, parameters.Select(x => x.ParameterType).ToArray(), out parsedArguments))
+            {
+                return false;
+            }
 
             if(parameters.Length > parsedArguments.Length && parameters[parsedArguments.Length].HasDefaultValue)
             {

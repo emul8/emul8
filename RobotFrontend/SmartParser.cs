@@ -9,12 +9,27 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 
 namespace Emul8.Robot
 {
     internal class SmartParser
     {
         public static SmartParser Instance = new SmartParser();
+
+        public bool TryParse(string input, Type outputType, out object result)
+        {
+            try
+            {
+                result = Parse(input, outputType);
+                return true;
+            }
+            catch(TargetInvocationException)
+            {
+                result = null;
+                return false;
+            }
+        }
 
         public object Parse(string input, Type outputType)
         {
@@ -59,6 +74,20 @@ namespace Emul8.Robot
             }
 
             return parser.DynamicInvoke(input, style);
+        }
+
+        public bool TryParse(string[] input, Type[] outputType, out object[] result)
+        {
+            result = new object[Math.Min(input.Length, outputType.Length)];
+            for(var i = 0; i < input.Length; i++)
+            {
+                if(!TryParse(input[i], outputType[i], out result[i]))
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         public object[] Parse(string[] input, Type[] outputType)
