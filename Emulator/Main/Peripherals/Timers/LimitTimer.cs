@@ -107,11 +107,12 @@ namespace Emul8.Peripherals.Timers
             set
             {
                 clockSource.ExchangeClockEntryWith(OnLimitReached, oldEntry =>
-                { 
+                {
                     if(AutoUpdate)
                     {
-                            return oldEntry.With(period: value, value: value);
+                        return oldEntry.With(period: value, value: oldEntry.Direction == Direction.Ascending ? 0 : value);
                     }
+
                     return oldEntry.With(period: value);
                 }, () =>
                 {
