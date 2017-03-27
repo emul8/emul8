@@ -22,6 +22,11 @@ namespace Emul8.Robot
             {
                 return input;
             }
+            var underlyingType = Nullable.GetUnderlyingType(outputType);
+            if(underlyingType != null)
+            {
+                return input == null ? null : Parse(input, underlyingType);
+            }
             if(outputType.IsEnum)
             {
                 return Enum.Parse(outputType, input);
