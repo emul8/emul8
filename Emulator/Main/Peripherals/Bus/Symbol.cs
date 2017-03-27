@@ -152,16 +152,18 @@ namespace Emul8.Core
         /// types are equal, the Binding of the symbol. For example, Function symbol is more
         /// important than Object symbol, and Global Function symbol is more important than
         /// Weak Function symbol.
+        /// As the symbol types may be architecture specific, we only take into consideration
+        /// those types that we are aware of.
         /// </summary>
         /// <returns><c>true</c> if this instance is more important than the specified second; otherwise, <c>false</c>.</returns>
         /// <param name="second">Symbol to compare with.</param>
         public bool IsMoreImportantThan(Symbol second)
         {
-            if(string.IsNullOrWhiteSpace(Name))
+            if(string.IsNullOrWhiteSpace(Name) || !Enum.IsDefined(typeof(SymbolType), Type))
             {
                 return false;
             }
-            if(string.IsNullOrWhiteSpace(second.Name))
+            if(string.IsNullOrWhiteSpace(second.Name) || !Enum.IsDefined(typeof(SymbolType), second.Type))
             {
                 return true;
             }
@@ -196,7 +198,7 @@ namespace Emul8.Core
 
         public string ToStringRelative(TAddress offset)
         {
-            if(this.Name == null)
+            if(string.IsNullOrWhiteSpace(this.Name))
             {
                 return String.Empty;
             }
