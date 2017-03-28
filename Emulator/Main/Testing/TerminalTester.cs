@@ -37,7 +37,7 @@ namespace Emul8.Testing
             reportCollection = new ConcurrentQueue<Event>();
             reportEndingLock = new object();
             reportCollection.Enqueue(new ReportSeparator());
-            terminal = new PromptTerminal(x => eventCollection.Add(new Line { Content = x }), () => eventCollection.Add( new Prompt() ), prompt);
+            terminal = new PromptTerminal((x, t) => eventCollection.Add(new Line { Content = x, VirtualTimestamp = t }), t => eventCollection.Add( new Prompt() { VirtualTimestamp = t } ), prompt);
             defaultPrompt = prompt;
             this.globalTimeout = globalTimeout;
         }
@@ -332,6 +332,8 @@ namespace Emul8.Testing
                     return true;
                 }
             }
+
+            public TimeSpan VirtualTimestamp { get; set; }
 
             public readonly DateTime Timestamp = CustomDateTime.Now;
         }
