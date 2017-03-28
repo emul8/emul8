@@ -17,12 +17,12 @@ namespace Emul8.Backends.Terminals
 
         public abstract void WriteChar(byte value);
 
-        public void AttachTo (IUART uart)
+        public virtual void AttachTo(IUART uart)
         {
             CharReceived += uart.WriteChar;
             uart.CharReceived += WriteChar;
         }
-        public void DetachFrom (IUART uart)
+        public virtual void DetachFrom(IUART uart)
         {
             CharReceived -= uart.WriteChar;
             uart.CharReceived -= WriteChar;
