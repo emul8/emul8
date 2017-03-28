@@ -78,7 +78,7 @@ namespace Emul8.Backends.Terminals
         public void WriteLineToTerminal(string line)
         {
             WriteStringToTerminal(line);
-            CallCharReceived(10);
+            CallCharReceived(13);
             WaitBeforeNextChar(); // for consistency
         }
 
