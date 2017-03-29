@@ -15,6 +15,8 @@ ${HOTSPOT_ACTION}       "None"
 
 *** Keywords ***
 Setup
+    File Should Exist    ${DIRECTORY}/${BINARY_NAME}  msg=Robot Frontend binary not found. Did you forget to build it in ${CONFIGURATION} configuration?
+
     Run Keyword If       not ${SKIP_RUNNING_SERVER} and not ${SERVER_REMOTE_DEBUG}
     ...   Start Process  mono  ${BINARY_NAME}  ${PORT_NUMBER}  cwd=${DIRECTORY}
 
