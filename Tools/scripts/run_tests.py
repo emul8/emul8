@@ -112,6 +112,14 @@ class RobotTestSuite(TestSuite):
             sys.exit(1)
 
         args = ['mono', emul8_robot_frontend_binary, str(ROBOT_FRONTEND_PORT)]
+        if options.port is not None:
+            if options.suspend:
+                print('Waiting for a debugger at port: {}'.format(options.port))
+            args.insert(1, '--debug')
+            args.insert(2, '--debugger-agent=transport=dt_socket,server=y,suspend={0},address=127.0.0.1:{1}'.format('y' if options.suspend else 'n', options.port))
+        elif options.debug_mode:
+            args.insert(1, '--debug')
+
         RobotTestSuite.emul8_robot_frontend_process = subprocess.Popen(args, cwd=emul8_robot_frontend_binary_folder, bufsize=1)
 
     def run(self, fixture=None):
