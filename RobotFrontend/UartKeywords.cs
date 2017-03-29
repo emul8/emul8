@@ -39,7 +39,7 @@ namespace Emul8.RobotFrontend
             {
                 if(testers.ContainsKey(peripheralName))
                 {
-                    throw new KeywordException("Terminal tester for peripheral {0} already exists");
+                    throw new KeywordException("Terminal tester for peripheral {0} already exists", peripheralName);
                 }
 
                 Machine machine;
@@ -57,7 +57,7 @@ namespace Emul8.RobotFrontend
                 }
                 else if(!EmulationManager.Instance.CurrentEmulation.TryGetMachineByName(machineName, out machine))
                 {
-                    throw new KeywordException("Machine with name {0} not found.");
+                    throw new KeywordException("Machine with name {0} not found.", machineName);
                 }
 
                 IUART uart;
