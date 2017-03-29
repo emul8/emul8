@@ -206,7 +206,7 @@ parser.add_argument("-n", "--repeat",   dest="repeat_count", nargs="?", type=int
 parser.add_argument("-d", "--debug",    dest="debug_mode",  action="store_true",  default=False, help="Debug mode")
 parser.add_argument("-o", "--output",   dest="output",      action="store",       default=None,  help="Output file, default STDOUT.")
 parser.add_argument("-b", "--buildbot", dest="buildbot",    action="store_true",  default=False, help="Buildbot mode. Before running tests prepare environment, i.e., create tap0 interface.")
-parser.add_argument("-t", "--tests",    dest="tests_file",  action="store",       default=None,  help="Path to a file with a list of assemblies with tests to run.")
+parser.add_argument("-t", "--tests",    dest="tests_file",  action="store",       default=None,  help="Path to a file with a list of assemblies with tests to run. This is ignored if any test file is passed as positional argument.")
 parser.add_argument("-p", "--port",     dest="port",        action="store",       default=None,  help="Debug port.")
 parser.add_argument("-s", "--suspend",  dest="suspend",     action="store_true",  default=False, help="Suspend test waiting for a debugger.")
 parser.add_argument("-T", "--type",     dest="test_type",   action="store",       default="all", help="Type of test to execute: nunit, robot or all (default)")
@@ -231,8 +231,8 @@ if 'FIXTURE' in os.environ:
     options.fixture = os.environ['FIXTURE']
 if options.fixture:
     print("Testing fixture: " + options.fixture)
-if options.tests_file != None:
-    options.tests.extend([line.rstrip() for line in open(options.tests_file)])
+if options.tests_file is not None and not options.tests:
+    options.tests = [line.rstrip() for line in open(options.tests_file)]
 if options.port == str(ROBOT_FRONTEND_PORT):
     print('Port {} is reserved for Robot Frontend and cannot be used for remote debugging.'.format(ROBOT_FRONTEND_PORT))
     sys.exit(1)
