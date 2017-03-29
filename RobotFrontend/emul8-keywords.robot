@@ -15,6 +15,10 @@ ${HOTSPOT_ACTION}       "None"
 
 *** Keywords ***
 Setup
+    ${CONFIGURATION}=  Set Variable If  not ${SKIP_RUNNING_SERVER} and ${SERVER_REMOTE_DEBUG}  
+    ...    Debug  
+    ...    ${CONFIGURATION}
+
     File Should Exist    ${DIRECTORY}/${BINARY_NAME}  msg=Robot Frontend binary not found. Did you forget to build it in ${CONFIGURATION} configuration?
 
     Run Keyword If       not ${SKIP_RUNNING_SERVER} and not ${SERVER_REMOTE_DEBUG}
