@@ -11,6 +11,7 @@ import nunit_results_merger
 
 this_path = os.path.abspath(os.path.dirname(__file__))
 results_directory = os.path.join(this_path, 'tests')
+ROBOT_FRONTEND_PORT = 9999
 
 class TestSuite(object):
     @staticmethod
@@ -110,7 +111,8 @@ class RobotTestSuite(TestSuite):
             print("Robot frontend binary not found! Did you forget to bootstrap and build the Emul8?")
             sys.exit(1)
 
-        RobotTestSuite.emul8_robot_frontend_process = subprocess.Popen(['mono', emul8_robot_frontend_binary, '9999'], cwd=emul8_robot_frontend_binary_folder, bufsize=1)
+        args = ['mono', emul8_robot_frontend_binary, str(ROBOT_FRONTEND_PORT)]
+        RobotTestSuite.emul8_robot_frontend_process = subprocess.Popen(args, cwd=emul8_robot_frontend_binary_folder, bufsize=1)
 
     def run(self, fixture=None):
         result = True
@@ -231,6 +233,9 @@ if options.fixture:
     print("Testing fixture: " + options.fixture)
 if options.tests_file != None:
     options.tests.extend([line.rstrip() for line in open(options.tests_file)])
+if options.port == str(ROBOT_FRONTEND_PORT):
+    print('Port {} is reserved for Robot Frontend and cannot be used for remote debugging.'.format(ROBOT_FRONTEND_PORT))
+    sys.exit(1)
 
 configuration = 'Debug' if options.debug_mode else 'Release'
 
