@@ -5,13 +5,15 @@ Library         Process
 Library         OperatingSystem
 
 *** Variables ***
-${SERVER_REMOTE_DEBUG}  False
-${SKIP_RUNNING_SERVER}  False
-${CONFIGURATION}        Release
-${PORT_NUMBER}          9999
-${DIRECTORY}            ${CURDIR}/../output/${CONFIGURATION}
-${BINARY_NAME}          ./RobotFrontend.exe
-${HOTSPOT_ACTION}       "None"
+${SERVER_REMOTE_DEBUG}    False
+${SERVER_REMOTE_PORT}     12345
+${SERVER_REMOTE_SUSPEND}  y 
+${SKIP_RUNNING_SERVER}    False
+${CONFIGURATION}          Release
+${PORT_NUMBER}            9999
+${DIRECTORY}              ${CURDIR}/../output/${CONFIGURATION}
+${BINARY_NAME}            ./RobotFrontend.exe
+${HOTSPOT_ACTION}         None
 
 *** Keywords ***
 Setup
@@ -27,7 +29,7 @@ Setup
     Run Keyword If       not ${SKIP_RUNNING_SERVER} and ${SERVER_REMOTE_DEBUG}
     ...   Start Process  mono
           ...            --debug
-          ...            --debugger-agent\=transport\=dt_socket,address\=0.0.0.0:12345,server\=y
+          ...            --debugger-agent\=transport\=dt_socket,address\=0.0.0.0:${SERVER_REMOTE_PORT},server\=y,suspend\=${SERVER_REMOTE_SUSPEND}
           ...            ${BINARY_NAME}  ${PORT_NUMBER}  cwd=${DIRECTORY}
 
     Wait Until Keyword Succeeds  60s  1s
