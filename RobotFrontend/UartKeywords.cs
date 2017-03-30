@@ -122,9 +122,9 @@ namespace Emul8.RobotFrontend
         }
 
         [RobotFrameworkKeyword]
-        public double GetLastEventVirtualTimestamp(string peripheralName = null)
+        public double GetVirtualTimestampOfLastEvent(string uart = null)
         {
-            return GetTesterOrThrowException(peripheralName).LastEventVirtualTimestamp.TotalMilliseconds;
+            return GetTesterOrThrowException(uart).LastEventVirtualTimestamp.TotalMilliseconds;
         }
 
         private TerminalTester GetTesterOrThrowException(string peripheralName)
