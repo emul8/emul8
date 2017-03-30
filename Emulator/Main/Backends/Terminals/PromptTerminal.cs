@@ -18,15 +18,14 @@ namespace Emul8.Backends.Terminals
     [Transient]
     public sealed class PromptTerminal : BackendTerminal
     {
-        public PromptTerminal(Action<string, TimeSpan> onLine = null, Action<TimeSpan> onPrompt = null, string prompt = "@/ # ")
+        public PromptTerminal(Action<string, TimeSpan> onLine = null, Action<TimeSpan> onPrompt = null, string prompt = null)
         {
-            if(prompt.Length == 0)
+            if(!string.IsNullOrEmpty(prompt))
             {
-                throw new ArgumentException("Prompt cannot be empty.");
+                SetPrompt(prompt);
             }
             internalLock = new object();
             charBuffer = new List<char>();
-            SetPrompt(prompt);
             this.onLine = onLine;
             this.onPrompt = onPrompt;
         }
@@ -64,7 +63,7 @@ namespace Emul8.Backends.Terminals
                 if(value != 10)
                 {
                     charBuffer.Add((char)value);
-                    if(index < promptBytes.Length)
+                    if(promptBytes != null && index < promptBytes.Length)
                     {
                         if(promptBytes[index] != value)
                         {
@@ -111,7 +110,7 @@ namespace Emul8.Backends.Terminals
 
         public void SetPrompt(string prompt)
         {
-            promptBytes = prompt.ToCharArray().Select(x => (byte)x).ToArray();
+            promptBytes = prompt == null ? null : prompt.ToCharArray().Select(x => (byte)x).ToArray();
         }
 
         public TimeSpan WriteCharDelay { get; set; }
