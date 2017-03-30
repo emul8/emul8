@@ -129,7 +129,7 @@ class RobotTestSuite(TestSuite):
         tests_without_hotspots = []
         _suite = robot.parsing.model.TestData(source=self.path)
         for test in _suite.testcase_table.tests:
-            if any(step.name == 'Hot Spot' for step in test.steps):
+            if any(hasattr(step, 'name') and step.name == 'Hot Spot' for step in test.steps):
                 tests_with_hotspots.append(test.name)
             else:
                 tests_without_hotspots.append(test.name)
@@ -144,13 +144,13 @@ class RobotTestSuite(TestSuite):
 
     def _get_dependencies(self, test_case):
         _suite = robot.parsing.model.TestData(source=self.path)
-        test = next(t for t in _suite.testcase_table.tests if t.name == test_case)
-        requirements = [s.args[0] for s in test.steps if s.name == 'Requires']
+        test = next(t for t in _suite.testcase_table.tests if hasattr(t, 'name') and t.name == test_case)
+        requirements = [s.args[0] for s in test.steps if hasattr(s, 'name') and s.name == 'Requires']
         if len(requirements) == 0:
             return set()
         if len(requirements) > 1:
             raise Exception('Too many requirements for a single test. At most one is allowed.')
-        providers = [t for t in _suite.testcase_table.tests if any(s.name == 'Provides' and s.args[0] == requirements[0] for s in t.steps)]
+        providers = [t for t in _suite.testcase_table.tests if any(hasattr(s, 'name') and s.name == 'Provides' and s.args[0] == requirements[0] for s in t.steps)]
         if len(providers) > 1:
             raise Exception('Too many providers for state {0} found: {1}'.format(requirements[0], ', '.join(providers.name)))
         if len(providers) == 0:
