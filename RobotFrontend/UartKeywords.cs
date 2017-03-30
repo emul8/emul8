@@ -33,50 +33,47 @@ namespace Emul8.RobotFrontend
         }
 
         [RobotFrameworkKeyword]
-        public void CreateTerminalTester(string machineName, string peripheralName, string prompt, int timeout = 30)
+        public void CreateTerminalTester(string uart, string prompt = null, int timeout = 30, string machine = null)
         {
             lock(testers)
             {
-                if(testers.ContainsKey(peripheralName))
+                if(testers.ContainsKey(uart))
                 {
-                    throw new KeywordException("Terminal tester for peripheral {0} already exists", peripheralName);
+                    throw new KeywordException("Terminal tester for peripheral {0} already exists", uart);
                 }
 
-                Machine machine;
-                if(machineName == null)
+                Machine machineObject;
+                if(machine == null)
                 {
                     if(!EmulationManager.Instance.CurrentEmulation.Machines.Any())
                     {
-                        throw new KeywordException("There is no machine in the emulation. Could not create tester for peripheral: {0}", peripheralName);
+                        throw new KeywordException("There is no machine in the emulation. Could not create tester for peripheral: {0}", uart);
                     }
-                    machine = EmulationManager.Instance.CurrentEmulation.Machines.SingleOrDefault();
-                    if(machine == null)
+                    machineObject = EmulationManager.Instance.CurrentEmulation.Machines.Count() == 1
+                        ? EmulationManager.Instance.CurrentEmulation.Machines.First()
+                        : null;
+                    if(machineObject == null)
                     {
                         throw new KeywordException("No machine name provided. Don't know which one to choose.");
                     }
                 }
-                else if(!EmulationManager.Instance.CurrentEmulation.TryGetMachineByName(machineName, out machine))
+                else if(!EmulationManager.Instance.CurrentEmulation.TryGetMachineByName(machine, out machineObject))
                 {
-                    throw new KeywordException("Machine with name {0} not found.", machineName);
+                    throw new KeywordException("Machine with name {0} not found.", machine);
                 }
 
-                IUART uart;
-                if(!machine.TryGetByName(peripheralName, out uart))
+                IUART uartObject;
+                if(!machineObject.TryGetByName(uart, out uartObject))
                 {
-                    throw new KeywordException("Peripheral not found or of wrong type: {0}", peripheralName);
+                    throw new KeywordException("Peripheral not found or of wrong type: {0}", uart);
                 }
 
                 var tester = new TerminalTester(TimeSpan.FromSeconds(timeout), prompt);
-                tester.Terminal.AttachTo(uart);
-                testers.Add(peripheralName, tester);
+                tester.Terminal.AttachTo(uartObject);
+                testers.Add(uart, tester);
             }
         }
 
-        [RobotFrameworkKeyword]
-        public void CreateTerminalTester(string peripheralName, string prompt, int timeout = 30)
-        {
-            CreateTerminalTester(null, peripheralName, prompt, timeout);
-        }
 
         [RobotFrameworkKeyword]
         public void SetNewPromptForUart(string peripheralName, string prompt)
