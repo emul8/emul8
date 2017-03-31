@@ -165,6 +165,7 @@
     <Compile Include="Peripherals\Wireless\IEEE802_15_4\AddressingMode.cs" />
     <Compile Include="Peripherals\Wireless\IEEE802_15_4\AddressInformation.cs" />
     <Compile Include="Peripherals\Wireless\IEEE802_15_4\Address.cs" />
+    <Compile Include="Peripherals\SPI\Quark_SPI.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ProjectExtensions>
