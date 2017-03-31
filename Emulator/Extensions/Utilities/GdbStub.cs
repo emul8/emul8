@@ -10,6 +10,8 @@ using Emul8.Logging;
 using Emul8.Peripherals.CPU;
 using Emul8.Utilities.GDB;
 using Emul8.Utilities.GDB.Commands;
+using System.Collections.Generic;
+using System.Threading;
 
 namespace Emul8.Utilities
 {
@@ -31,6 +33,7 @@ namespace Emul8.Utilities
             terminal = new SocketServerProvider();
             terminal.DataReceived += OnByteWritten;
             terminal.Start(port);
+            commHandler = new CommunicationHandler(this);
         }
 
         public void Dispose()
@@ -43,56 +46,62 @@ namespace Emul8.Utilities
 
         private void OnHalted(HaltArguments args)
         {
-            switch(args.Reason)
+            using(var ctx = commHandler.OpenContext())
             {
-            case HaltReason.Breakpoint:
-                switch(args.BreakpointType)
+                switch(args.Reason)
                 {
-                case BreakpointType.AccessWatchpoint:
-                case BreakpointType.WriteWatchpoint:
-                case BreakpointType.ReadWatchpoint:
-                    beforeCommand += cmd =>
+                case HaltReason.Breakpoint:
+                    switch(args.BreakpointType)
                     {
-                        commandsCounter++;
-                        if(commandsCounter > 15)
+                    case BreakpointType.AccessWatchpoint:
+                    case BreakpointType.WriteWatchpoint:
+                    case BreakpointType.ReadWatchpoint:
+                        beforeCommand += cmd =>
                         {
-                            // this is a hack!
-                            // I noticed that GDB will send `step` command after receiving
-                            // information about watchpoint being hit.
-                            // As a result cpu would execute next instruction and stop again.
-                            // To prevent this situation we wait for `step` and ignore it, but
-                            // only in small time window (15 - instructions, value choosen at random)
-                            // and only after sending watchpoint-related stop reply.
-                            this.Log(LogLevel.Error, "Expected step command after watchpoint. Further debugging might not work properly");
-                            beforeCommand = null;
-                            commandsCounter = 0;
+                            commandsCounter++;
+                            if(commandsCounter > 15)
+                            {
+                                // this is a hack!
+                                // I noticed that GDB will send `step` command after receiving
+                                // information about watchpoint being hit.
+                                // As a result cpu would execute next instruction and stop again.
+                                // To prevent this situation we wait for `step` and ignore it, but
+                                // only in small time window (15 - instructions, value choosen at random)
+                                // and only after sending watchpoint-related stop reply.
+                                this.Log(LogLevel.Error, "Expected step command after watchpoint. Further debugging might not work properly");
+                                beforeCommand = null;
+                                commandsCounter = 0;
+                                return false;
+                            }
+                            if((cmd is SingleStepCommand))
+                            {
+                                using(var innerCtx = commHandler.OpenContext())
+                                {
+                                    innerCtx.Send(new Packet(PacketData.StopReply(TrapSignal)));
+                                }   
+                                beforeCommand = null;
+                                commandsCounter = 0;
+                                return true;
+                            }
                             return false;
-                        }
-                        if((cmd is SingleStepCommand))
-                        {
-                            SendPacket(new Packet(PacketData.StopReply(TrapSignal)));
-                            beforeCommand = null;
-                            commandsCounter = 0;
-                            return true;
-                        }
-                        return false;
-                    };
-                    goto case BreakpointType.HardwareBreakpoint;
-                case BreakpointType.HardwareBreakpoint:
-                case BreakpointType.MemoryBreakpoint:
-                    SendPacket(new Packet(PacketData.StopReply(args.BreakpointType.Value, args.Address)));
-                    break;
+                        };
+                        goto case BreakpointType.HardwareBreakpoint;
+                    case BreakpointType.HardwareBreakpoint:
+                    case BreakpointType.MemoryBreakpoint:
+                        ctx.Send(new Packet(PacketData.StopReply(args.BreakpointType.Value, args.Address)));
+                        break;
+                    }
+                    return;
+                case HaltReason.Step:
+                case HaltReason.Pause:
+                    ctx.Send(new Packet(PacketData.StopReply(TrapSignal)));
+                    return;
+                case HaltReason.Abort:
+                    ctx.Send(new Packet(PacketData.AbortReply(AbortSignal)));
+                    return;
+                default:
+                    throw new ArgumentException("Unexpected halt reason");
                 }
-                return;
-            case HaltReason.Step:
-            case HaltReason.Pause:
-                SendPacket(new Packet(PacketData.StopReply(TrapSignal)));
-                return;
-            case HaltReason.Abort:
-                SendPacket(new Packet(PacketData.AbortReply(AbortSignal)));
-                return;
-            default:
-                throw new ArgumentException("Unexpected halt reason");
             }
         }
 
@@ -117,46 +126,41 @@ namespace Emul8.Utilities
                 cpu.Resume();
                 return;
             }
-            if(result.CorruptedPacket)
-            {
-                cpu.Log(LogLevel.Warning, "Corrupted GDB packet received: {0}", result.Packet.Data.DataAsString);
-                // send NACK
-                terminal.SendByte((byte)'-');
-                return;
-            }
 
-            cpu.Log(LogLevel.Noisy, "GDB packet received: {0}", result.Packet.Data.DataAsString);
-            // send ACK
-            terminal.SendByte((byte)'+');
-
-            Command command;
-            if(!commands.TryGetCommand(result.Packet, out command))
+            using(var ctx = commHandler.OpenContext())
             {
-                cpu.Log(LogLevel.Warning, "Unsupported GDB command: {0}", result.Packet.Data.DataAsString);
-                SendPacket(new Packet(PacketData.Empty));
-            }
-            else
-            {
-                var before = beforeCommand;
-                if(before != null && before(command))
+                if(result.CorruptedPacket)
                 {
+                    cpu.Log(LogLevel.Warning, "Corrupted GDB packet received: {0}", result.Packet.Data.DataAsString);
+                    // send NACK
+                    ctx.Send((byte)'-');
                     return;
                 }
-                var packetData = Command.Execute(command, result.Packet);
-                // null means that we will response later with Stop Reply Response
-                if(packetData != null)
-                {
-                    SendPacket(new Packet(packetData));
-                }
-            }
-        }
 
-        private void SendPacket(Packet packet)
-        {
-            cpu.Log(LogLevel.Noisy, "Sending response to GDB: {0}", packet.Data.DataAsString);
-            foreach(var b in packet.GetCompletePacket())
-            {
-                terminal.SendByte(b);
+                cpu.Log(LogLevel.Noisy, "GDB packet received: {0}", result.Packet.Data.DataAsString);
+                // send ACK
+                ctx.Send((byte)'+');
+
+                Command command;
+                if(!commands.TryGetCommand(result.Packet, out command))
+                {
+                    cpu.Log(LogLevel.Warning, "Unsupported GDB command: {0}", result.Packet.Data.DataAsString);
+                    ctx.Send(new Packet(PacketData.Empty));
+                }
+                else
+                {
+                    var before = beforeCommand;
+                    if(before != null && before(command))
+                    {
+                        return;
+                    }
+                    var packetData = Command.Execute(command, result.Packet);
+                    // null means that we will respond later with Stop Reply Response
+                    if(packetData != null)
+                    {
+                        ctx.Send(new Packet(packetData));
+                    }
+                }
             }
         }
 
@@ -167,9 +171,85 @@ namespace Emul8.Utilities
         private readonly ICpuSupportingGdb cpu;
         private readonly SocketServerProvider terminal;
         private readonly CommandsManager commands;
+        private readonly CommunicationHandler commHandler;
 
         private const int TrapSignal = 5;
         private const int AbortSignal = 6;
+
+        private class CommunicationHandler
+        {
+            public CommunicationHandler(GdbStub stub)
+            {
+                this.stub = stub;
+                queue = new Queue<byte>();
+                internalLock = new object();
+            }
+
+            public Context OpenContext()
+            {
+                return new Context(this);
+            }
+
+            private readonly GdbStub stub;
+            private readonly Queue<byte> queue;
+            private readonly object internalLock;
+            private int counter;
+
+            public class Context : IDisposable
+            {
+                public Context(CommunicationHandler commHandler)
+                {
+                    this.commHandler = commHandler;
+                    Monitor.Enter(commHandler.internalLock);
+                    commHandler.counter++;
+                    if(commHandler.counter > 1)
+                    {
+                        commHandler.stub.cpu.Log(LogLevel.Debug, "Gdb stub: entering nested communication context. All bytes will be queued.");
+                    }
+                }
+
+                public void Dispose()
+                {
+                    commHandler.counter--;
+                    if(commHandler.counter == 0)
+                    {
+                        if(commHandler.queue.Count > 0)
+                        {
+                            commHandler.stub.cpu.Log(LogLevel.Debug, "Gdb stub: leaving nested communication context. Sending {0} queued bytes.", commHandler.queue.Count);
+                        }
+                        foreach(var b in commHandler.queue)
+                        {
+                            commHandler.stub.terminal.SendByte(b);
+                        }
+                        commHandler.queue.Clear();
+                    }
+                    Monitor.Exit(commHandler.internalLock);
+                }
+
+                public void Send(Packet packet)
+                {
+                    commHandler.stub.cpu.Log(LogLevel.Debug, "Sending response to GDB: {0}", packet.Data.DataAsString);
+                    foreach(var b in packet.GetCompletePacket())
+                    {
+                        Send(b);
+                    }
+                }
+
+                public void Send(byte b)
+                {
+                    if(commHandler.counter == 1)
+                    {
+                        commHandler.stub.terminal.SendByte(b);
+                    }
+                    else
+                    {
+                        commHandler.queue.Enqueue(b);
+                    }
+                }
+
+                private readonly CommunicationHandler commHandler;
+            }
+        }
     }
 }
 
