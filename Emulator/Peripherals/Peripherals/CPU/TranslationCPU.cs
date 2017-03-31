@@ -638,8 +638,9 @@ namespace Emul8.Peripherals.CPU
         public bool DisableInterruptsWhileStepping { get; set; }
         public int PerformanceInMips { get; set; }
 
-        public void LogFunctionNames(bool value)
+        public void LogFunctionNames(bool value, string spaceSeparatedPrefixes = "")
         {
+            var prefixesAsArray = spaceSeparatedPrefixes.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
             if(value)
             {
                 var pc_cache = new LRUCache<uint, string>(10000);
@@ -654,6 +655,10 @@ namespace Emul8.Peripherals.CPU
                         pc_cache.Add(pc, name);
                     }
 
+                    if(spaceSeparatedPrefixes != "" && !prefixesAsArray.Any(name.StartsWith))
+                    {
+                        return;
+                    }
                     messageBuilder.Clear();
                     this.Log(LogLevel.Info, messageBuilder.Append("Entering function ").Append(name).Append(" at 0x").Append(pc.ToString("X")).ToString());
                 });
