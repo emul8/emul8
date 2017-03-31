@@ -20,6 +20,7 @@ using System.Linq.Expressions;
 using System.Drawing;
 using Emul8.Network;
 using System.Diagnostics;
+using Emul8.Core.Structure.Registers;
 
 namespace Emul8.Utilities
 {
@@ -858,6 +859,13 @@ namespace Emul8.Utilities
         {
             var ind = 0;
             return value.GroupBy(x => ind++ / size).Select(x => string.Join("", x)).ToArray();
+        }
+
+        public static void SetBit(this IValueRegisterField field, byte index, bool value)
+        {
+            var val =  field.Value;
+            BitHelper.SetBit(ref val, index, value);
+            field.Value = val;
         }
     }
 }
