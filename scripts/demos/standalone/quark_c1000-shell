@@ -4,6 +4,7 @@
 using sysbus
 mach create
 i @platforms/cpus/quark_c1000
+i @platforms/boards/arduino_101-shield
 
 machine PyDevFromFile @scripts/pydev/counter.py 0xB0800700 0x4 true "AONC_CNT"
 
