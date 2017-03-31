@@ -18,7 +18,8 @@ namespace Emul8.Utilities.GDB
             DecimalNumber,
             HexNumber,
             HexBytesString, // two hex digits for each byte
-            BinaryBytes
+            BinaryBytes,
+            HexString // two hex digits for every character
         }
     }
 }

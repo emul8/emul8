@@ -8,6 +8,7 @@ using System;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 
 namespace Emul8.Utilities.GDB
 {
@@ -78,6 +79,8 @@ namespace Emul8.Utilities.GDB
                     return context.Packet.Data.DataAsBinary.Skip(startPosition).ToArray();
                 case ArgumentAttribute.ArgumentEncoding.HexBytesString:
                     return valueToParse.Split(2).Select(x => byte.Parse(x, NumberStyles.HexNumber)).ToArray();
+                case ArgumentAttribute.ArgumentEncoding.HexString:
+                    return Encoding.UTF8.GetString(valueToParse.Split(2).Select(x => byte.Parse(x, NumberStyles.HexNumber)).ToArray());
                 default:
                     throw new ArgumentException(string.Format("Unsupported argument type: {0}", parameterInfo.ParameterType.Name));
             }
