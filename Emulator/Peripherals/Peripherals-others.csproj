@@ -167,6 +167,7 @@
     <Compile Include="Peripherals\Wireless\IEEE802_15_4\Address.cs" />
     <Compile Include="Peripherals\SPI\Quark_SPI.cs" />
     <Compile Include="Peripherals\Network\ENC28J60.cs" />
+    <Compile Include="Peripherals\Sensors\TI_LM74.cs" />
     <Compile Include="Peripherals\GPIOPort\Quark_GPIOController.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
@@ -210,5 +211,8 @@
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>BitBanding.cs</LastGenOutput>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Peripherals\Sensors\" />
   </ItemGroup>
 </Project>
