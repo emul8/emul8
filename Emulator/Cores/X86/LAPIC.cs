@@ -18,7 +18,7 @@ using System;
 //TODO: Priorities are handled not as in the docs, higher vector wins.
 namespace Emul8.Peripherals.IRQControllers
 {
-    public class LAPIC : IDoubleWordPeripheral, IIRQController, IKnownSize
+    public sealed class LAPIC : IDoubleWordPeripheral, IIRQController, IKnownSize
     {
         public LAPIC(Machine machine)
         {
@@ -129,7 +129,7 @@ namespace Emul8.Peripherals.IRQControllers
                     return result;
                 }
                 this.Log(LogLevel.Warning, "Trying to acknowledge an interrupt, but there is nothing to acknowledge!");
-                // We should probably serve handle spurious vector here
+                // We should probably handle spurious vector here
                 return 0;
             }
         }
@@ -185,7 +185,7 @@ namespace Emul8.Peripherals.IRQControllers
                                     this.Log(LogLevel.Info, "Local timer mode set to {0}", localTimer.Mode);
                                 })
                 },
-                //These two registers are not supported at all. I do not understand their meaning.
+                //These two registers are not supported despite being written to, I think they are not relevant in our setup.
                 {(long)Registers.LocalVectorTableLINT0, new DoubleWordRegister(this, 0x10000)
                                 .WithTag("Vector", 0, 8)
                                 .WithTag("Delivery mode", 8, 3)
@@ -219,7 +219,7 @@ namespace Emul8.Peripherals.IRQControllers
                                 })
                 },
                 {(long)Registers.LocalVectorTableTimerCurrentCount, new DoubleWordRegister(this)
-                                .WithValueField(0, 32, name: "Current Count Value", valueProviderCallback: _ => (uint)localTimer.Value)
+                                .WithValueField(0, 32, FieldMode.Read, name: "Current Count Value", valueProviderCallback: _ => (uint)localTimer.Value)
                 },
                 {(long)Registers.LocalVectorTableTimerDivideConfig, new DoubleWordRegister(this)
                                 .WithValueField(0, 4, name: "Divide Value", writeCallback: (_, val) =>
@@ -268,7 +268,7 @@ namespace Emul8.Peripherals.IRQControllers
             {
                 if(activeIrqs.Count() == 0)
                 {
-                    this.NoisyLog("Trying to end and interrupt, but no interrupt was acknowledged.");
+                    this.DebugLog("Trying to end and interrupt, but no interrupt was acknowledged.");
                 }
                 else
                 {
