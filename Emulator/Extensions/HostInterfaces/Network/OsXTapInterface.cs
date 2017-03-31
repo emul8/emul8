@@ -185,7 +185,7 @@ namespace Emul8.HostInterfaces.Network
 
         private static readonly TimeSpan GracePeriod = TimeSpan.FromSeconds(1);
         private const int Mtu = 1500;
-        private const int ExpectedMajorNumber = 20;
+        private const int ExpectedMajorNumber = 21;
     }
 }
 #endif
