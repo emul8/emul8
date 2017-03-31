@@ -30,9 +30,10 @@ namespace MonitorTests.CommandTests
         public void NextValueTest()
         {
             monitor.Parse("next_value", commandEater);
-            var value = int.Parse(commandEater.GetContents());
+            var value = int.Parse(commandEater.GetContents().TrimEnd('\r', '\n'));
+            commandEater.Clear();
             monitor.Parse("next_value", commandEater);
-            var next_value = int.Parse(commandEater.GetContents());
+            var next_value = int.Parse(commandEater.GetContents().TrimEnd('\r', '\n'));
             Assert.AreEqual(1, next_value - value);
         }
 
@@ -54,7 +55,7 @@ namespace MonitorTests.CommandTests
         {
             var text = "test text with stuff"; //it wont accept \n
             monitor.Parse(String.Format("echo \"{0}\"", text), commandEater);
-            Assert.AreEqual(text, commandEater.GetContents());
+            Assert.AreEqual(text, commandEater.GetContents().TrimEnd('\r', '\n'));
         }
 
         [Test]

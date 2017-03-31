@@ -22,8 +22,6 @@ namespace Emul8.UserInterface
 
         public void Write(char c, ConsoleColor? color = null)
         {
-            if((c == 10) || (c == 13))
-                return; // TODO
             data.Append(c);
         }
 
