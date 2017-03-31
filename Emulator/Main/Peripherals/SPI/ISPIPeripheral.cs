@@ -12,6 +12,7 @@ namespace Emul8.Peripherals.SPI
     public interface ISPIPeripheral : IPeripheral
     {
         byte Transmit(byte data);
+        void FinishTransmission();
     }
 }
 

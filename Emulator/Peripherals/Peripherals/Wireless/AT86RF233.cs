@@ -87,6 +87,10 @@ namespace Emul8.Peripherals.Wireless
             return 0;
         }
 
+        public void FinishTransmission()
+        {
+        }
+
         public int Channel { get; set; }
 
         public event Action<IRadio, byte[]> FrameSent;

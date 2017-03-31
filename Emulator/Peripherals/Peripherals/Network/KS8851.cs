@@ -70,6 +70,10 @@ namespace Emul8.Peripherals.Network
             return result;
         }
 
+        public void FinishTransmission()
+        {
+        }
+
         public void SignalInterrupt()
         {
             if(!interruptsEnabled)
