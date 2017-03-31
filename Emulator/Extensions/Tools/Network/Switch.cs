@@ -55,7 +55,7 @@ namespace Emul8.Tools.Network
             {
                 if(!ifaces.Values.Contains(iface))
                 {
-                    throw new RecoverableException("The interface is not register, you must connect it in order to set promiscuous mode");
+                    throw new RecoverableException("The interface is not registered, you must connect it in order to set promiscuous mode");
                 }
                 promiscuousMode.Add(iface);
             }
