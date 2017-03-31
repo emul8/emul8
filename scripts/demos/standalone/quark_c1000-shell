@@ -17,6 +17,9 @@ showAnalyzer uart_b
 
 macro reset
 """
+    #set WAIT_FOR_JTAG gpio pin. It's active low, anyway
+    gpio OnGPIO 15 true
+
     $bin ?= @https://dev.antmicro.com/emul8_files/binaries/emul8/zephyr_shell.elf-s_398140-ed6b1a68e94b1cb8ac3cc7d80fb4d36e36a22766
     $boot ?= @https://dev.antmicro.com/emul8_files/binaries/emul8/quark_se_rom.bin-s_8192-b688c8b9380014d7deb2bd42dc218fc5ee8d1abf
     sysbus LoadBinary $boot 0xffffe000
