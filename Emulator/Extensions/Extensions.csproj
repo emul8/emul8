@@ -151,6 +151,7 @@
     <Compile Include="UserInterface\Tokenizer\FloatToken.cs" />
     <Compile Include="Utilities\ICpuSupportingGdb.cs" />
     <Compile Include="UserInterface\MonitorExecutorExtensions.cs" />
+    <Compile Include="Utilities\GDB\Commands\MonitorCommand.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ProjectExtensions>
