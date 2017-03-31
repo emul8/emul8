@@ -10,9 +10,9 @@ namespace Emul8.Utilities.GDB
 {
     internal class Packet
     {
-        public static bool TryCreate(byte[] data, byte checksum, out Packet p)
+        public static bool TryCreate(PacketData data, byte checksum, out Packet p)
         {
-            p = new Packet(new PacketData(data));
+            p = new Packet(data);
             return p.CalculateChecksum() == checksum;
         }
 
@@ -29,7 +29,7 @@ namespace Emul8.Utilities.GDB
         public byte CalculateChecksum()
         {
             uint result = 0;
-            foreach(var b in Data.DataAsBinary)
+            foreach(var b in Data.RawDataAsBinary)
             {
                 result += b;
             }

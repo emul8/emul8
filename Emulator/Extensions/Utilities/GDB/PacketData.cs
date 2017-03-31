@@ -6,6 +6,8 @@
 //
 using System.Text;
 using Emul8.Peripherals.CPU;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 
 namespace Emul8.Utilities.GDB
 {
@@ -40,21 +42,67 @@ namespace Emul8.Utilities.GDB
 
         public PacketData(string data)
         {
-            DataAsString = data;
-            DataAsBinary = Encoding.UTF8.GetBytes(data);
+            cachedString = data;
+            rawBytes = bytes = new List<byte>(Encoding.UTF8.GetBytes(data));
+            RawDataAsBinary = DataAsBinary = new ReadOnlyCollection<byte>(rawBytes);
         }
 
-        public PacketData(byte[] data)
+        public PacketData()
         {
-            DataAsBinary = data;
-            DataAsString = Encoding.UTF8.GetString(data);
+            RawDataAsBinary = new ReadOnlyCollection<byte>(rawBytes = new List<byte>());
+            DataAsBinary = new ReadOnlyCollection<byte>(bytes = new List<byte>());
+        }
+
+        public bool AddByte(byte b)
+        {
+            rawBytes.Add(b);
+            if(escapeNextByte)
+            {
+                bytes.Add((byte)(b ^ EscapeOffset));
+                escapeNextByte = false;
+            }
+            else if(b == EscapeSymbol)
+            {
+                escapeNextByte = true;
+            }
+            else
+            {
+                bytes.Add(b);
+            }
+            if(!escapeNextByte)
+            {
+                cachedString = null;
+                return true;
+            }
+            return false;
         }
 
         public static PacketData Success { get; private set; }
         public static PacketData Empty { get; private set; }
 
-        public byte[] DataAsBinary { get; private set; }
-        public string DataAsString { get; private set; }
+        public IEnumerable<byte> RawDataAsBinary { get; private set; }
+        public IEnumerable<byte> DataAsBinary { get; private set; }
+        public string DataAsString
+        {
+            get
+            {
+                var cs = cachedString;
+                if(cs == null)
+                {
+                    cs = Encoding.UTF8.GetString(bytes.ToArray());
+                    cachedString = cs;
+                }
+                return cs;
+            }
+        }
+
+        private const byte EscapeOffset = 0x20;
+        private const byte EscapeSymbol = (byte)'}';
+
+        private string cachedString;
+        private bool escapeNextByte;
+        private readonly List<byte> rawBytes;
+        private readonly List<byte> bytes;
     }
 }
 

@@ -5,7 +5,6 @@
 // Full license details are defined in the 'LICENSE' file.
 //
 using System;
-using System.Collections.Generic;
 using System.Text;
 
 namespace Emul8.Utilities.GDB
@@ -14,7 +13,6 @@ namespace Emul8.Utilities.GDB
     {
         public PacketBuilder()
         {
-            buffer = new Queue<byte>();
             checksum = new byte[2];
         }
 
@@ -29,31 +27,17 @@ namespace Emul8.Utilities.GDB
                     return new Result(interrupt: true);
                 case PacketStartSymbol:
                     state = State.Data;
-                    buffer.Clear();
+                    packetData = new PacketData();
                     break;
                 }
                 break;
             case State.Data:
-                if(escape)
+                if(!escape && b == PacketStopSymbol)
                 {
-                    b = (byte)(b ^ EscapeOffset);
-                    buffer.Enqueue(b);
-                    escape = false;
-                    break;
-                }
-
-                switch(b)
-                {
-                case EscapeSymbol:
-                    escape = true;
-                    break;
-                case PacketStopSymbol:
                     state = State.Checksum1;
                     break;
-                default:
-                    buffer.Enqueue(b);
-                    break;
                 }
+                escape = !packetData.AddByte(b);
                 break;
             case State.Checksum1:
                 checksum[0] = b;
@@ -65,7 +49,7 @@ namespace Emul8.Utilities.GDB
 
                 var checksumValue = (byte)Convert.ToUInt32(Encoding.ASCII.GetString(checksum), 16);
                 Packet packet;
-                if(!Packet.TryCreate(buffer.ToArray(), checksumValue, out packet))
+                if(!Packet.TryCreate(packetData, checksumValue, out packet))
                 {
                     return new Result(packet, corruptedPacket: true);
                 }
@@ -77,15 +61,13 @@ namespace Emul8.Utilities.GDB
 
         private bool escape;
         private State state;
+        private PacketData packetData;
 
-        private readonly Queue<byte> buffer;
         private readonly byte[] checksum;
 
         private const byte PacketStartSymbol = (byte)'$';
         private const byte PacketStopSymbol = (byte)'#';
-        private const byte EscapeSymbol = (byte)'}';
         private const byte InterruptSymbol = 0x03;
-        private const byte EscapeOffset = 0x20;
 
         private enum State
         {
