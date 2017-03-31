@@ -16,7 +16,6 @@ namespace Emul8.Utilities.GDB.Commands
         [Execute("k")]
         public PacketData Execute()
         {
-            Emulator.Exit();
             return PacketData.Success;
         }
     }

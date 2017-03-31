@@ -64,6 +64,7 @@ namespace Emul8.Utilities
 
         public bool IsAnythingReceiving { get { return DataReceived != null; } }
 
+        public event Action ConnectionClosed;
         public event Action<Stream> ConnectionAccepted;
         public event Action<int> DataReceived;
 
@@ -162,6 +163,12 @@ namespace Emul8.Utilities
 
                 writerThread = null;
                 readerThread = null;
+
+                var connectionClosed = ConnectionClosed;
+                if(connectionClosed != null)
+                {
+                    connectionClosed();
+                }
             }
         }
 

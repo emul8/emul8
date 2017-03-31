@@ -23,15 +23,21 @@ namespace Emul8.Utilities
             Port = port;
 
             pcktBuilder = new PacketBuilder();
-
             commands = new CommandsManager(cpu);
             TypeManager.Instance.AutoLoadedType += commands.Register;
 
-            cpu.Halted += OnHalted;
-            cpu.ExecutionMode = ExecutionMode.SingleStep;
-
             terminal = new SocketServerProvider();
             terminal.DataReceived += OnByteWritten;
+            terminal.ConnectionAccepted += delegate
+            {
+                cpu.Halted += OnHalted;
+                cpu.ExecutionMode = ExecutionMode.SingleStep;
+            };
+            terminal.ConnectionClosed += delegate
+            {
+                cpu.Halted -= OnHalted;
+                cpu.ExecutionMode = ExecutionMode.Continuous;
+            }; 
             terminal.Start(port);
             commHandler = new CommunicationHandler(this);
         }
