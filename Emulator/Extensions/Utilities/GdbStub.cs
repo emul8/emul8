@@ -110,7 +110,7 @@ namespace Emul8.Utilities
 
             if(result.Interrupt)
             {
-                cpu.Log(LogLevel.Debug, "GDB CTRL-C occured - pausing CPU");
+                cpu.Log(LogLevel.Noisy, "GDB CTRL-C occured - pausing CPU");
                 // we need to pause CPU in order to escape infinite loops
                 cpu.Pause();
                 cpu.ExecutionMode = ExecutionMode.SingleStep;
@@ -125,7 +125,7 @@ namespace Emul8.Utilities
                 return;
             }
 
-            cpu.Log(LogLevel.Debug, "GDB packet received: {0}", result.Packet.Data.DataAsString);
+            cpu.Log(LogLevel.Noisy, "GDB packet received: {0}", result.Packet.Data.DataAsString);
             // send ACK
             terminal.SendByte((byte)'+');
 
@@ -153,7 +153,7 @@ namespace Emul8.Utilities
 
         private void SendPacket(Packet packet)
         {
-            cpu.Log(LogLevel.Debug, "Sending response to GDB: {0}", packet.Data.DataAsString);
+            cpu.Log(LogLevel.Noisy, "Sending response to GDB: {0}", packet.Data.DataAsString);
             foreach(var b in packet.GetCompletePacket())
             {
                 terminal.SendByte(b);
