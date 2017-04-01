@@ -190,7 +190,7 @@ Such a file can later be used to replay events for a given machine - for the fil
 
 Recording can be done in two *modes*.
 
-In the default mode called *DomainExternal*, only events *external* to the domain the recorded machine is in are saved.
+In the first mode called *DomainExternal*, only events *external* to the domain the recorded machine is in are saved.
 For example, user input via UART or mouse will be recorded, but the network packet transmitted via switch which is in the same synchronization domain - won't.
 Thanks to that, you can record events for each machine in the synchronization domain and then replay all machines - communication within such a domain will also be repeated due to determinism so recording only external events is enough.
 
@@ -205,7 +205,7 @@ To record events on a given machine issue:
 
     (machine-0) machine RecordTo @file.dat DomainExternal
 
-(the last parameter can be omitted as it is default) or
+or
 
 .. code-block:: bash
 

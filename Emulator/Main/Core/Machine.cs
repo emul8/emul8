@@ -596,7 +596,7 @@ namespace Emul8.Core
                 () => handler(handlerArgument1, handlerArgument2));
         }
 
-        public void RecordTo(string fileName, RecordingBehaviour recordingBehaviour = RecordingBehaviour.DomainExternal)
+        public void RecordTo(string fileName, RecordingBehaviour recordingBehaviour)
         {
             var currentSyncDomain = syncDomain as SynchronizationDomain;
             if(currentSyncDomain == null)
