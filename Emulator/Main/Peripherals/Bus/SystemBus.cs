@@ -1387,7 +1387,7 @@ namespace Emul8.Peripherals.Bus
             }
             if(tagged)
             {
-                this.Log(LogLevel.Warning, warning.TrimEnd('.') + ", tagged - returning 0x{2:X}.", address, type, defaultValue);
+                this.Log(LogLevel.Warning, warning.TrimEnd('.') + ", returning 0x{2:X}.", address, type, defaultValue);
             }
             else
             {
