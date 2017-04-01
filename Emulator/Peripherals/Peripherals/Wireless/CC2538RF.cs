@@ -562,13 +562,12 @@ namespace Emul8.Peripherals.Wireless
                 this.Log(LogLevel.Warning, "Attempted to transmit an empty frame.");
                 return;
             }
-            // first byte is length - we don't need it
-            txQueue.Dequeue();
 
             irqHandler.RequestInterrupt(InterruptSource.StartOfFrameDelimiter);
 
-            var crc = Frame.CalculateCRC(txQueue);
-            var frame = new Frame(txQueue.Concat(crc).ToArray());
+            //ignore the first byte, it's length. Don't drop it though, as the same packet might get resent.
+            var crc = Frame.CalculateCRC(txQueue.Skip(1));
+            var frame = new Frame(txQueue.Skip(1).Concat(crc).ToArray());
 
             this.DebugLog("Sending frame {0}.", frame.Bytes.Select(x => "0x{0:X}".FormatWith(x)).Stringify());
             var frameSent = FrameSent;
