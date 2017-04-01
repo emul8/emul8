@@ -17,6 +17,7 @@ using System.IO;
 using Emul8.Peripherals;
 using System.Collections.Generic;
 using Emul8.Peripherals.Bus;
+using Emul8.EventRecording;
 
 namespace Emul8.UnitTests
 {
@@ -311,7 +312,7 @@ namespace Emul8.UnitTests
             var clockSource = clockSources[0];
             var machine = machineFactory(clockSource);
             var peripheralMock = (PeripheralMock)machine["sysbus.mock"];
-            machine.RecordTo(temporaryFile.Value);
+            machine.RecordTo(temporaryFile.Value, RecordingBehaviour.DomainExternal);
 
             var machineThread = new Thread(machineThreadFunctionFactory(clockSource));
             machineThread.Start();
