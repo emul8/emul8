@@ -10,7 +10,6 @@ using Emul8.Core;
 using Emul8.Core.Structure;
 using Emul8.Peripherals.Network;
 using System.Linq;
-using System.Collections.Concurrent;
 using Emul8.Network;
 using Emul8.Logging;
 using System.Collections.Generic;
@@ -32,44 +31,66 @@ namespace Emul8.Tools.Network
     {
         public void AttachTo(IMACInterface iface)
         {
-            ifaces[iface.MAC] = iface;
-            ifacesDelegates[iface] = (s, f) => ForwardToReceiver(f, iface);
-            iface.Link.TransmitFromParentInterface += ifacesDelegates[iface];
+            lock(innerLock)
+            {
+                var ifaceDescriptor = new InterfaceDescriptor
+                {
+                    Interface = iface,
+                    Delegate = (s, f) => ForwardToReceiver(f, iface)
+                };
+                
+                iface.Link.TransmitFromParentInterface += ifaceDescriptor.Delegate;
+                ifaces.Add(ifaceDescriptor);
+            }
         }
 
         public void DetachFrom(IMACInterface iface)
         {
-            IMACInterface value;
-            ifaces.TryRemove(iface.MAC, out value);
-
-            Action<NetworkLink, EthernetFrame> deleg;
-            if (ifacesDelegates.TryRemove(iface, out deleg))
+            lock(innerLock)
             {
-                iface.Link.TransmitFromParentInterface -= deleg;
+                var descriptor = ifaces.SingleOrDefault(x => x.Interface == iface);
+                if(descriptor == null)
+                {
+                    this.Log(LogLevel.Warning, "Detaching mac interface that is currently not attached: {0}", iface.MAC);
+                    return;
+                }
+
+                ifaces.Remove(descriptor);
+                iface.Link.TransmitFromParentInterface -= descriptor.Delegate;
+                foreach(var m in macMapping.Where(x => x.Value == iface).ToArray())
+                {
+                    macMapping.Remove(m.Key);
+                }
             }
         }
 
         public void EnablePromiscuousMode(IMACInterface iface)
         {
-            lock(promiscuousMode)
+            lock(innerLock)
             {
-                if(!ifaces.Values.Contains(iface))
+                var descriptor = ifaces.SingleOrDefault(x => x.Interface == iface);
+                if(descriptor == null)
                 {
-                    throw new RecoverableException("The interface is not registered, you must connect it in order to set promiscuous mode");
+                    throw new RecoverableException("The interface is not registered, you must connect it in order to change promiscuous mode settings");
                 }
-                promiscuousMode.Add(iface);
+                descriptor.PromiscuousMode = true;
             }
         }
 
         public void DisablePromiscuousMode(IMACInterface iface)
         {
-            lock(promiscuousMode)
+            lock(innerLock)
             {
-                if(!promiscuousMode.Contains(iface))
+                var descriptor = ifaces.SingleOrDefault(x => x.Interface == iface);
+                if(descriptor == null)
+                {
+                    throw new RecoverableException("The interface is not registered, you must connect it in order to change promiscuous mode settings");
+                }
+                if(!descriptor.PromiscuousMode)
                 {
                     throw new RecoverableException("The interface is not in promiscuous mode");
                 }
-                promiscuousMode.Remove(iface);
+                descriptor.PromiscuousMode = false;
             }
         }
 
@@ -95,30 +116,23 @@ namespace Emul8.Tools.Network
                 this.Log(LogLevel.Warning, "Destination MAC not set, the frame has unsupported format.");
                 return;
             }
+
             ExecuteOnNearestSync(() =>
             {
                 if(!started)
                 {
                     return;
                 }
-                var destination = frame.DestinationMAC.Value;
-                IMACInterface destIface;
-                if(ifaces.TryGetValue(destination, out destIface))
+                lock(innerLock)
                 {
-                    foreach(var promiscuousIface in promiscuousMode)
+                    IMACInterface destIface;
+                    var interestingIfaces = macMapping.TryGetValue(frame.DestinationMAC.Value, out destIface)
+                        ? ifaces.Where(x => (x.PromiscuousMode && x.Interface != sender) || x.Interface == destIface)
+                        : ifaces.Where(x => x.Interface != sender);
+
+                    foreach(var iface in interestingIfaces)
                     {
-                        if(promiscuousIface != destIface)
-                        {
-                            promiscuousIface.Link.ReceiveFrameOnInterface(frame);
-                        }
-                    }
-                    destIface.Link.ReceiveFrameOnInterface(frame);
-                }
-                else
-                {
-                    foreach(var other in ifaces.Values.Distinct().Where(x=>x != sender))
-                    {
-                        other.Link.ReceiveFrameOnInterface(frame);
+                        iface.Interface.Link.ReceiveFrameOnInterface(frame);
                     }
                 }
             });
@@ -129,14 +143,35 @@ namespace Emul8.Tools.Network
                 this.Log(LogLevel.Warning, "Source MAC not set, cannot update switch cache.");
                 return;
             }
-            var source = frame.SourceMAC.Value;
-            ifaces[source] = sender;
+
+            lock(innerLock)
+            {
+                macMapping[frame.SourceMAC.Value] = sender;
+            }
         }
 
         private bool started;
-        private readonly List<IMACInterface> promiscuousMode = new List<IMACInterface>();
-        private readonly ConcurrentDictionary<MACAddress, IMACInterface> ifaces = new ConcurrentDictionary<MACAddress, IMACInterface>();
-        private readonly ConcurrentDictionary<IMACInterface, Action<NetworkLink, EthernetFrame>> ifacesDelegates = new ConcurrentDictionary<IMACInterface, Action<NetworkLink, EthernetFrame>>();
+
+        private readonly object innerLock = new object();
+        private readonly HashSet<InterfaceDescriptor> ifaces = new HashSet<InterfaceDescriptor>();
+        private readonly Dictionary<MACAddress, IMACInterface> macMapping = new Dictionary<MACAddress, IMACInterface>();
+
+        private class InterfaceDescriptor
+        {
+            public IMACInterface Interface;
+            public bool PromiscuousMode;
+            public Action<NetworkLink, EthernetFrame> Delegate;
+
+            public override int GetHashCode()
+            {
+                return Interface.GetHashCode();
+            }
+
+            public override bool Equals(object obj)
+            {
+                return Interface.Equals(obj);
+            }
+        }
     }
 }
 
