@@ -9,6 +9,7 @@ using System;
 using Emul8.Utilities.Collections;
 using AntShell.Terminal;
 using System.Threading.Tasks;
+using Antmicro.Migrant;
 
 namespace Emul8.Peripherals.UART
 {
@@ -70,6 +71,7 @@ namespace Emul8.Peripherals.UART
             }
         }
 
+        [Transient]
         private IOProvider io;
         private readonly CircularBuffer<byte> history;
 
