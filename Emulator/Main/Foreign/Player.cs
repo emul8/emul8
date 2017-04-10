@@ -22,7 +22,7 @@ namespace Emul8.EventRecording
         {
             this.machine = machine;
             this.stream = stream;
-            deserializer = new Serializer(new Settings(useBuffering: false)).ObtainOpenStreamDeserializer(stream);
+            deserializer = new Serializer(new Settings(useBuffering: false, disableTypeStamping: true)).ObtainOpenStreamDeserializer(stream);
             handlersCache = new Dictionary<NameAndHandler, Delegate>();
             entries = deserializer.DeserializeMany<IRecordEntry>().GetEnumerator();
             if(!entries.MoveNext())

@@ -132,10 +132,7 @@ namespace Emul8.Core
         private EmulationManager()
         {
             var settings = new Antmicro.Migrant.Customization.Settings(Antmicro.Migrant.Customization.Method.Generated, Antmicro.Migrant.Customization.Method.Generated,
-                Antmicro.Migrant.Customization.VersionToleranceLevel.AllowFieldAddition 
-                | Antmicro.Migrant.Customization.VersionToleranceLevel.AllowFieldRemoval 
-                | Antmicro.Migrant.Customization.VersionToleranceLevel.AllowGuidChange 
-                | Antmicro.Migrant.Customization.VersionToleranceLevel.AllowAssemblyVersionChange);
+                Antmicro.Migrant.Customization.VersionToleranceLevel.AllowGuidChange, disableTypeStamping: true);
             serializer = new Serializer(settings);
             serializer.ForObject<PythonDictionary>().SetSurrogate(x => new PythonDictionarySurrogate(x));
             serializer.ForSurrogate<PythonDictionarySurrogate>().SetObject(x => x.Restore());

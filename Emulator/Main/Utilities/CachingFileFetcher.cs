@@ -438,7 +438,7 @@ namespace Emul8.Utilities
         private const string CacheLock = "cache_lock";
         private readonly Dictionary<string, Uri> fetchedFiles;
 
-        private static readonly Serializer Serializer = new Serializer(new Settings(versionTolerance: VersionToleranceLevel.AllowGuidChange | VersionToleranceLevel.AllowAssemblyVersionChange));
+        private static readonly Serializer Serializer = new Serializer(new Settings(versionTolerance: VersionToleranceLevel.AllowGuidChange, disableTypeStamping: true));
         private static readonly Regex ChecksumRegex = new Regex(@"-s_(\d+)-([a-f,0-9]{40})$");
 
         private class BinaryEntry

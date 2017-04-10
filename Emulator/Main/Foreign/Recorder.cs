@@ -24,7 +24,7 @@ namespace Emul8.EventRecording
             this.machine = machine;
             this.recordingBehaviour = recordingBehaviour;
             nullifiedHandlersCache = new Dictionary<Delegate, Delegate>();
-            openStreamSerializer = new Serializer(new Settings(useBuffering: false)).ObtainOpenStreamSerializer(stream);
+            openStreamSerializer = new Serializer(new Settings(useBuffering: false, disableTypeStamping: true)).ObtainOpenStreamSerializer(stream);
         }
 
         public void Record<T>(T value, Action<T> handler, long syncNumber, bool domainExternal)
