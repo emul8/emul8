@@ -565,7 +565,9 @@ namespace Emul8.Peripherals.CPU
                     CheckIfOnSynchronizedThread();
                 }
                 this.NoisyLog("IRQ {0}, value {1}", number, value);
-                if(started && !(DisableInterruptsWhileStepping && executionMode == ExecutionMode.SingleStep))
+                // halted result means that cpu waits on WFI
+                // in such case we should, obviously, not mask interrupts
+                if(started && (lastTlibResult == HaltedResult || !(DisableInterruptsWhileStepping && executionMode == ExecutionMode.SingleStep)))
                 {
                     TlibSetIrq((int)decodedInterrupt, value ? 1 : 0);
                 }
@@ -838,10 +840,10 @@ namespace Emul8.Peripherals.CPU
         }
 
         private ConcurrentQueue<Action> actionsToExecuteInCpuThread = new ConcurrentQueue<Action>();
+        private int lastTlibResult;
 
         private void CpuLoop()
         {
-            var tlibResult = 0;
             if(ClockSource.HasEntries && advanceShouldBeRestarted)
             {
                 try
@@ -857,7 +859,9 @@ namespace Emul8.Peripherals.CPU
 
             while(true)
             {
-                if(!(DisableInterruptsWhileStepping && executionMode == ExecutionMode.SingleStep) && TlibIsIrqSet() == 0 && interruptEvents.Any(x => x.WaitOne(0)))
+                // halted result means that cpu waits on WFI
+                // in such case we should, obviously, not mask interrupts
+                if(!((DisableInterruptsWhileStepping && executionMode == ExecutionMode.SingleStep) || lastTlibResult == HaltedResult) && TlibIsIrqSet() == 0 && interruptEvents.Any(x => x.WaitOne(0)))
                 {
                     for(var i = 0; i < interruptEvents.Length; i++)
                     {
@@ -885,7 +889,7 @@ namespace Emul8.Peripherals.CPU
 
                         pauseGuard.Enter();
                         skipNextStepping = true;
-                        tlibResult = TlibExecute();
+                        lastTlibResult = TlibExecute();
                         pauseGuard.Leave();
                     }
                 }
@@ -902,7 +906,7 @@ namespace Emul8.Peripherals.CPU
                     break;
                 }
 
-                if(tlibResult == BreakpointResult)
+                if(lastTlibResult == BreakpointResult)
                 {
                     ExecuteHooks(PC);
                     // it is necessary to deactivate hooks installed on this PC before
