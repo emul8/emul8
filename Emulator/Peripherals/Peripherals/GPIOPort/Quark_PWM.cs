@@ -16,9 +16,9 @@ using Emul8.Peripherals.GPIOPort;
 
 namespace Emul8.Peripherals.X86
 {
-    public class PWM : BaseGPIOPort, IDoubleWordPeripheral, IKnownSize, INumberedGPIOOutput
+    public class Quark_PWM : BaseGPIOPort, IDoubleWordPeripheral, IKnownSize, INumberedGPIOOutput
     {
-        public PWM(Machine machine) : base(machine, NumberOfInternalTimers)
+        public Quark_PWM(Machine machine) : base(machine, NumberOfInternalTimers)
         {
             internalLock = new object();
             interruptStatus = new bool[NumberOfInternalTimers];
