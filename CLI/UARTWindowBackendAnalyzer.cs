@@ -59,9 +59,7 @@ namespace Emul8.CLI
 
         public void AttachTo(UARTBackend backend)
         {
-            backend.BindAnalyzer(IO);
             Backend = backend;
-
             string uartName;
             if(EmulationManager.Instance.CurrentEmulation.TryGetEmulationElementName(backend.UART, out uartName))
             {
@@ -113,21 +111,26 @@ namespace Emul8.CLI
                         windowCreators.Keys.Select(x => x.ToString()).Aggregate((x, y) => x + ", " + y)));
                 }
 
-                Thread.Sleep(1000);
-                // I know - this is ugly. But here's the problem:
-                // we start terminal process with embedded socat and it takes time
-                // how much? - you ask
-                // good question - we don't know it; sometimes more, sometimes less
-                // sometimes it causes a problem - socat is not ready yet when first data arrives
-                // what happens then? - you ask
-                // good question - we lost some input, Emul8 banner most probably
-                // how to solve it? - you ask
-                // good question - with no good answer though, i'm affraid
-                // that is why we sleep here for 1s hoping it's enough
-                //
-                // This will be finally changed to our own implementation of VirtualTerminalEmulator.
             }
 #endif
+
+            Thread.Sleep(1000);
+            // I know - this is ugly. But here's the problem:
+            // we start terminal process with embedded socat and it takes time
+            // how much? - you ask
+            // good question - we don't know it; sometimes more, sometimes less
+            // sometimes it causes a problem - socat is not ready yet when first data arrives
+            // what happens then? - you ask
+            // good question - we lost some input, Emul8 banner most probably
+            // how to solve it? - you ask
+            // good question - with no good answer though, i'm affraid
+            // that is why we sleep here for 1s hoping it's enough
+            //
+            // This will be finally changed to our own implementation of VirtualTerminalEmulator.
+            if(Backend != null)
+            {
+                ((UARTBackend)Backend).BindAnalyzer(IO);
+            }
         }
 
         public void Hide()
