@@ -50,7 +50,6 @@ namespace Emul8.Peripherals.CPU
             PerformanceInMips = 100;
             currentCountThreshold = 5000;
             this.cpuType = cpuType;
-            DisableInterruptsWhileStepping = true;
             ClockSource = new BaseClockSource();
             ClockSource.NumberOfEntriesChanged += (oldValue, newValue) =>
             {
