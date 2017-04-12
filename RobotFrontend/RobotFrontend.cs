@@ -5,6 +5,10 @@
 // Full license details are defined in the 'LICENSE' file.
 //
 using System;
+using System.Threading.Tasks;
+using Emul8.CLI;
+using Emul8.Core;
+using Emul8.Peripherals.UART;
 using Emul8.Robot;
 using Emul8.Utilities;
 
@@ -26,8 +30,24 @@ namespace Emul8.RobotFrontend
 
             var processor = new XmlRpcServer(keywordManager);
             server = new HttpServer(processor);
-            server.Run(port);
-            server.Dispose();
+
+            var preferredUARTAnalyzer = typeof(UARTWindowBackendAnalyzer);
+            EmulationManager.Instance.CurrentEmulation.BackendManager.SetPreferredAnalyzer(typeof(UARTBackend), preferredUARTAnalyzer);
+            EmulationManager.Instance.EmulationChanged += () =>
+            {
+                EmulationManager.Instance.CurrentEmulation.BackendManager.SetPreferredAnalyzer(typeof(UARTBackend), preferredUARTAnalyzer);
+            };
+
+            Task.Run(() => 
+            {
+                using(var xwt = new XwtProvider(new WindowedUserInterfaceProvider()))
+                {
+                    server.Run(port);
+                    server.Dispose();
+                }
+            });
+
+            Emulator.ExecuteAsMainThread();
         }
 
         public static void ExecuteKeyword(string name, string[] arguments)
@@ -38,6 +58,7 @@ namespace Emul8.RobotFrontend
         public static void Shutdown()
         {
             server.Shutdown();
+            Emulator.FinishExecutionAsMainThread();
         }
 
         private static HttpServer server;
