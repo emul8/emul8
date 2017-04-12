@@ -1,6 +1,7 @@
 # emul8: ignore test
 
 *** Settings ***
+Library         String
 Library         Process
 Library         OperatingSystem
 
