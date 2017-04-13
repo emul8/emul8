@@ -4,6 +4,7 @@
 Library         String
 Library         Process
 Library         OperatingSystem
+Library         helper.py
 
 *** Variables ***
 ${SERVER_REMOTE_DEBUG}    False
