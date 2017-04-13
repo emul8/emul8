@@ -81,15 +81,11 @@ namespace Emul8.RobotFrontend
         }
 
         [RobotFrameworkKeyword]
-        public void WaitForLineOnUart(string content, int? timeout = null)
+        public string WaitForLineOnUart(string content, int? timeout = null, string peripheralName = null)
         {
-            WaitForLineOnUart(null, content, timeout);
-        }
-
-        [RobotFrameworkKeyword]
-        public void WaitForLineOnUart(string peripheralName, string content, int? timeout = null)
-        {
-            GetTesterOrThrowException(peripheralName).WaitUntilLine(x => x.Contains(content), timeout == null ? (TimeSpan?)null : TimeSpan.FromSeconds(timeout.Value));
+            string lineContent = null;
+            GetTesterOrThrowException(peripheralName).WaitUntilLine(x => x.Contains(content), out lineContent, timeout == null ? (TimeSpan?)null : TimeSpan.FromSeconds(timeout.Value));
+            return lineContent;
         }
 
         [RobotFrameworkKeyword]

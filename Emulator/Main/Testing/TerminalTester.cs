@@ -89,13 +89,14 @@ namespace Emul8.Testing
         {
             reportCollection = new ConcurrentQueue<Event>();
         }
-        
-        public TerminalTester WaitUntilLine(Expression<Func<string, bool>> predicateExpression, TimeSpan? timeout = null)
+
+        public TerminalTester WaitUntilLine(Expression<Func<string, bool>> predicateExpression, out string lineContent, TimeSpan? timeout = null)
         {
             var predicate = predicateExpression.Compile();
+            Line line = null;
             WaitForEvent(x => 
             {
-                var line = x as Line;
+                line = x as Line;
                 if(line != null && predicate(line.Content))
                 {
                     LastEventVirtualTimestamp = x.VirtualTimestamp;
@@ -104,7 +105,15 @@ namespace Emul8.Testing
                 return EventResult.Continue;
             }, timeout, new Assertion(string.Format("WaitUntilLine({0})", predicateExpression.ToCSharpCode()))
                                      { Type = AssertionType.WaitUntilLine });
+
+            lineContent = line.Content;
             return this;
+        }
+        
+        public TerminalTester WaitUntilLine(Expression<Func<string, bool>> predicateExpression, TimeSpan? timeout = null)
+        {
+            string fake;
+            return WaitUntilLine(predicateExpression, out fake, timeout);
         }
         
         public TerminalTester NowPromptIs(string prompt)
