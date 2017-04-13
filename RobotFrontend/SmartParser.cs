@@ -72,31 +72,6 @@ namespace Emul8.Robot
             }
         }
 
-        public bool TryParse(string[] input, Type[] outputType, out object[] result)
-        {
-            result = new object[Math.Min(input.Length, outputType.Length)];
-            for(var i = 0; i < input.Length; i++)
-            {
-                if(!TryParse(input[i], outputType[i], out result[i]))
-                {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
-        public object[] Parse(string[] input, Type[] outputType)
-        {
-            var result = new object[Math.Min(input.Length, outputType.Length)];
-            for(var i = 0; i < input.Length; i++)
-            {
-                result[i] = Parse(input[i], outputType[i]);
-            }
-
-            return result;
-        }
-
         private static Delegate GetParseMethodDelegate(Type type, Type[] parameters)
         {
             var method = type.GetMethod("Parse", parameters);
