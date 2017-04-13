@@ -4,8 +4,11 @@
 // This file is part of the Emul8 project.
 // Full license details are defined in the 'LICENSE' file.
 //
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 
 namespace Emul8.Robot
 {
@@ -21,22 +24,13 @@ namespace Emul8.Robot
         {
             var parameters = methodInfo.GetParameters();
 
-
             if(parameters.Length == 1 && parameters[0].ParameterType == typeof(string[]))
             {
                 parsedArguments = new object[] { arguments };
-            }
-            else if(!SmartParser.Instance.TryParse(arguments, parameters.Select(x => x.ParameterType).ToArray(), out parsedArguments))
-            {
-                return false;
+                return true;
             }
 
-            if(parameters.Length > parsedArguments.Length && parameters[parsedArguments.Length].HasDefaultValue)
-            {
-                parsedArguments = parsedArguments.Concat(parameters.Skip(parsedArguments.Length).Select(x => x.DefaultValue)).ToArray();
-            }
-
-            return parameters.Length == parsedArguments.Length;
+            return TryParseArguments(parameters, arguments, out parsedArguments);
         }
 
         public object Execute(object[] arguments)
@@ -53,8 +47,95 @@ namespace Emul8.Robot
             }
         }
 
+        private bool TryParseArguments(ParameterInfo[] parameters, string[] arguments, out object[] parsedArguments)
+        {
+            parsedArguments = null;
+            if(arguments.Length > parameters.Length)
+            {
+                return false;
+            }
+
+            var args = new ArgumentDescriptor[parameters.Length];
+
+            var positionalArgumentIndex = 0;
+            var namedArgumentDetected = false;
+            var pattern = new Regex(@"^([a-zA-Z0-9_]+)=(.+)");
+            foreach(var argument in arguments)
+            {
+                object result;
+                int position;
+                string valueToParse;
+                // check if it's a named argument
+                var m = pattern.Match(argument);
+                if(m.Success)
+                {
+                    namedArgumentDetected = true;
+                    var name = m.Groups[1].Value;
+                    var param = parameters.SingleOrDefault(x => x.Name == name);
+
+                    if(param == null)
+                    {
+                        return false;
+                    }
+
+                    if(args[param.Position].IsParsed)
+                    {
+                        throw new ArgumentException("Named argument `{0}' specified multiple times", name);
+                    }
+
+                    position = param.Position;
+                    valueToParse = m.Groups[2].Value;
+                }
+                else
+                {
+                    if(namedArgumentDetected)
+                    {
+                        // this is a serious error
+                        throw new ArgumentException("Named arguments must appear after the positional arguments");
+                    }
+
+                    position = positionalArgumentIndex++;
+                    valueToParse = argument;
+                }
+
+                if(!SmartParser.Instance.TryParse(valueToParse, parameters[position].ParameterType, out result))
+                {
+                    return false;
+                }
+
+                args[position].IsParsed = true;
+                args[position].Value = result;
+            }
+
+            for(var i = 0; i < args.Length; i++)
+            {
+                if(args[i].IsParsed)
+                {
+                    continue;
+                }
+
+                if(!parameters[i].HasDefaultValue)
+                {
+                    return false;
+                }
+
+                args[i].IsParsed = true;
+                args[i].Value = parameters[i].DefaultValue;
+            }
+
+            parsedArguments = args.Select(x => x.Value).ToArray();
+            return true;
+        }
+
         private readonly MethodInfo methodInfo;
         private readonly KeywordManager manager;
+
+        private struct ArgumentDescriptor
+        {
+            public bool IsParsed;
+            public object Value;
+
+        }
     }
 }
 
