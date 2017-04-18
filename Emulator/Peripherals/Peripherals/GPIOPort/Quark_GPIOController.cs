@@ -141,9 +141,12 @@ namespace Emul8.Peripherals.X86
                                     var bits = BitHelper.GetBits(val);
                                     for(int i = 0; i < bits.Length; i++) 
                                     {
-                                        Connections[i].Set(bits[i]);
+                                        if(PortDataDirection[i] == PinDirection.Output)
+                                        {
+                                            Connections[i].Set(bits[i]);
+                                            State[i] = bits[i];
+                                        }
                                     }
-                                    Array.Copy(bits, State, 32);
                                 })
                 },
                 {(long)Registers.PortADataDirection, new DoubleWordRegister(this)
