@@ -14,6 +14,7 @@ using Emul8.Peripherals.Python;
 using Emul8.Utilities;
 using System.Diagnostics;
 using System.Threading;
+using System.Reflection;
 
 namespace Emul8.Core
 {
@@ -125,6 +126,18 @@ namespace Emul8.Core
             stopwatch.Stop();
             stopwatch.Reset();
             return timerResult;
+        }
+
+        public string VersionString
+        {
+            get
+            {
+                var assembly = Assembly.GetExecutingAssembly();
+                var name = ((AssemblyTitleAttribute)assembly.GetCustomAttributes(typeof(AssemblyTitleAttribute), false)[0]).Title;
+                var version = assembly.GetName().Version;
+                var gitVersion = ((AssemblyInformationalVersionAttribute)assembly.GetCustomAttributes(typeof(AssemblyInformationalVersionAttribute), false)[0]).InformationalVersion;
+                return string.Format("{0}, version {1} ({2})", name, version, gitVersion);
+            }
         }
 
         public event Action EmulationChanged;
