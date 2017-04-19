@@ -67,7 +67,7 @@ namespace Emul8.Robot
                 return result;
             }
 
-            throw new XmlRpcFaultException(2, string.Format("Arguments types do not much any available keyword \"{0}\"", keywordName));
+            throw new XmlRpcFaultException(2, string.Format("Arguments types do not match any available keyword \"{0}\" : [{1}]", keywordName, string.Join(", ", arguments)));
         }
 
         [XmlRpcMethod("stop_remote_server")]
