@@ -15,6 +15,7 @@ using Emul8.Utilities;
 using System.Diagnostics;
 using System.Threading;
 using System.Reflection;
+using Emul8.Logging;
 
 namespace Emul8.Core
 {
@@ -50,10 +51,17 @@ namespace Emul8.Core
 
         public void Load(string path)
         {
+            string version;
             using(var stream = new FileStream(path, FileMode.Open, FileAccess.Read))
             {
+                version = serializer.Deserialize<string>(stream);
                 CurrentEmulation = serializer.Deserialize<Emulation>(stream);
                 CurrentEmulation.BlobManager.Load(stream);
+            }
+
+            if(version != VersionString)
+            {
+                Logger.Log(LogLevel.Warning, "Version of deserialized emulation ({0}) does not match current one {1}. Things may go awry!", version, VersionString);
             }
         }
 
@@ -67,6 +75,7 @@ namespace Emul8.Core
                     {
                         try
                         {
+                            serializer.Serialize(VersionString, stream);
                             serializer.Serialize(CurrentEmulation, stream);
                             CurrentEmulation.BlobManager.Save(stream);
                         }
