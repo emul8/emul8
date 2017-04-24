@@ -47,33 +47,29 @@ namespace Emul8.Robot
                 return Enum.Parse(outputType, input);
             }
 
-            NumberStyles style;
+            Delegate parser;
             if(input.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
             {
-                style = NumberStyles.HexNumber;
                 input = input.Substring(2);
+
+                if(!hexCache.TryGetValue(outputType, out parser))
+                {
+                    parser = GetParseMethodDelegate(outputType, new[] { typeof(string), typeof(NumberStyles), typeof(CultureInfo) });
+                    hexCache.Add(outputType, parser);
+                }
+
+                return parser.DynamicInvoke(input, NumberStyles.HexNumber, CultureInfo.InvariantCulture);
             }
             else
             {
-                style = NumberStyles.Integer;
-            }
-
-            Delegate parser;
-            if(!cache.TryGetValue(outputType, out parser))
-            {
-                var types = new[] { typeof(string), typeof(NumberStyles) };
-                var method = outputType.GetMethod("Parse", types);
-                if(method == null)
+                if(!cache.TryGetValue(outputType, out parser))
                 {
-                    throw new ArgumentException(string.Format("Type \"{0}\" does not have a \"Parse\" method", outputType.Name));
+                    parser = GetParseMethodDelegate(outputType, new[] { typeof(string), typeof(CultureInfo) });
+                    cache.Add(outputType, parser);
                 }
 
-                var delegateType = Expression.GetDelegateType(types.Concat(new[] { method.ReturnType }).ToArray());
-                parser = method.CreateDelegate(delegateType);
-                cache.Add(outputType, parser);
+                return parser.DynamicInvoke(input, CultureInfo.InvariantCulture);
             }
-
-            return parser.DynamicInvoke(input, style);
         }
 
         public bool TryParse(string[] input, Type[] outputType, out object[] result)
@@ -101,12 +97,26 @@ namespace Emul8.Robot
             return result;
         }
 
+        private static Delegate GetParseMethodDelegate(Type type, Type[] parameters)
+        {
+            var method = type.GetMethod("Parse", parameters);
+            if(method == null)
+            {
+                throw new ArgumentException(string.Format("Type \"{0}\" does not have a \"Parse\" method with the requested parameters", type.Name));
+            }
+
+            var delegateType = Expression.GetDelegateType(parameters.Concat(new[] { method.ReturnType }).ToArray());
+            return method.CreateDelegate(delegateType);
+        }
+
         private SmartParser()
         {
             cache = new Dictionary<Type, Delegate>();
+            hexCache = new Dictionary<Type, Delegate>();
         }
 
         private readonly Dictionary<Type, Delegate> cache;
+        private readonly Dictionary<Type, Delegate> hexCache;
     }
 }
 
