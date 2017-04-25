@@ -103,7 +103,7 @@ namespace Emul8.CLI
                     {TerminalTypes.TerminalApp, CreateTerminalAppWindow}
                 };
 
-                var commandString = string.Format("screen {0}", ptyUnixStream.Name);
+                var commandString = string.Format("screen {0}", ptyUnixStream.SlaveName);
                 //Try preferred terminal first, than any other. If all fail, throw.
                 if(!windowCreators.OrderByDescending(x => x.Key == preferredTerminal).Any(x => x.Value(commandString, out process)))
                 {
@@ -332,7 +332,7 @@ namespace Emul8.CLI
             var script = TemporaryFilesManager.Instance.GetTemporaryFile();
             File.WriteAllLines(script, new [] {
                 "#!/bin/bash",
-                string.Format("/usr/bin/screen {0}", ptyUnixStream.Name)
+                string.Format("/usr/bin/screen {0}", ptyUnixStream.SlaveName)
             });
 
             try

@@ -18,64 +18,27 @@ namespace Emul8.Utilities
 {
     public class PtyUnixStream : Stream
     {
-        public PtyUnixStream(string name) : this()
-        {
-            Name = name;
-        }
-
         public PtyUnixStream()
         {
             Init();
         }
 
-        [PostDeserialization]
-        private void Init()
-        {
-            if (Name != null)
-            {
-                OpenPty(Name);
-            }
-            else
-            {
-                Name = OpenPty();
-            }
-        }
-
-        [Transient]
-        private string name;
-        public string Name 
-        { 
-            get { return name; }
-            private set { name = value; }
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            base.Dispose(disposing);
-            disposed = true;
-        }
-
-        #region Stream
-
-        public override int ReadTimeout { get; set; }
-
         public override int ReadByte()
         {
-            int result;
-            try {
-                if (ReadTimeout > 0)
+            try 
+            {
+                if(ReadTimeout > 0)
                 {
-                    result = IsDataAvailable(ReadTimeout) ? base.ReadByte() : -2;
+                    var result = IsDataAvailable(ReadTimeout) ? base.ReadByte() : -2;
                     ReadTimeout = -1;
+                    return result;
                 }
                 else
                 {
-                    result = base.ReadByte();
+                    return WaitUntilDataIsAvailable() ? base.ReadByte() : -1;
                 }
-
-                return result;
             }
-            catch (IOException)
+            catch(IOException)
             {
                 return -1;
             }
@@ -114,61 +77,95 @@ namespace Emul8.Utilities
 
         public override long Length { get { return Stream.Length; } }
 
+        public override bool CanTimeout { get { return true; } }
+
+        public override int ReadTimeout { get; set; }
+
         public override long Position 
         {
             get { return Stream.Position; }
             set { Stream.Position = value; }
         }
 
-        public override bool CanTimeout { get { return true; } }
+        public string SlaveName 
+        { 
+            get { return slaveName; }
+            private set { slaveName = value; }
+        }
 
-        #endregion
+        public int SlaveFd { get { return slaveFd; } }
 
-        private void OpenPty(string name)
+        protected override void Dispose(bool disposing)
         {
-            var openFlags = OpenFlags.O_NOCTTY | OpenFlags.O_RDWR;
-            /*if(nonBlocking)
-            {
-                openFlags |= OpenFlags.O_NONBLOCK;
-            }*/
+            // masterFd will be closed by disposing the base
+            base.Dispose(disposing);
+            Syscall.close(slaveFd);
+            disposed = true;
+        }
 
-            master = Syscall.open(name, openFlags);
-            UnixMarshal.ThrowExceptionForLastErrorIf(master);
+        private static string OpenNewSlavePty(out int masterFd, out int slaveFd)
+        {
+            var amaster = Marshal.AllocHGlobal(4);
+            var aslave = Marshal.AllocHGlobal(4);
+            var name = Marshal.AllocHGlobal(1024);
+
+            int result = Openpty(amaster, aslave, name, IntPtr.Zero, IntPtr.Zero);
+            UnixMarshal.ThrowExceptionForLastErrorIf(result);
+
+            masterFd = Marshal.ReadInt32(amaster);
+            slaveFd = Marshal.ReadInt32(aslave);
+            var slaveName = Marshal.PtrToStringAnsi(name);
+
+            Marshal.FreeHGlobal(amaster);
+            Marshal.FreeHGlobal(aslave);
+            Marshal.FreeHGlobal(name);
 
             IntPtr termios = Marshal.AllocHGlobal(128); // termios struct is 60-bytes, but we allocate more just to make sure
             Tcgetattr(0, termios);
             Cfmakeraw(termios);
-            Tcsetattr(master, 1, termios);  // 1 == TCSAFLUSH
+            Tcsetattr(slaveFd, 1, termios);  // 1 == TCSAFLUSH
             Marshal.FreeHGlobal(termios);
-        }
 
-        private string OpenPty()
-        {
-            OpenPty("/dev/ptmx");
-
-            var gptResult = Grantpt(master);
+            var gptResult = Grantpt(masterFd);
             UnixMarshal.ThrowExceptionForLastErrorIf(gptResult);
-            var uptResult = Unlockpt(master);
+            var uptResult = Unlockpt(masterFd);
             UnixMarshal.ThrowExceptionForLastErrorIf(uptResult);
-            var slaveName = GetPtyName(master);
 
             return slaveName;
         }
 
-        private static string GetPtyName(int fd)
+        private bool WaitUntilDataIsAvailable()
         {
-            return Marshal.PtrToStringAnsi(Ptsname(fd));
+            int pollResult;
+            bool retry;
+            var pollData = new[] { new Pollfd { fd = masterFd, events = PollEvents.POLLIN } };
+            do
+            {
+                retry = false;
+                pollResult = Syscall.poll(pollData, -1);
+                // here we compare flag using == operator as we want only POLLHUP to
+                // activate the condition
+                if(pollResult == 1 && pollData[0].revents == PollEvents.POLLHUP)
+                {
+                    // this is necessary as poll will result with PollHup when
+                    // client disconnects from slave tty; we want to allow to
+                    // connect again 
+                    System.Threading.Thread.Sleep(HangUpCheckPeriod);
+                    retry = true;
+                }
+            }
+            while(!disposed && (retry || UnixMarshal.ShouldRetrySyscall(pollResult)));
+            // here we don't use simple == operator to detect POLLIN, as it turns out
+            // that POLLHUP is quite sticky - once it is reported it stays forever
+            return pollResult == 1 && (pollData[0].revents & PollEvents.POLLIN) != 0;
         }
 
         private bool IsDataAvailable(int timeout, out int pollResult)
         {
-            var pollData = new Pollfd {
-                fd = master,
-                events = PollEvents.POLLIN
-            };
+            var pollData = new[] { new Pollfd { fd = masterFd, events = PollEvents.POLLIN } };
             do
             {
-                pollResult = Syscall.poll(new [] { pollData }, timeout);
+                pollResult = Syscall.poll(pollData, timeout);
             }
             while(!disposed && UnixMarshal.ShouldRetrySyscall(pollResult));
             return pollResult > 0;
@@ -183,6 +180,24 @@ namespace Emul8.Utilities
                 UnixMarshal.ThrowExceptionForLastError();
             }
             return pollResult > 0;
+        }
+
+        [PostDeserialization]
+        private void Init()
+        {
+            SlaveName = OpenNewSlavePty(out masterFd, out slaveFd);
+        }
+
+        private UnixStream Stream 
+        {
+            get 
+            {
+                if(stream == null) 
+                {
+                    stream = new UnixStream(masterFd, true);
+                }
+                return stream;
+            }
         }
 
         [DllImport("libc", EntryPoint = "getpt")]
@@ -206,25 +221,24 @@ namespace Emul8.Utilities
         [DllImport("libc", EntryPoint = "tcsetattr")]
         private extern static void Tcsetattr(int fd, int attr, IntPtr termios);
 
-        private UnixStream Stream 
-        {
-            get 
-            {
-                if(stream == null) 
-                {
-                    stream = new UnixStream(master, true);
-                }
-                return stream;
-            }
-        }
+        [DllImport("util", EntryPoint = "openpty")]
+        private extern static int Openpty(IntPtr amaster, IntPtr aslave, IntPtr name, IntPtr termp, IntPtr winp);
 
         [Transient]
         private UnixStream stream;
 
         [Transient]
-        private int master;
+        private string slaveName;
+
+        [Transient]
+        private int masterFd;
+
+        [Transient]
+        private int slaveFd;
 
         private bool disposed;
+
+        private const int HangUpCheckPeriod = 500;
     }
 }
 #endif
