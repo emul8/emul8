@@ -74,17 +74,10 @@ namespace Emul8.RobotFrontend
             }
         }
 
-
         [RobotFrameworkKeyword]
-        public void SetNewPromptForUart(string peripheralName, string prompt)
+        public void SetNewPromptForUart(string prompt, string uart = null)
         {
-            GetTesterOrThrowException(peripheralName).NowPromptIs(prompt);
-        }
-
-        [RobotFrameworkKeyword]
-        public void SetNewPromptForUart(string prompt) 
-        {
-            SetNewPromptForUart(null, prompt);
+            GetTesterOrThrowException(uart).NowPromptIs(prompt);
         }
 
         [RobotFrameworkKeyword]
