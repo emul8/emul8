@@ -126,6 +126,12 @@ namespace Emul8.RobotFrontend
         {
             return GetTesterOrThrowException(uart).LastEventVirtualTimestamp.TotalMilliseconds;
         }
+   
+        [RobotFrameworkKeyword]
+        public void TestIfUartIsIdle(int timeInSeconds, string uart = null)
+        {
+            GetTesterOrThrowException(uart).CheckIfUartIsIdle(TimeSpan.FromSeconds(timeInSeconds));
+        }
 
         private TerminalTester GetTesterOrThrowException(string peripheralName)
         {

@@ -218,6 +218,17 @@ namespace Emul8.Testing
             return this;
         }
 
+        public TerminalTester CheckIfUartIsIdle(TimeSpan period)
+        {
+            var assertion = new Assertion("UartShouldBeIdle") { Type = AssertionType.DoNotErrorOnTimeout };
+            WaitForEvent(x => 
+            {
+                return EventResult.Failure;
+            },
+                period, assertion);
+            return this;
+        }
+
         public TimeSpan WriteCharDelay
         {
             get
@@ -283,12 +294,20 @@ namespace Emul8.Testing
                         lock(reportEndingLock)
                         {
                             takeWaitCancellationSource.Cancel();
-                            reportCollection.Enqueue(new Timeout(assertion));
-                            if(assertion.Type == AssertionType.WaitForPrompt || assertion.Type == AssertionType.WaitUntilLine)
+                            // if cancellation was requested via `doneCancellationSource` it means that predicate has explicitly returned non-success code;
+                            // if there was simply a timeout we enter here because `Wait` method returned `false`;
+                            //
+                            // in most cases it means we should report an error situation;
+                            // however, there is one special case - `DonNotErrorOnTimeout` - when timeout (and only timeout) is interpreted as a success
+                            if(doneWaitCancellationSource.IsCancellationRequested || assertion.Type != AssertionType.DoNotErrorOnTimeout)
                             {
-                                reportCollection.Enqueue(new WaitingChars { Chars = terminal.GetWaitingLine() });
+                                reportCollection.Enqueue(new Timeout(assertion));
+                                if(assertion.Type == AssertionType.WaitForPrompt || assertion.Type == AssertionType.WaitUntilLine)
+                                {
+                                    reportCollection.Enqueue(new WaitingChars { Chars = terminal.GetWaitingLine() });
+                                }
+                                EndReport(string.Format("Time for operation to finish has exceeded {0}", usedTimeout));
                             }
-                            EndReport(string.Format("Time for operation to finish has exceeded {0}", usedTimeout));
                         }
                     }
                     reportCollection.Enqueue(assertion);
@@ -463,7 +482,8 @@ namespace Emul8.Testing
             WaitUntilLine,
             WaitForPrompt,
             NextLine,
-            WriteLine
+            WriteLine,
+            DoNotErrorOnTimeout
         }
     }
 }
