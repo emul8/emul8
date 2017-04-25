@@ -81,37 +81,31 @@ namespace Emul8.RobotFrontend
         }
 
         [RobotFrameworkKeyword]
-        public string WaitForLineOnUart(string content, int? timeout = null, string peripheralName = null)
+        public string WaitForLineOnUart(string content, int? timeout = null, string uart = null)
         {
             string lineContent = null;
-            GetTesterOrThrowException(peripheralName).WaitUntilLine(x => x.Contains(content), out lineContent, timeout == null ? (TimeSpan?)null : TimeSpan.FromSeconds(timeout.Value));
+            GetTesterOrThrowException(uart).WaitUntilLine(x => x.Contains(content), out lineContent, timeout == null ? (TimeSpan?)null : TimeSpan.FromSeconds(timeout.Value));
             return lineContent;
         }
 
         [RobotFrameworkKeyword]
-        public string WaitForNextLineOnUart(int? timeout = null, string peripheralName = null)
+        public string WaitForNextLineOnUart(int? timeout = null, string uart = null)
         {
             string lineContent = null;
-            GetTesterOrThrowException(peripheralName).WaitUntilLine(x => true, out lineContent, timeout == null ? (TimeSpan?)null : TimeSpan.FromSeconds(timeout.Value));
+            GetTesterOrThrowException(uart).WaitUntilLine(x => true, out lineContent, timeout == null ? (TimeSpan?)null : TimeSpan.FromSeconds(timeout.Value));
             return lineContent;
         }
 
         [RobotFrameworkKeyword]
-        public string WaitForPromptOnUart(string peripheralName = null, int? timeout = null)
+        public string WaitForPromptOnUart(string uart = null, int? timeout = null)
         {
-            return GetTesterOrThrowException(peripheralName).ReadToPrompt(timeout == null ? (TimeSpan?)null : TimeSpan.FromSeconds(timeout.Value));
+            return GetTesterOrThrowException(uart).ReadToPrompt(timeout == null ? (TimeSpan?)null : TimeSpan.FromSeconds(timeout.Value));
         }
 
         [RobotFrameworkKeyword]
-        public void WriteLineToUart(string content)
+        public void WriteLineToUart(string content, string uart = null)
         {
-            WriteLineToUart(null, content);
-        }
-
-        [RobotFrameworkKeyword]
-        public void WriteLineToUart(string peripheralName, string content)
-        {
-            GetTesterOrThrowException(peripheralName).WriteLine(content);
+            GetTesterOrThrowException(uart).WriteLine(content);
         }
 
         [RobotFrameworkKeyword]
