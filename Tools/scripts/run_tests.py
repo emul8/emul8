@@ -204,7 +204,7 @@ class RobotTestSuite(TestSuite):
         metadata = 'HotSpot_Action:{0}'.format(hotspot if hotspot else '-')
         log_file = os.path.join(results_directory, '{0}{1}.xml'.format(file_name, '_' + hotspot if hotspot else ''))
         RobotTestSuite.log_files.append(log_file)
-        return robot.run(self.path, runemptysuite=True, output=log_file, log=None, report=None, metadata=metadata, name=suite_name, variable=variables, test=[t[1] for t in test_cases]) == 0
+        return robot.run(self.path, runemptysuite=True, output=log_file, log=None, report=None, metadata=metadata, name=suite_name, variable=variables, noncritical='non-critical', test=[t[1] for t in test_cases]) == 0
 
 # parsing cmd-line arguments
 parser = argparse.ArgumentParser()
