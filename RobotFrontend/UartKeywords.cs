@@ -72,7 +72,6 @@ namespace Emul8.RobotFrontend
             }
         }
 
-
         [RobotFrameworkKeyword]
         public void CreateTerminalTester(string peripheralName, string prompt, int timeout = 30)
         {
