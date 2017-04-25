@@ -16,6 +16,7 @@ using System.Collections.Generic;
 
 namespace Emul8.EventRecording
 {
+    [Transient]
     public sealed class Recorder : IDisposable
     {
         public Recorder(FileStream stream, Machine machine, RecordingBehaviour recordingBehaviour)

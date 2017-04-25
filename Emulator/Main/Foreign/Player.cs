@@ -16,6 +16,7 @@ using Emul8.Logging;
 
 namespace Emul8.EventRecording
 {
+    [Transient]
     public class Player : IDisposable
     {
         public Player(FileStream stream, Machine machine)
