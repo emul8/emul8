@@ -230,6 +230,14 @@ if options.buildbot:
     if ret_code != 0:
         print('Error while creating tap0 interface')
         sys.exit(ret_code)
+    ret_code = subprocess.call(['sudo', '-n', 'ip', 'link', 'set', 'tap0', 'up'])
+    if ret_code != 0:
+        print('Error while setting interface state')
+        sys.exit(ret_code)
+    ret_code = subprocess.call(['sudo', '-n', 'ip', 'addr', 'add', '192.0.2.1/24', 'dev', 'tap0'])
+    if ret_code != 0:
+        print('Error while setting ip address')
+        sys.exit(ret_code)
 if options.debug_mode:
     print("Running in debug mode.")
 elif options.port is not None or options.suspend:
