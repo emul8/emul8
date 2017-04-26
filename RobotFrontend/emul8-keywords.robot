@@ -3,6 +3,7 @@
 *** Settings ***
 Library         String
 Library         Process
+Library         Collections
 Library         OperatingSystem
 Library         helper.py
 
