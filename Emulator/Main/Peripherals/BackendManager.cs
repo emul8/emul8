@@ -18,12 +18,20 @@ using Emul8.Core;
 
 namespace Emul8.Peripherals
 {
-    public class BackendManager
+    public class BackendManager : IDisposable
     {
         public BackendManager()
         {
             map = new SerializableWeakKeyDictionary<IAnalyzable, IAnalyzableBackend>();
             Init();
+        }
+
+        public void Dispose()
+        {
+            foreach(var analyzer in activeAnalyzers)
+            {
+                analyzer.Hide();
+            }
         }
 
         public IEnumerable<string> GetAvailableAnalyzersFor(IAnalyzableBackend backend)

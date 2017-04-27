@@ -451,6 +451,7 @@ namespace Emul8.Core
                 ExternalsManager.Clear();
                 HostMachine.Dispose();
                 CurrentLogger.Dispose();
+                BackendManager.Dispose();
             }
         }
 
