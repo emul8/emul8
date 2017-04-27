@@ -311,7 +311,7 @@ namespace Emul8.CLI
                 p.Exited += (sender, e) => 
                 { 
                     var proc = sender as Process;
-                    if (proc.ExitCode != 0)
+                    if (proc.ExitCode != 0 && proc.ExitCode != 15)
                     {
                         LogError("Xterm", command, proc.ExitCode);
                     }
