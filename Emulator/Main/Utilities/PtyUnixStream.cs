@@ -109,7 +109,11 @@ namespace Emul8.Utilities
             var aslave = Marshal.AllocHGlobal(4);
             var name = Marshal.AllocHGlobal(1024);
 
-            int result = Openpty(amaster, aslave, name, IntPtr.Zero, IntPtr.Zero);
+            IntPtr termios = Marshal.AllocHGlobal(128); // termios struct is 60-bytes, but we allocate more just to make sure
+            Tcgetattr(0, termios);
+            Cfmakeraw(termios);
+
+            int result = Openpty(amaster, aslave, name, termios, IntPtr.Zero);
             UnixMarshal.ThrowExceptionForLastErrorIf(result);
 
             masterFd = Marshal.ReadInt32(amaster);
@@ -119,11 +123,6 @@ namespace Emul8.Utilities
             Marshal.FreeHGlobal(amaster);
             Marshal.FreeHGlobal(aslave);
             Marshal.FreeHGlobal(name);
-
-            IntPtr termios = Marshal.AllocHGlobal(128); // termios struct is 60-bytes, but we allocate more just to make sure
-            Tcgetattr(0, termios);
-            Cfmakeraw(termios);
-            Tcsetattr(slaveFd, 1, termios);  // 1 == TCSAFLUSH
             Marshal.FreeHGlobal(termios);
 
             var gptResult = Grantpt(masterFd);
