@@ -169,6 +169,7 @@
     <Compile Include="Peripherals\Sensors\TI_LM74.cs" />
     <Compile Include="Peripherals\GPIOPort\Quark_GPIOController.cs" />
     <Compile Include="Peripherals\GPIOPort\Quark_PWM.cs" />
+    <Compile Include="Peripherals\Wireless\CC2520.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ProjectExtensions>
