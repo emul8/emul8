@@ -12,7 +12,11 @@ namespace Emul8.Peripherals.Wireless.IEEE802_15_4
         Beacon = 0x0,
         Data = 0x1,
         ACK = 0x2,
-        MACControl = 0x3
+        MACControl = 0x3,
+        Reserved4 = 0x4,
+        Reserved5 = 0x5,
+        Reserved6 = 0x6,
+        Reserved7 = 0x7
     }
 }
 
