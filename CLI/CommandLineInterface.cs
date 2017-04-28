@@ -33,81 +33,100 @@ namespace Emul8.CLI
                 return;
             }
 
-            using(var xwt = new XwtProvider(new WindowedUserInterfaceProvider()))
-            using(var context = ObjectCreator.Instance.OpenContext())
+            XwtProvider xwt = null;
+            try
             {
-                var monitor = new Emul8.UserInterface.Monitor();
-                context.RegisterSurrogate(typeof(Emul8.UserInterface.Monitor), monitor);
-
-                // we must initialize plugins AFTER registering monitor surrogate
-                // as some plugins might need it for construction
-                TypeManager.Instance.PluginManager.Init("CLI");
-
-                Logger.AddBackend(ConsoleBackend.Instance, "console");
-
-                EmulationManager.Instance.ProgressMonitor.Handler = new CLIProgressMonitor();
-                AppDomain.CurrentDomain.UnhandledException += (sender, e) => CrashHandler.HandleCrash((Exception)e.ExceptionObject);
-
-                Shell shell = null;
-                Type preferredUARTAnalyzer = null;
-                if(options.Port > 0)
+                if(!options.XlessMode)
                 {
-                    var io = new IOProvider(new SocketIOSource(options.Port));
-                    shell = ShellProvider.GenerateShell(io, monitor, true, false);
+                    xwt = new XwtProvider(new WindowedUserInterfaceProvider());
                 }
-                else
+                using(var context = ObjectCreator.Instance.OpenContext())
                 {
-                    preferredUARTAnalyzer = typeof(UARTWindowBackendAnalyzer);
+                    var monitor = new Emul8.UserInterface.Monitor();
+                    context.RegisterSurrogate(typeof(Emul8.UserInterface.Monitor), monitor);
 
-                    var terminal = new UARTWindowBackendAnalyzer();
-                    shell = ShellProvider.GenerateShell(terminal.IO, monitor);
-                    monitor.Quitted += shell.Stop;
+                    // we must initialize plugins AFTER registering monitor surrogate
+                    // as some plugins might need it for construction
+                    TypeManager.Instance.PluginManager.Init("CLI");
 
-                    try
+                    Logger.AddBackend(ConsoleBackend.Instance, "console");
+
+                    EmulationManager.Instance.ProgressMonitor.Handler = new CLIProgressMonitor();
+                    AppDomain.CurrentDomain.UnhandledException += (sender, e) => CrashHandler.HandleCrash((Exception)e.ExceptionObject);
+
+                    Shell shell = null;
+                    Type preferredUARTAnalyzer = null;
+                    if(options.Port > 0)
                     {
-                        terminal.Show();
+                        var io = new IOProvider(new SocketIOSource(options.Port));
+                        shell = ShellProvider.GenerateShell(io, monitor, true, false);
                     }
-                    catch(InvalidOperationException ex)
+                    else
                     {
-                        Console.ForegroundColor = ConsoleColor.Red;
-                        Console.Error.WriteLine(ex.Message);
-                        Emulator.Exit();
-                    }
-                }
-                shell.Quitted += Emulator.Exit;
+                        if(xwt == null)
+                        {
+                            Logger.Log(LogLevel.Error, "XWT provider is needed to run Emul8 in selected mode.");
+                            return;
+                        }
+                        preferredUARTAnalyzer = typeof(UARTWindowBackendAnalyzer);
 
-                if(preferredUARTAnalyzer != null)
-                {
-                    EmulationManager.Instance.CurrentEmulation.BackendManager.SetPreferredAnalyzer(typeof(UARTBackend), preferredUARTAnalyzer);
-                    EmulationManager.Instance.EmulationChanged += () =>
+                        var terminal = new UARTWindowBackendAnalyzer();
+                        shell = ShellProvider.GenerateShell(terminal.IO, monitor);
+                        monitor.Quitted += shell.Stop;
+
+                        try
+                        {
+                            terminal.Show();
+                        }
+                        catch(InvalidOperationException ex)
+                        {
+                            Console.ForegroundColor = ConsoleColor.Red;
+                            Console.Error.WriteLine(ex.Message);
+                            Emulator.Exit();
+                        }
+                    }
+                    shell.Quitted += Emulator.Exit;
+
+                    if(preferredUARTAnalyzer != null)
                     {
                         EmulationManager.Instance.CurrentEmulation.BackendManager.SetPreferredAnalyzer(typeof(UARTBackend), preferredUARTAnalyzer);
+                        EmulationManager.Instance.EmulationChanged += () =>
+                        {
+                            EmulationManager.Instance.CurrentEmulation.BackendManager.SetPreferredAnalyzer(typeof(UARTBackend), preferredUARTAnalyzer);
+                        };
+                    }
+                    monitor.Interaction = shell.Writer;
+                    monitor.MachineChanged += emu => shell.SetPrompt(emu != null ? new Prompt(string.Format("({0}) ", emu), ConsoleColor.DarkYellow) : null);
+
+                    if(options.Execute != null)
+                    {
+                        shell.Started += s => s.InjectInput(string.Format("{0}\n", options.Execute));
+                    }
+                    else if(!string.IsNullOrEmpty(options.ScriptPath))
+                    {
+                        shell.Started += s => s.InjectInput(string.Format("i {0}{1}\n", Path.IsPathRooted(options.ScriptPath) ? "@" : "$CWD/", options.ScriptPath));
+                    }
+
+                    new Thread(x => shell.Start(true)) 
+                    { 
+                        IsBackground = true, 
+                        Name = "Shell thread" 
+                    }.Start();
+
+                    Emulator.BeforeExit += () =>
+                    {
+                        Emulator.DisposeAll();
                     };
+
+                    Emulator.WaitForExit();
                 }
-                monitor.Interaction = shell.Writer;
-                monitor.MachineChanged += emu => shell.SetPrompt(emu != null ? new Prompt(string.Format("({0}) ", emu), ConsoleColor.DarkYellow) : null);
-
-                if(options.Execute != null)
+            }
+            finally
+            {
+                if(xwt != null)
                 {
-                    shell.Started += s => s.InjectInput(string.Format("{0}\n", options.Execute));
+                    xwt.Dispose();
                 }
-                else if(!string.IsNullOrEmpty(options.ScriptPath))
-                {
-                    shell.Started += s => s.InjectInput(string.Format("i {0}{1}\n", Path.IsPathRooted(options.ScriptPath) ? "@" : "$CWD/", options.ScriptPath));
-                }
-
-                new Thread(x => shell.Start(true)) 
-                { 
-                    IsBackground = true, 
-                    Name = "Shell thread" 
-                }.Start();
-
-                Emulator.BeforeExit += () =>
-                {
-                    Emulator.DisposeAll();
-                };
-
-                Emulator.WaitForExit();
             }
         }
     }

@@ -20,11 +20,20 @@ namespace Emul8.CLI
         [Name('e', "execute"), Description("Execute command on startup (this option is exclusive with -s and startup script passed as an argument).")]
         public string Execute { get; set; }
 
+        [Name('x', "noX11"), DefaultValue(false), Description("Do not use X11. (requires -P)")]
+        public bool XlessMode { get; set; }
+
         [Name("script"), PositionalArgument(0)]
         public string ScriptPath { get; set; }
 
         public bool Validate(out string error)
         {
+            if(XlessMode && Port == -1)
+            {
+                error = "X11 support can be disabled only in socket mode";
+                return false;
+            }
+
             if(!string.IsNullOrEmpty(ScriptPath) && !string.IsNullOrEmpty(Execute))
             {
                 error = "Script path and execute command cannot be set at the same time";
