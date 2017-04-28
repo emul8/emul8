@@ -56,6 +56,7 @@ namespace Emul8.Peripherals.Wireless.IEEE802_15_4
         public AddressInformation AddressInformation { get; private set; }
         public IList<byte> Payload { get; private set; }
         public byte[] Bytes { get; private set; }
+        public uint FrameControlField { get; private set; }
 
         public string StringView
         {
@@ -119,6 +120,8 @@ namespace Emul8.Peripherals.Wireless.IEEE802_15_4
             DestinationAddressingMode = (AddressingMode)((data[1] >> 2) & 0x3);
             FrameVersion = (byte)((data[1] >> 4) & 0x3);
             SourceAddressingMode = (AddressingMode)(data[1] >> 6);
+
+            FrameControlField = ((uint)data[0] << 8) + data[1];
 
             DataSequenceNumber = data[2];
             AddressInformation = new AddressInformation(DestinationAddressingMode, SourceAddressingMode, IntraPAN, new ArraySegment<byte>(data, 3, GetAddressingFieldsLength()));
