@@ -245,7 +245,7 @@ namespace Emul8.Bootstrap
             var fullPaths = paths.Select(Path.GetFullPath);
             Scanner.Instance.ScanDirectories(fullPaths);
 
-            var mainProject = Scanner.Instance.Elements.OfType<UiProject>().FirstOrDefault();
+            var mainProject = Scanner.Instance.Elements.OfType<UiProject>().OrderByDescending(x => x.Name == "CLI").FirstOrDefault();
             if(mainProject == null)
             {
                 Console.Error.WriteLine("No UI project found. Exiting");
