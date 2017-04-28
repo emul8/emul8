@@ -10,7 +10,7 @@ namespace Emul8.Peripherals.CPU
 {
     public interface ICpuSupportingGdb : ICPUWithHooks, IControllableCPU
     {
-        void Step(int count = 1);
+        void Step(int count = 1, bool wait = true);
         ExecutionMode ExecutionMode { get; set; }
         event Action<HaltArguments> Halted;
         void EnterSingleStepModeSafely(HaltArguments args);

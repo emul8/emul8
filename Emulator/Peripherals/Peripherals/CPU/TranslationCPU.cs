@@ -1067,7 +1067,7 @@ namespace Emul8.Peripherals.CPU
             }
         }
 
-        public void Step(int count = 1)
+        public void Step(int count = 1, bool wait = true)
         {
             lock(sync.Guard)
             {
@@ -1076,7 +1076,14 @@ namespace Emul8.Peripherals.CPU
                     throw new RecoverableException("Stepping is available in single step execution mode only.");
                 }
 
-                sync.PassAndWait(count);
+                if(wait)
+                {
+                    sync.PassAndWait(count);
+                }
+                else
+                {
+                    sync.Pass(count);
+                }
             }
         }
 
@@ -2111,11 +2118,11 @@ namespace Emul8.Peripherals.CPU
                 }
             }
 
-            public void Pass()
+            public void Pass(int steps = 1)
             {
                 lock(guard)
                 {
-                    counter = 1;
+                    counter = steps;
                     Monitor.Pulse(guard);
                 }
             }
