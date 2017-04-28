@@ -16,11 +16,6 @@ namespace Emul8.CLI
     {
         public override void Show()
         {
-            if(XwtProvider.UiThreadId == -1)
-            {
-                throw new RecoverableException("This analyzer requires running GUI thread");
-            }
-            
             string tabName;
             if(!EmulationManager.Instance.CurrentEmulation.TryGetEmulationElementName(Backend.AnalyzableElement, out tabName))
             {
@@ -32,21 +27,11 @@ namespace Emul8.CLI
 
         public override void Hide()
         {
-            if(XwtProvider.UiThreadId == -1)
-            {
-                throw new RecoverableException("This analyzer requires running GUI thread");
-            }
-
             ApplicationExtensions.InvokeInUIThreadAndWait(() => Emulator.UserInterfaceProvider.HideAnalyser(this));
         }
 
         public override void AttachTo(T backend)
         {
-            if(XwtProvider.UiThreadId == -1)
-            {
-                throw new RecoverableException("This analyzer requires running GUI thread");
-            }
-
             base.AttachTo(backend);
             ApplicationExtensions.InvokeInUIThreadAndWait(() => OnAttach(backend));
         }

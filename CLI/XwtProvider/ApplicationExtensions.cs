@@ -9,6 +9,7 @@ using System;
 using Xwt;
 using System.Threading;
 using System.Collections.Concurrent;
+using Emul8.Exceptions;
 
 namespace Emul8.CLI
 {
@@ -32,6 +33,7 @@ namespace Emul8.CLI
 
         public static void InvokeInUIThread(Action action)
         {
+            CheckXwtStatus();
             if(Thread.CurrentThread.ManagedThreadId == XwtProvider.UiThreadId)
             {
                 action();
@@ -44,6 +46,7 @@ namespace Emul8.CLI
 
         public static void InvokeInUIThreadNonBlocking(Action action)
         {
+            CheckXwtStatus();
             if(Thread.CurrentThread.ManagedThreadId == XwtProvider.UiThreadId)
             {
                 actionsToRunInUIThread.Add(action);
@@ -56,6 +59,7 @@ namespace Emul8.CLI
 
         public static T InvokeInUIThreadAndWait<T>(Func<T> function)
         {
+            CheckXwtStatus();
             if(Thread.CurrentThread.ManagedThreadId == XwtProvider.UiThreadId)
             {
                 return function();
@@ -76,6 +80,7 @@ namespace Emul8.CLI
 
         public static void InvokeInUIThreadAndWait(Action action)
         {
+            CheckXwtStatus();
             if(Thread.CurrentThread.ManagedThreadId == XwtProvider.UiThreadId)
             {
                 action();
@@ -90,6 +95,14 @@ namespace Emul8.CLI
             });
 
             mre.Wait();
+        }
+
+        private static void CheckXwtStatus()
+        {
+            if(XwtProvider.UiThreadId == -1)
+            {
+                throw new RecoverableException("An action requiring GUI environment detected, but the XWT provider is not started.");
+            }
         }
 
         private static BlockingCollection<Action> actionsToRunInUIThread = new BlockingCollection<Action>();
