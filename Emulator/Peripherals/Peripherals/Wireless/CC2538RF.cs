@@ -225,6 +225,7 @@ namespace Emul8.Peripherals.Wireless
 
         public void ReceiveFrame(byte[] bytes)
         {
+            //TODO: Missing foreign event handling!
             irqHandler.RequestInterrupt(InterruptSource.StartOfFrameDelimiter);
 
             Frame ackFrame = null;
@@ -251,7 +252,7 @@ namespace Emul8.Peripherals.Wireless
             {
                 var autoPendingBit = false;
                 var index = NoSourceIndex;
-                if(sourceAddressMatchingEnabled.Value && crcOK)
+                if(sourceAddressMatchingEnabled.Value && crcOK) //todo: verify if this should not only run when frameFilterEnabled, as in CC2520
                 {
                     switch(frame.SourceAddressingMode)
                     {
@@ -583,7 +584,7 @@ namespace Emul8.Peripherals.Wireless
         {
             // (1) check if length is ok
             // (2) check reserved FCF bits
-            // for now we assume it is fine - let's be optimistic
+            // for now we assume it is fine - let's be optimistic. Note - it is implemented in CC2520.
 
             // (3) check FCF version
             if(frame.FrameVersion > maxFrameVersion.Value)
@@ -629,6 +630,7 @@ namespace Emul8.Peripherals.Wireless
             }
 
             // (6) check frame type
+            //todo: not implemented reserved types (implemented in cc2520)
             switch(frame.Type)
             {
                 case FrameType.Beacon:
