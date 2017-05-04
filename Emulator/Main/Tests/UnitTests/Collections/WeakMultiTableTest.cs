@@ -69,7 +69,19 @@ namespace UnitTests.Collections
             var table = new WeakMultiTable<NotSoWeakClass, int>();
             var wr = GenerateWeakReferenceAndInsertIntoTable(table);
 
-            GC.Collect();
+            // In theory one GC.Collect() call should be sufficient;
+            // Ubuntu32 with mono 4.8.1 shows that this is just a theory ;)
+            // My tests showed that calling it twice is enough, but
+            // in order to be on a safe side I decided to round it up to 10.
+            // I know it is not the prettiest solution, but:
+            //   (a) it's just a test,
+            //   (b) it works fine on every other setup,
+            //   (c) we are not responsible for the code of GC.
+            for(var i = 0; i < 10 && wr.IsAlive; i++)
+            {
+                GC.Collect();
+            }
+
             Assert.IsFalse(wr.IsAlive);
         }
 
