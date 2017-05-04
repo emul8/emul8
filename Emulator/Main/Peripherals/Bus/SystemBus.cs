@@ -445,6 +445,7 @@ namespace Emul8.Peripherals.Bus
             {
                 throw new RecoverableException("Cannot load ELF on an unpaused machine.");
             }
+            this.DebugLog("Loading ELF {0}.", fileName);
             if(cpu == null)
             {
                 cpu = (IControllableCPU)GetCPUs().FirstOrDefault();
@@ -483,6 +484,7 @@ namespace Emul8.Peripherals.Bus
             {
                 cpu = (IControllableCPU)GetCPUs().FirstOrDefault();
             }
+            this.DebugLog("Loading uImage {0}.", fileName);
 
             switch(UImageReader.TryLoad(fileName, out uImage))
             {
@@ -529,7 +531,7 @@ namespace Emul8.Peripherals.Bus
         public void LoadBinary(string fileName, long loadPoint)
         {
             const int bufferSize = 100 * 1024;
-            this.DebugLog(string.Format("Loading binary {0} at 0x{1:X}.", fileName, loadPoint));
+            this.DebugLog("Loading binary {0} at 0x{1:X}.", fileName, loadPoint);
             try
             {
                 using(var reader = new FileStream(fileName, FileMode.Open))
