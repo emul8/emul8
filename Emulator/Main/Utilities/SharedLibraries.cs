@@ -96,7 +96,9 @@ namespace Emul8.Utilities
             if(ELFSharp.MachO.MachOReader.TryLoad(path, out machO) == ELFSharp.MachO.MachOResult.OK)
             {
                 var machoSymtab = machO.GetCommandsOfType<ELFSharp.MachO.SymbolTable>().Single();
-                return machoSymtab.Symbols.Select(x => x.Name.TrimStart('_'));
+                // it can happen that binary contain multiple entries for a single symbol name,
+                // so we should filter it out here
+                return machoSymtab.Symbols.Select(x => x.Name.TrimStart('_')).Distinct();
             }
             ELFSharp.PE.PE pe;
             if(ELFSharp.PE.PEReader.TryLoad(path, out pe))
