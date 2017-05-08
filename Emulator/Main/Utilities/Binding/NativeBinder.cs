@@ -49,6 +49,9 @@ namespace Emul8.Utilities.Binding
         public NativeBinder(IEmulationElement classToBind, string libraryFile)
         {
             delegateStore = new object[0];
+#if !EMUL8_PLATFORM_WINDOWS
+            handles = new GCHandle[0];
+#endif
             this.classToBind = classToBind;
             libraryAddress = SharedLibraries.LoadLibrary(libraryFile);
             libraryFileName = libraryFile;
@@ -72,6 +75,12 @@ namespace Emul8.Utilities.Binding
 
         private void DisposeInner()
         {
+#if !EMUL8_PLATFORM_WINDOWS
+            foreach(var handle in handles)
+            {
+                handle.Free();
+            }
+#endif
             if(libraryAddress != IntPtr.Zero)
             {
                 SharedLibraries.UnloadLibrary(libraryAddress);
@@ -130,6 +139,12 @@ namespace Emul8.Utilities.Binding
                 exportedMethods.Add(desiredMethodInfo);
                 // let's make the delegate instance
                 var attachee = Delegate.CreateDelegate(delegateType, classToBind, desiredMethodInfo);
+#if !EMUL8_PLATFORM_WINDOWS
+                // according to https://blogs.msdn.microsoft.com/cbrumme/2003/05/06/asynchronous-operations-pinning/,
+                // pinning is wrong (and it does not work on windows too)...
+                // but both on linux & osx it seems to be essential to avoid delegates from being relocated
+                handles = handles.Union(new [] { GCHandle.Alloc(attachee, GCHandleType.Pinned) }).ToArray();
+#endif
                 delegateStore = delegateStore.Union(new [] { attachee }).ToArray();
                 // let's make the attaching function delegate
                 var attacherType = TypeFromShortTypeName(string.Format("Attach{0}", shortName));
@@ -194,6 +209,9 @@ namespace Emul8.Utilities.Binding
         // which would otherwise be garbage collected while native calls
         // can still use them
         private object[] delegateStore;
+#if !EMUL8_PLATFORM_WINDOWS
+        private GCHandle[] handles;
+#endif
     }
 }
 
