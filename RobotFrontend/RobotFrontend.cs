@@ -32,19 +32,31 @@ namespace Emul8.RobotFrontend
             var processor = new XmlRpcServer(keywordManager);
             server = new HttpServer(processor);
 
-            var preferredUARTAnalyzer = typeof(UARTWindowBackendAnalyzer);
-            EmulationManager.Instance.CurrentEmulation.BackendManager.SetPreferredAnalyzer(typeof(UARTBackend), preferredUARTAnalyzer);
-            EmulationManager.Instance.EmulationChanged += () =>
-            {
-                EmulationManager.Instance.CurrentEmulation.BackendManager.SetPreferredAnalyzer(typeof(UARTBackend), preferredUARTAnalyzer);
-            };
-
             Task.Run(() => 
             {
-                using(var xwt = new XwtProvider(new WindowedUserInterfaceProvider()))
+                XwtProvider xwt = null;
+                try
                 {
-                    server.Run(port);
+                    if(!options.DisableX11)
+                    {
+                        var preferredUARTAnalyzer = typeof(UARTWindowBackendAnalyzer);
+                        EmulationManager.Instance.CurrentEmulation.BackendManager.SetPreferredAnalyzer(typeof(UARTBackend), preferredUARTAnalyzer);
+                        EmulationManager.Instance.EmulationChanged += () =>
+                        {
+                            EmulationManager.Instance.CurrentEmulation.BackendManager.SetPreferredAnalyzer(typeof(UARTBackend), preferredUARTAnalyzer);
+                        };
+                        xwt = new XwtProvider(new WindowedUserInterfaceProvider());
+                    }
+
+                    server.Run(options.Port);
                     server.Dispose();
+                }
+                finally
+                {
+                    if(xwt != null)
+                    {
+                        xwt.Dispose();
+                    }
                 }
             });
 
