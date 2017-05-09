@@ -6,6 +6,7 @@
 //
 using System;
 using System.Threading.Tasks;
+using Antmicro.OptionsParser;
 using Emul8.CLI;
 using Emul8.Core;
 using Emul8.Peripherals.UART;
@@ -18,10 +19,10 @@ namespace Emul8.RobotFrontend
     {
         public static void Main(string[] args)
         {
-            int port;
-            if(args.Length != 1 || !int.TryParse(args[0], out port))
+            var options = new Emul8.Robot.Options();
+            var optionsParser = new OptionsParser();
+            if(!optionsParser.Parse(options, args))
             {
-                Console.Error.WriteLine("Provide a valid port number as an argument.");
                 return;
             }
 

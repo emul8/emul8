@@ -53,6 +53,7 @@
     <Compile Include="KeywordException.cs" />
     <Compile Include="HotSpotAction.cs" />
     <Compile Include="Recorder.cs"/>
+    <Compile Include="Options.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Emulator\Extensions\Extensions.csproj">
@@ -78,6 +79,10 @@
     <ProjectReference Include="..\CLI\CLI.csproj">
       <Project>{AEFE490F-85AC-42AF-9CAE-2B7FC7167E0E}</Project>
       <Name>CLI</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\External\options-parser\OptionsParser.csproj">
+      <Project>{C56AABEF-C01E-493F-A65F-09A572FE9B2E}</Project>
+      <Name>OptionsParser</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
