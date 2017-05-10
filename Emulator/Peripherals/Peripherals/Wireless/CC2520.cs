@@ -38,9 +38,10 @@ namespace Emul8.Peripherals.Wireless
             isRxEnabled = false;
             inReset = true;
             vregEnabled = false;
-            frameReceived = false;
             oscillatorRunning = false;
             wasLastFrameSent = false;
+
+            currentFrame = null;
 
             txFifo.Clear();
             rxFifo.Clear();
@@ -150,7 +151,22 @@ namespace Emul8.Peripherals.Wireless
 
         private void ReceiveFrameInner(byte[] bytes)
         {
-            frameReceived = true;
+            if(isRxEnabled)
+            {
+                //this allows to have proper CCA values easily.
+                currentFrame = bytes;
+                HandleFrame(bytes);
+                currentFrame = null;
+            }
+            else
+            {
+                currentFrame = bytes;
+                this.DebugLog("Radio is not listening right now - this frame is being deffered.");
+            }
+        }
+
+        private void HandleFrame(byte[] bytes)
+        {
             Frame ackFrame = null;
 
             SetException(ExceptionFlags.StartOfFrameDelimiter);
@@ -486,12 +502,10 @@ namespace Emul8.Peripherals.Wireless
 
         private void UpdateInterrupts()
         {
-            Connections[(int)GPIOs.Cca].Set(!frameReceived); //TODO:this should be implemented like in at86rf233 - a more robust "Rx enabled" verification would be a must.
-            //Note that it is almost immediatelly reset, but thanks to this approach we create an edge on the GPIO pin.
+            Connections[(int)GPIOs.Cca].Set(currentFrame == null);
             Connections[(int)GPIOs.Sfd].Set(IsExceptionSet(ExceptionFlags.StartOfFrameDelimiter));
             Connections[(int)GPIOs.Fifop].Set(IsExceptionSet(ExceptionFlags.FifoThresholdReached));
             Connections[(int)GPIOs.Fifo].Set(rxFifo.Count > 0 && rxFifo.Count <= RxFifoMemorySize);
-            frameReceived = false;
         }
 
         private byte GetStatus()
@@ -841,9 +855,10 @@ namespace Emul8.Peripherals.Wireless
         private bool isRxEnabled;
         private bool inReset;
         private bool vregEnabled;
-        private bool frameReceived;
         private bool oscillatorRunning;
         private bool wasLastFrameSent;
+
+        private byte[] currentFrame;
 
         private Queue<byte> txFifo = new Queue<byte>();
         private Queue<byte> rxFifo = new Queue<byte>();
@@ -951,6 +966,11 @@ namespace Emul8.Peripherals.Wireless
             protected override byte ParseInner(byte value)
             {
                 Parent.isRxEnabled = true;
+                if(Parent.currentFrame != null)
+                {
+                    Parent.HandleFrame(Parent.currentFrame);
+                    Parent.currentFrame = null;
+                }
                 return base.ParseInner(value);
             }
         }
@@ -968,7 +988,10 @@ namespace Emul8.Peripherals.Wireless
         {
             protected override byte ParseInner(byte value)
             {
-                //TODO: RX_FRM_ABORTED after correct cca implementation
+                if(Parent.isRxEnabled && Parent.currentFrame != null)
+                {
+                    Parent.SetException(ExceptionFlags.RxFrameAborted);
+                }
                 Parent.isRxEnabled = false;
                 return base.ParseInner(value);
             }
@@ -981,8 +1004,11 @@ namespace Emul8.Peripherals.Wireless
                 if(Parent.isRxEnabled)
                 {
                     Parent.SetException(ExceptionFlags.UsageError);
+                    if(Parent.currentFrame != null)
+                    {
+                        Parent.SetException(ExceptionFlags.RxFrameAborted);
+                    }
                 }
-                //TODO: RX_FRM_ABORTED after correct cca implementation
                 Parent.oscillatorRunning = false;
                 return base.ParseInner(value);
             }
@@ -1363,7 +1389,7 @@ namespace Emul8.Peripherals.Wireless
             OperandError = 19,
             SPIError = 20,
             RFNoLock = 21,
-            RFFrameAborted = 22,
+            RxFrameAborted = 22,
             RxBufferMoveTimeout = 23
         }
 
