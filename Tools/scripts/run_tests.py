@@ -222,11 +222,11 @@ options = parser.parse_args()
 
 if options.buildbot:
     print("Preparing Environment")
-    ret_code = subprocess.call(['/usr/sbin/tunctl', '-d', 'tap0'])
+    ret_code = subprocess.call(['sudo', 'tunctl', '-d', 'tap0'])
     if ret_code != 0:
         print('Error while removing old tap0 interface')
         sys.exit(ret_code)
-    ret_code = subprocess.call(['/usr/sbin/tunctl', '-t', 'tap0', '-u', str(os.getuid())])
+    ret_code = subprocess.call(['sudo', 'tunctl', '-t', 'tap0', '-u', str(os.getuid())])
     if ret_code != 0:
         print('Error while creating tap0 interface')
         sys.exit(ret_code)
