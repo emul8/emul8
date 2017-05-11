@@ -254,7 +254,7 @@ namespace Emul8.Peripherals.Wireless
                     //This set of conditions is defined in the docs, though.
                     secondByte |= sourceMatchingIndex;
                 }
-                else 
+                else
                 {
                     secondByte |= 100; // correlation value 100 means near maximum quality
                 }
@@ -302,7 +302,7 @@ namespace Emul8.Peripherals.Wireless
                 //first three bytes are for extended addresses, then three short addresses
                 index += 3;
             }
-            return BitHelper.IsBitSet(sourceAddressMatchingControl[index], position);           
+            return BitHelper.IsBitSet(sourceAddressMatchingControl[index], position);
         }
 
         private ushort GetSourceAddressMatchingPanId(int i)
@@ -564,22 +564,22 @@ namespace Emul8.Peripherals.Wireless
                                 .WithFlag(1, out autoPendingFlag, name: "AUTOPEND")
                                 .WithFlag(0, out sourceMatchingEnabled, name: "SRC_MATCH_EN")
                 },
-                {(long)Registers.ShortAddressMatchingEnabled0, new ByteRegister(this, 0)
+                {(long)Registers.ShortAddressMatchingEnabled0, new ByteRegister(this)
                                 .WithValueField(0, 8, out shortAddressMatchingEnabled[0], name: "SHORT_ADDR_EN[7:0]")
                 },
-                {(long)Registers.ShortAddressMatchingEnabled1, new ByteRegister(this, 0)
+                {(long)Registers.ShortAddressMatchingEnabled1, new ByteRegister(this)
                                 .WithValueField(0, 8, out shortAddressMatchingEnabled[1], name: "SHORT_ADDR_EN[15:8]")
                 },
-                {(long)Registers.ShortAddressMatchingEnabled2, new ByteRegister(this, 0)
+                {(long)Registers.ShortAddressMatchingEnabled2, new ByteRegister(this)
                                 .WithValueField(0, 8, out shortAddressMatchingEnabled[2], name: "SHORT_ADDR_EN[23:16]")
                 },
-                {(long)Registers.ExtendedAddressMatchingEnabled0, new ByteRegister(this, 0)
+                {(long)Registers.ExtendedAddressMatchingEnabled0, new ByteRegister(this)
                                 .WithValueField(0, 8, out extendedAddressMatchingEnabled[0], name: "EXT_ADDR_EN[7:0]")
                 },
-                {(long)Registers.ExtendedAddressMatchingEnabled1, new ByteRegister(this, 0)
+                {(long)Registers.ExtendedAddressMatchingEnabled1, new ByteRegister(this)
                                 .WithValueField(0, 8, out extendedAddressMatchingEnabled[1], name: "EXT_ADDR_EN[15:8]")
                 },
-                {(long)Registers.ExtendedAddressMatchingEnabled2, new ByteRegister(this, 0)
+                {(long)Registers.ExtendedAddressMatchingEnabled2, new ByteRegister(this)
                                 .WithValueField(0, 8, out extendedAddressMatchingEnabled[2], name: "EXT_ADDR_EN[23:16]")
                 },
                 {(long)Registers.FrameControl0, new ByteRegister(this, 0x40)
@@ -835,8 +835,8 @@ namespace Emul8.Peripherals.Wireless
         private IFlagRegisterField autoPendingFlag;
         private IFlagRegisterField sourceMatchingEnabled;
 
-        private IValueRegisterField[] shortAddressMatchingEnabled = new IValueRegisterField[3];
-        private IValueRegisterField[] extendedAddressMatchingEnabled = new IValueRegisterField[3];
+        private readonly IValueRegisterField[] shortAddressMatchingEnabled = new IValueRegisterField[3];
+        private readonly IValueRegisterField[] extendedAddressMatchingEnabled = new IValueRegisterField[3];
 
         private IFlagRegisterField autoCrc;
         private IFlagRegisterField autoAck;
@@ -849,9 +849,9 @@ namespace Emul8.Peripherals.Wireless
 
         private IValueRegisterField fifopThreshold;
 
-        private IValueRegisterField[] pendingExceptionFlag = new IValueRegisterField[3];
-        private IValueRegisterField[] pendingExceptionMaskA = new IValueRegisterField[3];
-        private IValueRegisterField[] pendingExceptionMaskB = new IValueRegisterField[3];
+        private readonly IValueRegisterField[] pendingExceptionFlag = new IValueRegisterField[3];
+        private readonly IValueRegisterField[] pendingExceptionMaskA = new IValueRegisterField[3];
+        private readonly IValueRegisterField[] pendingExceptionMaskB = new IValueRegisterField[3];
 
         private bool isRxEnabled;
         private bool inReset;
@@ -861,8 +861,8 @@ namespace Emul8.Peripherals.Wireless
 
         private byte[] currentFrame;
 
-        private Queue<byte> txFifo = new Queue<byte>();
-        private Queue<byte> rxFifo = new Queue<byte>();
+        private readonly Queue<byte> txFifo = new Queue<byte>();
+        private readonly Queue<byte> rxFifo = new Queue<byte>();
         private byte[] memory;
         private byte[] sourceAddressTable;
         private byte[] sourceAddressMatchingResult;
@@ -876,7 +876,7 @@ namespace Emul8.Peripherals.Wireless
 
         private DecoderEntry decoderRoot = new DecoderEntry();
 
-        private Machine machine;
+        private readonly Machine machine;
 
         private const int RegisterMemorySize = 0x80;
         private const uint TxFifoMemoryStart = 0x100;
@@ -902,17 +902,17 @@ namespace Emul8.Peripherals.Wireless
         {
             public byte Parse(byte value)
             {
-                currentByteCount++;
+                CurrentByteCount++;
                 return ParseInner(value);
             }
 
-            public CC2520 Parent { get; set; }
+            public CC2520 Parent { protected get; set; }
             public string Name { get; private set; }
             public bool IsFinished
             {
                 get
                 {
-                    return currentByteCount == length;
+                    return CurrentByteCount == Length;
                 }
             }
 
@@ -920,8 +920,8 @@ namespace Emul8.Peripherals.Wireless
 
             protected Instruction()
             {
-                Name = this.GetType().Name;
-                length = 1;
+                Name = GetType().Name;
+                Length = 1;
             }
 
             protected virtual byte ParseInner(byte value)
@@ -931,16 +931,16 @@ namespace Emul8.Peripherals.Wireless
 
             protected virtual bool IsCommandStrobe
             {
-                get { return length == 1; }
+                get { return Length == 1; }
             }
 
-            protected int length;
-            protected int currentByteCount;
-            protected uint addressA;
-            protected uint countC;
+            protected int Length;
+            protected int CurrentByteCount;
+            protected uint AddressA;
+            protected uint CountC;
         }
 
-        private class SNOP : Instruction
+        private sealed class SNOP : Instruction
         {
             protected override bool IsCommandStrobe
             {
@@ -948,7 +948,7 @@ namespace Emul8.Peripherals.Wireless
             }
         }
 
-        private class SXOSCON : Instruction
+        private sealed class SXOSCON : Instruction
         {
             protected override byte ParseInner(byte value)
             {
@@ -962,7 +962,7 @@ namespace Emul8.Peripherals.Wireless
             }
         }
 
-        private class SRXON : Instruction
+        private sealed class SRXON : Instruction
         {
             protected override byte ParseInner(byte value)
             {
@@ -976,7 +976,7 @@ namespace Emul8.Peripherals.Wireless
             }
         }
 
-        private class STXONCCA : Instruction
+        private sealed class STXONCCA : Instruction
         {
             protected override byte ParseInner(byte value)
             {
@@ -985,7 +985,7 @@ namespace Emul8.Peripherals.Wireless
             }
         }
 
-        private class SRFOFF : Instruction
+        private sealed class SRFOFF : Instruction
         {
             protected override byte ParseInner(byte value)
             {
@@ -999,7 +999,7 @@ namespace Emul8.Peripherals.Wireless
             }
         }
 
-        private class SXOSCOFF : Instruction
+        private sealed class SXOSCOFF : Instruction
         {
             protected override byte ParseInner(byte value)
             {
@@ -1017,67 +1017,67 @@ namespace Emul8.Peripherals.Wireless
             }
         }
 
-        private class MEMRD : Instruction
+        private sealed class MEMRD : Instruction
         {
             public MEMRD()
             {
-                length = 0;
+                Length = 0;
             }
 
             protected override byte ParseInner(byte value)
             {
-                switch(currentByteCount)
+                switch(CurrentByteCount)
                 {
                 case 1:
-                    addressA = (uint)(value & 0xF) << 8;
+                    AddressA = (uint)(value & 0xF) << 8;
                     return Parent.GetStatus();
                 case 2:
-                    addressA |= value;
+                    AddressA |= value;
                     return Parent.GetStatus();
                 default:
-                    var registerValue = Parent.ReadMemory(addressA);
-                    addressA = (addressA + 1) % 0x3FF; //0x3FF is the highest RAM address. It is not explicitly stated that MEMWR/MEMRD should wrap
+                    var registerValue = Parent.ReadMemory(AddressA);
+                    AddressA = (AddressA + 1) % 0x3FF; //0x3FF is the highest RAM address. It is not explicitly stated that MEMWR/MEMRD should wrap
                     return registerValue;
                 }
             }
         }
 
-        private class MEMWR : Instruction
+        private sealed class MEMWR : Instruction
         {
             public MEMWR()
             {
-                length = 0;
+                Length = 0;
             }
 
             protected override byte ParseInner(byte value)
             {
-                switch(currentByteCount)
+                switch(CurrentByteCount)
                 {
                 case 1:
-                    addressA = (uint)(value & 0xF) << 8;
+                    AddressA = (uint)(value & 0xF) << 8;
                     return Parent.GetStatus();
                 case 2:
-                    addressA |= value;
+                    AddressA |= value;
                     return Parent.GetStatus();
                 default:
-                    var registerValue = Parent.ReadMemory(addressA);
-                    Parent.WriteMemory(addressA, value);
-                    addressA = (addressA + 1) % 0x3FF; //0x3FF is the highest RAM address. It is not explicitly stated that MEMWR/MEMRD should wrap
+                    var registerValue = Parent.ReadMemory(AddressA);
+                    Parent.WriteMemory(AddressA, value);
+                    AddressA = (AddressA + 1) % 0x3FF; //0x3FF is the highest RAM address. It is not explicitly stated that MEMWR/MEMRD should wrap
                     return registerValue;
                 }
             }
         }
 
-        private class RXBUF : Instruction
+        private sealed class RXBUF : Instruction
         {
             public RXBUF()
             {
-                length = 0;
+                Length = 0;
             }
 
             protected override byte ParseInner(byte value)
             {
-                switch(currentByteCount)
+                switch(CurrentByteCount)
                 {
                 case 1:
                     return base.ParseInner(value);
@@ -1098,16 +1098,16 @@ namespace Emul8.Peripherals.Wireless
             }
         }
 
-        private class TXBUF : Instruction
+        private sealed class TXBUF : Instruction
         {
             public TXBUF()
             {
-                length = 0;
+                Length = 0;
             }
 
             protected override byte ParseInner(byte value)
             {
-                switch(currentByteCount)
+                switch(CurrentByteCount)
                 {
                 case 1:
                     return base.ParseInner(value);
@@ -1131,7 +1131,7 @@ namespace Emul8.Peripherals.Wireless
             }
         }
 
-        private class SFLUSHRX : Instruction
+        private sealed class SFLUSHRX : Instruction
         {
             protected override byte ParseInner(byte value)
             {
@@ -1141,7 +1141,7 @@ namespace Emul8.Peripherals.Wireless
             }
         }
 
-        private class SFLUSHTX : Instruction
+        private sealed class SFLUSHTX : Instruction
         {
             protected override byte ParseInner(byte value)
             {
@@ -1151,80 +1151,80 @@ namespace Emul8.Peripherals.Wireless
             }
         }
 
-        private class REGRD : Instruction
+        private sealed class REGRD : Instruction
         {
             public REGRD()
             {
-                length = 0;
+                Length = 0;
             }
 
             protected override byte ParseInner(byte value)
             {
-                if(currentByteCount == 1)
+                if(CurrentByteCount == 1)
                 {
-                    addressA = BitHelper.GetValue(value, 0, 6);
+                    AddressA = BitHelper.GetValue(value, 0, 6);
                     return base.ParseInner(value);
                 }
-                var registerValue = Parent.ReadMemory(addressA);
-                addressA = (addressA + 1) % 0x7F; //the operation wraps on 0x7F
+                var registerValue = Parent.ReadMemory(AddressA);
+                AddressA = (AddressA + 1) % 0x7F; //the operation wraps on 0x7F
                 return registerValue;
             }
         }
 
-        private class REGWR : Instruction
+        private sealed class REGWR : Instruction
         {
             public REGWR()
             {
-                length = 0;
+                Length = 0;
             }
 
             protected override byte ParseInner(byte value)
             {
-                if(currentByteCount == 1)
+                if(CurrentByteCount == 1)
                 {
-                    addressA = BitHelper.GetValue(value, 0, 6);
+                    AddressA = BitHelper.GetValue(value, 0, 6);
                     return Parent.GetStatus();
                 }
-                var registerValue = Parent.ReadMemory(addressA);
-                Parent.WriteMemory(addressA, value);
-                addressA = (addressA + 1) % 0x7F; //the operation wraps on 0x7F
+                var registerValue = Parent.ReadMemory(AddressA);
+                Parent.WriteMemory(AddressA, value);
+                AddressA = (AddressA + 1) % 0x7F; //the operation wraps on 0x7F
                 return registerValue;
             }
         }
 
-        private class RXBUFMOV : Instruction
+        private sealed class RXBUFMOV : Instruction
         {
             public RXBUFMOV()
             {
-                length = 4;
+                Length = 4;
             }
 
             protected override byte ParseInner(byte value)
             {
-                switch(currentByteCount)
+                switch(CurrentByteCount)
                 {
                 case 1:
                     HighPriority = (value & 0x1u) != 0;
                     return Parent.GetStatus();
                 case 2:
-                    countC = value;
+                    CountC = value;
                     return (byte)Parent.rxFifo.Count;
                 case 3:
-                    addressA = (uint)(value & 0xF) << 8;
+                    AddressA = (uint)(value & 0xF) << 8;
                     return Parent.GetStatus();
                 default:
-                    addressA |= value;
-                    if(Parent.rxFifo.Count < countC)
+                    AddressA |= value;
+                    if(Parent.rxFifo.Count < CountC)
                     {
                         Parent.SetException(ExceptionFlags.RxBufferMoveTimeout);
-                        countC = (uint)Parent.rxFifo.Count;
+                        CountC = (uint)Parent.rxFifo.Count;
                         Parent.Log(LogLevel.Warning, "Rx buffer underflow during RXBUFMOV instruction. A status register should be set, but it's not well specified which one.");
                     }
-                    for(var i = 0; i < countC; ++i)
+                    for(var i = 0; i < CountC; ++i)
                     {
                         var data = Parent.rxFifo.Dequeue();
-                        Parent.WriteMemory(addressA, data);
-                        addressA++;
+                        Parent.WriteMemory(AddressA, data);
+                        AddressA++;
                         Parent.SetException(HighPriority.Value ? ExceptionFlags.DPUDoneHigh : ExceptionFlags.DPUDoneLow);
                     }
                     if(Parent.rxFifo.Count <= Parent.fifopThreshold.Value)
@@ -1239,46 +1239,46 @@ namespace Emul8.Peripherals.Wireless
 
         private struct DecoderEntry
         {
-            public void AddOpcode(byte value, int length, Func<Instruction> instruction, int bitNumber = 7)
+            public void AddOpcode(byte value, int length, Func<Instruction> newInstruction, int bitNumber = 7)
             {
                 if(bitNumber < 8 - length)
                 {
                     //we're done parsing
-                    this.Instruction = instruction;
+                    this.instruction = newInstruction;
                 }
                 else
                 {
-                    if(Children == null)
+                    if(children == null)
                     {
-                        Children = new DecoderEntry[2];
-                        Children[0] = new DecoderEntry();
-                        Children[1] = new DecoderEntry();
+                        children = new DecoderEntry[2];
+                        children[0] = new DecoderEntry();
+                        children[1] = new DecoderEntry();
                     }
                     var nextBit = BitHelper.IsBitSet(value, (byte)bitNumber);
                     bitNumber--;
-                    Children[nextBit ? 1 : 0].AddOpcode(value, length, instruction, bitNumber);
+                    children[nextBit ? 1 : 0].AddOpcode(value, length, newInstruction, bitNumber);
                 }
             }
 
             public bool TryParseOpcode(byte value, out Instruction result, byte bitNumber = 7)
             {
-                if(Instruction != null)
+                if(instruction != null)
                 {
-                    result = Instruction();
+                    result = instruction();
                     return true;
                 }
-                if(bitNumber < 0 || Children == null)
+                if(children == null)
                 {
                     result = null;
                     return false;
                 }
                 var nextBit = BitHelper.IsBitSet(value, bitNumber);
                 bitNumber--;
-                return Children[nextBit ? 1 : 0].TryParseOpcode(value, out result, bitNumber);
+                return children[nextBit ? 1 : 0].TryParseOpcode(value, out result, bitNumber);
             }
 
-            private DecoderEntry[] Children;
-            private Func<Instruction> Instruction;
+            private DecoderEntry[] children;
+            private Func<Instruction> instruction;
         }
 
         private enum Registers
