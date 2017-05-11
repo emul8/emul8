@@ -991,6 +991,7 @@ namespace Emul8.Peripherals.Wireless
                 if(Parent.isRxEnabled && Parent.currentFrame != null)
                 {
                     Parent.SetException(ExceptionFlags.RxFrameAborted);
+                    Parent.currentFrame = null;
                 }
                 Parent.isRxEnabled = false;
                 return base.ParseInner(value);
@@ -1007,6 +1008,7 @@ namespace Emul8.Peripherals.Wireless
                     if(Parent.currentFrame != null)
                     {
                         Parent.SetException(ExceptionFlags.RxFrameAborted);
+                        Parent.currentFrame = null;
                     }
                 }
                 Parent.oscillatorRunning = false;
