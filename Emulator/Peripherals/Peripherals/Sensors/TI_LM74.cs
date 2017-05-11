@@ -4,7 +4,9 @@
 // This file is part of the Emul8 project.
 // Full license details are defined in the 'LICENSE' file.
 //
+using Emul8.Exceptions;
 using Emul8.Peripherals.SPI;
+using Emul8.Utilities;
 
 namespace Emul8.Peripherals.Sensors
 {
@@ -43,9 +45,30 @@ namespace Emul8.Peripherals.Sensors
             return value;
         }
 
-        public decimal Temperature { get; set; }
+        public decimal Temperature
+        {
+            get
+            {
+                return temperature;
+            }
+            set
+            {
+                if(MinTemperature <= value && value <= MaxTemperature)
+                {
+                    temperature = value;
+                }
+                else
+                {
+                    throw new RecoverableException("The temperature value must be between {0} and {1}.".FormatWith(MinTemperature, MaxTemperature));
+                }
+            }
+        }
 
+        private decimal temperature;
         private uint currentReadOut;
         private bool isFirstByte;
+
+        private const int MaxTemperature = 150;
+        private const int MinTemperature = -55;
     }
 }
