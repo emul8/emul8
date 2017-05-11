@@ -805,6 +805,7 @@ namespace Emul8.Peripherals.Wireless
             decoderRoot.AddOpcode(0x10, 4, () => new MEMRD { Parent = this });
             decoderRoot.AddOpcode(0x20, 4, () => new MEMWR { Parent = this });
             decoderRoot.AddOpcode(0x30, 8, () => new RXBUF { Parent = this });
+            decoderRoot.AddOpcode(0x32, 7, () => new RXBUFMOV { Parent = this });
             decoderRoot.AddOpcode(0x3A, 8, () => new TXBUF { Parent = this });
             decoderRoot.AddOpcode(0x40, 8, () => new SXOSCON { Parent = this });
             decoderRoot.AddOpcode(0x42, 8, () => new SRXON { Parent = this });
