@@ -293,7 +293,7 @@ namespace Emul8.Testing
                     }
                     catch(OperationCanceledException)
                     {
-                        // timeout occured
+                        // timeout occurred
                     }
                 });
                 try
@@ -446,7 +446,7 @@ namespace Emul8.Testing
             
             public override string ToString()
             {
-                return string.Format(">>> '{0}': timeout occured", Assertion.AssertText ?? Assertion.Type.ToString());
+                return string.Format(">>> '{0}': timeout occurred", Assertion.AssertText ?? Assertion.Type.ToString());
             }
         }
 
