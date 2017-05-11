@@ -17,6 +17,7 @@ ${PORT_NUMBER}            9999
 ${DIRECTORY}              ${CURDIR}/../output/${CONFIGURATION}
 ${BINARY_NAME}            ./RobotFrontend.exe
 ${HOTSPOT_ACTION}         None
+${DISABLE_X11}            False
 
 *** Keywords ***
 Setup
@@ -24,16 +25,20 @@ Setup
     ...    Debug  
     ...    ${CONFIGURATION}
 
+    @{PARAMS}=           Create List  ${PORT_NUMBER}
+    Run Keyword If        ${DISABLE_X11}
+    ...    Insert Into List  ${PARAMS}  0  -x
+
     File Should Exist    ${DIRECTORY}/${BINARY_NAME}  msg=Robot Frontend binary not found. Did you forget to build it in ${CONFIGURATION} configuration?
 
     Run Keyword If       not ${SKIP_RUNNING_SERVER} and not ${SERVER_REMOTE_DEBUG}
-    ...   Start Process  mono  ${BINARY_NAME}  ${PORT_NUMBER}  cwd=${DIRECTORY}
+    ...   Start Process  mono  ${BINARY_NAME}  @{PARAMS}  cwd=${DIRECTORY}
 
     Run Keyword If       not ${SKIP_RUNNING_SERVER} and ${SERVER_REMOTE_DEBUG}
     ...   Start Process  mono
           ...            --debug
           ...            --debugger-agent\=transport\=dt_socket,address\=0.0.0.0:${SERVER_REMOTE_PORT},server\=y,suspend\=${SERVER_REMOTE_SUSPEND}
-          ...            ${BINARY_NAME}  ${PORT_NUMBER}  cwd=${DIRECTORY}
+          ...            ${BINARY_NAME}  @{PARAMS}  cwd=${DIRECTORY}
 
     Wait Until Keyword Succeeds  60s  1s
     ...   Import Library  Remote  http://localhost:${PORT_NUMBER}/
