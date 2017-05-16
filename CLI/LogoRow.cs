@@ -25,6 +25,10 @@ namespace Emul8.CLI
         public override double PrepareForDrawing(ILayoutParameters parameters)
         {
             var baseResult = base.PrepareForDrawing(parameters);
+            if(LineHeight == 0) // UI has not been initalized yet
+            {
+                return baseResult;
+            }
             imageHeightInLines = (int)Math.Ceiling(image.Height / LineHeight);
             ceiledImageHeight = imageHeightInLines * LineHeight;
             ShellProvider.NumberOfDummyLines = imageHeightInLines;
