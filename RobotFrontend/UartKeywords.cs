@@ -59,7 +59,8 @@ namespace Emul8.RobotFrontend
                 }
                 else if(!EmulationManager.Instance.CurrentEmulation.TryGetMachineByName(machine, out machineObject))
                 {
-                    throw new KeywordException("Machine with name {0} not found.", machine);
+                    throw new KeywordException("Machine with name {0} not found. Available machines: [{1}]", machine,
+                            string.Join(", ", EmulationManager.Instance.CurrentEmulation.Machines.Select(x => EmulationManager.Instance.CurrentEmulation[x])));
                 }
 
                 IUART uartObject;
