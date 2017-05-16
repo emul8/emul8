@@ -11,6 +11,7 @@ using Emul8.CLI;
 using Emul8.Core;
 using Emul8.Peripherals.UART;
 using Emul8.Robot;
+using Emul8.UserInterface;
 using Emul8.Utilities;
 
 namespace Emul8.RobotFrontend
@@ -48,8 +49,18 @@ namespace Emul8.RobotFrontend
                         xwt = new XwtProvider(new WindowedUserInterfaceProvider());
                     }
 
-                    server.Run(options.Port);
-                    server.Dispose();
+                    using(var context = ObjectCreator.Instance.OpenContext())
+                    {
+                        var monitor = new Emul8.UserInterface.Monitor()  { Interaction = new CommandInteractionEater() };
+                        context.RegisterSurrogate(typeof(Emul8.UserInterface.Monitor), monitor);
+
+                        // we must initialize plugins AFTER registering monitor surrogate
+                        // as some plugins might need it for construction
+                        TypeManager.Instance.PluginManager.Init("CLI");
+
+                        server.Run(options.Port);
+                        server.Dispose();
+                    }
                 }
                 finally
                 {

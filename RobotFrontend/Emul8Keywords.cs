@@ -17,7 +17,7 @@ namespace Emul8.RobotFrontend
     {
         public Emul8Keywords()
         {
-            monitor = new Monitor { Interaction = new CommandInteractionEater() };
+            monitor = ObjectCreator.Instance.GetSurrogate<Monitor>();
         }
 
         public void Dispose()
