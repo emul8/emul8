@@ -63,8 +63,8 @@ namespace Emul8.Peripherals.Wireless
                 {
                     return;
                 }
-                ExecuteOnNearestSync(NearestSyncHandler);
                 executeOnSyncAlreadyQueued = true;
+                ExecuteOnNearestSync(NearestSyncHandler);
             }
         }
 
