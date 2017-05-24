@@ -6,6 +6,7 @@
 //
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Emul8.Core;
 using Emul8.Core.Structure.Registers;
 using Emul8.Logging;
@@ -31,15 +32,15 @@ namespace Emul8.Peripherals.Miscellaneous
                 keyStoreWriteAreaRegister.DefineFlagField(i, writeCallback: (_, value) => keyStoreWriteArea[j] = value, valueProviderCallback: _ => keyStoreWriteArea[j], name: "RAM_AREA" + i);
             }
 
-            dmaInputAddress = new DoubleWordRegister(this);
-
             var registersMap = new Dictionary<long, DoubleWordRegister>
             {
                 {(long)Registers.DmaChannel0Control, new DoubleWordRegister(this)
                     .WithFlag(0, out dmaInputChannelEnabled, name: "EN")
                     .WithFlag(1, name: "PRIO") // priority is not handled
                 },
-                {(long)Registers.DmaChannel0ExternalAddress, dmaInputAddress},
+                {(long)Registers.DmaChannel0ExternalAddress, new DoubleWordRegister(this)
+                    .WithValueField(0, 32, out dmaInputAddress)
+                },
                 {(long)Registers.DmaChannel0Length, new DoubleWordRegister(this)
                     .WithValueField(0, 15, writeCallback: (_, value) => DoInputTransfer((int)value))
                 },
@@ -65,6 +66,10 @@ namespace Emul8.Peripherals.Miscellaneous
                     .WithFlag(29, FieldMode.Read, name: "KEY_ST_RD_ERR")
                     .WithFlag(30, FieldMode.Read, name: "KEY_ST_WR_ERR")
                     .WithFlag(31, FieldMode.Read, name: "DMA_BUS_ERR")
+                },
+                {(long)Registers.InterrptStatus, new DoubleWordRegister(this)
+                    .WithFlag(0, FieldMode.Read, valueProviderCallback: _ => resultInterrupt, name: "RESULT_AV")
+                    .WithFlag(1, FieldMode.Read, valueProviderCallback: _ => dmaDoneInterrupt, name: "DMA_IN_DONE")
                 }
             };
 
@@ -109,6 +114,7 @@ namespace Emul8.Peripherals.Miscellaneous
         private void RefreshInterrupts()
         {
             var value = (resultInterruptEnabled.Value && resultInterrupt) || (dmaDoneInterruptEnabled.Value && dmaDoneInterrupt);
+            this.Log(LogLevel.Info, "Setting to {0}.", value);
             Interrupt.Set(value);
             if(!interruptIsLevel.Value)
             {
@@ -120,16 +126,39 @@ namespace Emul8.Peripherals.Miscellaneous
 
         private void DoInputTransfer(int length)
         {
-            this.Log(LogLevel.Info, "LEN: {0}", length);
-            for(var i = 0; i < keyStoreWriteArea.Length; i++)
+            var placeInKeyStore = keyStoreWriteArea.Sum(x => x ? 1 : 0) * KeyEntrySizeInBytes;
+            if(length != placeInKeyStore)
             {
-                this.Log(LogLevel.Info, "KS{0}: {1}", i, keyStoreWriteArea[i]);
+                this.Log(LogLevel.Warning, "Not enough place in key store ({0}B) for the given transfer length ({1}B), ignoring transfer length.", placeInKeyStore, length);
             }
+
+            for(var i = 0; i < keys.Length; i++)
+            {
+                if(!keyStoreWriteArea[i])
+                {
+                    continue;
+                }
+                if(keys[i] != null)
+                {
+                    this.Log(LogLevel.Warning, "Trying to write a key to a non empty key store, ignoring.");
+                    continue; // TODO: this probably should result in some error
+                }
+                if(length <= 0)
+                {
+                    break;
+                }
+                var data = machine.SystemBus.ReadBytes(dmaInputAddress.Value, KeyEntrySizeInBytes);
+                keys[i] = data;
+                length -= KeyEntrySizeInBytes;
+                dmaInputAddress.Value += KeyEntrySizeInBytes;
+            }
+            resultInterrupt = true;
+            RefreshInterrupts();
         }
 
         private bool dmaDoneInterrupt;
         private bool resultInterrupt;
-        private DoubleWordRegister dmaInputAddress;
+        private IValueRegisterField dmaInputAddress;
         private readonly bool[] keyStoreWriteArea;
         private readonly IFlagRegisterField dmaInputChannelEnabled;
         private readonly IEnumRegisterField<KeySize> keySize;
@@ -142,6 +171,7 @@ namespace Emul8.Peripherals.Miscellaneous
         private readonly Machine machine;
 
         private const int NumberOfKeys = 8;
+        private const int KeyEntrySizeInBytes = 16;
 
         private enum Registers : uint
         {
@@ -155,6 +185,7 @@ namespace Emul8.Peripherals.Miscellaneous
             InterruptConfiguration = 0x780, // CTRL_INT_CFG
             InterruptEnable = 0x784, // CTRL_INT_EN
             InterruptClear = 0x788, // CTRL_INT_CLR
+            InterrptStatus = 0x790, // CTRL_INT_STAT
         }
 
         private enum DmaDestination
