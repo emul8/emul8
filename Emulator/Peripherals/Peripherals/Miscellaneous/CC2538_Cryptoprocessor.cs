@@ -6,7 +6,9 @@
 //
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 using Emul8.Core;
 using Emul8.Core.Structure.Registers;
 using Emul8.Logging;
@@ -22,6 +24,7 @@ namespace Emul8.Peripherals.Miscellaneous
             keys = new byte[NumberOfKeys][];
             keyStoreWriteArea = new bool[NumberOfKeys];
             Interrupt = new GPIO();
+            inputVector = new byte[16];
 
             var keyStoreWrittenRegister = new DoubleWordRegister(this);
             var keyStoreWriteAreaRegister = new DoubleWordRegister(this);
@@ -42,12 +45,36 @@ namespace Emul8.Peripherals.Miscellaneous
                     .WithValueField(0, 32, out dmaInputAddress)
                 },
                 {(long)Registers.DmaChannel0Length, new DoubleWordRegister(this)
-                    .WithValueField(0, 15, writeCallback: (_, value) => DoInputTransfer((int)value))
+                    .WithValueField(0, 15, writeCallback: (_, value) => DoInputTransfer((int)value), valueProviderCallback: _ => 0)
+                },
+                {(long)Registers.DmaChannel1Control, new DoubleWordRegister(this)
+                    .WithFlag(0, out dmaOutputChannelEnabled, name: "EN")
+                    .WithFlag(1, name: "PRIO") // priority is not handled
+                },
+                {(long)Registers.DmaChannel1ExternalAddress, new DoubleWordRegister(this)
+                    .WithValueField(0, 32, out dmaOutputAddress)
+                },
+                {(long)Registers.DmaChannel1Length, new DoubleWordRegister(this)
+                    .WithValueField(0, 15, writeCallback: (_, value) => DoOutputTransfer((int)value), valueProviderCallback: _ => 0)
                 },
                 {(long)Registers.KeyStoreWriteArea, keyStoreWriteAreaRegister},
                 {(long)Registers.KeyStoreWrittenArea, keyStoreWrittenRegister},
                 {(long)Registers.KeyStoreSize, new DoubleWordRegister(this)
                     .WithEnumField(0, 3, out keySize)
+                },
+                {(long)Registers.KeyStoreReadArea, new DoubleWordRegister(this)
+                    .WithValueField(0, 4, out selectedKey)
+                    .WithFlag(31, FieldMode.Read)
+                },
+                {(long)Registers.AesControl, new DoubleWordRegister(this)
+                    .WithEnumField(2, 1, out direction)
+                    .WithFlag(5, out cbcEnabled)
+                },
+                {(long)Registers.AesCryptoLength0, new DoubleWordRegister(this)
+                    .WithValueField(0, 32, FieldMode.Write, writeCallback: (_, value) => aesOperationLength = checked((int)value))
+                },
+                {(long)Registers.AesCryptoLength1, new DoubleWordRegister(this)
+                    .WithValueField(0, 29, FieldMode.Write, writeCallback: (_, value) => { if(value != 0) this.Log(LogLevel.Error, "Unsupported crypto length that spans more than one register."); })
                 },
                 {(long)Registers.AlgorithmSelection, new DoubleWordRegister(this)
                     .WithEnumField(0, 3, out dmaDestination, name: "KEY-STORE AES HASH")
@@ -72,6 +99,15 @@ namespace Emul8.Peripherals.Miscellaneous
                     .WithFlag(1, FieldMode.Read, valueProviderCallback: _ => dmaDoneInterrupt, name: "DMA_IN_DONE")
                 }
             };
+
+            for(var i = 0; i < 4; i++)
+            {
+                var j = i;
+                var ivRegister = new DoubleWordRegister(this);
+                ivRegister.DefineValueField(0, 32, writeCallback: (_, value) => BitConverter.GetBytes(value).CopyTo(inputVector, j * 4),
+                                            valueProviderCallback: _ => BitConverter.ToUInt32(inputVector, j * 4));
+                registersMap.Add((long)Registers.AesInputVector + 4 * i, ivRegister);
+            }
 
             registers = new DoubleWordRegisterCollection(this, registersMap);
         }
@@ -126,6 +162,23 @@ namespace Emul8.Peripherals.Miscellaneous
 
         private void DoInputTransfer(int length)
         {
+            if(!dmaInputChannelEnabled.Value)
+            {
+                return;
+            }
+            switch(dmaDestination.Value)
+            {
+            case DmaDestination.KeyStore:
+                break;
+            case DmaDestination.Aes:
+                return; // the real crypto operation will start on output transfer
+            case DmaDestination.HashEngine:
+                this.Log(LogLevel.Error, "Hash engine is not supported.");
+                return;
+            default:
+                throw new InvalidOperationException("Should not reach here.");
+            }
+
             var placeInKeyStore = keyStoreWriteArea.Sum(x => x ? 1 : 0) * KeyEntrySizeInBytes;
             if(length != placeInKeyStore)
             {
@@ -156,11 +209,69 @@ namespace Emul8.Peripherals.Miscellaneous
             RefreshInterrupts();
         }
 
+        private void DoOutputTransfer(int length)
+        {
+            if(!dmaOutputChannelEnabled.Value)
+            {
+                return;
+            }
+
+            if(dmaDestination.Value != DmaDestination.Aes)
+            {
+                this.Log(LogLevel.Error, "Not implemented output transfer destination.");
+                machine.Pause();
+            }
+
+            // here the real cipher operation begins
+            if(length != aesOperationLength)
+            {
+                this.Log(LogLevel.Error, "AES operation in which dma length != aes length is not supported.");
+                return;
+            }
+            if(!cbcEnabled.Value)
+            {
+                this.Log(LogLevel.Error, "Unimplemented cipher mode.");
+                return;
+            }
+
+            using(var aes = Aes.Create())
+            {
+                aes.Mode = CipherMode.CBC;
+                aes.Padding = PaddingMode.None;
+                var key = keys[selectedKey.Value];
+                var encryptorDecryptor = direction.Value == Direction.Encryption ? aes.CreateEncryptor(key, inputVector) : aes.CreateDecryptor(key, inputVector);
+                using(var memoryStream = new MemoryStream())
+                {
+                    using(var cryptoStream = new CryptoStream(memoryStream, encryptorDecryptor, CryptoStreamMode.Write))
+                    {
+                        var input = machine.SystemBus.ReadBytes(dmaInputAddress.Value, length);
+                        dmaInputAddress.Value += (uint)length;
+                        cryptoStream.Write(input, 0, input.Length);
+                    }
+                    var output = memoryStream.ToArray();
+                    machine.SystemBus.WriteBytes(output, dmaOutputAddress.Value);
+                    dmaOutputAddress.Value += (uint)length;
+                }
+            }
+
+
+            dmaDoneInterrupt = true;
+            resultInterrupt = true;
+            RefreshInterrupts();
+        }
+
         private bool dmaDoneInterrupt;
         private bool resultInterrupt;
-        private IValueRegisterField dmaInputAddress;
+        private int aesOperationLength;
+        private readonly IFlagRegisterField cbcEnabled;
+        private readonly IEnumRegisterField<Direction> direction;
+        private readonly byte[] inputVector;
+        private readonly IValueRegisterField dmaInputAddress;
+        private readonly IValueRegisterField dmaOutputAddress;
+        private readonly IValueRegisterField selectedKey;
         private readonly bool[] keyStoreWriteArea;
         private readonly IFlagRegisterField dmaInputChannelEnabled;
+        private readonly IFlagRegisterField dmaOutputChannelEnabled;
         private readonly IEnumRegisterField<KeySize> keySize;
         private readonly IEnumRegisterField<DmaDestination> dmaDestination;
         private readonly IFlagRegisterField interruptIsLevel;
@@ -178,14 +289,22 @@ namespace Emul8.Peripherals.Miscellaneous
             DmaChannel0Control = 0x0, // DMAC_CH0_CTRL
             DmaChannel0ExternalAddress = 0x4, // DMAC_CH0_EXTADDR
             DmaChannel0Length = 0xC, // DMAC_CH0_DMALENGTH
+            DmaChannel1Control = 0x20, // DMAC_CH1_CTRL
+            DmaChannel1ExternalAddress = 0x24, // DMAC_CH1_EXTADDR
+            DmaChannel1Length = 0x2C, // DMAC_CH1_DMALENGTH
             KeyStoreWriteArea = 0x400, // AES_KEY_STORE_WRITE_AREA
             KeyStoreWrittenArea = 0x404, // AES_KEY_STORE_WRITTEN_AREA
             KeyStoreSize = 0x408, // AES_KEY_STORE_SIZE
-            AlgorithmSelection = 0x700, // CTRL_ALG_SEL
-            InterruptConfiguration = 0x780, // CTRL_INT_CFG
-            InterruptEnable = 0x784, // CTRL_INT_EN
-            InterruptClear = 0x788, // CTRL_INT_CLR
-            InterrptStatus = 0x790, // CTRL_INT_STAT
+            KeyStoreReadArea = 0x40C, // AES_KEY_STORE_READ_AREA
+            AesInputVector = 0x540, // AES_AES_IV_0
+            AesControl = 0x550, // AES_AES_CTRL
+            AesCryptoLength0 = 0x554, // AES_AES_C_LENGTH_0
+            AesCryptoLength1 = 0x558, // AES_AES_C_LENGTH_1
+            AlgorithmSelection = 0x700, // AES_CTRL_ALG_SEL
+            InterruptConfiguration = 0x780, // AES_CTRL_INT_CFG
+            InterruptEnable = 0x784, // AES_CTRL_INT_EN
+            InterruptClear = 0x788, // AES_CTRL_INT_CLR
+            InterrptStatus = 0x790, // AES_CTRL_INT_STAT
         }
 
         private enum DmaDestination
@@ -200,6 +319,12 @@ namespace Emul8.Peripherals.Miscellaneous
             Bits128,
             Bits192,
             Bits256
+        }
+
+        private enum Direction
+        {
+            Decryption,
+            Encryption
         }
     }
 }

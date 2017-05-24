@@ -89,7 +89,7 @@ namespace Emul8.Core.Structure.Registers
                 set
                 {
                     var binary = ToBinary(value);
-                    if(binary >= (1 << width))
+                    if(binary >= (1L << width))
                     {
                         throw new ArgumentException("Value exceeds the size of the field.");
                     }
