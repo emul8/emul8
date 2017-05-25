@@ -238,7 +238,8 @@ namespace Emul8.Peripherals.Miscellaneous
             {
                 aes.Mode = CipherMode.CBC;
                 aes.Padding = PaddingMode.None;
-                var key = keys[selectedKey.Value];
+                var key = GetSelectedKey();
+
                 var encryptorDecryptor = direction.Value == Direction.Encryption ? aes.CreateEncryptor(key, inputVector) : aes.CreateDecryptor(key, inputVector);
                 using(var memoryStream = new MemoryStream())
                 {
@@ -254,10 +255,33 @@ namespace Emul8.Peripherals.Miscellaneous
                 }
             }
 
-
             dmaDoneInterrupt = true;
             resultInterrupt = true;
             RefreshInterrupts();
+        }
+
+        private byte[] GetSelectedKey()
+        {
+            byte[] result;
+            
+            switch(keySize.Value)
+            {
+            case KeySize.Bits128:
+                return keys[selectedKey.Value];
+            case KeySize.Bits192:
+                result = new byte[24];
+                Array.Copy(keys[selectedKey.Value + 1], 0, result, 16, 8);
+                break;
+            case KeySize.Bits256:
+                result = new byte[32];
+                keys[selectedKey.Value + 1].CopyTo(result, 16);
+                break;
+            default:
+                this.Log(LogLevel.Warning, "Reserved key size value used instead of the proper value.");
+                return new byte[16];
+            }
+            Array.Copy(keys[selectedKey.Value], result, 16);
+            return result;
         }
 
         private bool dmaDoneInterrupt;
@@ -316,9 +340,9 @@ namespace Emul8.Peripherals.Miscellaneous
 
         private enum KeySize
         {
-            Bits128,
-            Bits192,
-            Bits256
+            Bits128 = 1,
+            Bits192 = 2,
+            Bits256 = 3
         }
 
         private enum Direction
