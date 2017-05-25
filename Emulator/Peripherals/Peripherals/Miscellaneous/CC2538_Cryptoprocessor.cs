@@ -114,13 +114,7 @@ namespace Emul8.Peripherals.Miscellaneous
 
         public uint ReadDoubleWord(long offset)
         {
-            uint result;
-            if(!registers.TryRead(offset, out result))
-            {
-                this.Log(LogLevel.Warning, "Unhandled read at 0x{0:X}.", offset);
-                machine.Pause();
-            }
-            return result;
+            return registers.Read(offset);
         }
 
         public void Reset()
@@ -130,11 +124,7 @@ namespace Emul8.Peripherals.Miscellaneous
 
         public void WriteDoubleWord(long offset, uint value)
         {
-            if(!registers.TryWrite(offset, value))
-            {
-                this.Log(LogLevel.Warning, "Unhandled write to 0x{0:X}, value 0x{1:X}.", offset, value);
-                machine.Pause();
-            }
+            registers.Write(offset, value);
         }
 
         public long Size 
@@ -219,7 +209,7 @@ namespace Emul8.Peripherals.Miscellaneous
             if(dmaDestination.Value != DmaDestination.Aes)
             {
                 this.Log(LogLevel.Error, "Not implemented output transfer destination.");
-                machine.Pause();
+                return;
             }
 
             // here the real cipher operation begins
