@@ -534,7 +534,7 @@ namespace Emul8.Peripherals.Bus
             this.DebugLog("Loading binary {0} at 0x{1:X}.", fileName, loadPoint);
             try
             {
-                using(var reader = new FileStream(fileName, FileMode.Open))
+                using(var reader = new FileStream(fileName, FileMode.Open, FileAccess.Read))
                 {
                     var buffer = new byte[bufferSize];
                     var written = 0;
