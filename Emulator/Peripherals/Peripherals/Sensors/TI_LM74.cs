@@ -53,14 +53,11 @@ namespace Emul8.Peripherals.Sensors
             }
             set
             {
-                if(MinTemperature <= value && value <= MaxTemperature)
-                {
-                    temperature = value;
-                }
-                else
+                if(MinTemperature > value || value > MaxTemperature)
                 {
                     throw new RecoverableException("The temperature value must be between {0} and {1}.".FormatWith(MinTemperature, MaxTemperature));
                 }
+                temperature = value;
             }
         }
 
@@ -68,7 +65,7 @@ namespace Emul8.Peripherals.Sensors
         private uint currentReadOut;
         private bool isFirstByte;
 
-        private const int MaxTemperature = 150;
-        private const int MinTemperature = -55;
+        private const decimal MaxTemperature = 150;
+        private const decimal MinTemperature = -55;
     }
 }
