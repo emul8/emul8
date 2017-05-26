@@ -118,7 +118,6 @@ namespace Emul8.CLI
                     throw new NotSupportedException(String.Format("Could not start terminal. Possible config values: {0}",
                         windowCreators.Keys.Select(x => x.ToString()).Aggregate((x, y) => x + ", " + y)));
                 }
-
             }
 #endif
 
