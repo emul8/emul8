@@ -93,8 +93,8 @@ then
 	    echo "Wrong mono version detected: $MONO_VERSION. Please refer to documentation for installation instructions. Exiting!"
 	    exit 1
 	fi
-	MCS_VERSION=`mcs --version | cut -d' ' -f5 | cut -d'.' -f-3`
-	if [ $MONO_VERSION != $MCS_VERSION ]
+	MCS_VERSION=`mcs --version | cut -d' ' -f5`
+	if [ $MONO_VERSION != ${MCS_VERSION:0:${#MONO_VERSION}} ]
 	then
 	    echo "Wrong mcs version detected: $MCS_VERSION (mono version is $MONO_VERSION). Please refer to documentation for installation instructions. Exiting!"
 	    exit 1
