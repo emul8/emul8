@@ -169,7 +169,8 @@ namespace Emul8.Tools.Network
 
             public override bool Equals(object obj)
             {
-                return Interface.Equals(obj);
+                var objAsInterfaceDescriptor = obj as InterfaceDescriptor;
+                return objAsInterfaceDescriptor != null && Interface.Equals(objAsInterfaceDescriptor.Interface);
             }
         }
     }
