@@ -126,6 +126,18 @@ namespace Emul8.CLI
             }
         }
 
+        public event Action Initialized
+        {
+            add
+            {
+                terminal.Initialized += value;
+            }
+            remove
+            {
+                terminal.Initialized -= value;
+            }
+        }
+
         public IOProvider IO { get; private set; }
 
         protected override void Dispose(bool disposing)
