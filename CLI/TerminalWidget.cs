@@ -107,7 +107,7 @@ namespace Emul8.CLI
 
         public TerminalWidget(UARTBackend backend, Func<bool> focusProvider, Func<TerminalWidget, MenuItem[]> menuItemProvider) : this(backend, focusProvider)
         {
-            additionlMenuItemProvider = menuItemProvider;
+            additionalMenuItemProvider = menuItemProvider;
             terminal.ContextMenu = CreatePopupMenu();
         }
 
@@ -180,9 +180,9 @@ namespace Emul8.CLI
             };
             popup.Items.Add(pasteItem);
 
-            if(additionlMenuItemProvider != null)
+            if(additionalMenuItemProvider != null)
             {
-                foreach(var item in additionlMenuItemProvider(this))
+                foreach(var item in additionalMenuItemProvider(this))
                 {
                     popup.Items.Add(item);
                 }
@@ -191,7 +191,7 @@ namespace Emul8.CLI
             return popup;
         }
 
-        private readonly Func<TerminalWidget, MenuItem[]> additionlMenuItemProvider;
+        private readonly Func<TerminalWidget, MenuItem[]> additionalMenuItemProvider;
         private readonly Terminal terminal;
         private readonly TerminalIOSource terminalInputOutputSource;
         private bool modifyLineEndings;
