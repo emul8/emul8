@@ -21,14 +21,11 @@ namespace Emul8.Peripherals.Miscellaneous
         public CC2538_Cryptoprocessor(Machine machine)
         {
             this.machine = machine;
-            keys = new byte[NumberOfKeys][];
-            keyStoreWriteArea = new bool[NumberOfKeys];
             Interrupt = new GPIO();
-            inputVector = new byte[16];
 
             var keyStoreWrittenRegister = new DoubleWordRegister(this);
             var keyStoreWriteAreaRegister = new DoubleWordRegister(this);
-            for(var i = 0; i < keys.Length; i++)
+            for(var i = 0; i < NumberOfKeys; i++)
             {
                 var j = i;
                 keyStoreWrittenRegister.DefineFlagField(i, writeCallback: (_, value) => { if(value) keys[j] = null; }, valueProviderCallback: _ => keys[j] != null, name: "RAM_AREA_WRITTEN" + i);
@@ -110,6 +107,7 @@ namespace Emul8.Peripherals.Miscellaneous
             }
 
             registers = new DoubleWordRegisterCollection(this, registersMap);
+            Reset();
         }
 
         public uint ReadDoubleWord(long offset)
@@ -120,6 +118,16 @@ namespace Emul8.Peripherals.Miscellaneous
         public void Reset()
         {
             registers.Reset();
+
+            aesOperationLength = 0;
+
+            dmaDoneInterrupt = false;
+            resultInterrupt = false;
+            RefreshInterrupts();
+
+            keys = new byte[NumberOfKeys][];
+            keyStoreWriteArea = new bool[NumberOfKeys];
+            inputVector = new byte[16];
         }
 
         public void WriteDoubleWord(long offset, uint value)
@@ -277,13 +285,14 @@ namespace Emul8.Peripherals.Miscellaneous
         private bool dmaDoneInterrupt;
         private bool resultInterrupt;
         private int aesOperationLength;
+        private byte[] inputVector;
+        private bool[] keyStoreWriteArea;
+        private byte[][] keys;
         private readonly IFlagRegisterField cbcEnabled;
         private readonly IEnumRegisterField<Direction> direction;
-        private readonly byte[] inputVector;
         private readonly IValueRegisterField dmaInputAddress;
         private readonly IValueRegisterField dmaOutputAddress;
         private readonly IValueRegisterField selectedKey;
-        private readonly bool[] keyStoreWriteArea;
         private readonly IFlagRegisterField dmaInputChannelEnabled;
         private readonly IFlagRegisterField dmaOutputChannelEnabled;
         private readonly IEnumRegisterField<KeySize> keySize;
@@ -292,7 +301,6 @@ namespace Emul8.Peripherals.Miscellaneous
         private readonly IFlagRegisterField resultInterruptEnabled;
         private readonly IFlagRegisterField dmaDoneInterruptEnabled;
         private readonly DoubleWordRegisterCollection registers;
-        private readonly byte[][] keys;
         private readonly Machine machine;
 
         private const int NumberOfKeys = 8;
