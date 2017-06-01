@@ -91,7 +91,7 @@ namespace Emul8.Peripherals.Miscellaneous
                     .WithFlag(30, writeCallback: (_, value) => { if(value) { keyStoreWriteErrorInterrupt = false; RefreshInterrupts(); } }, valueProviderCallback: _ => false, name: "KEY_ST_WR_ERR")
                     .WithFlag(31, FieldMode.Read, name: "DMA_BUS_ERR")
                 },
-                {(long)Registers.InterrptStatus, new DoubleWordRegister(this)
+                {(long)Registers.InterruptStatus, new DoubleWordRegister(this)
                     .WithFlag(0, FieldMode.Read, valueProviderCallback: _ => resultInterrupt, name: "RESULT_AV")
                     .WithFlag(1, FieldMode.Read, valueProviderCallback: _ => dmaDoneInterrupt, name: "DMA_IN_DONE")
                     .WithFlag(30, FieldMode.Read, valueProviderCallback: _ => keyStoreWriteErrorInterrupt, name: "KEY_ST_WR_ERR")
@@ -330,7 +330,7 @@ namespace Emul8.Peripherals.Miscellaneous
             InterruptConfiguration = 0x780, // AES_CTRL_INT_CFG
             InterruptEnable = 0x784, // AES_CTRL_INT_EN
             InterruptClear = 0x788, // AES_CTRL_INT_CLR
-            InterrptStatus = 0x790, // AES_CTRL_INT_STAT
+            InterruptStatus = 0x790, // AES_CTRL_INT_STAT
         }
 
         private enum DmaDestination
