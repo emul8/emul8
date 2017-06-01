@@ -215,7 +215,7 @@ namespace Emul8.Peripherals.Miscellaneous
             // here the real cipher operation begins
             if(length != aesOperationLength)
             {
-                this.Log(LogLevel.Error, "AES operation in which dma length != aes length is not supported.");
+                this.Log(LogLevel.Error, "AES operation in which dma length is different than aes length is not supported.");
                 return;
             }
             if(!cbcEnabled.Value)
