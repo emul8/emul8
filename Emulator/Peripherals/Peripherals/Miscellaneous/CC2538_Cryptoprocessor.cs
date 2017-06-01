@@ -88,12 +88,13 @@ namespace Emul8.Peripherals.Miscellaneous
                     .WithFlag(0, writeCallback: (_, value) => { if(value) { resultInterrupt = false; RefreshInterrupts(); } }, valueProviderCallback: _ => false )
                     .WithFlag(1, writeCallback: (_, value) => { if(value) { dmaDoneInterrupt = false; RefreshInterrupts(); } }, valueProviderCallback: _ => false )
                     .WithFlag(29, FieldMode.Read, name: "KEY_ST_RD_ERR")
-                    .WithFlag(30, FieldMode.Read, name: "KEY_ST_WR_ERR")
+                    .WithFlag(30, writeCallback: (_, value) => { if(value) { keyStoreWriteErrorInterrupt = false; RefreshInterrupts(); } }, valueProviderCallback: _ => false, name: "KEY_ST_WR_ERR")
                     .WithFlag(31, FieldMode.Read, name: "DMA_BUS_ERR")
                 },
                 {(long)Registers.InterrptStatus, new DoubleWordRegister(this)
                     .WithFlag(0, FieldMode.Read, valueProviderCallback: _ => resultInterrupt, name: "RESULT_AV")
                     .WithFlag(1, FieldMode.Read, valueProviderCallback: _ => dmaDoneInterrupt, name: "DMA_IN_DONE")
+                    .WithFlag(30, FieldMode.Read, valueProviderCallback: _ => keyStoreWriteErrorInterrupt, name: "KEY_ST_WR_ERR")
                 }
             };
 
@@ -121,6 +122,7 @@ namespace Emul8.Peripherals.Miscellaneous
 
             aesOperationLength = 0;
 
+            keyStoreWriteErrorInterrupt = false;
             dmaDoneInterrupt = false;
             resultInterrupt = false;
             RefreshInterrupts();
@@ -147,11 +149,12 @@ namespace Emul8.Peripherals.Miscellaneous
 
         private void RefreshInterrupts()
         {
-            var value = (resultInterruptEnabled.Value && resultInterrupt) || (dmaDoneInterruptEnabled.Value && dmaDoneInterrupt);
-            this.Log(LogLevel.Info, "Setting to {0}.", value);
+            var value = (resultInterruptEnabled.Value && resultInterrupt) || (dmaDoneInterruptEnabled.Value && dmaDoneInterrupt) || keyStoreWriteErrorInterrupt;
+            this.Log(LogLevel.Debug, "Setting Interrupt to {0}.", value);
             Interrupt.Set(value);
             if(!interruptIsLevel.Value)
             {
+                keyStoreWriteErrorInterrupt = false;
                 dmaDoneInterrupt = false;
                 resultInterrupt = false;
                 Interrupt.Unset();
@@ -284,6 +287,7 @@ namespace Emul8.Peripherals.Miscellaneous
 
         private bool dmaDoneInterrupt;
         private bool resultInterrupt;
+        private bool keyStoreWriteErrorInterrupt;
         private int aesOperationLength;
         private byte[] inputVector;
         private bool[] keyStoreWriteArea;
