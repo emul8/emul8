@@ -64,7 +64,7 @@ namespace Emul8.Peripherals.Miscellaneous
                 },
                 {(long)Registers.KeyStoreReadArea, new DoubleWordRegister(this)
                     .WithValueField(0, 4, out selectedKey)
-                    .WithFlag(31, FieldMode.Read)
+                    .WithFlag(31, FieldMode.Read, name: "BUSY", valueProviderCallback: _ => false)
                 },
                 {(long)Registers.AesControl, new DoubleWordRegister(this)
                     .WithEnumField(2, 1, out direction)
