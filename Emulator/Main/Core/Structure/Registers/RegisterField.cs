@@ -89,6 +89,7 @@ namespace Emul8.Core.Structure.Registers
                 set
                 {
                     var binary = ToBinary(value);
+                    // '1' must be of type long as width can have value up to 32 (shifting int of 32 bit would lead to overflow)
                     if(binary >= (1L << width))
                     {
                         throw new ArgumentException("Value exceeds the size of the field.");
