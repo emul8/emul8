@@ -13,6 +13,7 @@ using Emul8.Core;
 using Emul8.Core.Structure.Registers;
 using Emul8.Logging;
 using Emul8.Peripherals.Bus;
+using Emul8.Utilities;
 
 namespace Emul8.Peripherals.Miscellaneous
 {
@@ -180,32 +181,41 @@ namespace Emul8.Peripherals.Miscellaneous
                 throw new InvalidOperationException("Should not reach here.");
             }
 
-            var placeInKeyStore = keyStoreWriteArea.Sum(x => x ? 1 : 0) * KeyEntrySizeInBytes;
-            if(length != placeInKeyStore)
+            var totalNumberOfActivatedSlots = keyStoreWriteArea.Sum(x => x ? 1 : 0);
+            var keyWriteSlotIndex = keyStoreWriteArea.IndexOf(x => true);
+            var numberOfConsecutiveSlots = keyStoreWriteArea.Skip(keyWriteSlotIndex).TakeWhile(x => x == true).Count();
+
+            if(totalNumberOfActivatedSlots != numberOfConsecutiveSlots)
             {
-                this.Log(LogLevel.Warning, "Not enough place in key store ({0}B) for the given transfer length ({1}B), ignoring transfer length.", placeInKeyStore, length);
+                this.Log(LogLevel.Warning, "Bits in key store write area are not set consecutively: {0}, ignoring transfer.", BitHelper.GetSetBitsPretty(BitHelper.GetValueFromBitsArray(keyStoreWriteArea)));
+                keyStoreWriteErrorInterrupt = true;
+                RefreshInterrupts();
+                return;
             }
 
-            for(var i = 0; i < keys.Length; i++)
+            if(length != numberOfConsecutiveSlots * KeyEntrySizeInBytes)
             {
-                if(!keyStoreWriteArea[i])
-                {
-                    continue;
-                }
-                if(keys[i] != null)
-                {
-                    this.Log(LogLevel.Warning, "Trying to write a key to a non empty key store, ignoring.");
-                    continue; // TODO: this probably should result in some error
-                }
-                if(length <= 0)
-                {
-                    break;
-                }
-                var data = machine.SystemBus.ReadBytes(dmaInputAddress.Value, KeyEntrySizeInBytes);
-                keys[i] = data;
-                length -= KeyEntrySizeInBytes;
+                this.Log(LogLevel.Warning, "Transfer length {0}B is not consistent with the number selected slots: {1} (each of size {2}B). Ignoring transfer", length, numberOfConsecutiveSlots, KeyEntrySizeInBytes);
+                keyStoreWriteErrorInterrupt = true;
+                RefreshInterrupts();
+                return;
+            }
+
+            var nonEmptyKeyStoreSlots = keys.Skip(keyWriteSlotIndex).Take(numberOfConsecutiveSlots).Select((v, i) => new { v, i }).Where(x => x.v != null).Select(x => x.i.ToString()).ToList();
+            if(nonEmptyKeyStoreSlots.Count > 0)
+            {
+                this.Log(LogLevel.Warning, "Trying to write a key to a non empty key store: {0}, ignoring transfer.", string.Join(", ", nonEmptyKeyStoreSlots));
+                keyStoreWriteErrorInterrupt = true;
+                RefreshInterrupts();
+                return;
+            }
+
+            for(var i = keyWriteSlotIndex; i < numberOfConsecutiveSlots; i++)
+            {
+                keys[i] = machine.SystemBus.ReadBytes(dmaInputAddress.Value, KeyEntrySizeInBytes);
                 dmaInputAddress.Value += KeyEntrySizeInBytes;
             }
+
             resultInterrupt = true;
             RefreshInterrupts();
         }
