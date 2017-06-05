@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Emul8.Time;
 using Emul8.Logging;
+using Emul8.Core.Structure;
 
 namespace Emul8.Peripherals.Wireless
 {
@@ -21,7 +22,7 @@ namespace Emul8.Peripherals.Wireless
         }
     }
 
-    public sealed class WirelessMedium : SynchronizedExternalBase, IExternal, IConnectable<IRadio>
+    public sealed class WirelessMedium : SynchronizedExternalBase, IHasChildren<IMediumFunction>, IExternal, IConnectable<IRadio>
     {
         public WirelessMedium()
         {
@@ -52,6 +53,19 @@ namespace Emul8.Peripherals.Wireless
             radios[radio] = new Position(x, y, z);
         }
 
+        public IEnumerable<string> GetNames()
+        {
+            var names = new List<string>();
+            names.Add(mediumFunction.FunctionName);
+            return names;
+        }
+
+        public IMediumFunction TryGetByName(string name, out bool success)
+        {
+            success = true;
+            return mediumFunction;
+        }
+
         public event Action<IRadio, IRadio, byte[]> FrameTransmitted;
 
         private void FrameSentHandler(IRadio sender, byte[] packet)
@@ -77,31 +91,38 @@ namespace Emul8.Peripherals.Wireless
                 while(packetsToSend.Count > 0)
                 {
                     var packet = packetsToSend.Dequeue();
+
+                    var sender = packet.Sender;
+                    var senderPosition = packet.SenderPosition;
+                    var senderName = sender.ToString();
+                    var currentEmulation = EmulationManager.Instance.CurrentEmulation;
+                    currentEmulation.TryGetEmulationElementName(sender, out senderName);
+
+                    if(!mediumFunction.CanTransmit(packet.SenderPosition))
+                    {
+                        this.NoisyLog("Packet from {0} can't be transmitted, size {1}.", senderName, packet.Frame.Length);
+                        continue;
+                    }
+
                     foreach(var radioAndPosition in radios.Where(x => x.Key != packet.Sender))
                     {
                         var receiver = radioAndPosition.Key;
                         var receiverPosition = radioAndPosition.Value;
-                        var sender = packet.Sender;
-                        var senderPosition = packet.SenderPosition;
-
-                        var senderName = sender.ToString();
                         var receiverName = receiver.ToString();
-                        var currentEmulation = EmulationManager.Instance.CurrentEmulation;
-                        currentEmulation.TryGetEmulationElementName(sender, out senderName);
+
                         currentEmulation.TryGetEmulationElementName(receiver, out receiverName);
 
-                        if(mediumFunction.CanReach(senderPosition, receiverPosition) && receiver.Channel == packet.Channel)
-                        {
-                            this.NoisyLog("Packet {0} -> {1} delivered, size {2}.", senderName, receiverName, packet.Frame.Length);
-                            receiver.ReceiveFrame(packet.Frame);
-                            if(frameTransmitted != null)
-                            {
-                                frameTransmitted(sender, receiver, packet.Frame);
-                            }
-                        }
-                        else
+                        if(!mediumFunction.CanReach(senderPosition, receiverPosition) && receiver.Channel == packet.Channel)
                         {
                             this.NoisyLog("Packet {0} -> {1} NOT delivered, size {2}.", senderName, receiverName, packet.Frame.Length);
+                            continue;
+                        }
+
+                        this.NoisyLog("Packet {0} -> {1} delivered, size {2}.", senderName, receiverName, packet.Frame.Length);
+                        receiver.ReceiveFrame(packet.Frame);
+                        if(frameTransmitted != null)
+                        {
+                            frameTransmitted(sender, receiver, packet.Frame);
                         }
                     }
                 }
