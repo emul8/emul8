@@ -1013,9 +1013,9 @@ namespace Emul8.UserInterface
             return InvokeContext.CreateContext(device, info.ReflectedType);
         }
 
-        private IExternal GetExternalInterfaceOrNull(string name)
+        private IEmulationElement GetExternalInterfaceOrNull(string name)
         {
-            IExternal external;
+            IEmulationElement external;
             Emulation.ExternalsManager.TryGetByName(name, out external);
             return external;
         }
