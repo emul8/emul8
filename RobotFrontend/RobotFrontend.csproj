@@ -49,7 +49,6 @@
     <Compile Include="RobotFrameworkKeywordAttribute.cs" />
     <Compile Include="KeywordManager.cs" />
     <Compile Include="Keyword.cs" />
-    <Compile Include="SmartParser.cs" />
     <Compile Include="KeywordException.cs" />
     <Compile Include="HotSpotAction.cs" />
     <Compile Include="Recorder.cs"/>

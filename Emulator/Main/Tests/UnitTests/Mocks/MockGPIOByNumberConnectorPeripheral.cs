@@ -23,6 +23,8 @@ namespace UnitTests.Mocks
                 innerConnections[i] = new GPIO();
             }
             Connections = new ReadOnlyDictionary<int, IGPIO>(innerConnections);
+            Irq = new GPIO();
+            OtherIrq = new GPIO();
         }
 
         public void Reset()
@@ -46,6 +48,10 @@ namespace UnitTests.Mocks
         {
             throw new NotImplementedException();
         }
+
+        public GPIO Irq { get; private set; }
+
+        public GPIO OtherIrq { get; private set; }
     }
 }
 

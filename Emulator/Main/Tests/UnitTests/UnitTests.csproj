@@ -70,6 +70,11 @@
     <Compile Include="RegisterEnumParserTests.cs" />
     <Compile Include="ComparingTimerTests.cs" />
     <Compile Include="RangeTests.cs" />
+    <Compile Include="Mocks\TwoStateEnum.cs" />
+    <Compile Include="Mocks\NullRegister.cs" />
+    <Compile Include="Mocks\MockPeripheralWithDependency.cs" />
+    <Compile Include="Mocks\MockIrqSenderWithTwoInterrupts.cs" />
+    <Compile Include="Mocks\AmbiguousRegister.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System" />
