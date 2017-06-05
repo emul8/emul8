@@ -55,15 +55,18 @@ namespace Emul8.Peripherals.Wireless
 
         public IEnumerable<string> GetNames()
         {
-            var names = new List<string>();
-            names.Add(mediumFunction.FunctionName);
-            return names;
+            return new[] {mediumFunction.FunctionName};
         }
 
         public IMediumFunction TryGetByName(string name, out bool success)
         {
-            success = true;
-            return mediumFunction;
+            if(mediumFunction.FunctionName == name)
+            {
+                success = true;
+                return mediumFunction;
+            }
+            success = false;
+            return null;
         }
 
         public event Action<IRadio, IRadio, byte[]> FrameTransmitted;
@@ -112,7 +115,7 @@ namespace Emul8.Peripherals.Wireless
 
                         currentEmulation.TryGetEmulationElementName(receiver, out receiverName);
 
-                        if(!mediumFunction.CanReach(senderPosition, receiverPosition) && receiver.Channel == packet.Channel)
+                        if(!mediumFunction.CanReach(senderPosition, receiverPosition) || receiver.Channel != packet.Channel)
                         {
                             this.NoisyLog("Packet {0} -> {1} NOT delivered, size {2}.", senderName, receiverName, packet.Frame.Length);
                             continue;
