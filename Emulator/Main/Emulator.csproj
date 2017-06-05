@@ -373,6 +373,8 @@
     <Compile Include="Peripherals\Wireless\Position.cs" />
     <Compile Include="Peripherals\Wireless\IMediumFunction.cs" />
     <Compile Include="Peripherals\Wireless\SimpleMediumFunction.cs" />
+    <Compile Include="Utilities\SmartParser.cs" />
+    <Compile Include="Utilities\Collections\LazyList.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup />

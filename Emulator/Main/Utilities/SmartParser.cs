@@ -1,4 +1,4 @@
-﻿//
+﻿﻿//
 // Copyright (c) Antmicro
 //
 // This file is part of the Emul8 project.
@@ -11,9 +11,9 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace Emul8.Robot
+namespace Emul8.Utilities
 {
-    internal class SmartParser
+    public class SmartParser
     {
         public static SmartParser Instance = new SmartParser();
 

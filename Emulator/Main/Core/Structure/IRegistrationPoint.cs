@@ -6,6 +6,7 @@
 // Full license details are defined in the 'LICENSE' file.
 //
 using System;
+using Emul8.Utilities;
 
 namespace Emul8.Core.Structure
 {
@@ -18,7 +19,7 @@ namespace Emul8.Core.Structure
     /// peripherals.
     /// <remarks>
     /// </summary>
-    public interface IRegistrationPoint
+    public interface IRegistrationPoint : IInterestingType
     {
         string PrettyString { get; }
     }
