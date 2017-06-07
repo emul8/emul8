@@ -745,21 +745,18 @@ namespace Emul8.UserInterface
 
         public IEnumerable<String> SuggestFiles(String allButLast, String directoryPath, String lastElement)
         {
-            //Due to some weird behaviour of Directory.Get* when there is a dot character, an additional filter must be added
-            //to verify it is included in the final result. It's the ".Where" line.
+            //the sanitization of the first "./" is required to preserve the original input provided by the user
             try
             {
                 var files = Directory.GetFiles(directoryPath, lastElement + '*', SearchOption.TopDirectoryOnly)
-                    .Where(x => x.StartsWith(lastElement, StringComparison.Ordinal) || x.StartsWith("./" + lastElement, StringComparison.Ordinal))
-                    .Select(x => allButLast + "@" + ((x.StartsWith("./", StringComparison.Ordinal) ? x.Substring(2) : x).Replace(" ", @"\ ")));
+                                     .Select(x => allButLast + "@" + (x.StartsWith("./", StringComparison.Ordinal) ? x.Substring(2) : x).Replace(" ", @"\ "));
                 var dirs = Directory.GetDirectories(directoryPath, lastElement + '*', SearchOption.TopDirectoryOnly)
-                    .Where(x => x.StartsWith(lastElement, StringComparison.Ordinal) || x.StartsWith("./"+lastElement, StringComparison.Ordinal))
-                    .Select(x => allButLast + "@" + ((x.StartsWith("./", StringComparison.Ordinal) ? x.Substring(2) : x) + '/').Replace(" ", @"\ "));
+                                    .Select(x => allButLast + "@" + ((x.StartsWith("./", StringComparison.Ordinal) ? x.Substring(2) : x) + '/').Replace(" ", @"\ "));
                 return files.Concat(dirs);
             }
             catch(UnauthorizedAccessException)
             {
-                return new []{ allButLast + "@" + lastElement };
+                return new []{"{0}@{1}/".FormatWith(allButLast, Path.Combine(directoryPath.StartsWith("./", StringComparison.Ordinal) ? directoryPath.Substring(2) : directoryPath, lastElement)) };
             }
         }
 
@@ -790,10 +787,19 @@ namespace Emul8.UserInterface
             if(lastElement.StartsWith('@'))
             {
                 lastElement = Regex.Replace(lastElement.Substring(1), @"\\([^\\])", "$1");
+                var directory = String.Empty;
+                var file = String.Empty;
+                if(!String.IsNullOrWhiteSpace(lastElement))
+                {
+                    //these functions will fail on empty input
+                    directory = Path.GetDirectoryName(lastElement);
+                    file = Path.GetFileName(lastElement);
+                }
                 if(lastElement.StartsWith(Path.DirectorySeparatorChar))
                 {
-                    try {
-                        suggestions.AddRange(SuggestFiles(allButLast, "/", lastElement));
+                    try
+                    {
+                        suggestions.AddRange(SuggestFiles(allButLast, directory ?? "/", file)); //we need to filter out "/", because Path.GetDirectory returns null for "/"
                     } 
                     catch (DirectoryNotFoundException) {}
                 }
@@ -807,7 +813,8 @@ namespace Emul8.UserInterface
                         }
                         try
                         {
-                            suggestions.AddRange(SuggestFiles(allButLast, pathEntry, lastElement));
+                            var directoryWithPath = Path.Combine(pathEntry, directory);
+                            suggestions.AddRange(SuggestFiles(allButLast, directoryWithPath, file));
                         }
                         catch(Exception)
                         {
