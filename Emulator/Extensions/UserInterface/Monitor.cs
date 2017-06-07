@@ -6,7 +6,6 @@
 // Full license details are defined in the 'LICENSE' file.
 //
 using System;
-using Emul8.Backends.Terminals;
 using Emul8.Core;
 using Emul8.Exceptions;
 using Emul8.Logging;
