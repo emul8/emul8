@@ -99,7 +99,7 @@ namespace Emul8.UserInterface
 
             SetVariable(CurrentDirectoryVariable, new PathToken("@" + startingCurrentDirectory), variables);
             CurrentNumberFormat = ConfigurationManager.Instance.Get<NumberModes>(ConfigurationSection, "number-format", NumberModes.Hexadecimal);
-           
+
             JoinEmulation();
         }
 
@@ -193,10 +193,12 @@ namespace Emul8.UserInterface
             BindStatic("EmulationManager", () => emulationManager);
 
             var includeCommand = new IncludeFileCommand(this, (x, y) => pythonRunner.TryExecutePythonScript(x, y), x => TryExecuteScript(x), (x, y) => TryCompilePlugin(x, y));
-            Commands.Add(new HelpCommand(this, () => {
+            Commands.Add(new HelpCommand(this, () =>
+            {
                 var gic = GetInternalCommands;
                 var result = Commands.Cast<ICommandDescription>();
-                if (gic != null) {
+                if(gic != null)
+                {
                     result = result.Concat(gic());
                 }
                 return result;
@@ -337,7 +339,7 @@ namespace Emul8.UserInterface
                     }
                     reParse = true;
                 }
-           
+
                 var pathToken = token as PathToken;
                 if(pathToken != null)
                 {
@@ -375,7 +377,7 @@ namespace Emul8.UserInterface
                         {
                             //Not a proper uri, so probably a nonexisting local path
                         }
-                    }                  
+                    }
                 }
 
                 result.Add(resultToken);
@@ -434,7 +436,7 @@ namespace Emul8.UserInterface
             }
             return true;
         }
-            
+
         public bool Parse(string cmd, ICommandInteraction writer = null)
         {
             if(writer == null)
@@ -481,9 +483,9 @@ namespace Emul8.UserInterface
             }
             int groupNumber = 0;
             foreach(var singleCommand in tokens.Tokens
-                    .GroupBy(x=>{if(x is CommandSplit) groupNumber++; return groupNumber;})
-                    .Select(x=>x.Where(y=>! (y is CommandSplit)))
-                    .Where(x=>x.Any()))
+                    .GroupBy(x => { if(x is CommandSplit) groupNumber++; return groupNumber; })
+                    .Select(x => x.Where(y => !(y is CommandSplit)))
+                    .Where(x => x.Any()))
             {
                 if(!ParseTokens(singleCommand, writer))
                     return false;
@@ -493,9 +495,9 @@ namespace Emul8.UserInterface
 
         private string GetVariableName(string variableName)
         {
-            var elements = variableName.Split(new []{'.'}, 2);
+            var elements = variableName.Split(new[] { '.' }, 2);
 
-            if(elements.Length == 1 || (!elements[0].Equals("global") && !EmulationManager.Instance.CurrentEmulation.Names.Select(x=>x.Replace("-", "_")).Any(x => x == elements[0])))
+            if(elements.Length == 1 || (!elements[0].Equals("global") && !EmulationManager.Instance.CurrentEmulation.Names.Select(x => x.Replace("-", "_")).Any(x => x == elements[0])))
             {
                 if(currentMachine != null)
                 {
@@ -508,13 +510,13 @@ namespace Emul8.UserInterface
             }
             return variableName;
         }
-      
+
         private bool TryCompilePlugin(string filename, ICommandInteraction writer)
         {
             var compiler = new AdHocCompiler();
             try
             {
-                var result = compiler.Compile(filename, AppDomain.CurrentDomain.GetAssemblies().Where(x=>!x.IsDynamic).Select(x=>x.Location));
+                var result = compiler.Compile(filename, AppDomain.CurrentDomain.GetAssemblies().Where(x => !x.IsDynamic).Select(x => x.Location));
                 TypeManager.Instance.ScanFile(result);
             }
             catch(RecoverableException e)
@@ -756,7 +758,7 @@ namespace Emul8.UserInterface
             }
             catch(UnauthorizedAccessException)
             {
-                return new []{"{0}@{1}/".FormatWith(allButLast, Path.Combine(directoryPath.StartsWith("./", StringComparison.Ordinal) ? directoryPath.Substring(2) : directoryPath, lastElement)) };
+                return new[] { "{0}@{1}/".FormatWith(allButLast, Path.Combine(directoryPath.StartsWith("./", StringComparison.Ordinal) ? directoryPath.Substring(2) : directoryPath, lastElement)) };
             }
         }
 
@@ -768,7 +770,6 @@ namespace Emul8.UserInterface
             var prefixToAdd = prefix.EndsWith(currentCommand, StringComparison.Ordinal) ? prefix.Substring(0, prefix.Length - currentCommand.Length) : String.Empty;
             var lastElement = String.Empty;
 
-           
             if(prefixSplit.Length > 0)
             {
                 lastElement = prefixSplit.Last();
@@ -800,8 +801,8 @@ namespace Emul8.UserInterface
                     try
                     {
                         suggestions.AddRange(SuggestFiles(allButLast, directory ?? "/", file)); //we need to filter out "/", because Path.GetDirectory returns null for "/"
-                    } 
-                    catch (DirectoryNotFoundException) {}
+                    }
+                    catch(DirectoryNotFoundException) { }
                 }
                 else
                 {
@@ -830,7 +831,7 @@ namespace Emul8.UserInterface
                 var options = variables.Keys.Concat(macros.Keys).Where(x => x.StartsWith(varName, StringComparison.Ordinal)).ToList();
                 var machinePrefix = currentMachine == null ? globalVariablePrefix : Emulation[currentMachine] + ".";
                 options.AddRange(variables.Keys.Concat(macros.Keys).Where(x => x.StartsWith(String.Format("{0}{1}", machinePrefix, varName), StringComparison.Ordinal)).Select(x => x.Substring(machinePrefix.Length)));
-               
+
                 if(options.Any())
                 {
                     suggestions.AddRange(options.Select(x => allButLast + '$' + x));
@@ -839,7 +840,7 @@ namespace Emul8.UserInterface
             var currentCommandSplit = currentCommand.Split(' ');
 
             if(currentCommand.Contains(' '))
-            {               
+            {
                 if(currentCommandSplit.Length <= 2)
                 {
                     var cmd = Commands.SingleOrDefault(c => c.Name == currentCommandSplit[0] || c.AlternativeNames.Contains(currentCommandSplit[0])) as ISuggestionProvider;
@@ -862,11 +863,11 @@ namespace Emul8.UserInterface
             else
             {
                 var sugg = Commands.Select(x => x.Name).ToList();
-				
+
                 sugg.AddRange(GetAllAvailableNames());
                 sugg.AddRange(pythonRunner.GetPythonCommands());
                 suggestions.AddRange(sugg.Where(x => x.StartsWith(currentCommandSplit[0])).Select(x => prefixToAdd + x));
-            
+
                 if(suggestions.Count == 0) //EmulationManager
                 {
                     var devInfo = GetDeviceSuggestions(typeof(EmulationManager).Name).Distinct();
@@ -1002,7 +1003,7 @@ namespace Emul8.UserInterface
 
         public void OnMachineRemoved(Machine m)
         {
-            if (m == currentMachine)
+            if(m == currentMachine)
             {
                 currentMachine = null;
             }
@@ -1011,7 +1012,7 @@ namespace Emul8.UserInterface
         private Machine _currentMachine;
 
         private Machine currentMachine
-        { 
+        {
             get
             {
                 return _currentMachine;
