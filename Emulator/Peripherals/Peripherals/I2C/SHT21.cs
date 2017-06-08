@@ -303,7 +303,7 @@ namespace Emul8.Peripherals.I2C
         private byte registerData;
         private byte[] sendData;
 
-        private static PseudorandomNumberGenerator random = EmulationManager.Instance.CurrentEmulation.RndGenerator;
+        private static PseudorandomNumberGenerator random = EmulationManager.Instance.CurrentEmulation.RandomGenerator;
 
         private enum UserControls
         {

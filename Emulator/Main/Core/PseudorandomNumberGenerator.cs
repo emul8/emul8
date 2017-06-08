@@ -13,24 +13,24 @@ namespace Emul8.Core
     {
         public PseudorandomNumberGenerator()
         {
-            this.instanceSeed = new Random().Next();
-            generator = new Random(this.instanceSeed);
+            instanceSeed = new Random().Next();
+            generator = new Random(instanceSeed);
 
-            Logger.Log(LogLevel.Info, "Pseudorandom Number Generator was created with seed: {0}", this.instanceSeed);
+            Logger.Log(LogLevel.Info, "Pseudorandom Number Generator was created with seed: {0}", instanceSeed);
         }
 
         public void ResetSeed(int newSeed)
         {
             if(wasSeedUsed)
             {
-                Logger.Log(LogLevel.Warning, "Pseudorandom Number Generator seed has changed since last usage from: {0} to: {1}", this.instanceSeed, newSeed);
+                Logger.Log(LogLevel.Warning, "Pseudorandom Number Generator seed has changed since last usage from: {0} to: {1}", instanceSeed, newSeed);
             }
-            this.instanceSeed = newSeed;
-            generator = new Random(this.instanceSeed);
+            instanceSeed = newSeed;
+            generator = new Random(instanceSeed);
             wasSeedUsed = false;
         }
 
-        public int GetActualSeed()
+        public int GetCurrentSeed()
         {
             return instanceSeed;
         }
