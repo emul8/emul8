@@ -1,6 +1,6 @@
 //
-// Copyright (c) Antmicro
-// Copyright (c) Realtime Embedded
+// Copyright(c) Antmicro
+// Copyright(c) Realtime Embedded
 //
 // This file is part of the Emul8 project.
 // Full license details are defined in the 'LICENSE' file.
@@ -21,188 +21,189 @@ using Emul8.Peripherals.Memory;
 
 namespace UnitTests
 {
-	[TestFixture]
-	public class SystemBusTests
-	{
-		[SetUp]
-		public void SetUp()
-		{
+    [TestFixture]
+    public class SystemBusTests
+    {
+        [SetUp]
+        public void SetUp()
+        {
             sysbus = new Machine().SystemBus;
             bytes = new byte[] { 0, 1, 2, 3, 4, 5, 6, 7 };
-		}
-		
-		[Test]
-		public void ShouldReturnZeroAtNonExistingDevice()
-		{
-            var read = sysbus.ReadByte(0xABCD1234);
-			Assert.AreEqual(0, read);			
-		}
-		
-		[Test]
-		public void ShouldFindAfterRegistration()
-		{
-			var peripheral = new Mock<IDoubleWordPeripheral>();
-			peripheral.Setup(x => x.ReadDoubleWord(0)).Returns(0x666);
-			sysbus.Register(peripheral.Object, 1000.By(1000));
-			Assert.AreEqual(0x666, sysbus.ReadDoubleWord(1000));
-		}
-		
-		[Test]
-		public void ShouldFindAfterManyRegistrations()
-		{
-			var peri1 = new Mock<IDoubleWordPeripheral>();
-			var peri2 = new Mock<IDoubleWordPeripheral>();
-			var peri3 = new Mock<IDoubleWordPeripheral>();
-			peri1.Setup(x => x.ReadDoubleWord(0)).Returns(0x666);
-			peri2.Setup(x => x.ReadDoubleWord(0)).Returns(0x667);
-			peri3.Setup(x => x.ReadDoubleWord(0)).Returns(0x668);
-			sysbus.Register(peri1.Object, 1000.By(100));
-			sysbus.Register(peri2.Object, 2000.By(100));
-			sysbus.Register(peri3.Object, 3000.By(100));
-			Assert.AreEqual(0x666, sysbus.ReadDoubleWord(1000));
-			Assert.AreEqual(0x667, sysbus.ReadDoubleWord(2000));
-			Assert.AreEqual(0x668, sysbus.ReadDoubleWord(3000));
-		}
-		
-		[Test]
-		public void ShouldFindAfterManyRegistrationsAndRemoves()
-		{
-			const int NumberOfPeripherals = 100;
-			var MaximumPeripheralSize = 16.KB();
+        }
 
-			var regPoints = new int[NumberOfPeripherals];
-			var random = new Random();
-			var lastPoint = 4;
-			for(var i = 0; i < NumberOfPeripherals; i++)
-			{
-				// gap
-				lastPoint += random.Next(MaximumPeripheralSize);
-				var size = random.Next(1, MaximumPeripheralSize + 1);
-				regPoints[i] = lastPoint;
-				var mock = new Mock<IDoubleWordPeripheral>();
-				mock.Setup(x => x.ReadDoubleWord(0)).Returns((uint)regPoints[i]);
-				sysbus.Register(mock.Object, lastPoint.By(size));
-				// peripheral
-				lastPoint += size;
-			}
+        [Test]
+        public void ShouldReturnZeroAtNonExistingDevice()
+        {
+            var read = sysbus.ReadByte(0xABCD1234);
+            Assert.AreEqual(0, read);			
+        }
+
+        [Test]
+        public void ShouldFindAfterRegistration()
+        {
+            var peripheral = new Mock<IDoubleWordPeripheral>();
+            peripheral.Setup(x => x.ReadDoubleWord(0)).Returns(0x666);
+            sysbus.Register(peripheral.Object, 1000.By(1000));
+            Assert.AreEqual(0x666, sysbus.ReadDoubleWord(1000));
+        }
+
+        [Test]
+        public void ShouldFindAfterManyRegistrations()
+        {
+            var peri1 = new Mock<IDoubleWordPeripheral>();
+            var peri2 = new Mock<IDoubleWordPeripheral>();
+            var peri3 = new Mock<IDoubleWordPeripheral>();
+            peri1.Setup(x => x.ReadDoubleWord(0)).Returns(0x666);
+            peri2.Setup(x => x.ReadDoubleWord(0)).Returns(0x667);
+            peri3.Setup(x => x.ReadDoubleWord(0)).Returns(0x668);
+            sysbus.Register(peri1.Object, 1000.By(100));
+            sysbus.Register(peri2.Object, 2000.By(100));
+            sysbus.Register(peri3.Object, 3000.By(100));
+            Assert.AreEqual(0x666, sysbus.ReadDoubleWord(1000));
+            Assert.AreEqual(0x667, sysbus.ReadDoubleWord(2000));
+            Assert.AreEqual(0x668, sysbus.ReadDoubleWord(3000));
+        }
+
+        [Test]
+        public void ShouldFindAfterManyRegistrationsAndRemoves()
+        {
+            const int NumberOfPeripherals = 100;
+            var MaximumPeripheralSize = 16.KB();
+
+            var regPoints = new int[NumberOfPeripherals];
+            var random = EmulationManager.Instance.CurrentEmulation.RandomGenerator;
+            var lastPoint = 4;
+            for(var i = 0; i < NumberOfPeripherals; i++)
+            {
+                // gap
+                lastPoint += random.Next(MaximumPeripheralSize);
+                var size = random.Next(1, MaximumPeripheralSize + 1);
+                regPoints[i] = lastPoint;
+                var mock = new Mock<IDoubleWordPeripheral>();
+                mock.Setup(x => x.ReadDoubleWord(0)).Returns((uint)regPoints[i]);
+                sysbus.Register(mock.Object, lastPoint.By(size));
+                // peripheral
+                lastPoint += size;
+            }
+
+            // now remove random devices
+            for(var i = 0; i < NumberOfPeripherals; i++)
+            {
+                if(random.Next(100) < 10)
+                {
+                    sysbus.UnregisterFromAddress(regPoints[i]);
+                    regPoints[i] = -regPoints[i];
+                }
+            }
 			
-			// now remove random devices
-			for(var i = 0; i < NumberOfPeripherals; i++)
-			{
-				if(random.Next(100) < 10)
-				{
-					sysbus.UnregisterFromAddress(regPoints[i]);
-					regPoints[i] = -regPoints[i];
-				}
-			}
-			
-			// finally some assertions
-			for(var i = 0; i < NumberOfPeripherals; i++)
-			{
-				if(regPoints[i] < 0)
-				{
-					Assert.AreEqual(0, sysbus.ReadDoubleWord(-regPoints[i]));
-				}
-				else
-				{
-					Assert.AreEqual(regPoints[i], sysbus.ReadDoubleWord(regPoints[i]));
-				}
-			}
-		}
-		
-		[Test]
-		public void ShouldPauseAndResumeOnlyOnce()
-		{
-			using(var machine = new Machine())
-			{
+            // finally some assertions
+            for(var i = 0; i < NumberOfPeripherals; i++)
+            {
+                if(regPoints[i] < 0)
+                {
+                    Assert.AreEqual(0, sysbus.ReadDoubleWord(-regPoints[i]));
+                }
+                else
+                {
+                    Assert.AreEqual(regPoints[i], sysbus.ReadDoubleWord(regPoints[i]));
+                }
+            }
+        }
+
+        [Test]
+        public void ShouldPauseAndResumeOnlyOnce()
+        {
+            using(var machine = new Machine())
+            {
                 var sb = machine.SystemBus;
-				var mock = new Mock<IHasOwnLife>();
+                var mock = new Mock<IHasOwnLife>();
                 sb.Register(mock.As<IDoubleWordPeripheral>().Object, 0.To(100));
                 sb.Register(new Mock<ICPU>().Object, new CPURegistrationPoint());
-				machine.Start();
+                machine.Start();
                 PauseResumeRetries.Times(machine.Pause);
-				mock.Verify(x => x.Pause(), Times.Once());
+                mock.Verify(x => x.Pause(), Times.Once());
                 PauseResumeRetries.Times(machine.Start);
-				mock.Verify(x => x.Resume(), Times.Once());
-			}
-		}
+                mock.Verify(x => x.Resume(), Times.Once());
+            }
+        }
 
-		[Test]
-		public void ShouldRegisterMultiFunctionPeripheral()
-		{
-			var multiRegistration1 = new BusMultiRegistration(0, 100, "region1");
-			var multiRegistration2 = new BusMultiRegistration(100, 200, "region2");
-			var peripheral = new MultiRegistrationPeripheral();
-			sysbus.Register(peripheral, multiRegistration1);
-			sysbus.Register(peripheral, multiRegistration2);
-			sysbus.Register(peripheral, new BusRangeRegistration(300, 100));
+        [Test]
+        public void ShouldRegisterMultiFunctionPeripheral()
+        {
+            var multiRegistration1 = new BusMultiRegistration(0, 100, "region1");
+            var multiRegistration2 = new BusMultiRegistration(100, 200, "region2");
+            var peripheral = new MultiRegistrationPeripheral();
+            sysbus.Register(peripheral, multiRegistration1);
+            sysbus.Register(peripheral, multiRegistration2);
+            sysbus.Register(peripheral, new BusRangeRegistration(300, 100));
 
-			Assert.AreEqual(false, peripheral.ByteRead1);
-			Assert.AreEqual(false, peripheral.ByteRead2);
-			Assert.AreEqual(false, peripheral.ByteWritten1);
-			Assert.AreEqual(false, peripheral.ByteWritten2);
-			Assert.AreEqual(false, peripheral.DoubleWordRead);
-			Assert.AreEqual(false, peripheral.DoubleWordWritten);
+            Assert.AreEqual(false, peripheral.ByteRead1);
+            Assert.AreEqual(false, peripheral.ByteRead2);
+            Assert.AreEqual(false, peripheral.ByteWritten1);
+            Assert.AreEqual(false, peripheral.ByteWritten2);
+            Assert.AreEqual(false, peripheral.DoubleWordRead);
+            Assert.AreEqual(false, peripheral.DoubleWordWritten);
 
-			sysbus.ReadByte(10);
+            sysbus.ReadByte(10);
 
-			Assert.AreEqual(true, peripheral.ByteRead1);
-			Assert.AreEqual(false, peripheral.ByteRead2);
-			Assert.AreEqual(false, peripheral.ByteWritten1);
-			Assert.AreEqual(false, peripheral.ByteWritten2);
-			Assert.AreEqual(false, peripheral.DoubleWordRead);
-			Assert.AreEqual(false, peripheral.DoubleWordWritten);
+            Assert.AreEqual(true, peripheral.ByteRead1);
+            Assert.AreEqual(false, peripheral.ByteRead2);
+            Assert.AreEqual(false, peripheral.ByteWritten1);
+            Assert.AreEqual(false, peripheral.ByteWritten2);
+            Assert.AreEqual(false, peripheral.DoubleWordRead);
+            Assert.AreEqual(false, peripheral.DoubleWordWritten);
 
-			sysbus.ReadByte(110);
+            sysbus.ReadByte(110);
 
-			Assert.AreEqual(true, peripheral.ByteRead1);
-			Assert.AreEqual(true, peripheral.ByteRead2);
-			Assert.AreEqual(false, peripheral.ByteWritten1);
-			Assert.AreEqual(false, peripheral.ByteWritten2);
-			Assert.AreEqual(false, peripheral.DoubleWordRead);
-			Assert.AreEqual(false, peripheral.DoubleWordWritten);
+            Assert.AreEqual(true, peripheral.ByteRead1);
+            Assert.AreEqual(true, peripheral.ByteRead2);
+            Assert.AreEqual(false, peripheral.ByteWritten1);
+            Assert.AreEqual(false, peripheral.ByteWritten2);
+            Assert.AreEqual(false, peripheral.DoubleWordRead);
+            Assert.AreEqual(false, peripheral.DoubleWordWritten);
 
-			sysbus.WriteByte(10, 0);
+            sysbus.WriteByte(10, 0);
 
-			Assert.AreEqual(true, peripheral.ByteRead1);
-			Assert.AreEqual(true, peripheral.ByteRead2);
-			Assert.AreEqual(true, peripheral.ByteWritten1);
-			Assert.AreEqual(false, peripheral.ByteWritten2);
-			Assert.AreEqual(false, peripheral.DoubleWordRead);
-			Assert.AreEqual(false, peripheral.DoubleWordWritten);
+            Assert.AreEqual(true, peripheral.ByteRead1);
+            Assert.AreEqual(true, peripheral.ByteRead2);
+            Assert.AreEqual(true, peripheral.ByteWritten1);
+            Assert.AreEqual(false, peripheral.ByteWritten2);
+            Assert.AreEqual(false, peripheral.DoubleWordRead);
+            Assert.AreEqual(false, peripheral.DoubleWordWritten);
 
-			sysbus.WriteByte(110, 0);
+            sysbus.WriteByte(110, 0);
 
-			Assert.AreEqual(true, peripheral.ByteRead1);
-			Assert.AreEqual(true, peripheral.ByteRead2);
-			Assert.AreEqual(true, peripheral.ByteWritten1);
-			Assert.AreEqual(true, peripheral.ByteWritten2);
-			Assert.AreEqual(false, peripheral.DoubleWordRead);
-			Assert.AreEqual(false, peripheral.DoubleWordWritten);
+            Assert.AreEqual(true, peripheral.ByteRead1);
+            Assert.AreEqual(true, peripheral.ByteRead2);
+            Assert.AreEqual(true, peripheral.ByteWritten1);
+            Assert.AreEqual(true, peripheral.ByteWritten2);
+            Assert.AreEqual(false, peripheral.DoubleWordRead);
+            Assert.AreEqual(false, peripheral.DoubleWordWritten);
 
-			sysbus.ReadDoubleWord(210);
+            sysbus.ReadDoubleWord(210);
 
-			Assert.AreEqual(true, peripheral.ByteRead1);
-			Assert.AreEqual(true, peripheral.ByteRead2);
-			Assert.AreEqual(true, peripheral.ByteWritten1);
-			Assert.AreEqual(true, peripheral.ByteWritten2);
-			Assert.AreEqual(true, peripheral.DoubleWordRead);
-			Assert.AreEqual(false, peripheral.DoubleWordWritten);
+            Assert.AreEqual(true, peripheral.ByteRead1);
+            Assert.AreEqual(true, peripheral.ByteRead2);
+            Assert.AreEqual(true, peripheral.ByteWritten1);
+            Assert.AreEqual(true, peripheral.ByteWritten2);
+            Assert.AreEqual(true, peripheral.DoubleWordRead);
+            Assert.AreEqual(false, peripheral.DoubleWordWritten);
 
-			sysbus.WriteDoubleWord(210, 0);
+            sysbus.WriteDoubleWord(210, 0);
 
-			Assert.AreEqual(true, peripheral.ByteRead1);
-			Assert.AreEqual(true, peripheral.ByteRead2);
-			Assert.AreEqual(true, peripheral.ByteWritten1);
-			Assert.AreEqual(true, peripheral.ByteWritten2);
-			Assert.AreEqual(true, peripheral.DoubleWordRead);
-			Assert.AreEqual(true, peripheral.DoubleWordWritten);
-		}
+            Assert.AreEqual(true, peripheral.ByteRead1);
+            Assert.AreEqual(true, peripheral.ByteRead2);
+            Assert.AreEqual(true, peripheral.ByteWritten1);
+            Assert.AreEqual(true, peripheral.ByteWritten2);
+            Assert.AreEqual(true, peripheral.DoubleWordRead);
+            Assert.AreEqual(true, peripheral.DoubleWordWritten);
+        }
 
         [Test]
         public void ShouldHandleWriteToMemorySegment()
         {
-            CreateMachineAndExecute(sysbus => {
+            CreateMachineAndExecute(sysbus =>
+            {
                 // bytes fit into memory segment
                 sysbus.WriteBytes(bytes, 4);
                 Assert.AreEqual(bytes, sysbus.ReadBytes(4, 8));
@@ -212,7 +213,8 @@ namespace UnitTests
         [Test]
         public void ShouldHandlePartialWriteToMemorySegmentAtTheBeginning()
         {
-            CreateMachineAndExecute(sysbus => {
+            CreateMachineAndExecute(sysbus =>
+            {
                 // beginning of bytes fits into memory segment
                 sysbus.WriteBytes(bytes, 10);
                 Assert.AreEqual(bytes.Take(6).Concat(Enumerable.Repeat((byte)0, 2)).ToArray(), sysbus.ReadBytes(10, 8));
@@ -233,7 +235,7 @@ namespace UnitTests
             {
                 var mock = new Mock<IBytePeripheral>();
                 mock.Setup(x => x.WriteByte(It.IsAny<long>(), It.IsAny<byte>())).Callback<long, byte>((x, y) => peri1Values.Add(x, y));
-                mock.Setup(x=> x.ReadByte(It.IsAny<long>())).Returns<long>(x=>peri1Values[x]);
+                mock.Setup(x => x.ReadByte(It.IsAny<long>())).Returns<long>(x => peri1Values[x]);
                 machine.SystemBus.Register(mock.Object, new BusRangeRegistration(50, 100));
             }
 
@@ -245,7 +247,7 @@ namespace UnitTests
             {
                 var mock = new Mock<IBytePeripheral>();
                 mock.Setup(x => x.WriteByte(It.IsAny<long>(), It.IsAny<byte>())).Callback<long, byte>((x, y) => peri2Values.Add(x, y));
-                mock.Setup(x=> x.ReadByte(It.IsAny<long>())).Returns<long>(x=>peri2Values[x]);
+                mock.Setup(x => x.ReadByte(It.IsAny<long>())).Returns<long>(x => peri2Values[x]);
                 machine.SystemBus.Register(mock.Object, new BusRangeRegistration(200, 100));
             }
             var testArray = Enumerable.Range(0, 350).Select(x => (byte)(x % byte.MaxValue)).ToArray();
@@ -277,7 +279,8 @@ namespace UnitTests
         [Test]
         public void ShouldHandlePartialWriteToMemorySegmentAtTheEnd()
         {
-            CreateMachineAndExecute(sysbus => {
+            CreateMachineAndExecute(sysbus =>
+            {
                 // beginning of bytes fits into memory segment
                 sysbus.WriteBytes(bytes, 0xC0000000 - 4);
                 Assert.AreEqual(Enumerable.Repeat((byte)0, 4).Concat(bytes.Skip(4).Take(4)).ToArray(), sysbus.ReadBytes(0xC0000000 - 4, 8));
@@ -287,7 +290,8 @@ namespace UnitTests
         [Test]
         public void ShouldHandleWriteToAHoleBetweenMemorySegments()
         {
-            CreateMachineAndExecute(sb => {
+            CreateMachineAndExecute(sb =>
+            {
                 // bytes do not fit into memory segment
                 sb.WriteBytes(bytes, 100);
                 Assert.AreEqual(Enumerable.Repeat((byte)0, 8).ToArray(), sb.ReadBytes(100, 8));
@@ -297,7 +301,8 @@ namespace UnitTests
         [Test]
         public void ShouldHandleWriteOverlappingMemorySegment()
         {
-            CreateMachineAndExecute(sysbus => {
+            CreateMachineAndExecute(sysbus =>
+            {
                 // bytes overlap memory segment
                 var hugeBytes = Enumerable.Range(0, 32).Select(i => (byte)i).ToArray();
                 sysbus.WriteBytes(hugeBytes, 0xC0000000 - 4);
@@ -307,7 +312,7 @@ namespace UnitTests
 
         private void CreateMachineAndExecute(Action<SystemBus> action)
         {
-            using (var machine = new Machine())
+            using(var machine = new Machine())
             {
                 var sb = machine.SystemBus;
                 var memory = new MappedMemory(16);
@@ -320,7 +325,7 @@ namespace UnitTests
 
         private SystemBus sysbus;
         private byte[] bytes;
-		private const int PauseResumeRetries = 5;
+        private const int PauseResumeRetries = 5;
 
         private class MultiRegistrationPeripheral : IBusPeripheral, IDoubleWordPeripheral
         {
@@ -330,10 +335,15 @@ namespace UnitTests
             }
 
             public bool ByteRead1 { get; private set; }
+
             public bool ByteRead2 { get; private set; }
+
             public bool ByteWritten1 { get; private set; }
+
             public bool ByteWritten2 { get; private set; }
+
             public bool DoubleWordRead { get; private set; }
+
             public bool DoubleWordWritten { get; private set; }
 
             public uint ReadDoubleWord(long offset)
@@ -373,13 +383,13 @@ namespace UnitTests
                 ByteWritten2 = true;
             }
         }
-	}
+    }
 
-	public static class SysbusExtensions
-	{
-		public static void Register(this SystemBus sysbus, IBusPeripheral peripheral, Range range)
-		{
-			sysbus.Register(peripheral, new BusRangeRegistration(range));
-		}
-	}
+    public static class SysbusExtensions
+    {
+        public static void Register(this SystemBus sysbus, IBusPeripheral peripheral, Range range)
+        {
+            sysbus.Register(peripheral, new BusRangeRegistration(range));
+        }
+    }
 }

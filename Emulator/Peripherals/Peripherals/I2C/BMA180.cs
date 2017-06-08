@@ -10,6 +10,7 @@ using System.Linq;
 using System.Collections.Generic;
 using Emul8.Peripherals.Bus;
 using Emul8.Logging;
+using Emul8.Core;
 
 namespace Emul8.Peripherals.I2C
 {
@@ -729,8 +730,7 @@ namespace Emul8.Peripherals.I2C
         private byte[] sendData;
         private byte sensorFlipState;
 
-        private static int seed = 2013; // Sequence of random numbers will be the same each run
-        private static Random random = new Random(seed);
+        private static PseudorandomNumberGenerator random = EmulationManager.Instance.CurrentEmulation.RandomGenerator;
 
         private enum SensorFlipStates
         {
