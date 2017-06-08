@@ -32,6 +32,7 @@ namespace Emul8.Core
             Connector = new Connector();
             FileFetcher = new CachingFileFetcher();
             CurrentLogger = Logger.GetLogger();
+            randomGenerator = new Lazy<PseudorandomNumberGenerator>(() => new PseudorandomNumberGenerator());
             nameCache = new LRUCache<object, Tuple<string, string>>(NameCacheSize);
 
             machs = new FastReadConcurrentTwoWayDictionary<string, Machine>();
@@ -217,6 +218,16 @@ namespace Emul8.Core
             }
         }
 
+        public void SetSeed(int seed)
+        {
+            RandomGenerator.ResetSeed(seed);
+        }
+
+        public int GetSeed()
+        {
+            return RandomGenerator.GetCurrentSeed();
+        }
+
         public void StartAll()
         {
             //ToList cast is a precaution for a situation where the list of machines changes
@@ -249,6 +260,14 @@ namespace Emul8.Core
         }
 
         public ILogger CurrentLogger { get; private set; }
+
+        public PseudorandomNumberGenerator RandomGenerator
+        {
+            get
+            {
+                return randomGenerator.Value;
+            }
+        }
 
         public void SetNameForMachine(string name, Machine machine)
         {
@@ -554,7 +573,7 @@ namespace Emul8.Core
 
         [Constructor(NameCacheSize)]
         private readonly LRUCache<object, Tuple<string, string>> nameCache;
-
+        private readonly Lazy<PseudorandomNumberGenerator> randomGenerator;
         private readonly List<ISynchronizationDomain> syncDomains;
         private readonly Dictionary<string, object> theBag;
         private readonly FastReadConcurrentTwoWayDictionary<string, Machine> machs;
