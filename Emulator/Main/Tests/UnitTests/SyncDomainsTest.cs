@@ -285,7 +285,7 @@ namespace Emul8.UnitTests
         [Test, Repeat(5)]
         public void ShouldRecordAndPlayEvents()
         {
-            var random = new Random();
+            var random = EmulationManager.Instance.CurrentEmulation.RndGenerator;
 
             var machineThreadFunctionFactory = new Func<BaseClockSource, ThreadStart>(cSource => new ThreadStart(() =>
             {

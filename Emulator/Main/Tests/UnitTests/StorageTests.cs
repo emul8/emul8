@@ -11,6 +11,7 @@ using NUnit.Framework;
 using System.IO;
 using System.Linq;
 using Emul8.Utilities;
+using Emul8.Core;
 
 namespace UnitTests
 {
@@ -19,7 +20,7 @@ namespace UnitTests
 	{
 		public StorageTests()
 		{
-			random = new Random();
+			random = EmulationManager.Instance.CurrentEmulation.RndGenerator;
 		}
 
 		[Test, Repeat(10)]
@@ -52,7 +53,7 @@ namespace UnitTests
 			}
 		}
 
-		private readonly Random random;
+	        private readonly PseudorandomNumberGenerator random;
 		private const int BlockSize = 512;
 		private const int DesiredTestBlocksCount = 500;
 		private const int MaxBlocksCount = 1024*256;

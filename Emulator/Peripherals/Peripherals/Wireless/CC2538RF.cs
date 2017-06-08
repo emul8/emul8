@@ -29,7 +29,7 @@ namespace Emul8.Peripherals.Wireless
 
             shortAddress = new Address(AddressingMode.ShortAddress);
             extendedAddress = new Address(AddressingMode.ExtendedAddress);
-            random = new Random();
+            random = EmulationManager.Instance.CurrentEmulation.RndGenerator;
             IRQ = new GPIO();
 
             srcShortEnabled = new bool[24];
@@ -734,7 +734,7 @@ namespace Emul8.Peripherals.Wireless
         private readonly Queue<Frame> rxQueue;
         private readonly Queue<byte> txQueue;
         [Constructor]
-        private readonly Random random;
+        private readonly PseudorandomNumberGenerator random;
 
         private const uint NoSourceIndex = 0x3F;
         private const int BroadcastPanIdentifier = 0xFFFF;

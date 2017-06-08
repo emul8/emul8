@@ -43,7 +43,7 @@ namespace UnitTests
 			const int size = 128 * 1024 * 1024;
 			const int bufCount = 30;
 			const int bufSize = 100 * 1024;
-			var random = new Random();
+			var random = EmulationManager.Instance.CurrentEmulation.RndGenerator;
 			var buffers = new List<Tuple<int, byte[]>>(bufCount);
 			for(var i = 0; i < bufCount; i++)
 			{

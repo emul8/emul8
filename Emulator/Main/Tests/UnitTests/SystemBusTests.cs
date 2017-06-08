@@ -71,7 +71,7 @@ namespace UnitTests
 			var MaximumPeripheralSize = 16.KB();
 
 			var regPoints = new int[NumberOfPeripherals];
-			var random = new Random();
+			var random = EmulationManager.Instance.CurrentEmulation.RndGenerator;
 			var lastPoint = 4;
 			for(var i = 0; i < NumberOfPeripherals; i++)
 			{

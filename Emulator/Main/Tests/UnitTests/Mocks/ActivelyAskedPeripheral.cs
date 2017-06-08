@@ -7,6 +7,7 @@
 //
 using System;
 using System.Threading;
+using Emul8.Core;
 
 namespace UnitTests.Mocks
 {
@@ -14,7 +15,7 @@ namespace UnitTests.Mocks
 	{
 		public ActivelyAskedPeripheral()
 		{
-			random = new Random();
+			random = EmulationManager.Instance.CurrentEmulation.RndGenerator;
 		}
 		
 		public bool Failed
@@ -40,7 +41,7 @@ namespace UnitTests.Mocks
 		
 		private long counter;
 		private bool failed;
-		private readonly Random random;
+		private readonly PseudorandomNumberGenerator random;
 		private const int spinWaitIterations = 10000;
 	}
 }
