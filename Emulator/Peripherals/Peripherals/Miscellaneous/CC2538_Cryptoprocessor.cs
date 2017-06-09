@@ -109,6 +109,11 @@ namespace Emul8.Peripherals.Miscellaneous
                 ivRegister.DefineValueField(0, 32, writeCallback: (_, value) => BitConverter.GetBytes(value).CopyTo(inputVector, j * 4),
                                             valueProviderCallback: _ => BitConverter.ToUInt32(inputVector, j * 4));
                 registersMap.Add((long)Registers.AesInputVector + 4 * i, ivRegister);
+
+                var tagRegister = new DoubleWordRegister(this)
+                    .WithValueField(0, 32, writeCallback: (_, value) => BitConverter.GetBytes(value).CopyTo(tag, j * 4),
+                                            valueProviderCallback: _ => BitConverter.ToUInt32(tag, j * 4));
+                registersMap.Add((long)Registers.AesTagOut + 4 * i, tagRegister);
             }
 
             registers = new DoubleWordRegisterCollection(this, registersMap);
@@ -134,6 +139,7 @@ namespace Emul8.Peripherals.Miscellaneous
             keys = new byte[NumberOfKeys][];
             keyStoreWriteArea = new bool[NumberOfKeys];
             inputVector = new byte[AesBlockSizeInBytes];
+            tag = new byte[AesBlockSizeInBytes];
         }
 
         public void WriteDoubleWord(long offset, uint value)
@@ -308,6 +314,7 @@ namespace Emul8.Peripherals.Miscellaneous
         private bool keyStoreWriteErrorInterrupt;
         private int aesOperationLength;
         private byte[] inputVector;
+        private byte[] tag;
         private bool[] keyStoreWriteArea;
         private byte[][] keys;
         private readonly IFlagRegisterField cbcEnabled;
@@ -347,6 +354,7 @@ namespace Emul8.Peripherals.Miscellaneous
             AesCryptoLength0 = 0x554, // AES_AES_C_LENGTH_0
             AesCryptoLength1 = 0x558, // AES_AES_C_LENGTH_1
             AesAuthLength = 0x55C, // AES_AES_AUTH_LENGTH
+            AesTagOut = 0x570, // AES_TAG_OUT_0
             AlgorithmSelection = 0x700, // AES_CTRL_ALG_SEL
             InterruptConfiguration = 0x780, // AES_CTRL_INT_CFG
             InterruptEnable = 0x784, // AES_CTRL_INT_EN
