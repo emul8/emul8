@@ -171,6 +171,7 @@ namespace Emul8.Peripherals.Miscellaneous
             switch(dmaDestination.Value)
             {
             case DmaDestination.KeyStore:
+                HandleKeyTransfer(length);
                 break;
             case DmaDestination.Aes:
                 return; // the real crypto operation will start on output transfer
@@ -181,6 +182,13 @@ namespace Emul8.Peripherals.Miscellaneous
                 throw new InvalidOperationException("Should not reach here.");
             }
 
+            resultInterrupt = true;
+            dmaDoneInterrupt = true;
+            RefreshInterrupts();
+        }
+
+        private void HandleKeyTransfer(int length)
+        {
             var totalNumberOfActivatedSlots = keyStoreWriteArea.Sum(x => x ? 1 : 0);
             var keyWriteSlotIndex = keyStoreWriteArea.IndexOf(x => true);
             var numberOfConsecutiveSlots = keyStoreWriteArea.Skip(keyWriteSlotIndex).TakeWhile(x => x == true).Count();
@@ -215,9 +223,6 @@ namespace Emul8.Peripherals.Miscellaneous
                 keys[i] = machine.SystemBus.ReadBytes(dmaInputAddress.Value, KeyEntrySizeInBytes);
                 dmaInputAddress.Value += KeyEntrySizeInBytes;
             }
-
-            resultInterrupt = true;
-            RefreshInterrupts();
         }
 
         private void DoOutputTransfer(int length)
