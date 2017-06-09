@@ -353,7 +353,7 @@ namespace Emul8.Peripherals.Bus
                 {
                     checked
                     {
-                        memory.ReadBytes(target.Offset - target.What.RegistrationPoint.Range.StartAddress + target.What.RegistrationPoint.Offset, (int)target.SourceLength, destination, (int)target.SourceIndex);
+                        memory.ReadBytes(target.Offset - target.What.RegistrationPoint.Range.StartAddress + target.What.RegistrationPoint.Offset, (int)target.SourceLength, destination, startIndex + (int)target.SourceIndex);
                     }
                 }
                 else
