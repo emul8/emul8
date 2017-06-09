@@ -130,7 +130,7 @@ namespace Emul8.Peripherals.Miscellaneous
 
             keys = new byte[NumberOfKeys][];
             keyStoreWriteArea = new bool[NumberOfKeys];
-            inputVector = new byte[16];
+            inputVector = new byte[AesBlockSizeInBytes];
         }
 
         public void WriteDoubleWord(long offset, uint value)
@@ -319,6 +319,7 @@ namespace Emul8.Peripherals.Miscellaneous
 
         private const int NumberOfKeys = 8;
         private const int KeyEntrySizeInBytes = 16;
+        private const int AesBlockSizeInBytes = 16;
 
         private enum Registers : uint
         {
