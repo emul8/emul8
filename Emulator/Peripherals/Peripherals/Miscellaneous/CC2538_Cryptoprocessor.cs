@@ -178,6 +178,12 @@ namespace Emul8.Peripherals.Miscellaneous
                 this.Log(LogLevel.Warning, "DMA input transfer detected, but input channel is not enabled. Ignoring it.");
                 return;
             }
+            if(length == 0)
+            {
+                this.Log(LogLevel.Warning, "DMA input transfer of length 0 detected. Ignoring it.");
+                return;
+            }
+
             switch(dmaDestination.Value)
             {
             case DmaDestination.KeyStore:
