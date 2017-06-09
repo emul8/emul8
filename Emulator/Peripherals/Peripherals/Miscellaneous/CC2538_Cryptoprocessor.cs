@@ -175,6 +175,7 @@ namespace Emul8.Peripherals.Miscellaneous
         {
             if(!dmaInputChannelEnabled.Value)
             {
+                this.Log(LogLevel.Warning, "DMA input transfer detected, but input channel is not enabled. Ignoring it.");
                 return;
             }
             switch(dmaDestination.Value)
