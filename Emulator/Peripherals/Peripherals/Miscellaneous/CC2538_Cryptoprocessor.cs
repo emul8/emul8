@@ -96,6 +96,9 @@ namespace Emul8.Peripherals.Miscellaneous
                     .WithFlag(0, FieldMode.Read, valueProviderCallback: _ => resultInterrupt, name: "RESULT_AV")
                     .WithFlag(1, FieldMode.Read, valueProviderCallback: _ => dmaDoneInterrupt, name: "DMA_IN_DONE")
                     .WithFlag(30, FieldMode.Read, valueProviderCallback: _ => keyStoreWriteErrorInterrupt, name: "KEY_ST_WR_ERR")
+                },
+                {(long)Registers.AesAuthLength, new DoubleWordRegister(this)
+                    .WithValueField(0, 32, out aesAuthLength)
                 }
             };
 
@@ -309,6 +312,7 @@ namespace Emul8.Peripherals.Miscellaneous
         private byte[][] keys;
         private readonly IFlagRegisterField cbcEnabled;
         private readonly IEnumRegisterField<Direction> direction;
+        private readonly IValueRegisterField aesAuthLength;
         private readonly IValueRegisterField dmaInputAddress;
         private readonly IValueRegisterField dmaOutputAddress;
         private readonly IValueRegisterField selectedKey;
@@ -342,6 +346,7 @@ namespace Emul8.Peripherals.Miscellaneous
             AesControl = 0x550, // AES_AES_CTRL
             AesCryptoLength0 = 0x554, // AES_AES_C_LENGTH_0
             AesCryptoLength1 = 0x558, // AES_AES_C_LENGTH_1
+            AesAuthLength = 0x55C, // AES_AES_AUTH_LENGTH
             AlgorithmSelection = 0x700, // AES_CTRL_ALG_SEL
             InterruptConfiguration = 0x780, // AES_CTRL_INT_CFG
             InterruptEnable = 0x784, // AES_CTRL_INT_EN
