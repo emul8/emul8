@@ -67,6 +67,14 @@ namespace Emul8.Peripherals.Miscellaneous
                 {(long)Registers.AesControl, new DoubleWordRegister(this)
                     .WithEnumField(2, 1, out direction)
                     .WithFlag(5, out cbcEnabled)
+                    .WithFlag(6, out ctrEnabled)
+                    .WithEnumField(7, 2, out counterWidth)
+                    .WithFlag(15, out cbcMacEnabled)
+                    .WithFlag(18, out ccmEnabled)
+                    .WithValueField(19, 3, out ccmLengthField, name: "CCM_L")
+                    .WithValueField(22, 3, out ccmLengthOfAuthenticationField, name: "CCM_M")
+                    .WithFlag(29, out saveContext)
+                    .WithFlag(30, out savedContextReady, mode: FieldMode.Read | FieldMode.WriteOneToClear)
                 },
                 {(long)Registers.AesCryptoLength0, new DoubleWordRegister(this)
                     .WithValueField(0, 32, FieldMode.Write, writeCallback: (_, value) => aesOperationLength = checked((int)value))
@@ -171,6 +179,32 @@ namespace Emul8.Peripherals.Miscellaneous
             }
         }
 
+        private void ProcessDataInMemory(uint inputAddress, uint? outputAddress, int length, Action<Block> processor, Block data = null)
+        {
+            SysbusWriter writer = null;
+            var reader = new SysbusReader(machine.SystemBus, inputAddress, length);
+            if(outputAddress.HasValue)
+            {
+                writer = new SysbusWriter(machine.SystemBus, outputAddress.Value, length);
+            }
+
+            if(data == null)
+            {
+                data = Block.OfSize(AesBlockSizeInBytes);
+            }
+            while(!reader.IsFinished)
+            {
+                reader.Read(data);
+                data.PadSpaceLeft(0);
+                processor(data);
+                if(writer != null)
+                {
+                    writer.Write(data.Buffer);
+                }
+                data.Index = 0;
+            }
+        }
+
         private void DoInputTransfer(int length)
         {
             if(!dmaInputChannelEnabled.Value)
@@ -189,11 +223,15 @@ namespace Emul8.Peripherals.Miscellaneous
             case DmaDestination.KeyStore:
                 HandleKeyTransfer(length);
                 break;
-            case DmaDestination.Aes:
-                return; // the real crypto operation will start on output transfer
             case DmaDestination.HashEngine:
                 this.Log(LogLevel.Error, "Hash engine is not supported.");
                 return;
+            case DmaDestination.Aes:
+                if(!HandleInputAesTransfer(length))
+                {
+                    return;
+                }
+                break;
             default:
                 throw new InvalidOperationException("Should not reach here.");
             }
@@ -201,6 +239,87 @@ namespace Emul8.Peripherals.Miscellaneous
             resultInterrupt = true;
             dmaDoneInterrupt = true;
             RefreshInterrupts();
+        }
+
+        private void DoOutputTransfer(int length)
+        {
+            if(!dmaOutputChannelEnabled.Value)
+            {
+                this.Log(LogLevel.Warning, "DMA output transfer detected, but output channel is not enabled. Ignoring it.");
+                return;
+            }
+            if(dmaDestination.Value != DmaDestination.Aes)
+            {
+                this.Log(LogLevel.Error, "Output transfer is implemented for AES destination only, but not for {0}. Ignoring the transfer.", dmaDestination.Value);
+                return;
+            }
+            if(length != aesOperationLength)
+            {
+                this.Log(LogLevel.Error, "AES operation in which dma length is different than aes length is not supported. Ignoring the transfer.");
+                return;
+            }
+
+            // here the real cipher operation begins
+            if(cbcEnabled.Value)
+            {
+                HandleCbc(length);
+            }
+            else if(ccmEnabled.Value)
+            {
+                if(direction.Value == Direction.Encryption)
+                {
+                    HandleCcmEncryption(length);
+                }
+                else
+                {
+                    HandleCcmDecryption(length);
+                    if(saveContext.Value)
+                    {
+                        savedContextReady.Value = true;
+                    }
+                }
+            }
+            else if(ctrEnabled.Value)
+            {
+                HandleCtr(length);
+            }
+            else
+            {
+                // the only unimplemented mode for now is GCM
+                this.Log(LogLevel.Error, "None of supported cipher modes selected: CBC, CTR, CCM");
+                return;
+            }
+
+            dmaDoneInterrupt = true;
+            resultInterrupt = true;
+            RefreshInterrupts();
+        }
+
+        private bool HandleInputAesTransfer(int length)
+        {
+            if(ccmEnabled.Value)
+            {
+                HandleCcmAuthentication(length);
+            }
+            else if(cbcMacEnabled.Value)
+            {
+                HandleCbcMac(length);
+            }
+            else if(cbcEnabled.Value || ctrEnabled.Value)
+            {
+                return false; // the real crypto operation will start on output transfer
+            }
+            else
+            {
+                this.Log(LogLevel.Error, "No supported cipher mode selected: CCM, CBC-MAC, CBC, CTR.");
+                return false;
+            }
+
+            if(saveContext.Value)
+            {
+                savedContextReady.Value = true;
+            }
+            return true;
         }
 
         private void HandleKeyTransfer(int length)
@@ -241,55 +360,223 @@ namespace Emul8.Peripherals.Miscellaneous
             }
         }
 
-        private void DoOutputTransfer(int length)
+        private void HandleCbcMac(int length)
         {
-            if(!dmaOutputChannelEnabled.Value)
+            if(inputVector.Any(x => x != 0))
             {
+                this.Log(LogLevel.Warning, "Input vector in CBC-MAC mode should be set to all zeros!. Ignoring this transfer");
                 return;
             }
 
-            if(dmaDestination.Value != DmaDestination.Aes)
+            using(var aes = AesProvider.GetCbcMacProvider(GetSelectedKey()))
             {
-                this.Log(LogLevel.Error, "Not implemented output transfer destination.");
-                return;
+                ProcessDataInMemory(dmaInputAddress.Value, null, length, aes.EncryptBlockInSitu);
+                aes.LastBlock.CopyTo(tag);
             }
+        }
 
-            // here the real cipher operation begins
-            if(length != aesOperationLength)
+        private static void IncrementCounter(byte[] buffer, int counterWidth)
+        {
+            // This is just a manual increment of integer value stored in `counterWidth` LSB bytes of a buffer.
+            // It must be ensured that in case of an overflow the rest of a buffer is not modified.
+            for(int i = 0; i < (counterWidth + 1) * 4; i++)
             {
-                this.Log(LogLevel.Error, "AES operation in which dma length is different than aes length is not supported.");
-                return;
-            }
-            if(!cbcEnabled.Value)
-            {
-                this.Log(LogLevel.Error, "Unimplemented cipher mode.");
-                return;
-            }
-
-            using(var aes = Aes.Create())
-            {
-                aes.Mode = CipherMode.CBC;
-                aes.Padding = PaddingMode.None;
-                var key = GetSelectedKey();
-
-                var encryptorDecryptor = direction.Value == Direction.Encryption ? aes.CreateEncryptor(key, inputVector) : aes.CreateDecryptor(key, inputVector);
-                using(var memoryStream = new MemoryStream())
+                if(unchecked(++buffer[buffer.Length - i - 1]) != 0)
                 {
-                    using(var cryptoStream = new CryptoStream(memoryStream, encryptorDecryptor, CryptoStreamMode.Write))
+                    break;
+                }
+            }
+        }
+
+        private void HandleCtr(int length)
+        {
+            var ivBlock = Block.UsingBytes(inputVector);
+            var encryptedNonceCounterBlock = Block.OfSize(AesBlockSizeInBytes);
+            using(var aes = AesProvider.GetEcbProvider(GetSelectedKey()))
+            {
+                ProcessDataInMemory(dmaInputAddress.Value, dmaOutputAddress.Value, length, b =>
+                {
+                    aes.EncryptBlock(ivBlock, encryptedNonceCounterBlock);
+                    b.XorWith(encryptedNonceCounterBlock);
+                    IncrementCounter(ivBlock.Buffer, (int)counterWidth.Value);
+                });
+            }
+        }
+
+        private void HandleCbc(int length)
+        {
+            using(var aes = AesProvider.GetCbcProvider(GetSelectedKey(), inputVector))
+            {
+                var processor = direction.Value == Direction.Encryption
+                    ? (Action<Block>)aes.EncryptBlockInSitu
+                    : aes.DecryptBlockInSitu;
+
+                ProcessDataInMemory(dmaInputAddress.Value, dmaOutputAddress.Value, length, processor);
+            }
+        }
+
+        private void HandleCcmAuthentication(int length)
+        {
+            if(ccmLengthOfAuthenticationField.Value == 0 && aesOperationLength == 0)
+            {
+                // no authentication header is calculated
+                return;
+            }
+
+            var adataPresent = false;
+            if(ccmCbcMacAesProvider == null)
+            {
+                // this is a first ccm dma transfer;
+                // if it uses adata there will be a second one;
+
+                // CCM mode uses CBC-MAC for authentication;
+                ccmCbcMacAesProvider = AesProvider.GetCbcMacProvider(GetSelectedKey());
+
+                ccmCbcMacAesProvider.EncryptBlockInSitu(GenerateB0Block());
+                var adataBlock = GenerateFirstAdataBlock();
+                if(adataBlock != null)
+                {
+                    adataPresent = true;
+                    // there is adata
+                    ProcessDataInMemory(dmaInputAddress.Value, null, length, ccmCbcMacAesProvider.EncryptBlockInSitu, adataBlock);
+                    if(aesOperationLength > 0)
                     {
-                        var input = machine.SystemBus.ReadBytes(dmaInputAddress.Value, length);
-                        dmaInputAddress.Value += (uint)length;
-                        cryptoStream.Write(input, 0, input.Length);
+                        // message data will be sent in a second dma transfer
+                        return;
                     }
-                    var output = memoryStream.ToArray();
-                    machine.SystemBus.WriteBytes(output, dmaOutputAddress.Value);
-                    dmaOutputAddress.Value += (uint)length;
                 }
             }
 
-            dmaDoneInterrupt = true;
-            resultInterrupt = true;
-            RefreshInterrupts();
+            if(!adataPresent)
+            {
+                if(aesOperationLength != length)
+                {
+                    this.Log(LogLevel.Warning, "Message data detected, but aes operation length ({0}) is different than this transfer length ({1}). Aborting the transfer.", aesOperationLength, length);
+                    ccmCbcMacAesProvider.Dispose();
+                    ccmCbcMacAesProvider = null;
+                    return;
+                }
+
+                if(direction.Value == Direction.Decryption)
+                {
+                    // we must first decrypt the message data before calculating the tag
+                    return;
+                }
+
+                // this is the second transfer with message data
+                ProcessDataInMemory(dmaInputAddress.Value, null, length, ccmCbcMacAesProvider.EncryptBlockInSitu);
+            }
+
+            // calculate tag
+            GenerateS0Block().XorWith(ccmCbcMacAesProvider.LastBlock).CopyTo(tag);
+
+            ccmCbcMacAesProvider.Dispose();
+            ccmCbcMacAesProvider = null;
+        }
+
+        private void HandleCcmEncryption(int length)
+        {
+            // first, we increment a counter
+            IncrementCounter(inputVector, (int)counterWidth.Value);
+            HandleCtr(length);
+
+            if(ccmCbcMacAesProvider != null)
+            {
+                ccmCbcMacAesProvider.Dispose();
+                ccmCbcMacAesProvider = null;
+            }
+        }
+
+        private void HandleCcmDecryption(int length)
+        {
+            // calculate s0 block before changing the counter (and input vector)
+            var s0Block = GenerateS0Block();
+            // first, increment a counter
+            IncrementCounter(inputVector, (int)counterWidth.Value);
+            // decrypt in CTR mode
+            HandleCtr(length);
+
+            if(ccmCbcMacAesProvider != null)
+            {
+                // calculate authentication from decrypted data
+                ProcessDataInMemory(dmaInputAddress.Value, null, length, ccmCbcMacAesProvider.EncryptBlockInSitu);
+                // calculate tag
+                s0Block.XorWith(ccmCbcMacAesProvider.LastBlock).CopyTo(tag);
+
+                ccmCbcMacAesProvider.Dispose();
+                ccmCbcMacAesProvider = null;
+            }
+        }
+
+        private Block GenerateB0Block()
+        {
+            const int aesAuthLengthOffset = 6;
+            const int ccmLengthOfAuthenticationFieldOffset = 3;
+
+            var result = Block.OfSize(AesBlockSizeInBytes);
+            // flags
+            var flags = (byte)(((aesAuthLength.Value > 0 ? 1 : 0) << aesAuthLengthOffset)
+                + (ccmLengthOfAuthenticationField.Value << ccmLengthOfAuthenticationFieldOffset)
+                + ccmLengthField.Value);
+            result.UpdateByte(flags);
+            // nonce
+            var nonceLength = 15 - (int)(ccmLengthField.Value + 1);
+            result.UpdateBytes(inputVector, 1, nonceLength);
+            // l(m) - fill LSB with aes operation length
+            while(result.SpaceLeft > 0)
+            {
+                result.UpdateByte(result.SpaceLeft > 4
+                    ? (byte)0
+                    : (byte)((aesOperationLength >> ((result.SpaceLeft - 1) * 8)) & 0xff));
+            }
+            return result;
+        }
+
+        private Block GenerateFirstAdataBlock()
+        {
+            const int twoOctetsThreshold = (1 << 16) - (1 << 8);
+
+            var adataLength = (int)aesAuthLength.Value;
+            if(adataLength == 0)
+            {
+                return null;
+            }
+
+            var result = Block.OfSize(AesBlockSizeInBytes);
+
+            // encode a length
+            if(aesAuthLength.Value < twoOctetsThreshold)
+            {
+                // use two LSB of adataLength
+                result.UpdateByte((byte)(adataLength >> 8));
+                result.UpdateByte((byte)adataLength);
+            }
+            else
+            {
+                // those are just magic numbers required by RFC 3610
+                result.UpdateByte(0xff);
+                result.UpdateByte(0xfe);
+
+                // use four LSB of adataLength
+                result.UpdateByte((byte)(adataLength >> 24));
+                result.UpdateByte((byte)(adataLength >> 16));
+                result.UpdateByte((byte)(adataLength >> 8));
+                result.UpdateByte((byte)adataLength);
+            }
+            // standard allows for longer Adata fields, but we cannot express
+            // them using 32-bit register architecture
+
+            return result;
+        }
+
+        private Block GenerateS0Block()
+        {
+            var resultBlock = Block.WithCopiedBytes(inputVector);
+            using(var aesEcb = new AesProvider(CipherMode.ECB, PaddingMode.None, GetSelectedKey()))
+            {
+                aesEcb.EncryptBlockInSitu(resultBlock);
+            }
+            return resultBlock;
         }
 
         private byte[] GetSelectedKey()
@@ -316,6 +603,7 @@ namespace Emul8.Peripherals.Miscellaneous
             return result;
         }
 
+        private AesProvider ccmCbcMacAesProvider;
         private bool dmaDoneInterrupt;
         private bool resultInterrupt;
         private bool keyStoreWriteErrorInterrupt;
@@ -324,7 +612,15 @@ namespace Emul8.Peripherals.Miscellaneous
         private byte[] tag;
         private bool[] keyStoreWriteArea;
         private byte[][] keys;
+        private readonly IFlagRegisterField saveContext;
+        private readonly IFlagRegisterField savedContextReady;
         private readonly IFlagRegisterField cbcEnabled;
+        private readonly IFlagRegisterField ctrEnabled;
+        private readonly IEnumRegisterField<CounterWidth> counterWidth;
+        private readonly IFlagRegisterField cbcMacEnabled;
+        private readonly IFlagRegisterField ccmEnabled;
+        private readonly IValueRegisterField ccmLengthField;
+        private readonly IValueRegisterField ccmLengthOfAuthenticationField;
         private readonly IEnumRegisterField<Direction> direction;
         private readonly IValueRegisterField aesAuthLength;
         private readonly IValueRegisterField dmaInputAddress;
@@ -387,6 +683,232 @@ namespace Emul8.Peripherals.Miscellaneous
         {
             Decryption,
             Encryption
+        }
+
+        private enum CounterWidth
+        {
+            Bits32,
+            Bits64,
+            Bits96,
+            Bits128
+        }
+
+        private class AesProvider : IDisposable
+        {
+            public static AesProvider GetCbcMacProvider(byte[] key)
+            {
+                // CBC-MAC is just CBC with empty IV (all zeros)
+                return new AesProvider(CipherMode.CBC, PaddingMode.Zeros, key, new byte[AesBlockSizeInBytes]);
+            }
+
+            public static AesProvider GetEcbProvider(byte[] key)
+            {
+                // ECB does not use IV at all
+                return new AesProvider(CipherMode.ECB, PaddingMode.Zeros, key);
+            }
+
+            public static AesProvider GetCbcProvider(byte[] key, byte[] iv)
+            {
+                return new AesProvider(CipherMode.CBC, PaddingMode.None, key, iv);
+            }
+
+            public AesProvider(CipherMode mode, PaddingMode padding, byte[] key, byte[] iv = null)
+            {
+                aesEngine = Aes.Create();
+                aesEngine.Mode = mode;
+                aesEngine.Padding = padding;
+                lastBlock = Block.OfSize(AesBlockSizeInBytes);
+
+                this.key = key;
+                this.iv = iv;
+            }
+
+            public void Dispose()
+            {
+                if(encryptor != null)
+                {
+                    encryptor.Dispose();
+                }
+                if(decryptor != null)
+                {
+                    decryptor.Dispose();
+                }
+                aesEngine.Dispose();
+            }
+
+
+            public void EncryptBlockInSitu(Block b)
+            {
+                EncryptBlock(b, b);
+            }
+
+            public void EncryptBlock(Block b, Block result)
+            {
+                if(encryptor == null)
+                {
+                    encryptor = aesEngine.CreateEncryptor(key, iv);
+                }
+
+                encryptor.TransformBlock(b.Buffer, 0, b.Buffer.Length, result.Buffer, 0);
+                lastBlock.CopyFrom(result);
+            }
+
+            public void DecryptBlockInSitu(Block b)
+            {
+                DecryptBlock(b, b);
+            }
+
+            public void DecryptBlock(Block b, Block result)
+            {
+                if(decryptor == null)
+                {
+                    decryptor = aesEngine.CreateDecryptor(key, iv);
+                }
+
+                decryptor.TransformBlock(b.Buffer, 0, b.Buffer.Length, result.Buffer, 0);
+                lastBlock.CopyFrom(result);
+            }
+
+            public Block LastBlock { get { return lastBlock; } }
+
+            private ICryptoTransform encryptor;
+            private ICryptoTransform decryptor;
+
+            private readonly Block lastBlock;
+            private readonly Aes aesEngine;
+            private readonly byte[] key;
+            private readonly byte[] iv;
+
+        }
+
+        private class Block
+        {
+            public static Block WithCopiedBytes(byte[] bytes)
+            {
+                var result = new Block(bytes.Length);
+                result.UpdateBytes(bytes);
+                return result;
+            }
+
+            public static Block UsingBytes(byte[] bytes)
+            {
+                return new Block(bytes);
+            }
+
+            public static Block OfSize(int size)
+            {
+                return new Block(size);
+            }
+
+            public void UpdateByte(byte b)
+            {
+                buffer[Index++] = b;
+            }
+
+            public Block XorWith(Block b)
+            {
+                for(int i = 0; i < Math.Min(buffer.Length, b.buffer.Length); i++)
+                {
+                    buffer[i] = (byte)(buffer[i] ^ b.buffer[i]);
+                }
+
+                return this;
+            }
+
+            public void UpdateBytes(byte[] bytes, int offset = 0, int length = -1)
+            {
+                if(length == -1)
+                {
+                    length = bytes.Length - offset;
+                }
+
+                Array.Copy(bytes, offset, buffer, Index, length);
+                Index += length;
+            }
+
+            public void PadSpaceLeft(byte value)
+            {
+                for(int i = Index; i < buffer.Length; i++)
+                {
+                    buffer[i] = value;
+                }
+                Index = buffer.Length;
+            }
+
+            public void CopyTo(byte[] buffer)
+            {
+                this.buffer.CopyTo(buffer, 0);
+            }
+
+            public void CopyFrom(Block b)
+            {
+                b.buffer.CopyTo(buffer, 0);
+                Index = b.Index;
+            }
+
+            public int SpaceLeft { get { return buffer.Length - Index; } }
+            public byte[] Buffer { get { return buffer; } }
+            public int Index { get; set; }
+
+            private Block(byte[] buffer)
+            {
+                this.buffer = buffer;
+            }
+
+            private Block(int size)
+            {
+                buffer = new byte[size];
+            }
+
+            protected readonly byte[] buffer;
+        }
+
+        private abstract class SysbusReaderWriterBase
+        {
+            protected SysbusReaderWriterBase(SystemBus bus, long startAddress, int length)
+            {
+                this.bus = bus;
+                currentAddress = startAddress;
+                bytesLeft = length;
+            }
+
+            public bool IsFinished { get { return bytesLeft == 0; } }
+
+            protected long currentAddress;
+            protected int bytesLeft;
+            protected readonly SystemBus bus;
+        }
+
+        private class SysbusReader : SysbusReaderWriterBase
+        {
+            public SysbusReader(SystemBus bus, long startAddress, int length) : base(bus, startAddress, length)
+            {
+            }
+
+            public int Read(Block destination)
+            {
+                var bytesToRead = Math.Min(bytesLeft, destination.SpaceLeft);
+                bus.ReadBytes(currentAddress, bytesToRead, destination.Buffer, destination.Index);
+                destination.Index += bytesToRead;
+                currentAddress += bytesToRead;
+                bytesLeft -= bytesToRead;
+                return bytesToRead;
+            }
+        }
+
+        private class SysbusWriter : SysbusReaderWriterBase
+        {
+            public SysbusWriter(SystemBus bus, long startAddress, int length) : base(bus, startAddress, length)
+            {
+            }
+
+            public void Write(byte[] bytes)
+            {
+                var length = Math.Min(bytesLeft, bytes.Length);
+                bus.WriteBytes(bytes, currentAddress, length);
+                currentAddress += length;
+                bytesLeft -= length;
+            }
         }
     }
 }
