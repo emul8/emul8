@@ -59,16 +59,6 @@ namespace Emul8.Peripherals.CPU
             }
         }
 
-        public new void ClearHookAtBlockBegin()
-        {
-            base.ClearHookAtBlockBegin();
-        }
-
-        public new void SetHookAtBlockBegin(Action<uint, uint> hook)
-        {
-            base.SetHookAtBlockBegin(hook);
-        }
-
         public bool WfiAsNop { get; set; }
 
         [Export]

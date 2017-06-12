@@ -62,16 +62,6 @@ namespace Emul8.Peripherals.CPU
 
         public override string Architecture { get { return "ppc"; } }
 
-        public new void ClearHookAtBlockBegin()
-        {
-            base.ClearHookAtBlockBegin();
-        }
-
-        public new void SetHookAtBlockBegin(Action<uint, uint> hook)
-        {
-            base.SetHookAtBlockBegin(hook);
-        }
-
         protected override Interrupt DecodeInterrupt(int number)
         {
             if(number == 0)
