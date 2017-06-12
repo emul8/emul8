@@ -647,7 +647,7 @@ namespace Emul8.Peripherals.CPU
                 var pc_cache = new LRUCache<uint, string>(10000);
                 var messageBuilder = new StringBuilder(256);
 
-                SetHookAtBlockBegin((pc, size) =>
+                SetInternalHookAtBlockBegin((pc, size) =>
                 {
                     string name;
                     if(!pc_cache.TryGetValue(pc, out name))
@@ -666,7 +666,7 @@ namespace Emul8.Peripherals.CPU
             }
             else
             {
-                SetHookAtBlockBegin(null);
+                SetInternalHookAtBlockBegin(null);
             }
         }
 
