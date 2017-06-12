@@ -691,14 +691,14 @@ namespace Emul8.Peripherals.CPU
         {
             using(machine.ObtainPausedState())
             {
-                if((hook == null) ^ (blockBeginHook == null))
+                if((hook == null) ^ (blockBeginUserHook == null))
                 {
                     ClearTranslationCache();
                 }
-                blockBeginHook = hook;
+                blockBeginUserHook = hook;
             }
         }
-
+        
         [Export]
         protected uint ReadByteFromBus(uint offset)
         {
@@ -782,6 +782,18 @@ namespace Emul8.Peripherals.CPU
         public abstract uint GetRegisterUnsafe(int register);
 
         public abstract int[] GetRegisters();
+
+        private void SetInternalHookAtBlockBegin(Action<uint, uint> hook)
+        {
+            using(machine.ObtainPausedState())
+            {
+                if((hook == null) ^ (blockBeginInternalHook == null))
+                {
+                    ClearTranslationCache();
+                }
+                blockBeginInternalHook = hook;
+            }
+        }
 
         private void CheckIfOnSynchronizedThread()
         {
@@ -999,15 +1011,16 @@ namespace Emul8.Peripherals.CPU
             HandleStepping();
             skipNextStepping = false;
 
-            var bbHook = blockBeginHook;
-            if(bbHook == null)
+            var bbInternalHook = blockBeginInternalHook;
+            if(bbInternalHook != null)
             {
-                // naturally, this export should actually not be called if the hook
-                // is null, but the check could be done where it was still a non
-                // null value
-                return;
+                bbInternalHook(address, size);
             }
-            bbHook(address, size);
+            var bbUserHook = blockBeginUserHook;
+            if(bbUserHook != null)
+            {
+                bbUserHook(address, size);
+            }
         }
 
         protected virtual void InitializeRegisters()
@@ -1299,7 +1312,7 @@ namespace Emul8.Peripherals.CPU
         [Export]
         private uint IsBlockBeginEventEnabled()
         {
-            return (blockBeginHook != null || executionMode == ExecutionMode.SingleStep || isAnyInactiveHook) ? 1u : 0u;
+            return (blockBeginInternalHook != null || blockBeginUserHook != null || executionMode == ExecutionMode.SingleStep || isAnyInactiveHook) ? 1u : 0u;
         }
 
         private int oldMaximumBlockSize;
@@ -1441,7 +1454,8 @@ namespace Emul8.Peripherals.CPU
 
         private bool[] interruptState;
         private int currentCountThreshold;
-        private Action<uint, uint> blockBeginHook;
+        private Action<uint, uint> blockBeginInternalHook;
+        private Action<uint, uint> blockBeginUserHook;
 
         private List<SegmentMapping> currentMappings;
 
