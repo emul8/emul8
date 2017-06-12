@@ -745,21 +745,26 @@ namespace Emul8.UserInterface
             return origin.Substring(position).TrimStart();
         }
 
-        public IEnumerable<String> SuggestFiles(String allButLast, String directoryPath, String lastElement)
+        private static IEnumerable<String> SuggestFiles(String allButLast, String directoryPath, String lastElement)
         {
             //the sanitization of the first "./" is required to preserve the original input provided by the user
             try
             {
                 var files = Directory.GetFiles(directoryPath, lastElement + '*', SearchOption.TopDirectoryOnly)
-                                     .Select(x => allButLast + "@" + (x.StartsWith("./", StringComparison.Ordinal) ? x.Substring(2) : x).Replace(" ", @"\ "));
+                                     .Select(x => allButLast + "@" + StripCurrentDirectory(x).Replace(" ", @"\ "));
                 var dirs = Directory.GetDirectories(directoryPath, lastElement + '*', SearchOption.TopDirectoryOnly)
-                                    .Select(x => allButLast + "@" + ((x.StartsWith("./", StringComparison.Ordinal) ? x.Substring(2) : x) + '/').Replace(" ", @"\ "));
+                                    .Select(x => allButLast + "@" + (StripCurrentDirectory(x) + '/').Replace(" ", @"\ "));
                 return files.Concat(dirs);
             }
             catch(UnauthorizedAccessException)
             {
-                return new[] { "{0}@{1}/".FormatWith(allButLast, Path.Combine(directoryPath.StartsWith("./", StringComparison.Ordinal) ? directoryPath.Substring(2) : directoryPath, lastElement)) };
+                return new[] { "{0}@{1}/".FormatWith(allButLast, Path.Combine(StripCurrentDirectory(directoryPath), lastElement)) };
             }
+        }
+
+        private static string StripCurrentDirectory(string path)
+        {
+            return path.StartsWith("./", StringComparison.Ordinal) ? path.Substring(2) : path;
         }
 
         private IEnumerable<String> SuggestCommands(String prefix)
@@ -793,14 +798,14 @@ namespace Emul8.UserInterface
                 if(!String.IsNullOrWhiteSpace(lastElement))
                 {
                     //these functions will fail on empty input
-                    directory = Path.GetDirectoryName(lastElement);
+                    directory = Path.GetDirectoryName(lastElement) ?? "/";
                     file = Path.GetFileName(lastElement);
                 }
                 if(lastElement.StartsWith(Path.DirectorySeparatorChar))
                 {
                     try
                     {
-                        suggestions.AddRange(SuggestFiles(allButLast, directory ?? "/", file)); //we need to filter out "/", because Path.GetDirectory returns null for "/"
+                        suggestions.AddRange(SuggestFiles(allButLast, directory, file)); //we need to filter out "/", because Path.GetDirectory returns null for "/"
                     }
                     catch(DirectoryNotFoundException) { }
                 }
@@ -814,8 +819,7 @@ namespace Emul8.UserInterface
                         }
                         try
                         {
-                            var directoryWithPath = Path.Combine(pathEntry, directory);
-                            suggestions.AddRange(SuggestFiles(allButLast, directoryWithPath, file));
+                            suggestions.AddRange(SuggestFiles(allButLast, Path.Combine(pathEntry, directory), file));
                         }
                         catch(Exception)
                         {
@@ -1024,7 +1028,7 @@ namespace Emul8.UserInterface
                 var mc = MachineChanged;
                 if(mc != null)
                 {
-                    mc(_currentMachine != null ? Emulation[_currentMachine] : (string)null);
+                    mc(_currentMachine != null ? Emulation[_currentMachine] : null);
                 }
             }
         }
