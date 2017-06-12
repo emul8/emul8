@@ -641,33 +641,32 @@ namespace Emul8.Peripherals.CPU
 
         public void LogFunctionNames(bool value, string spaceSeparatedPrefixes = "")
         {
-            var prefixesAsArray = spaceSeparatedPrefixes.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-            if(value)
-            {
-                var pc_cache = new LRUCache<uint, string>(10000);
-                var messageBuilder = new StringBuilder(256);
-
-                SetInternalHookAtBlockBegin((pc, size) =>
-                {
-                    string name;
-                    if(!pc_cache.TryGetValue(pc, out name))
-                    {
-                        name = Bus.FindSymbolAt(pc);
-                        pc_cache.Add(pc, name);
-                    }
-
-                    if(spaceSeparatedPrefixes != "" && !prefixesAsArray.Any(name.StartsWith))
-                    {
-                        return;
-                    }
-                    messageBuilder.Clear();
-                    this.Log(LogLevel.Info, messageBuilder.Append("Entering function ").Append(name).Append(" at 0x").Append(pc.ToString("X")).ToString());
-                });
-            }
-            else
+            if(!value)
             {
                 SetInternalHookAtBlockBegin(null);
+                return;
             }
+            var prefixesAsArray = spaceSeparatedPrefixes.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            var pc_cache = new LRUCache<uint, string>(10000);
+            // using string builder here is due to performance reasons: test shows that string.Format is much slower
+            var messageBuilder = new StringBuilder(256);
+
+            SetInternalHookAtBlockBegin((pc, size) =>
+            {
+                string name;
+                if(!pc_cache.TryGetValue(pc, out name))
+                {
+                    name = Bus.FindSymbolAt(pc);
+                    pc_cache.Add(pc, name);
+                }
+
+                if(spaceSeparatedPrefixes != "" && !prefixesAsArray.Any(name.StartsWith))
+                {
+                    return;
+                }
+                messageBuilder.Clear();
+                this.Log(LogLevel.Info, messageBuilder.Append("Entering function ").Append(name).Append(" at 0x").Append(pc.ToString("X")).ToString());
+            });
         }
 
         // TODO: improve this when backend/analyser stuff is done
