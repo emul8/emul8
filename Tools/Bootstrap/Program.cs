@@ -35,6 +35,8 @@ namespace Emul8.Bootstrap
                 return HandleInteractive(options);
             }
 
+            Title = string.Format("{0} bootstrap", options.SolutionName);
+
             switch(options.Action)
             {
             case Operation.GenerateAll:
@@ -54,6 +56,8 @@ namespace Emul8.Bootstrap
 
             return 0;
         }
+        
+        public static string Title { get; private set; }
 
         private static Configuration HandleCustomSolution(Options options)
         {
@@ -78,7 +82,7 @@ namespace Emul8.Bootstrap
             }
 
             return new Configuration(
-                SolutionGenerator.Generate(uiSelectionStep.UIProject, options.GenerateEntryProject, options.OutputDirectory,
+                SolutionGenerator.Generate(options.SolutionName, uiSelectionStep.UIProject, options.GenerateEntryProject, options.OutputDirectory,
                     stepManager.GetSteps<ProjectsListStep>().SelectMany(x => x.AdditionalProjects).Union(uiSelectionStep.UIProject.GetAllReferences())),
                 robotTestsStep.SelectedTests);
         }
@@ -104,7 +108,7 @@ namespace Emul8.Bootstrap
                 additionalProjects.Add(additionalProject);
             }
 
-            var solution = SolutionGenerator.Generate(mainProject, options.GenerateEntryProject, options.BinariesDirectory, additionalProjects);
+            var solution = SolutionGenerator.Generate(options.SolutionName, mainProject, options.GenerateEntryProject, options.BinariesDirectory, additionalProjects);
             if(options.OutputDirectory == null)
             {
                 Console.WriteLine(solution);
@@ -174,7 +178,7 @@ namespace Emul8.Bootstrap
                 actions.Insert(1, Tuple.Create(uiType, string.Format("Generate solution file for {0} with references", uiType)));
             }
 
-            var actionDialog = new MenuDialog(Title, "Welcome to the Emul8 bootstrap configuration.\nUse this script to generate your own Emul8.sln file.\n\nChoose action:", actions);
+            var actionDialog = new MenuDialog(Title, string.Format("Welcome to the {0} bootstrap configuration.\nUse this script to generate your own {0}.sln file.\n\nChoose action:", options.SolutionName), actions);
             if(actionDialog.Show() != DialogResult.Ok)
             {
                 return CancelResultCode;
@@ -203,7 +207,7 @@ namespace Emul8.Bootstrap
                         new MessageDialog("Bootstrap failure", string.Format("Could not load {0} project. Exiting", key)).Show();
                         return ErrorResultCode;
                     }
-                    configuration = new Configuration(SolutionGenerator.GenerateWithAllReferences(mainProject, options.GenerateEntryProject, options.BinariesDirectory), null);
+                    configuration = new Configuration(SolutionGenerator.GenerateWithAllReferences(options.SolutionName, mainProject, options.GenerateEntryProject, options.BinariesDirectory), null);
                     break;
                 }
             }
@@ -252,7 +256,7 @@ namespace Emul8.Bootstrap
             }
 
             return new Configuration(
-                SolutionGenerator.GenerateWithAllReferences(mainProject, options.GenerateEntryProject, options.BinariesDirectory, 
+                SolutionGenerator.GenerateWithAllReferences(options.SolutionName, mainProject, options.GenerateEntryProject, options.BinariesDirectory,
                     Scanner.Instance.Elements.OfType<Project>().Where(x => !(x is UnknownProject))),
                 Scanner.Instance.Elements.OfType<RobotTestSuite>());
         }
@@ -260,7 +264,5 @@ namespace Emul8.Bootstrap
         private const int CancelResultCode = 1;
         private const int ErrorResultCode = 2;
         private const int CleanedResultCode = 3;
-
-        public const string Title = "Emul8 bootstrap";
     }
 }

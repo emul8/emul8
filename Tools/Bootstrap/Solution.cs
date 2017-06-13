@@ -16,8 +16,9 @@ namespace Emul8.Bootstrap
 {
     public class Solution
     {
-        public Solution(IEnumerable<Project> projects)
+        public Solution(string name, IEnumerable<Project> projects)
         {
+            Name = name;
             this.projects = projects;
         }
 
@@ -115,6 +116,8 @@ namespace Emul8.Bootstrap
                 return projects; 
             }
         }
+
+        public string Name { get; private set; }
 
         private static IEnumerable<Project> GenerateAllReferences(IEnumerable<Project> projects)
         {
