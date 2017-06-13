@@ -22,6 +22,7 @@ fi
 
 . ${ROOT_PATH}/Tools/common.sh
 
+SOLUTION_NAME="Emul8"
 BATCH_MODE=false
 KEEP_SUBMODULES=false
 OUTPUT_DIRECTORY="target"
@@ -30,7 +31,7 @@ VERBOSE=false
 EXCLUDE=""
 PARAMS=()
 
-while getopts "ad:o:b:s:hkve:" opt
+while getopts "ad:o:b:s:hkve:S:" opt
 do
     case "$opt" in
         a)
@@ -58,20 +59,24 @@ do
         e)
             EXCLUDE="$OPTARG"
             ;;
+        S)
+            SOLUTION_NAME="$OPTARG"
+            ;;
         h)
-            echo "Emul8 bootstrapping script"
+            echo "$SOLUTION_NAME bootstrapping script"
             echo "=========================="
-            echo "Usage: $0 [-a] [-d directory] [-b directory] [-o directory] [-s csproj_file] [-e exclude] [-v] [-h]"
-            echo "  -a              batch mode, generates the 'All projects' solution without"
-            echo "                  any interaction with the user"
-            echo "  -d directory    location of the base directory to scan"
-            echo "  -b directory    location for binaries created from generated project"
-            echo "  -o directory    location of generated project files"
-            echo "  -s csproj_file  location of the project file"
-            echo "  -e exclude      list of projects to exclude from generated solution"
-            echo "  -k              keep submodules intact (do not update them)"
-            echo "  -v              show diagnostic messages"
-            echo "  -h              prints this help"
+            echo "Usage: $0 [-a] [-d directory] [-b directory] [-o directory] [-s csproj_file] [-e exclude] [-S solution_name] [-v] [-h]"
+            echo "  -a                batch mode, generates the 'All projects' solution without"
+            echo "                    any interaction with the user"
+            echo "  -d directory      location of the base directory to scan"
+            echo "  -b directory      location for binaries created from generated project"
+            echo "  -o directory      location of generated project files"
+            echo "  -s csproj_file    location of the project file"
+            echo "  -e exclude        list of projects to exclude from generated solution"
+            echo "  -S solution_name  name of a generated solution (Emul8 by default)"
+            echo "  -k                keep submodules intact (do not update them)"
+            echo "  -v                show diagnostic messages"
+            echo "  -h                prints this help"
             exit 0
     esac
 done
@@ -143,7 +148,7 @@ else
 fi
 cp $PROP_FILE $OUTPUT_DIRECTORY/properties.csproj
 
-PARAMS+=( --directories `get_path ${DIRECTORY:-.}` --output-directory `get_path $OUTPUT_DIRECTORY` --binaries-directory `get_path $BINARIES_DIRECTORY`)
+PARAMS+=( --directories `get_path ${DIRECTORY:-.}` --output-directory `get_path $OUTPUT_DIRECTORY` --binaries-directory `get_path $BINARIES_DIRECTORY` --solution-name "$SOLUTION_NAME")
 if [ ! -z $EXCLUDE ]
 then
     PARAMS+=( --exclude "$EXCLUDE")
@@ -165,7 +170,7 @@ else
         clear
     fi
     case $result in
-        0) echo "Solution file generated in $OUTPUT_DIRECTORY/Emul8.sln. Now you can run ./build.sh" ;;
+        0) echo "Solution file generated in $OUTPUT_DIRECTORY/$SOLUTION_NAME.sln. Now you can run ./build.sh" ;;
         1) echo "Solution file generation cancelled." ;;
         2) echo "There was an error while generating the solution file." ;;
         3) echo "Bootstrap setup cleaned." ;;
