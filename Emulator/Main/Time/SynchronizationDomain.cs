@@ -25,10 +25,7 @@ namespace Emul8.Time
             // e9b135baca99ff74ece08e9f3e8ab8578a89e2d2
             // bug number in Mono's bugzilla is #25928
             barrier = new Barrier(1, PostPhase);
-            SyncUnit = DefaultSyncUnit;
         }
-
-        public long SyncUnit { get; set; }
 
         public long SynchronizationsCount
         {
@@ -51,7 +48,7 @@ namespace Emul8.Time
                     barrier.AddParticipant();
                 }
             }
-            return new Synchronizer(this, SyncUnit);
+            return new Synchronizer(this);
         }
 
         public void ExecuteOnNearestSync(Action action)
@@ -141,15 +138,12 @@ namespace Emul8.Time
         [ThreadStatic]
         private static bool OnSyncThread;
 
-        private const long DefaultSyncUnit = 1;
-
         private sealed class Synchronizer : ISynchronizer
         {
-            public Synchronizer(SynchronizationDomain domain, long syncUnit)
+            public Synchronizer(SynchronizationDomain domain)
             {
                 this.domain = domain;
                 cts = new CancellationTokenSource();
-                currentValue = syncUnit;
             }
 
             public void Sync()
@@ -159,19 +153,13 @@ namespace Emul8.Time
                 {
                     return;
                 }
-                currentValue--;
-                if(currentValue == 0)
+                try
                 {
-                    try
-                    {
-                        domain.barrier.SignalAndWait(localcts.Token);
-                    }
-                    catch(OperationCanceledException)
-                    {
-                        currentValue++;
-                        throw;
-                    }
-                    currentValue = domain.SyncUnit;
+                    domain.barrier.SignalAndWait(localcts.Token);
+                }
+                catch(OperationCanceledException)
+                {
+                    throw;
                 }
             }
 
@@ -190,8 +178,6 @@ namespace Emul8.Time
             {
                 domain.RemoveParticipant();
             }
-
-            private long currentValue;
 
             [Constructor]
             private CancellationTokenSource cts;
