@@ -78,7 +78,7 @@ namespace Emul8.CLI
                         {
                             terminal.Show();
                         }
-                        catch(InvalidOperationException ex)
+                        catch(Exception ex)
                         {
                             Console.ForegroundColor = ConsoleColor.Red;
                             Console.Error.WriteLine(ex.Message);

@@ -39,7 +39,11 @@ namespace Emul8.CLI
                 Logger.LogAs(this, LogLevel.Warning, "Only >>Termsharp<< terminal is available on Windows - forcing to use it.");
             }
 #else
+#if EMUL8_PLATFORM_LINUX
             preferredTerminal = ConfigurationManager.Instance.Get("general", "terminal", TerminalTypes.XTerm);
+#else
+            preferredTerminal = ConfigurationManager.Instance.Get("general", "terminal", TerminalTypes.TerminalApp);
+#endif
             if(preferredTerminal == TerminalTypes.Termsharp)
             {
 #endif
@@ -100,10 +104,14 @@ namespace Emul8.CLI
             {
                 var windowCreators = new Dictionary<TerminalTypes, CreateWindowDelegate>
                 {
+#if EMUL8_PLATFORM_LINUX
                     {TerminalTypes.XTerm, CreateXtermWindow},
                     {TerminalTypes.Putty, CreatePuttyWindow},
                     {TerminalTypes.GnomeTerminal, CreateGnomeTerminalWindow},
+#endif
+#if EMUL8_PLATFORM_OSX
                     {TerminalTypes.TerminalApp, CreateTerminalAppWindow}
+#endif
                 };
 
                 var commandString = string.Format("screen {0}", ptyUnixStream.SlaveName);
@@ -194,141 +202,114 @@ namespace Emul8.CLI
 
         private static Tuple<int, int> StartingPosition = Tuple.Create(10, 10);
 
-#if !EMUL8_PLATFORM_WINDOWS
+#if EMUL8_PLATFORM_LINUX
         private bool CreateGnomeTerminalWindow(string command, out Process p)
         {
-            try
-            {
-                p = new Process();
-                p.EnableRaisingEvents = true;
-                var position = GetNextWindowPosition();
+            p = new Process();
+            p.EnableRaisingEvents = true;
+            var position = GetNextWindowPosition();
 
-                var arguments = string.Format("--tab -e \"{3}\" --title '{0}' --geometry=+{1}+{2}", Name, position.Item1, position.Item2, command);
-                p.StartInfo = new ProcessStartInfo("gnome-terminal", arguments) 
-                { 
-                    UseShellExecute = false,
-                    RedirectStandardError = true,
-                    RedirectStandardOutput = true,
-                    RedirectStandardInput = true
-                };
-                p.Exited += (sender, e) => 
-                {
-                    var proc = sender as Process;
-                    if (proc.ExitCode != 0)
-                    {
-                        LogError("gnome-terminal", arguments, proc.ExitCode);
-                    }
-                };
-                p.Start();
-                Logger.LogAs(this, LogLevel.Info, "Terminal shown");
-                return true;
-            }
-            catch(Win32Exception)
+            var arguments = string.Format("--tab -e \"{3}\" --title '{0}' --geometry=+{1}+{2}", Name, position.Item1, position.Item2, command);
+            p.StartInfo = new ProcessStartInfo("gnome-terminal", arguments) 
+            { 
+                UseShellExecute = false,
+                RedirectStandardError = true,
+                RedirectStandardOutput = true,
+                RedirectStandardInput = true
+            };
+            p.Exited += (sender, e) => 
             {
-            }
-            p = null;
-            return false;
+                var proc = sender as Process;
+                if (proc.ExitCode != 0)
+                {
+                    LogError("gnome-terminal", arguments, proc.ExitCode);
+                }
+            };
+            return RunProcess(ref p);
         }
 
         private bool CreatePuttyWindow(string arg, out Process p)
         {
-            try
+            p = new Process();
+            p.EnableRaisingEvents = true;
+            var arguments = string.Format("{0} -serial -title '{0}'", Name);
+            p.StartInfo = new ProcessStartInfo("putty", arguments) 
             {
-                p = new Process();
-                p.EnableRaisingEvents = true;
-                var arguments = string.Format("{0} -serial -title '{0}'", Name);
-                p.StartInfo = new ProcessStartInfo("putty", arguments) 
-                {
-                    UseShellExecute = false,
-                    RedirectStandardError = true,
-                    RedirectStandardOutput = true,
-                    RedirectStandardInput = true
-                };
-                p.Exited += (sender, e) => 
-                {
-                    var proc = sender as Process;
-                    if (proc.ExitCode != 0)
-                    {
-                        LogError("Putty", arguments, proc.ExitCode);
-                    }
-                };
-                p.Start();
-                return true;
-            }
-            catch(Win32Exception)
+                UseShellExecute = false,
+                RedirectStandardError = true,
+                RedirectStandardOutput = true,
+                RedirectStandardInput = true
+            };
+            p.Exited += (sender, e) => 
             {
-            }
-            p = null;
-            return false;
+                var proc = sender as Process;
+                if (proc.ExitCode != 0)
+                {
+                    LogError("Putty", arguments, proc.ExitCode);
+                }
+            };
+            return RunProcess(ref p);
         }
 
         private bool CreateXtermWindow(string cmd, out Process p)
         {
-            try
+            p = new Process();
+            var position = GetNextWindowPosition();
+            var minFaceSize = @"XTerm.*.faceSize1: 6";
+            var keys = @"XTerm.VT100.translations: #override \\n" +
+                        // disable menu on CTRL click
+                        @"!Ctrl <Btn1Down>: ignore()\\n" +
+                        @"!Ctrl <Btn2Down>: ignore()\\n" +
+                        @"!Ctrl <Btn3Down>: ignore()\\n" +
+                        @"!Lock Ctrl <Btn1Down>: ignore()\\n" +
+                        @"!Lock Ctrl <Btn2Down>: ignore()\\n" +
+                        @"!Lock Ctrl <Btn3Down>: ignore()\\n" +
+                        @"!@Num_Lock Ctrl <Btn1Down>: ignore()\\n" +
+                        @"!@Num_Lock Ctrl <Btn2Down>: ignore()\\n" +
+                        @"!@Num_Lock Ctrl <Btn3Down>: ignore()\\n" +
+                        @"!Lock Ctrl @Num_Lock <Btn1Down>: ignore()\\n" +
+                        @"!Lock Ctrl @Num_Lock <Btn2Down>: ignore()\\n" +
+                        @"!Lock Ctrl @Num_Lock <Btn3Down>: ignore()\\n" +
+                        // change default font size change keys into CTRL +/-
+                        @"Shift~Ctrl <KeyPress> KP_Add:ignore()\\n" +
+                        @"Shift Ctrl <KeyPress> KP_Add:ignore()\\n" +
+                        @"Shift <KeyPress> KP_Subtract:ignore()\\n" +
+                        @"Ctrl <KeyPress> KP_Subtract:smaller-vt-font()\\n" +
+                        @"Ctrl <KeyPress> KP_Add:larger-vt-font() \\n"; 
+            var scrollKeys = @"XTerm.VT100.scrollbar.translations: #override \\n"+
+                                @"<Btn5Down>: StartScroll(Forward) \\n"+
+                                @"<Btn1Down>: StartScroll(Continuous) MoveThumb() NotifyThumb() \\n"+
+                                @"<Btn4Down>: StartScroll(Backward) \\n"+
+                                @"<Btn3Down>: StartScroll(Continuous) MoveThumb() NotifyThumb() \\n"+
+                                @"<Btn2Down>: ignore() \\n"+
+                                @"<Btn1Motion>: MoveThumb() NotifyThumb() \\n"+
+                                @"<BtnUp>: NotifyScroll(Proportional) EndScroll()";
+            var fonts = "DejaVu Sans Mono, Ubuntu Sans Mono, Droid Sans Mono";
+
+            var command = string.Format(@"-T '{0}' -sb -rightbar -xrm '*Scrollbar.thickness: 10' -xrm '*Scrollbar.background: #CCCCCC' -geometry +{1}+{2}  -xrm '*Scrollbar.foreground: #444444' -xrm 'XTerm.vt100.background: black' -xrm 'XTerm.vt100.foreground: white' -fa '{3}' -fs 10 -xrm '{4}' -xrm '{5}' -xrm '{6}' -e {7}", 
+                Name, position.Item1, position.Item2, fonts, keys, minFaceSize, scrollKeys, cmd);
+
+            p.StartInfo = new ProcessStartInfo("xterm", command) 
             {
-                p = new Process();
-                var position = GetNextWindowPosition();
-                var minFaceSize = @"XTerm.*.faceSize1: 6";
-                var keys = @"XTerm.VT100.translations: #override \\n" +
-                           // disable menu on CTRL click
-                           @"!Ctrl <Btn1Down>: ignore()\\n" +
-                           @"!Ctrl <Btn2Down>: ignore()\\n" +
-                           @"!Ctrl <Btn3Down>: ignore()\\n" +
-                           @"!Lock Ctrl <Btn1Down>: ignore()\\n" +
-                           @"!Lock Ctrl <Btn2Down>: ignore()\\n" +
-                           @"!Lock Ctrl <Btn3Down>: ignore()\\n" +
-                           @"!@Num_Lock Ctrl <Btn1Down>: ignore()\\n" +
-                           @"!@Num_Lock Ctrl <Btn2Down>: ignore()\\n" +
-                           @"!@Num_Lock Ctrl <Btn3Down>: ignore()\\n" +
-                           @"!Lock Ctrl @Num_Lock <Btn1Down>: ignore()\\n" +
-                           @"!Lock Ctrl @Num_Lock <Btn2Down>: ignore()\\n" +
-                           @"!Lock Ctrl @Num_Lock <Btn3Down>: ignore()\\n" +
-                           // change default font size change keys into CTRL +/-
-                           @"Shift~Ctrl <KeyPress> KP_Add:ignore()\\n" +
-                           @"Shift Ctrl <KeyPress> KP_Add:ignore()\\n" +
-                           @"Shift <KeyPress> KP_Subtract:ignore()\\n" +
-                           @"Ctrl <KeyPress> KP_Subtract:smaller-vt-font()\\n" +
-                           @"Ctrl <KeyPress> KP_Add:larger-vt-font() \\n"; 
-                var scrollKeys = @"XTerm.VT100.scrollbar.translations: #override \\n"+
-                                 @"<Btn5Down>: StartScroll(Forward) \\n"+
-                                 @"<Btn1Down>: StartScroll(Continuous) MoveThumb() NotifyThumb() \\n"+
-                                 @"<Btn4Down>: StartScroll(Backward) \\n"+
-                                 @"<Btn3Down>: StartScroll(Continuous) MoveThumb() NotifyThumb() \\n"+
-                                 @"<Btn2Down>: ignore() \\n"+
-                                 @"<Btn1Motion>: MoveThumb() NotifyThumb() \\n"+
-                                 @"<BtnUp>: NotifyScroll(Proportional) EndScroll()";
-                var fonts = "DejaVu Sans Mono, Ubuntu Sans Mono, Droid Sans Mono";
-
-                var command = string.Format(@"-T '{0}' -sb -rightbar -xrm '*Scrollbar.thickness: 10' -xrm '*Scrollbar.background: #CCCCCC' -geometry +{1}+{2}  -xrm '*Scrollbar.foreground: #444444' -xrm 'XTerm.vt100.background: black' -xrm 'XTerm.vt100.foreground: white' -fa '{3}' -fs 10 -xrm '{4}' -xrm '{5}' -xrm '{6}' -e {7}", 
-                    Name, position.Item1, position.Item2, fonts, keys, minFaceSize, scrollKeys, cmd);
-
-                p.StartInfo = new ProcessStartInfo("xterm", command) 
+                UseShellExecute = false,
+                RedirectStandardError = true,
+                RedirectStandardOutput = true,
+                RedirectStandardInput = true,
+            };
+            p.EnableRaisingEvents = true;
+            p.Exited += (sender, e) => 
+            { 
+                var proc = sender as Process;
+                if (proc.ExitCode != 0 && proc.ExitCode != 15)
                 {
-                    UseShellExecute = false,
-                    RedirectStandardError = true,
-                    RedirectStandardOutput = true,
-                    RedirectStandardInput = true,
-                };
-                p.EnableRaisingEvents = true;
-                p.Exited += (sender, e) => 
-                { 
-                    var proc = sender as Process;
-                    if (proc.ExitCode != 0 && proc.ExitCode != 15)
-                    {
-                        LogError("Xterm", command, proc.ExitCode);
-                    }
-                };
-                p.Start();
-                Logger.LogAs(this, LogLevel.Info, "Terminal shown");
-                return true;
-            }
-            catch(Win32Exception)
-            {
-            }
-            p = null;
-            return false;
+                    LogError("Xterm", command, proc.ExitCode);
+                }
+            };
+            return RunProcess(ref p);
         }
+#endif
 
+#if EMUL8_PLATFORM_OSX
         private bool CreateTerminalAppWindow(string arg, out Process p)
         {
             var script = TemporaryFilesManager.Instance.GetTemporaryFile();
@@ -337,38 +318,53 @@ namespace Emul8.CLI
                 string.Format("/usr/bin/screen {0}", ptyUnixStream.SlaveName)
             });
 
+            p = new Process();
+            p.EnableRaisingEvents = true;
+            Syscall.chmod(script, FilePermissions.S_IXUSR | FilePermissions.S_IRUSR | FilePermissions.S_IWUSR);
+
+            var arguments = string.Format("{0} {1}", "-a /Applications/Utilities/Terminal.app", script);
+            p.StartInfo = new ProcessStartInfo("open", arguments) 
+            {
+                UseShellExecute = false,
+                RedirectStandardError = true,
+                RedirectStandardOutput = true,
+                RedirectStandardInput = true
+            };
+            p.Exited += (sender, e) => 
+            {
+                var proc = sender as Process;
+                if (proc.ExitCode != 0)
+                {
+                    LogError("Terminal.app", arguments, proc.ExitCode);
+                }
+            };
+
+            return RunProcess(ref p);
+        }
+#endif
+
+        private bool RunProcess(ref Process p)
+        {
             try
             {
-                p = new Process();
-                p.EnableRaisingEvents = true;
-                Syscall.chmod(script, FilePermissions.S_IXUSR | FilePermissions.S_IRUSR | FilePermissions.S_IWUSR);
-
-                var arguments = string.Format("{0} {1}", "-a /Applications/Utilities/Terminal.app", script);
-                p.StartInfo = new ProcessStartInfo("open", arguments) 
-                {
-                    UseShellExecute = false,
-                    RedirectStandardError = true,
-                    RedirectStandardOutput = true,
-                    RedirectStandardInput = true
-                };
-                p.Exited += (sender, e) => 
-                {
-                    var proc = sender as Process;
-                    if (proc.ExitCode != 0)
-                    {
-                        LogError("Terminal.app", arguments, proc.ExitCode);
-                    }
-                };
                 p.Start();
                 return true;
             }
-            catch(Win32Exception)
+            catch(Win32Exception e)
             {
+                if(e.NativeErrorCode == 2)
+                {
+                    Logger.LogAs(this, LogLevel.Warning, "Could not find binary: {0}", p.StartInfo.FileName);
+                }
+                else
+                {
+                    Logger.LogAs(this, LogLevel.Error, "There was an error when starting process: {0}", e.Message);
+                }
+                p = null;
             }
-            p = null;
+
             return false;
         }
-#endif
 
         private void LogError(string source, string arguments, int exitCode)
         {
@@ -393,10 +389,14 @@ namespace Emul8.CLI
 
         private enum TerminalTypes
         {
+#if EMUL8_PLATFORM_LINUX
             Putty,
             XTerm,
             GnomeTerminal,
+#endif
+#if EMUL8_PLATFORM_OSX
             TerminalApp,
+#endif
             Termsharp
         }
     }
