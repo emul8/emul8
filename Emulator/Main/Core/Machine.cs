@@ -1083,7 +1083,10 @@ namespace Emul8.Core
 
         private void SynchronizeInDomain()
         {
-            currentSynchronizer.Sync();
+            if(!currentSynchronizer.Sync())
+            {
+                return;
+            }
             // one can see that managed threads are executed here which means they are synchronized only with regards to
             // the given machine, not to all machines
             // this is perfectly ok since cpu thread can also do anything with regards to other machines, their
