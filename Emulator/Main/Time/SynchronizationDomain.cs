@@ -146,16 +146,17 @@ namespace Emul8.Time
                 cts = new CancellationTokenSource();
             }
 
-            public void Sync()
+            public bool Sync()
             {
                 var localcts = cts;
                 if(localcts.IsCancellationRequested)
                 {
-                    return;
+                    return false;
                 }
                 try
                 {
                     domain.barrier.SignalAndWait(localcts.Token);
+                    return true;
                 }
                 catch(OperationCanceledException)
                 {
