@@ -27,9 +27,10 @@ KEEP_SUBMODULES=false
 OUTPUT_DIRECTORY="target"
 BINARIES_DIRECTORY="bin"
 VERBOSE=false
+EXCLUDE=""
 PARAMS=()
 
-while getopts "ad:o:b:s:hkv" opt
+while getopts "ad:o:b:s:hkve:" opt
 do
     case "$opt" in
         a)
@@ -54,16 +55,20 @@ do
             PARAMS+=(-v)
             VERBOSE=true
             ;;
+        e)
+            EXCLUDE="$OPTARG"
+            ;;
         h)
             echo "Emul8 bootstrapping script"
             echo "=========================="
-            echo "Usage: $0 [-a] [-d directory] [-b directory] [-o directory] [-s csproj_file] [-v] [-h]"
+            echo "Usage: $0 [-a] [-d directory] [-b directory] [-o directory] [-s csproj_file] [-e exclude] [-v] [-h]"
             echo "  -a              batch mode, generates the 'All projects' solution without"
             echo "                  any interaction with the user"
             echo "  -d directory    location of the base directory to scan"
             echo "  -b directory    location for binaries created from generated project"
             echo "  -o directory    location of generated project files"
             echo "  -s csproj_file  location of the project file"
+            echo "  -e exclude      list of projects to exclude from generated solution"
             echo "  -k              keep submodules intact (do not update them)"
             echo "  -v              show diagnostic messages"
             echo "  -h              prints this help"
@@ -138,7 +143,12 @@ else
 fi
 cp $PROP_FILE $OUTPUT_DIRECTORY/properties.csproj
 
-PARAMS+=( --directories `get_path ${DIRECTORY:-.}` --output-directory `get_path $OUTPUT_DIRECTORY` --binaries-directory `get_path $BINARIES_DIRECTORY` )
+PARAMS+=( --directories `get_path ${DIRECTORY:-.}` --output-directory `get_path $OUTPUT_DIRECTORY` --binaries-directory `get_path $BINARIES_DIRECTORY`)
+if [ ! -z $EXCLUDE ]
+then
+    PARAMS+=( --exclude "$EXCLUDE")
+fi
+
 if $BATCH_MODE
 then
     $LAUNCHER $BOOTSTRAPER_BIN GenerateAll --generate-entry-project ${PARAMS[@]}

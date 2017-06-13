@@ -161,7 +161,7 @@ namespace Emul8.Bootstrap
             var infobox = new Infobox("Scanning directories...");
             infobox.Show();
 
-            Scanner.Instance.ScanDirectories(options.Directories);
+            Scanner.Instance.ScanDirectories(options.Directories, options.Exclude);
 
             var actions = new List<Tuple<string, string>> {
                 Tuple.Create("All", "Generate solution file with all projects"),
@@ -232,7 +232,7 @@ namespace Emul8.Bootstrap
                 Console.Error.WriteLine("Don't know which folder to scan");
                 return;
             }
-            Scanner.Instance.ScanDirectories(options.Directories);
+            Scanner.Instance.ScanDirectories(options.Directories, options.Exclude);
 
             foreach(var p in Scanner.Instance.GetProjectsOfType(options.Type))
             {
@@ -242,7 +242,7 @@ namespace Emul8.Bootstrap
 
         private static Configuration GenerateAllProjects(Options options)
         {
-            Scanner.Instance.ScanDirectories(options.Directories.Select(Path.GetFullPath));
+            Scanner.Instance.ScanDirectories(options.Directories.Select(Path.GetFullPath), options.Exclude);
 
             var mainProject = Scanner.Instance.Elements.OfType<UiProject>().OrderByDescending(x => x.Name == "CLI").FirstOrDefault();
             if(mainProject == null)

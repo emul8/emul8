@@ -23,7 +23,7 @@ namespace Emul8.Bootstrap
         
         public static Scanner Instance { get; private set; }
         
-        public void ScanDirectory(string directory)
+        public void ScanDirectory(string directory, IEnumerable<string> excludes = null)
         {
             try
             {
@@ -31,6 +31,10 @@ namespace Emul8.Bootstrap
                 {
                     foreach(var file in Directory.EnumerateFiles(directory,string.Format("*.{0}", interestingElement.Key), SearchOption.AllDirectories))
                     {
+                        if(excludes != null && excludes.Any(x => file.Contains(x)))
+                        {
+                            continue;
+                        }
                         IInterestingElement element;
                         if(interestingElement.Value(Path.GetFullPath(file), out element))
                         {
@@ -45,11 +49,11 @@ namespace Emul8.Bootstrap
             }
         }
         
-        public void ScanDirectories(IEnumerable<string> directories)
+        public void ScanDirectories(IEnumerable<string> directories, IEnumerable<string> excludes = null)
         {
             foreach (var directory in directories)
             {
-                ScanDirectory(directory);
+                ScanDirectory(directory, excludes);
             }
         }
 
