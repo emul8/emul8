@@ -11,6 +11,7 @@
     <AssemblyName>CLI</AssemblyName>
     <StartupObject>Emul8.CLI.Program</StartupObject>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <LogoLocation>..\External\emul8-libraries\Graphics\logo.png</LogoLocation>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -115,7 +116,7 @@
     <EmbeddedResource Include="Resources\RobotoMono-Regular.ttf">
       <LogicalName>RobotoMono-Regular.ttf</LogicalName>
     </EmbeddedResource>
-    <EmbeddedResource Include="..\External\emul8-libraries\Graphics\logo.png">
+    <EmbeddedResource Include="$(LogoLocation)">
       <Link>Resources\logo.png</Link>
       <LogicalName>logo.png</LogicalName>
     </EmbeddedResource>
