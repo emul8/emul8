@@ -95,7 +95,7 @@ then
     params="$VERSION -n"
     if [ $CONFIGURATION == "Debug" ]
     then
-        $params="$params -d"
+        params="$params -d"
     fi
     if $ON_LINUX
     then
