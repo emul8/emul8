@@ -21,8 +21,9 @@ namespace Emul8.Peripherals.Wireless
 {
     public class CC2538RF : IDoubleWordPeripheral, IBytePeripheral, IKnownSize, IRadio
     {
-        public CC2538RF()
+        public CC2538RF(Machine machine)
         {
+            this.machine = machine;
             rxLock = new object();
             rxQueue = new Queue<Frame>();
             txQueue = new Queue<byte>();
@@ -223,7 +224,12 @@ namespace Emul8.Peripherals.Wireless
             }
         }
 
-        public void ReceiveFrame(byte[] bytes)
+        public void ReceiveFrame(byte[] frame)
+        {
+            machine.ReportForeignEvent(frame, ReceiveFrameInner);
+        }
+
+        public void ReceiveFrameInner(byte[] bytes)
         {
             //TODO: Missing foreign event handling!
             irqHandler.RequestInterrupt(InterruptSource.StartOfFrameDelimiter);
@@ -552,7 +558,7 @@ namespace Emul8.Peripherals.Wireless
 
         private void EnqueueData(byte value)
         {
-            this.DebugLog("Enqueuing data: 0x{0:X}", value);
+            this.NoisyLog("Enqueuing data: 0x{0:X}", value);
             txQueue.Enqueue((byte)(value & 0xFF));
         }
 
@@ -733,6 +739,7 @@ namespace Emul8.Peripherals.Wireless
         private readonly Address extendedAddress;
         private readonly Queue<Frame> rxQueue;
         private readonly Queue<byte> txQueue;
+        private readonly Machine machine;
         [Constructor]
         private readonly Random random;
 
