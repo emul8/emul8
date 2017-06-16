@@ -88,6 +88,7 @@ namespace Emul8.Peripherals.Wireless
         private void NearestSyncHandler()
         {
             var frameTransmitted = FrameTransmitted;
+
             lock(packetsToSend)
             {
                 executeOnSyncAlreadyQueued = false;
@@ -122,7 +123,7 @@ namespace Emul8.Peripherals.Wireless
                         }
 
                         this.NoisyLog("Packet {0} -> {1} delivered, size {2}.", senderName, receiverName, packet.Frame.Length);
-                        receiver.ReceiveFrame(packet.Frame);
+                        receiver.ReceiveFrame(packet.Frame.ToArray());
                         if(frameTransmitted != null)
                         {
                             frameTransmitted(sender, receiver, packet.Frame);
