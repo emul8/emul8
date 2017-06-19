@@ -57,7 +57,7 @@ namespace Emul8.Peripherals.Miscellaneous
                 {(long)Registers.KeyStoreWriteArea, keyStoreWriteAreaRegister},
                 {(long)Registers.KeyStoreWrittenArea, keyStoreWrittenRegister},
                 {(long)Registers.KeyStoreSize, new DoubleWordRegister(this)
-                    .WithEnumField(0, 3, out keySize)
+                    .WithEnumField(0, 2, out keySize)
                 },
                 {(long)Registers.KeyStoreReadArea, new DoubleWordRegister(this)
                     .WithValueField(0, 4, out selectedKey)
