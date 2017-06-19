@@ -169,7 +169,7 @@ namespace Emul8.CLI
             catch(InvalidOperationException e)
             {
                 // do not report an exception if the problem has already exited
-                if(!e.Message.Contains("finished"))
+                if(!e.Message.Contains("finished") && !e.Message.Contains("exited"))
                 {
                     throw;
                 }
