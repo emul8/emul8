@@ -85,18 +85,15 @@ then
 	    exit 1
 	fi
 
+
 	# Check mono version
 	MONO_VERSION=`mono --version | head -n1 | cut -d' ' -f5`
 	MONO_VERSION_MAJOR=`echo $MONO_VERSION | cut -d'.' -f1`
-	if [ $MONO_VERSION_MAJOR -lt 4 -a $MONO_VERSION != "3.99.0" ]
+	MONO_VERSION_MINOR=`echo $MONO_VERSION | cut -d'.' -f2`
+
+	if [ $MONO_VERSION_MAJOR -lt 4 -o \( $MONO_VERSION_MAJOR -eq 4 -a $MONO_VERSION_MINOR -le 5 \) ]
 	then
 	    echo "Wrong mono version detected: $MONO_VERSION. Please refer to documentation for installation instructions. Exiting!"
-	    exit 1
-	fi
-	MCS_VERSION=`mcs --version | cut -d' ' -f5`
-	if [ $MONO_VERSION != ${MCS_VERSION:0:${#MONO_VERSION}} ]
-	then
-	    echo "Wrong mcs version detected: $MCS_VERSION (mono version is $MONO_VERSION). Please refer to documentation for installation instructions. Exiting!"
 	    exit 1
 	fi
 fi
