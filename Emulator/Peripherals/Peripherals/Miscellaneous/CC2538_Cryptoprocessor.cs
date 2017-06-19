@@ -233,7 +233,11 @@ namespace Emul8.Peripherals.Miscellaneous
                 }
                 break;
             default:
-                throw new InvalidOperationException("Should not reach here.");
+                var isKeyStoreSelected = (((int)dmaDestination.Value) & (int)DmaDestination.KeyStore) != 0;
+                var isAesSelected = (((int)dmaDestination.Value) & (int)DmaDestination.Aes) != 0;
+                var isHashSelected = (((int)dmaDestination.Value) & (int)DmaDestination.HashEngine) != 0;
+                throw new InvalidOperationException(string.Format("Invalid combination of algorithm selection flags: [KEY STORE: {0}, AES: {1}, HASH: {2}]",
+                    isKeyStoreSelected, isAesSelected, isHashSelected));
             }
 
             resultInterrupt = true;
