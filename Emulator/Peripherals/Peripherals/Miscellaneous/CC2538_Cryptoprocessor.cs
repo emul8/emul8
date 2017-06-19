@@ -69,6 +69,7 @@ namespace Emul8.Peripherals.Miscellaneous
                     .WithFlag(6, out ctrEnabled)
                     .WithEnumField(7, 2, out counterWidth)
                     .WithFlag(15, out cbcMacEnabled)
+                    .WithTag("GCM", 16, 2)
                     .WithFlag(18, out ccmEnabled)
                     .WithValueField(19, 3, out ccmLengthField, name: "CCM_L")
                     .WithValueField(22, 3, out ccmLengthOfAuthenticationField, name: "CCM_M")
