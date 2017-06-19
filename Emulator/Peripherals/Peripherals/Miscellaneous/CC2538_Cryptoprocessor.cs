@@ -112,8 +112,8 @@ namespace Emul8.Peripherals.Miscellaneous
             for(var i = 0; i < 4; i++)
             {
                 var j = i;
-                var ivRegister = new DoubleWordRegister(this);
-                ivRegister.DefineValueField(0, 32, writeCallback: (_, value) => BitConverter.GetBytes(value).CopyTo(inputVector, j * 4),
+                var ivRegister = new DoubleWordRegister(this)
+                    .WithValueField(0, 32, writeCallback: (_, value) => BitConverter.GetBytes(value).CopyTo(inputVector, j * 4),
                                             valueProviderCallback: _ => BitConverter.ToUInt32(inputVector, j * 4));
                 registersMap.Add((long)Registers.AesInputVector + 4 * i, ivRegister);
 
