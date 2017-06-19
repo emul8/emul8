@@ -600,7 +600,7 @@ namespace Emul8.Peripherals.Miscellaneous
                 keys[selectedKey.Value + 1].CopyTo(result, 16);
                 break;
             default:
-                this.Log(LogLevel.Warning, "Reserved key size value used instead of the proper value.");
+                this.Log(LogLevel.Error, "Reserved key size value ({0}) used instead of the proper one. Using key consiting of 16 zeroed bytes.", keySize.Value);
                 return new byte[16];
             }
             Array.Copy(keys[selectedKey.Value], result, 16);
