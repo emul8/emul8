@@ -154,7 +154,7 @@ namespace Emul8.Peripherals.Miscellaneous
             registers.Write(offset, value);
         }
 
-        public long Size 
+        public long Size
         {
             get
             {
@@ -581,7 +581,7 @@ namespace Emul8.Peripherals.Miscellaneous
         private byte[] GetSelectedKey()
         {
             byte[] result;
-            
+
             switch(keySize.Value)
             {
             case KeySize.Bits128:
