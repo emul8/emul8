@@ -221,6 +221,8 @@ namespace Emul8.Peripherals.Wireless
 
                 irqHandler.Reset();
                 txQueue.Clear();
+
+                Channel = 0;
             }
         }
 
