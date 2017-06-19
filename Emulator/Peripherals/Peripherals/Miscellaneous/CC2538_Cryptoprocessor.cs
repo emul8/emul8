@@ -127,11 +127,6 @@ namespace Emul8.Peripherals.Miscellaneous
             Reset();
         }
 
-        public uint ReadDoubleWord(long offset)
-        {
-            return registers.Read(offset);
-        }
-
         public void Reset()
         {
             registers.Reset();
@@ -147,6 +142,11 @@ namespace Emul8.Peripherals.Miscellaneous
             keyStoreWriteArea = new bool[NumberOfKeys];
             inputVector = new byte[AesBlockSizeInBytes];
             tag = new byte[AesBlockSizeInBytes];
+        }
+
+        public uint ReadDoubleWord(long offset)
+        {
+            return registers.Read(offset);
         }
 
         public void WriteDoubleWord(long offset, uint value)
