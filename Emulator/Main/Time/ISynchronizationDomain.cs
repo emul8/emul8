@@ -14,7 +14,6 @@ namespace Emul8.Time
         long SynchronizationsCount { get; }
         ISynchronizer ProvideSynchronizer();
         void ExecuteOnNearestSync(Action action);
-        long SyncUnit { get; set; }
         bool OnSyncPointThread { get; }
     }
 }

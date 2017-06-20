@@ -129,16 +129,14 @@ where 0 is naturally the number of the domain.
 Tweaking and customization
 --------------------------
 
-There are two parameters related to synchronization domains, both are called *sync units*, but one belongs to the given synchronization domain and the second one is the property of a given machine.
-Let's start with the latter: it tells how many instructions can be executed (expressed in the basic time units) by the given machine until the synchronization domain is notified.
-
-The sync unit of the time domain, respectively, tells how many such events should happen before the actual synchronization takes place.
-You can change the sync unit of respective machines to change relative virtual speeds of the machines and use the sync unit of the domain to adjust the frequency of synchronization.
+Every machine provides a property related to a synchronization domain called *sync unit*.
+It tells how many instructions can be executed (expressed in the basic time units) by the given machine until the synchronization domain is notified.
+You can change the sync unit of respective machines to change relative virtual speeds of the machines.
 
 Note that the value of the sync unit is a tradeoff - the higher it is, the more parallel the execution, however the machines are synchronized less frequently.
 Execution is still deterministic in that case, but the user can experience local desynchronisation between sync points.
 Also all messages between machines are exchanged less frequently which can influence execution.
-For example, network transmission may experience higher transmission times.
+For example, network transmission may experience higher transmission times or timeouts.
 
 Hooks
 -----

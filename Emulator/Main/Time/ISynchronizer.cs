@@ -11,7 +11,7 @@ namespace Emul8.Time
 {
     public interface ISynchronizer
     {
-        void Sync();
+        bool Sync();
         void CancelSync();
         void RestoreSync();
         void Exit();

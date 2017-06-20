@@ -41,9 +41,9 @@ namespace Emul8.Time
 
         private sealed class DummySynchronizer : ISynchronizer
         {
-            public void Sync()
+            public bool Sync()
             {
-
+                return true;
             }
 
             public void CancelSync()
