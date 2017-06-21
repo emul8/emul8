@@ -159,12 +159,14 @@ then
     PARAMS+=( --exclude "$EXCLUDE")
 fi
 
+if [ ! -z $SELECTED_PROJECT ]
+then
+    PARAMS+=(--main-project=`get_path $SELECTED_PROJECT`)
+fi
+
 if $BATCH_MODE
 then
     $LAUNCHER $BOOTSTRAPER_BIN GenerateAll --generate-entry-project ${PARAMS[@]}
-elif [ -n "$SELECTED_PROJECT" ]
-then
-    $LAUNCHER $BOOTSTRAPER_BIN GenerateSolution --main-project=`get_path $SELECTED_PROJECT` ${PARAMS[@]}
 else
     set +e
     $LAUNCHER $BOOTSTRAPER_BIN --interactive --generate-entry-project ${PARAMS[@]}
