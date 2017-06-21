@@ -56,7 +56,7 @@ namespace Emul8.Bootstrap
 
             return 0;
         }
-        
+
         public static string Title { get; private set; }
 
         private static Configuration HandleCustomSolution(Options options)
@@ -75,7 +75,7 @@ namespace Emul8.Bootstrap
                 .AddStep(robotTestsStep)
                 .AddStep(new ProjectsListStep<UnknownProject>("Choose other projects:", pathHelper))
                 .Run();
-            
+
             if(stepManager.IsCancelled)
             {
                 return null;
