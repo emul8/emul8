@@ -1,10 +1,4 @@
-﻿using System.Reflection;
-
-[assembly: AssemblyTitle("Emul8-EntryProject")]
-[assembly: AssemblyCompany("{2}")]
-[assembly: AssemblyCopyright("{3}")]
-
-namespace Emul8
+﻿namespace Bootstrap.Tools
 {{
     class {0}
     {{

@@ -43,9 +43,7 @@ namespace Emul8.Bootstrap.Elements.Projects
                 File.WriteAllText(path, string.Format(
                     streamReader.ReadToEnd(),
                     GeneratedProjectMainClassName,
-                    StartupObject,
-                    typeof(EntryProject).Assembly.GetCustomAttribute<AssemblyCompanyAttribute>().Company,
-                    typeof(EntryProject).Assembly.GetCustomAttribute<AssemblyCopyrightAttribute>().Copyright));
+                    StartupObject));
             }
         }
 
@@ -84,7 +82,7 @@ namespace Emul8.Bootstrap.Elements.Projects
                         new XElement(xnamespace + "OutputType", "Exe"),
                         new XElement(xnamespace + "AssemblyName", Name),
                         new XElement(xnamespace + "TargetFrameworkVersion", "v4.5"),
-                        new XElement(xnamespace + "StartupObject", string.Format("Emul8.{0}", GeneratedProjectMainClassName))),
+                        new XElement(xnamespace + "StartupObject", string.Format("Bootstrap.Tools.{0}", GeneratedProjectMainClassName))),
                    new XElement(xnamespace + "PropertyGroup",
                         new XAttribute("Condition", " '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' "),
                         new XElement(xnamespace + "DebugSymbols", "true"),
