@@ -462,12 +462,15 @@ namespace Emul8.Utilities
             var currentDirectory = new DirectoryInfo(baseDirectory);
             while(currentDirectory != null)
             {
-                string[] indicatorFiles = Directory.GetFiles(currentDirectory.FullName, ".emul8root");
-                if(indicatorFiles.Length == 1 &&
-                    File.ReadAllText(Path.Combine(currentDirectory.FullName, indicatorFiles[0])).Contains("5344ec2a-1539-4017-9ae5-a27c279bd454"))
+                var indicatorFiles = Directory.GetFiles(currentDirectory.FullName, ".emul8root");
+                if(indicatorFiles.Length == 1)
                 {
-                    directory = currentDirectory.FullName;
-                    return true;
+                    var content = File.ReadAllLines(Path.Combine(currentDirectory.FullName, indicatorFiles[0]));
+                    if(content.Length == 2 && content[0] == "5344ec2a-1539-4017-9ae5-a27c279bd454")
+                    {
+                        directory = Path.Combine(currentDirectory.FullName, content[1]);
+                        return true;
+                    }
                 }
                 currentDirectory = currentDirectory.Parent;
             }
