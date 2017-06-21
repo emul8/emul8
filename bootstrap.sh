@@ -113,7 +113,10 @@ fi
 
 if ! $KEEP_SUBMODULES
 then
+    echo "Updating submodules..."
     git submodule update --init --recursive
+else
+    echo "Not updating submodules!"
 fi
 
 # Update references to Xwt
