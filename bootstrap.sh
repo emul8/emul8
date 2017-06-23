@@ -31,7 +31,7 @@ VERBOSE=false
 EXCLUDE=""
 PARAMS=()
 
-while getopts "ad:o:b:s:hkve:S:" opt
+while getopts "ao:b:s:hkve:S:" opt
 do
     case "$opt" in
         a)
@@ -39,9 +39,6 @@ do
             ;;
         s)
             SELECTED_PROJECT="$OPTARG"
-            ;;
-        d)
-            DIRECTORY="$OPTARG"
             ;;
         o)
             OUTPUT_DIRECTORY="$OPTARG"
@@ -153,7 +150,7 @@ cp $PROP_FILE $OUTPUT_DIRECTORY/properties.csproj
 
 add_property $OUTPUT_DIRECTORY/properties.csproj OutputPathPrefix $PWD/output/bin
 
-PARAMS+=( --directories `get_path ${DIRECTORY:-.}` --output-directory `get_path $OUTPUT_DIRECTORY` --binaries-directory `get_path $BINARIES_DIRECTORY` --solution-name "$SOLUTION_NAME")
+PARAMS+=( --directories `get_path .` --output-directory `get_path $OUTPUT_DIRECTORY` --binaries-directory `get_path $BINARIES_DIRECTORY` --solution-name "$SOLUTION_NAME")
 if [ ! -z $EXCLUDE ]
 then
     PARAMS+=( --exclude "$EXCLUDE")
