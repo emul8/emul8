@@ -55,7 +55,6 @@ namespace Emul8.CLI
                     AppDomain.CurrentDomain.UnhandledException += (sender, e) => CrashHandler.HandleCrash((Exception)e.ExceptionObject);
 
                     Shell shell = null;
-                    Type preferredUARTAnalyzer = null;
                     if(options.Port > 0)
                     {
                         var io = new IOProvider(new SocketIOSource(options.Port));
@@ -68,7 +67,11 @@ namespace Emul8.CLI
                             Logger.Log(LogLevel.Error, "XWT provider is needed to run Emul8 in selected mode.");
                             return;
                         }
-                        preferredUARTAnalyzer = typeof(UARTWindowBackendAnalyzer);
+                        EmulationManager.Instance.CurrentEmulation.BackendManager.SetPreferredAnalyzer(typeof(UARTBackend),  typeof(UARTWindowBackendAnalyzer));
+                        EmulationManager.Instance.EmulationChanged += () =>
+                        {
+                            EmulationManager.Instance.CurrentEmulation.BackendManager.SetPreferredAnalyzer(typeof(UARTBackend), typeof(UARTWindowBackendAnalyzer));
+                        };
 
                         var terminal = new UARTWindowBackendAnalyzer();
                         shell = ShellProvider.GenerateShell(terminal.IO, monitor);
@@ -87,14 +90,6 @@ namespace Emul8.CLI
                     }
                     shell.Quitted += Emulator.Exit;
 
-                    if(preferredUARTAnalyzer != null)
-                    {
-                        EmulationManager.Instance.CurrentEmulation.BackendManager.SetPreferredAnalyzer(typeof(UARTBackend), preferredUARTAnalyzer);
-                        EmulationManager.Instance.EmulationChanged += () =>
-                        {
-                            EmulationManager.Instance.CurrentEmulation.BackendManager.SetPreferredAnalyzer(typeof(UARTBackend), preferredUARTAnalyzer);
-                        };
-                    }
                     monitor.Interaction = shell.Writer;
                     monitor.MachineChanged += emu => shell.SetPrompt(emu != null ? new Prompt(string.Format("({0}) ", emu), ConsoleColor.DarkYellow) : null);
 
