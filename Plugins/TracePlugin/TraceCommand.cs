@@ -201,7 +201,6 @@ namespace Emul8.Plugins.TracePlugin
 
         private readonly Dictionary<String, Type> handlers;
 
-        private const string DefaultHandlerName = "emul8DefaultTraceHandler";
         private const string TracerName = "tracealyzerTracer";
         private const string TraceEnableCommand = "enable";
         private const string TraceDisableCommand = "disable";
