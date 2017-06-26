@@ -21,16 +21,12 @@ CONFIGURATION="Release"
 PARAMS=("")
 
 CLEAN=false
-INSTALL=false
 PACKAGES=false
 
-while getopts ":cidvpt:o:" opt; do
+while getopts ":cdvpt:o:" opt; do
   case $opt in
     c)
       CLEAN=true
-      ;;
-    i)
-      INSTALL=true
       ;;
     d)
       CONFIGURATION="Debug"
@@ -88,18 +84,6 @@ do
     set -e
     retries=$((retries-1))
 done
-
-if $INSTALL
-then
-    if $ON_WINDOWS
-    then
-        echo "Installing using this script is not supported on Windows."
-        exit 1
-    fi
-    INSTALLATION_PATH="/usr/local/bin/emul8"
-    echo "Installing Emul8 in: $INSTALLATION_PATH"
-    sudo ln -sf $ROOT_PATH/run.sh $INSTALLATION_PATH
-fi
 
 if $PACKAGES
 then
