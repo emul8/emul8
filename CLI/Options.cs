@@ -9,7 +9,7 @@ using Antmicro.OptionsParser;
 
 namespace Emul8.CLI
 {
-    internal class Options : IValidatedOptions
+    public class Options : IValidatedOptions
     {
         [Name('p', "plain"), DefaultValue(false), Description("Remove steering codes (e.g., colours) from output.")]
         public bool Plain { get; set; }
