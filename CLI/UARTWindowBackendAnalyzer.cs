@@ -39,7 +39,7 @@ namespace Emul8.CLI
                 Logger.LogAs(this, LogLevel.Warning, "Only >>Termsharp<< terminal is available on Windows - forcing to use it.");
             }
 #else
-            preferredTerminal = ConfigurationManager.Instance.Get("general", "terminal", TerminalTypes.XTerm);
+            preferredTerminal = ConfigurationManager.Instance.Get("general", "terminal", TerminalTypes.Termsharp);
             if(preferredTerminal == TerminalTypes.Termsharp)
             {
 #endif
