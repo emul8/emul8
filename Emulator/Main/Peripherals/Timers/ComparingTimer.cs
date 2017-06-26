@@ -28,6 +28,11 @@ namespace Emul8.Peripherals.Timers
             clockSource.AddClockEntry(new ClockEntry(compare, ClockEntry.FrequencyToRatio(this, frequency), CompareReached, false, workMode: WorkMode.OneShot));
         }
 
+        public ComparingTimer(Machine machine, long frequency, long compare, long limit, bool enabled) : this(machine, frequency, compare, limit)
+        {
+            initialEnabled = enabled;
+        }
+
         public bool Enabled
         {
             get
@@ -97,7 +102,7 @@ namespace Emul8.Peripherals.Timers
             {
                 valueAccumulatedSoFar = 0;
                 compareValue = initialCompare;
-                return entry.With(value: 0, enabled: false, period: initialCompare);
+                return entry.With(value: 0, enabled: initialEnabled, period: initialCompare);
             });
         }
 
@@ -133,6 +138,7 @@ namespace Emul8.Peripherals.Timers
         private readonly IClockSource clockSource;
         private readonly long limit;
         private readonly long initialCompare;
+        private readonly bool initialEnabled;
 
         private const string CompareHigherThanLimitMessage = "Compare value ({0}) cannot be higher than limit ({1}) nor negative.";
     }

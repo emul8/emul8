@@ -233,6 +233,8 @@ namespace Emul8.Peripherals.IRQControllers
             }
             activeIRQs.Clear();
             systick.Reset();
+            systick.EventEnabled = false;
+            systick.AutoUpdate = true;
             IRQ.Unset();
         }
 

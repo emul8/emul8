@@ -13,7 +13,7 @@ namespace Emul8.Peripherals.Timers
 {
     public sealed class CC2538SleepTimer : ComparingTimer, IDoubleWordPeripheral, IKnownSize
     {
-        public CC2538SleepTimer(Machine machine) : base(machine, 32768, uint.MaxValue, uint.MaxValue)
+        public CC2538SleepTimer(Machine machine) : base(machine, 32768, uint.MaxValue, uint.MaxValue, true)
         {
             IRQ = new GPIO();
             Enabled = true;
@@ -69,6 +69,7 @@ namespace Emul8.Peripherals.Timers
 
         public override void Reset()
         {
+            IRQ.Unset();
             base.Reset();
             lastValue = 0;
             lastCompare = 0;
