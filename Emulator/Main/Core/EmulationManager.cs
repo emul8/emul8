@@ -16,6 +16,7 @@ using System.Diagnostics;
 using System.Threading;
 using System.Reflection;
 using Emul8.Logging;
+using Emul8.UserInterface;
 
 namespace Emul8.Core
 {
@@ -25,10 +26,11 @@ namespace Emul8.Core
 
         static EmulationManager()
         {
-            Reset();
+            RebuildInstance();
         }
 
-        public static void Reset()
+        [HideInMonitor]
+        public static void RebuildInstance()
         {
             Instance = new EmulationManager();
         }

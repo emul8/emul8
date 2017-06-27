@@ -61,7 +61,7 @@ namespace Emul8.SystemTests
         {
             context.Dispose();
 
-            EmulationManager.Reset();
+            EmulationManager.RebuildInstance();
             xwtProvider.Dispose();
             TemporaryFilesManager.Instance.OnFileCreated -= HandleTemporaryFileCreated;
             EmulationManager.Instance.EmulationChanged -= RemovedTemporaryFiles;
