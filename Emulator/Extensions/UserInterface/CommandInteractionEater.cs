@@ -12,6 +12,62 @@ using System.IO;
 
 namespace Emul8.UserInterface
 {
+    public class CommandInteractionWrapper : ICommandInteraction
+    {
+        public CommandInteractionWrapper(ICommandInteraction commandInteraction)
+        {
+            underlyingCommandInteraction = commandInteraction;
+            data = new StringBuilder();
+            error = new StringBuilder();
+        }
+
+        public void Clear()
+        {
+            data.Clear();
+            error.Clear();
+        }
+
+        public string GetContents()
+        {
+            return data.ToString();
+        }
+
+        public string GetError()
+        {
+            return error.ToString();
+        }
+
+        public Stream GetRawInputStream()
+        {
+            return underlyingCommandInteraction.GetRawInputStream();
+        }
+
+        public string ReadLine()
+        {
+            return underlyingCommandInteraction.ReadLine();
+        }
+
+        public void Write(char c, ConsoleColor? color)
+        {
+            data.Append(c);
+            underlyingCommandInteraction.Write(c, color);
+        }
+
+        public void WriteError(string msg)
+        {
+            error.Append(msg);
+            underlyingCommandInteraction.WriteError(msg);
+        }
+
+        public string CommandToExecute { get { return underlyingCommandInteraction.CommandToExecute; } set { underlyingCommandInteraction.CommandToExecute = value; } }
+        public bool QuitEnvironment { get { return underlyingCommandInteraction.QuitEnvironment; } set { underlyingCommandInteraction.QuitEnvironment = value; } }
+        public ICommandInteraction UnderlyingCommandInteraction { get { return underlyingCommandInteraction; } }
+
+        private readonly ICommandInteraction underlyingCommandInteraction;
+        private readonly StringBuilder data;
+        private readonly StringBuilder error;
+    }
+
     public class CommandInteractionEater : ICommandInteraction
     {
         public void Clear()
