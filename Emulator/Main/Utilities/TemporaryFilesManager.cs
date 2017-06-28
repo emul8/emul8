@@ -14,11 +14,16 @@ namespace Emul8.Utilities
 {
     public class TemporaryFilesManager
     {
-        public static TemporaryFilesManager Instance { get; private set; }
-
         static TemporaryFilesManager()
         {
-            Instance = new TemporaryFilesManager();
+            Initialize(Path.GetTempPath(), DefaultDirectoryPrefix);
+        }
+
+        public static TemporaryFilesManager Instance { get; private set; }
+
+        public static void Initialize(string tempDirectory, string tempDirPrefix)
+        {
+            Instance = new TemporaryFilesManager(tempDirectory, tempDirPrefix);
         }
 
         public string GetTemporaryFile()
@@ -75,7 +80,7 @@ namespace Emul8.Utilities
             }
         }
 
-        private TemporaryFilesManager()
+        private TemporaryFilesManager(string tempDirectory, string tempDirPrefix)
         {
             if(AppDomain.CurrentDomain.IsDefaultAppDomain())
             {
@@ -85,7 +90,7 @@ namespace Emul8.Utilities
             {
                 id = string.Format("{0}:{1}", Process.GetCurrentProcess().Id, AppDomain.CurrentDomain.Id);
             }
-            otherEmulatorTempPrefix = Path.Combine(Path.GetTempPath(), DirectoryPrefix);
+            otherEmulatorTempPrefix = Path.Combine(tempDirectory, tempDirPrefix);
             emulatorTemporaryPath = otherEmulatorTempPrefix + id;
 
             if(!Directory.Exists(emulatorTemporaryPath))
@@ -133,6 +138,6 @@ namespace Emul8.Utilities
         private readonly string emulatorTemporaryPath; 
         private readonly string id;
 
-        private const string DirectoryPrefix = "emul8-";
+        private const string DefaultDirectoryPrefix = "emul8-";
     }
 }
