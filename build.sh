@@ -73,7 +73,7 @@ popd > /dev/null
 # Build CCTask in Release configuration
 $CS_COMPILER /p:Configuration=Release `get_path $ROOT_PATH/External/cctask/CCTask.sln` > /dev/null
 
-PARAMS+=( /p:Configuration=$CONFIGURATION)
+PARAMS+=(/p:BuildingFromBuildScript=true /p:Configuration=$CONFIGURATION)
 
 retries=5
 while [ \( ${result_code:-134} -eq 134 \) -a \( $retries -ne 0 \) ]

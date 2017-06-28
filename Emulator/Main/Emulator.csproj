@@ -10,13 +10,18 @@
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
+    <PropertiesLocation>$(SolutionDir)\properties.csproj</PropertiesLocation>
+    <OutputPathPrefix>bin</OutputPathPrefix>
   </PropertyGroup>
+  <Import Project="$(PropertiesLocation)" />
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>bin\Debug</OutputPath>
-    <DefineConstants>DEBUG</DefineConstants>
+    <OutputPath>$(OutputPathPrefix)\Debug</OutputPath>
+    <!-- This is a hack to allow debugging in MonoDevelop -->
+    <OutputPath Condition="'$(BuildingFromBuildScript)' == ''">bin\Debug</OutputPath>
+    <DefineConstants>DEBUG;$(DefineConstants)</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <Externalconsole>true</Externalconsole>
@@ -25,7 +30,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>none</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>bin\Release</OutputPath>
+    <OutputPath>$(OutputPathPrefix)\Release</OutputPath>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <Externalconsole>true</Externalconsole>
@@ -75,7 +80,6 @@
       <HintPath>..\..\External\Lib\Lucene.Net.dll</HintPath>
     </Reference>
   </ItemGroup>
-  <Import Project="../../target/properties.csproj" />
   <ItemGroup>
     <Compile Include="AssemblyInfo.cs" />
     <Compile Include="Peripherals\IPeripheral.cs" />
