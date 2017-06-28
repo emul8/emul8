@@ -41,7 +41,10 @@ namespace Emul8.CLI
                     // as some plugins might need it for construction
                     TypeManager.Instance.PluginManager.Init("CLI");
 
-                    Logger.AddBackend(ConsoleBackend.Instance, "console");
+                    if(!options.HideLog)
+                    {
+                        Logger.AddBackend(ConsoleBackend.Instance, "console");
+                    }
 
                     EmulationManager.Instance.ProgressMonitor.Handler = new CLIProgressMonitor();
                     AppDomain.CurrentDomain.UnhandledException += (sender, e) => CrashHandler.HandleCrash((Exception)e.ExceptionObject);

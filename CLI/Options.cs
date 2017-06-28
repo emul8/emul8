@@ -29,6 +29,9 @@ namespace Emul8.CLI
         [Name("hide-monitor"), DefaultValue(false), Description("Do not show monitor window.")]
         public bool HideMonitor { get; set; }
 
+        [Name("hide-log"), DefaultValue(false), Description("Do not show log messages in a console.")]
+        public bool HideLog { get; set; }
+
         public bool Validate(out string error)
         {
             if(DisableXwt && Port == -1)
