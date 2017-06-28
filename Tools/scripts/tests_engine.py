@@ -21,7 +21,6 @@ def prepare_parser():
     parser.add_argument("-p", "--port",     dest="port",        action="store",       default=None,  help="Debug port.")
     parser.add_argument("-s", "--suspend",  dest="suspend",     action="store_true",  default=False, help="Suspend test waiting for a debugger.")
     parser.add_argument("-T", "--type",     dest="test_type",   action="store",       default="all", help="Type of test to execute (all by default)")
-    parser.add_argument("-x", "--no-x11",   dest="disable_x11", action="store_true",  default=False, help="Disable support for X11 in robot frontend")
     parser.add_argument("-r", "--results-dir",  dest="results_directory",  action="store", default=os.path.join(this_path, 'tests'),  help="Location where test results should be stored.")
     return parser
 

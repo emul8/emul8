@@ -28,7 +28,7 @@ namespace Emul8.CLI
             XwtProvider xwt = null;
             try
             {
-                if(!options.XlessMode)
+                if(!options.DisableXwt)
                 {
                     xwt = new XwtProvider(new WindowedUserInterfaceProvider());
                 }
