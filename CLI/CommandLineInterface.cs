@@ -95,18 +95,22 @@ namespace Emul8.CLI
             else
             {
                 var terminal = new UARTWindowBackendAnalyzer();
-                shell = ShellProvider.GenerateShell(terminal.IO, monitor);
+                // forcing vcursor is necessary, because calibrating will never end if the window is not shown
+                shell = ShellProvider.GenerateShell(terminal.IO, monitor, forceVCursor: options.HideMonitor);
                 monitor.Quitted += shell.Stop;
 
-                try
+                if(!options.HideMonitor)
                 {
-                    terminal.Show();
-                }
-                catch(InvalidOperationException ex)
-                {
-                    Console.ForegroundColor = ConsoleColor.Red;
-                    Console.Error.WriteLine(ex.Message);
-                    Emulator.Exit();
+                    try
+                    {
+                        terminal.Show();
+                    }
+                    catch(InvalidOperationException ex)
+                    {
+                        Console.ForegroundColor = ConsoleColor.Red;
+                        Console.Error.WriteLine(ex.Message);
+                        Emulator.Exit();
+                    }
                 }
             }
             shell.Quitted += Emulator.Exit;

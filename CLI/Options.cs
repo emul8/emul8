@@ -26,6 +26,9 @@ namespace Emul8.CLI
         [Name("script"), PositionalArgument(0)]
         public string ScriptPath { get; set; }
 
+        [Name("hide-monitor"), DefaultValue(false), Description("Do not show monitor window.")]
+        public bool HideMonitor { get; set; }
+
         public bool Validate(out string error)
         {
             if(XlessMode && Port == -1)
