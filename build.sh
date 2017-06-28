@@ -79,7 +79,7 @@ retries=5
 while [ \( ${result_code:-134} -eq 134 \) -a \( $retries -ne 0 \) ]
 do
     set +e
-    $CS_COMPILER /p:OutputPath=$OUTPUT/$CONFIGURATION ${PARAMS[@]} $TARGET
+    $CS_COMPILER ${PARAMS[@]} $TARGET
     result_code=$?
     set -e
     retries=$((retries-1))
