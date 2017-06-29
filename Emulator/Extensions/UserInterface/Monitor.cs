@@ -58,6 +58,14 @@ namespace Emul8.UserInterface
             }
         }
 
+        public IEnumerable<string> CurrentPathPrefixes
+        {
+            get
+            {
+                return monitorPath.PathElements;
+            }
+        }
+
         private readonly EmulationManager emulationManager;
         private MonitorPath monitorPath = new MonitorPath();
         public const string StartupCommandEnv = "STARTUP_COMMAND";
