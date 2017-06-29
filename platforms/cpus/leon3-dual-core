@@ -3,5 +3,5 @@
 #
 
 sysbus Endianess BigEndian
-machine LoadPeripherals @platforms/cpus/leon3-dual-core.json
+machine LoadPeripheralsFromJSONFile @platforms/cpus/leon3-dual-core.json
 

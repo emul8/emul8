@@ -2,7 +2,7 @@
 #
 #
 
-machine LoadPeripherals @platforms/cpus/efm32.json
+machine LoadPeripheralsFromJSONFile @platforms/cpus/efm32.json
 
 sysbus Tag <0x400C8000,0x400C8FFF> "CMU_BASE"
 sysbus Tag <0x40006000,0x40006fff> "GPIO_BASE"

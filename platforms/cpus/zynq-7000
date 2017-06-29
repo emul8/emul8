@@ -2,7 +2,7 @@
 # zynq 7000 epp
 #
 
-machine LoadPeripherals @platforms/cpus/zynq-7000.json
+machine LoadPeripheralsFromJSONFile @platforms/cpus/zynq-7000.json
 
 machine PyDevFromString "request.value = 0x0001A008;self.NoisyLog(\"ARM_PLL_CTRL\")" 0xF8000100 0x4 False "ARM_PLL_CTRL"
 machine PyDevFromString "request.value = 0x0001A008;self.NoisyLog(\"DDR_PLL_CTRL\")" 0xF8000104 0x4 False "DDR_PLL_CTRL"

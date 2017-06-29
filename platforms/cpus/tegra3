@@ -2,7 +2,7 @@
 # tegra 3
 #
 
-machine LoadPeripherals @platforms/cpus/tegra3.json
+machine LoadPeripheralsFromJSONFile @platforms/cpus/tegra3.json
 
 machine PyDevFromString "request.value = 1" 0x7000E400 0x4 False "NV_PA_PMC_BASE"
 

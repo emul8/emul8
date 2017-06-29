@@ -2,7 +2,7 @@
 # STM32F405xx Cortex-M4 template script
 #
 
-machine LoadPeripherals @platforms/cpus/stm32f4.json
+machine LoadPeripheralsFromJSONFile @platforms/cpus/stm32f4.json
 sysbus ApplySVD @http://emul8.org/emul8_files/svd/STM32F40x.svd
 
 sysbus Tag <0x40021000, 0x40021003> "GPIOE_MODER" 0xFFFFFFFF

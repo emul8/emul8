@@ -9,5 +9,5 @@
 
 include @platforms/cpus/versatile
 
-machine LoadPeripherals @platforms/boards/versatile-externals.json
+machine LoadPeripheralsFromJSONFile @platforms/boards/versatile-externals.json
 

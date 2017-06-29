@@ -1,4 +1,4 @@
-machine LoadPeripherals $ORIGIN/quark_c1000.json
+machine LoadPeripheralsFromJSONFile $ORIGIN/quark_c1000.json
 
 # missing peripherals
 sysbus Tag <0xB0800000 0x4000> "SCSS"

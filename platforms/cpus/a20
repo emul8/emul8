@@ -2,7 +2,7 @@
 # Allwinner A20 Cortex-A7
 #
 
-machine LoadPeripherals @platforms/cpus/a20.json
+machine LoadPeripheralsFromJSONFile @platforms/cpus/a20.json
 
 sysbus Tag <0x1c00000, 0x1c00fff> "SRAM_CONTROLLER"
 sysbus Tag <0x1c01000, 0x1c01fff> "DRAM_CONTROLLER"

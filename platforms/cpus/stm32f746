@@ -2,7 +2,7 @@
 # STM32F746 Cortex-M7 template script
 #
 
-machine LoadPeripherals @platforms/cpus/stm32f746.json
+machine LoadPeripheralsFromJSONFile @platforms/cpus/stm32f746.json
 sysbus ApplySVD @http://emul8.org/emul8_files/svd/STM32F7x6.svd.gz
 
 sysbus Tag <0x40023808, 0x40023809> "RCC_CFGR" 0x0019940A

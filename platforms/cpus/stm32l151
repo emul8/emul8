@@ -3,7 +3,7 @@
 #
 
 using sysbus
-machine LoadPeripherals $ORIGIN/stm32l151.json
+machine LoadPeripheralsFromJSONFile $ORIGIN/stm32l151.json
 machine SetClockSource cpu
 sysbus ApplySVD @http://emul8.org/emul8_files/svd/STM32L1xx.svd.gz
 

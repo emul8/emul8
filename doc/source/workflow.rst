@@ -43,7 +43,7 @@ It is very simple and consists of only two commands:
 .. code-block:: bash
 
     include @platforms/cpus/versatile
-    machine LoadPeripherals @platforms/boards/versatile-externals.json
+    machine LoadPeripheralsFromJSONFile @platforms/boards/versatile-externals.json
 
 This creates a CPU and loads some additional peripherals, specific to the Versatile board, which are not important at the moment.
 
@@ -54,7 +54,7 @@ For example, the following line will create a log entry telling that and unimple
 
    sysbus Tag <0x101E1000,0x101E1FFF> "watchdog"
 
-Please note that you can use the ``LoadPeripherals`` command at any point while creating a machine.
+Please note that you can use the ``LoadPeripheralsFromJSONFile`` command at any point while creating a machine.
 It is suggested to split JSON files so that each reflects a specific level of abstraction, e.g. CPU level, board level, specific setup level.
 
 CPU setup

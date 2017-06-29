@@ -9,5 +9,5 @@
 
 
 include @platforms/cpus/vexpress
-machine LoadPeripherals @platforms/boards/vexpress-externals.json
+machine LoadPeripheralsFromJSONFile @platforms/boards/vexpress-externals.json
 

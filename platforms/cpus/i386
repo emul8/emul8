@@ -1,4 +1,4 @@
-machine LoadPeripherals @platforms/cpus/i386.json
+machine LoadPeripheralsFromJSONFile @platforms/cpus/i386.json
 
 sysbus Tag <0xE0000020 1> "PIC1_CMD"
 sysbus Tag <0xE0000021 1> "PIC1_DATA"

@@ -3,4 +3,4 @@
 
 
 include @platforms/cpus/efm32gg
-machine LoadPeripherals @platforms/boards/efm32gg_stk3700.json
+machine LoadPeripheralsFromJSONFile @platforms/boards/efm32gg_stk3700.json

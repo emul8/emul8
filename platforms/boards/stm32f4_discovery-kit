@@ -7,6 +7,6 @@
 
 include @platforms/cpus/stm32f4
 
-machine LoadPeripherals @platforms/boards/stm32f4_discovery.json
-machine LoadPeripherals @platforms/boards/stm32f4_discovery-bb.json
-machine LoadPeripherals @platforms/boards/stm32f4_discovery-additional_gpios.json
+machine LoadPeripheralsFromJSONFile @platforms/boards/stm32f4_discovery.json
+machine LoadPeripheralsFromJSONFile @platforms/boards/stm32f4_discovery-bb.json
+machine LoadPeripheralsFromJSONFile @platforms/boards/stm32f4_discovery-additional_gpios.json

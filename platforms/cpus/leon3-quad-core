@@ -3,4 +3,4 @@
 #
 
 sysbus Endianess BigEndian
-machine LoadPeripherals @platforms/cpus/leon3-quad-core.json
+machine LoadPeripheralsFromJSONFile @platforms/cpus/leon3-quad-core.json

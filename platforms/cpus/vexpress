@@ -2,7 +2,7 @@
 #  vexpress
 #
 
-machine LoadPeripherals @platforms/cpus/vexpress.json
+machine LoadPeripheralsFromJSONFile @platforms/cpus/vexpress.json
 
 sysbus Tag <0x10017000,0x10026FFF> "PL031" 
 sysbus Tag <0x4f000000,0x4F00FFFF> "usbehci"   

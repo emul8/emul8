@@ -2,7 +2,7 @@
 # efm32gg
 #
 
-machine LoadPeripherals @platforms/cpus/efm32gg.json
+machine LoadPeripheralsFromJSONFile @platforms/cpus/efm32gg.json
 
 sysbus Tag <0x40006000,0x40006fff> "GPIO_BASE"
 sysbus Tag <0x4000e400,0x4000E4FF> "efm32-uart.4"

@@ -2,7 +2,7 @@
 #
 #
 
-machine LoadPeripherals @platforms/cpus/versatile.json
+machine LoadPeripheralsFromJSONFile @platforms/cpus/versatile.json
 
 sysbus Tag <0x101E0000,0x101E0FFF> "sctl"
 sysbus Tag <0x10130000,0x10130fff> "pl080-mmc"

@@ -7,5 +7,5 @@
 #
 
 include @platforms/cpus/zynq-7000
-machine LoadPeripherals @platforms/boards/mars_zx3-externals.json
+machine LoadPeripheralsFromJSONFile @platforms/boards/mars_zx3-externals.json
 

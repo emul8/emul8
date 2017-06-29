@@ -1,2 +1,2 @@
-machine LoadPeripherals $ORIGIN/arduino_101-cc2520.json
+machine LoadPeripheralsFromJSONFile $ORIGIN/arduino_101-cc2520.json
 

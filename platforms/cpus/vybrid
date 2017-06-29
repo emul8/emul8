@@ -1,4 +1,4 @@
-machine LoadPeripherals @platforms/cpus/vybrid.json
+machine LoadPeripheralsFromJSONFile @platforms/cpus/vybrid.json
 
 sysbus Tag <0x40001000, 0x40001fff> "mscm_mscm"
 sysbus Tag <0x40002000, 0x40002fff> "intc_interrupt-controller"

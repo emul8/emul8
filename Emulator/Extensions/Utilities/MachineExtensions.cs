@@ -23,7 +23,7 @@ namespace Emul8.Utilities
 {
     public static class MachineExtensions
     {
-        public static void LoadPeripherals(this Machine machine, String fileName)
+        public static void LoadPeripheralsFromJSONFile(this Machine machine, String fileName)
         {
             if(!File.Exists(fileName))
             {
@@ -32,7 +32,7 @@ namespace Emul8.Utilities
             new DevicesConfig(File.ReadAllText(fileName), machine);
         }
 
-        public static void LoadPeripheralsFromString(this Machine machine, String text)
+        public static void LoadPeripheralsFromJSONString(this Machine machine, String text)
         {
             new DevicesConfig(text, machine);
         }

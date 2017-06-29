@@ -1,2 +1,2 @@
 include @platforms/cpus/vybrid
-machine LoadPeripherals @platforms/boards/colibri-vf61.json
+machine LoadPeripheralsFromJSONFile @platforms/boards/colibri-vf61.json

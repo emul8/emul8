@@ -2,7 +2,7 @@
 # at91rm9200
 #
 
-machine LoadPeripherals @platforms/cpus/at91rm9200.json
+machine LoadPeripheralsFromJSONFile @platforms/cpus/at91rm9200.json
 
 #cpu ID 0x41129200
 sysbus.cpu ID 0x41009200

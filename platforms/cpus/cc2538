@@ -1,7 +1,7 @@
 #
 # script for TI CC2538
 #
-machine LoadPeripherals @platforms/cpus/cc2538.json
+machine LoadPeripheralsFromJSONFile @platforms/cpus/cc2538.json
 
 sysbus Tag <0x400D2000,0x400D2FFF> "SYS_CTRL_CLOCK_CTRL" 1
 sysbus Tag <0x40088664,0x40088667> "RFCORE_XREG_RSSISTAT" 1

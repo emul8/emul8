@@ -2,4 +2,4 @@
 # STM32F103xx Cortex-M3 template script
 #
 
-machine LoadPeripherals @platforms/cpus/stm32f103.json
+machine LoadPeripheralsFromJSONFile @platforms/cpus/stm32f103.json

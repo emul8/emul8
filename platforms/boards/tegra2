@@ -3,4 +3,4 @@
 #
 
 include @platforms/cpus/tegra2
-machine LoadPeripherals @platforms/boards/tegra_externals.json
+machine LoadPeripheralsFromJSONFile @platforms/boards/tegra_externals.json
