@@ -29,11 +29,7 @@ namespace Emul8.Peripherals.X86
             runningMode = new RunningMode[NumberOfInternalTimers];
             for(int i = 0; i < timers.Length; i++)
             {
-                timers[i] = new LimitTimer(machine, 32000000)
-                {
-                    EventEnabled = true,
-                    Mode = WorkMode.Periodic
-                };
+                timers[i] = new LimitTimer(machine, 32000000, eventEnabled: true);
                 var j = i;
                 timers[i].LimitReached += () => HandleLimitReached(j);
             }

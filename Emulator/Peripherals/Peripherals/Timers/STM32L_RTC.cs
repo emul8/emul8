@@ -15,9 +15,8 @@ namespace Emul8.Peripherals
 {
     public class STM32L_RTC : LimitTimer, IDoubleWordPeripheral
     {
-        public STM32L_RTC(Machine machine) : base(machine, 1000) // this frequency is a blind guess
+        public STM32L_RTC(Machine machine) : base(machine, 1000, eventEnabled: true, autoUpdate: true) // this frequency is a blind guess
         {
-            AutoUpdate = true;
             LimitReached += () =>
             {
                 if(wakeupTimerInterruptEnable.Value)
@@ -27,7 +26,6 @@ namespace Emul8.Peripherals
                     IRQ.Set();
                 }
             };
-            EventEnabled = true;
             SetupRegisters();
         }
 

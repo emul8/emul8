@@ -47,7 +47,6 @@ namespace Emul8.Peripherals.Timers
             for(var i = 0; i < numberOfTimers; i++)
             {
                 timers[i].Reset();
-                timers[i].CoreTimer.EventEnabled = true;
                 timers[i].CoreTimer.Divider = (int)registers.Configuration.TimersNumber + 1;
             }
         }
@@ -267,7 +266,7 @@ namespace Emul8.Peripherals.Timers
             
             public InnerTimer(Machine machine, int frequency)
             {
-                CoreTimer = new LimitTimer(machine, frequency, limit: InitialLimit, direction : Direction.Descending);
+                CoreTimer = new LimitTimer(machine, frequency, limit: InitialLimit, direction : Direction.Descending, eventEnabled: true);
             }
 
             public LimitTimer CoreTimer;
