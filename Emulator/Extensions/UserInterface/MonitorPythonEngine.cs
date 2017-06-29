@@ -29,7 +29,8 @@ namespace Emul8.UserInterface
         public MonitorPythonEngine(Monitor monitor)
         {
             string emul8Path;
-            if(!Misc.TryGetEmul8Directory(out emul8Path) && !Misc.TryGetEmul8Directory(Directory.GetCurrentDirectory(), out emul8Path))
+            string rootFilePath;
+            if(!Misc.TryGetEmul8Directory(out emul8Path) && !Misc.TryGetEmul8Directory(Directory.GetCurrentDirectory(), out emul8Path, out rootFilePath))
             {
                 throw new RecoverableException("Could not find emul8 root directory.");
             }

@@ -453,12 +453,19 @@ namespace Emul8.Utilities
 
         public static bool TryGetEmul8Directory(out string directory)
         {
-            return TryGetEmul8Directory(AppDomain.CurrentDomain.BaseDirectory, out directory);
+            string rootFileLocation;
+            return TryGetEmul8Directory(AppDomain.CurrentDomain.BaseDirectory, out directory, out rootFileLocation);
         }
 
-        public static bool TryGetEmul8Directory(string baseDirectory, out string directory)
+        public static bool TryGetEmul8Directory(out string directory, out string rootFileLocation)
+        {
+            return TryGetEmul8Directory(AppDomain.CurrentDomain.BaseDirectory, out directory, out rootFileLocation);
+        }
+
+        public static bool TryGetEmul8Directory(string baseDirectory, out string directory, out string rootFileLocation)
         {
             directory = null;
+            rootFileLocation = null;
             var currentDirectory = new DirectoryInfo(baseDirectory);
             while(currentDirectory != null)
             {
@@ -469,6 +476,7 @@ namespace Emul8.Utilities
                     if(content.Length == 2 && content[0] == "5344ec2a-1539-4017-9ae5-a27c279bd454")
                     {
                         directory = Path.Combine(currentDirectory.FullName, content[1]);
+                        rootFileLocation = currentDirectory.FullName;
                         return true;
                     }
                 }
