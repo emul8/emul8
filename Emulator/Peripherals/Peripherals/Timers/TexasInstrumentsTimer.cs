@@ -21,12 +21,10 @@ namespace Emul8.Peripherals.Timers
             IRQ12 = new GPIO();
             IRQ34 = new GPIO();
 
-            timer12 = new LimitTimer(machine, 24000000, direction: Direction.Ascending); // clocked from AUXCLK (default 24 MHz)
-            timer34 = new LimitTimer(machine, 24000000, direction: Direction.Ascending);
+            timer12 = new LimitTimer(machine, 24000000, direction: Direction.Ascending, eventEnabled: true); // clocked from AUXCLK (default 24 MHz)
+            timer34 = new LimitTimer(machine, 24000000, direction: Direction.Ascending, eventEnabled: true);
             timer12.LimitReached += () => OnTimerLimitReached(timer12);
             timer34.LimitReached += () => OnTimerLimitReached(timer34);
-            timer12.EventEnabled = true;
-            timer34.EventEnabled = true;
 
             timerControlRegister = new DoubleWordRegister(this);
             timerGlobalControlRegister = new DoubleWordRegister(this, 3);

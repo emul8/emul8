@@ -63,6 +63,10 @@ namespace Emul8.Peripherals.GPIOPort
             {
                 connection.Unset();
             }
+            for(int i = 0; i < State.Length; ++i)
+            {
+                State[i] = false;
+            }
         }
 
         protected BaseGPIOPort(Machine machine, int numberOfConnections)
@@ -105,7 +109,7 @@ namespace Emul8.Peripherals.GPIOPort
 
         public IReadOnlyDictionary<int, IGPIO> Connections { get; private set; }
 
-        protected readonly bool[] State;
+        protected bool[] State;
         private readonly Machine machine;
     }
 }
