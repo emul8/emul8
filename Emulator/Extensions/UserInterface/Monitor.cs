@@ -58,6 +58,14 @@ namespace Emul8.UserInterface
             }
         }
 
+        public IEnumerable<string> CurrentPathPrefixes
+        {
+            get
+            {
+                return monitorPath.PathElements;
+            }
+        }
+
         private readonly EmulationManager emulationManager;
         private MonitorPath monitorPath = new MonitorPath();
         public const string StartupCommandEnv = "STARTUP_COMMAND";
@@ -156,7 +164,8 @@ namespace Emul8.UserInterface
         private static void SetBasePath()
         {
             string baseDirectory;
-            if(!Misc.TryGetEmul8Directory(out baseDirectory))
+            string rootFileLocation;
+            if(!Misc.TryGetEmul8Directory(out baseDirectory, out rootFileLocation))
             {
                 Logger.Log(LogLevel.Warning, "Monitor: could not find emul8 base path, using current instead.");
                 return;
@@ -296,6 +305,10 @@ namespace Emul8.UserInterface
                 Logger.Log(LogLevel.Warning, messages.ToString());
                 return null;
             }
+            foreach(var pathToken in result.Tokens.Where(x => x is PathToken).Cast<PathToken>())
+            {
+                pathToken.SetPossiblePrefixes(monitorPath.PathElements);
+            }
             return result;
         }
 
@@ -343,16 +356,22 @@ namespace Emul8.UserInterface
                 var pathToken = token as PathToken;
                 if(pathToken != null)
                 {
-                    string filename;
-                    var fname = pathToken.Value;
-
-                    if(File.Exists(fname) || Directory.Exists(fname))
+                    var fileFound = false;
+                    //try to find file in all monitor paths
+                    foreach(var fileName in pathToken.GetPossiblePaths())
                     {
-                        resultToken = pathToken;
+                        if(File.Exists(fileName) || Directory.Exists(fileName))
+                        {
+                            fileFound = true;
+                            resultToken = new PathToken(fileName);
+                            break;
+                        }
                     }
-                    else
+                    if(!fileFound)
                     {
                         Uri uri;
+                        string filename;
+                        string fname = pathToken.Value;
                         try
                         {
                             uri = new Uri(fname);
@@ -371,7 +390,6 @@ namespace Emul8.UserInterface
                                 }
                             }
                             resultToken = new PathToken("@" + filename);
-
                         }
                         catch(UriFormatException)
                         {
@@ -745,26 +763,27 @@ namespace Emul8.UserInterface
             return origin.Substring(position).TrimStart();
         }
 
-        private static IEnumerable<String> SuggestFiles(String allButLast, String directoryPath, String lastElement)
+        private static IEnumerable<String> SuggestFiles(String allButLast, String prefix, String directory, String lastElement)
         {
             //the sanitization of the first "./" is required to preserve the original input provided by the user
+            var directoryPath = Path.Combine(prefix, directory);
             try
             {
                 var files = Directory.GetFiles(directoryPath, lastElement + '*', SearchOption.TopDirectoryOnly)
-                                     .Select(x => allButLast + "@" + StripCurrentDirectory(x).Replace(" ", @"\ "));
+                                     .Select(x => allButLast + "@" + StripPrefix(x, prefix).Replace(" ", @"\ "));
                 var dirs = Directory.GetDirectories(directoryPath, lastElement + '*', SearchOption.TopDirectoryOnly)
-                                    .Select(x => allButLast + "@" + (StripCurrentDirectory(x) + '/').Replace(" ", @"\ "));
+                                    .Select(x => allButLast + "@" + (StripPrefix(x, prefix) + '/').Replace(" ", @"\ "));
                 return files.Concat(dirs);
             }
             catch(UnauthorizedAccessException)
             {
-                return new[] { "{0}@{1}/".FormatWith(allButLast, Path.Combine(StripCurrentDirectory(directoryPath), lastElement)) };
+                return new[] { "{0}@{1}/".FormatWith(allButLast, Path.Combine(StripPrefix(directoryPath, prefix), lastElement)) };
             }
         }
 
-        private static string StripCurrentDirectory(string path)
+        private static string StripPrefix(string path, string prefix)
         {
-            return path.StartsWith("./", StringComparison.Ordinal) ? path.Substring(2) : path;
+            return path.StartsWith(prefix, StringComparison.Ordinal) ? path.Substring(prefix.Length + (prefix.EndsWith(Path.DirectorySeparatorChar) ? 0 : 1)) : path;
         }
 
         private IEnumerable<String> SuggestCommands(String prefix)
@@ -805,13 +824,13 @@ namespace Emul8.UserInterface
                 {
                     try
                     {
-                        suggestions.AddRange(SuggestFiles(allButLast, directory, file)); //we need to filter out "/", because Path.GetDirectory returns null for "/"
+                        suggestions.AddRange(SuggestFiles(allButLast, String.Empty, directory, file)); //we need to filter out "/", because Path.GetDirectory returns null for "/"
                     }
                     catch(DirectoryNotFoundException) { }
                 }
                 else
                 {
-                    foreach(var pathEntry in monitorPath.PathElements)
+                    foreach(var pathEntry in monitorPath.PathElements.Select(x => Path.GetFullPath(x)))
                     {
                         if(!Directory.Exists(pathEntry))
                         {
@@ -819,7 +838,7 @@ namespace Emul8.UserInterface
                         }
                         try
                         {
-                            suggestions.AddRange(SuggestFiles(allButLast, Path.Combine(pathEntry, directory), file));
+                            suggestions.AddRange(SuggestFiles(allButLast, pathEntry, directory, file));
                         }
                         catch(Exception)
                         {
@@ -881,7 +900,7 @@ namespace Emul8.UserInterface
                     }
                 }
             }
-            return suggestions.OrderBy(x => x);
+            return suggestions.OrderBy(x => x).Distinct();
         }
 
         private IEnumerable<string> GetAvailableNames()

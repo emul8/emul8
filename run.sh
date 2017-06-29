@@ -2,23 +2,48 @@
 set -e
 set -u
 
-if [ -z "${ROOT_PATH:-}" -a -x "$(command -v realpath)" ]; then
+if [ -z "${ROOT_PATH:-}" -a -x "$(command -v realpath)" ]
+then
     # this is to support running emul8 from external directory
     ROOT_PATH="`dirname \`realpath $0\``"
 fi
 
 . ${ROOT_PATH}/Tools/common.sh
 
-LAUNCHER_PATH=${ROOT_PATH:=.}/Tools/Emul8-Launcher
-LAUNCHER_BIN_PATH=$LAUNCHER_PATH/Emul8-Launcher/bin/Release/Emul8-Launcher.exe
+PARAMS=()
+for ARG in "$@"
+do
+    if [ "$ARG" == "-d" ]
+    then
+        DEBUG=true;
+    elif [ "$ARG" == "-q" ]
+    then
+        QUIET=true
+    else
+        PARAMS+=("$ARG")
+    fi
+done
 
-# build launcher tool ...
-$CS_COMPILER /p:Configuration=Release /nologo /verbosity:quiet `get_path $LAUNCHER_PATH/Emul8-Launcher.sln`
+if ${DEBUG:-false}
+then
+    TARGET=Debug
+fi
 
-# ...and run it
+if ${REMOTE:-false}
+then
+    LAUNCHER="$LAUNCHER --debugger-agent=transport=dt_socket,address=0.0.0.0:${REMOTE_PORT:=9876},server=y"
+    echo "Waiting for a debugger at port $REMOTE_PORT..."
+fi
+
+if ${QUIET:-false}
+then
+    exec 2>/dev/null
+fi
+
 if $ON_WINDOWS
 then
-	$LAUNCHER_BIN_PATH --root-path `get_path "$ROOT_PATH/output"` "$@"
+    ${BINARY_LOCATION:-$ROOT_PATH/output/bin}/${TARGET:-Release}/${BINARY_NAME:-CLI.exe} "${PARAMS[@]:-}"
 else
-	$LAUNCHER `get_path $LAUNCHER_BIN_PATH` --root-path `get_path "$ROOT_PATH/output"` "$@"
+    $LAUNCHER ${BINARY_LOCATION:-$ROOT_PATH/output/bin}/${TARGET:-Release}/${BINARY_NAME:-CLI.exe} "${PARAMS[@]:-}"
 fi
+

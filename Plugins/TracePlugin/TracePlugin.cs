@@ -10,7 +10,7 @@ using Emul8.UserInterface;
 
 namespace Emul8.Plugins.TracePlugin
 {
-    [Plugin(Name = "tracer", Description = "Tracing extensions for Emul8, with Tracealyzer support.", Version = "0.1", Vendor = "Antmicro")]
+    [Plugin(Name = "tracer", Description = "Tracing plugin", Version = "0.1", Vendor = "Antmicro")]
     public class TracePlugin : IDisposable
     {
         public TracePlugin(Monitor monitor)

@@ -381,17 +381,17 @@ namespace Emul8.Utilities
 
         private static string GetCacheLocation()
         {
-            return Path.Combine(Misc.GetUserDirectory(), CacheDirectory);
+            return Path.Combine(Emulator.UserDirectoryPath, CacheDirectory);
         }
 
         private static string GetCacheIndexLocation()
         {
-            return Path.Combine(Misc.GetUserDirectory(), CacheIndex);
+            return Path.Combine(Emulator.UserDirectoryPath, CacheIndex);
         }
 
         private static string GetCacheIndexLockLocation()
         {
-            return Path.Combine(Misc.GetUserDirectory(), CacheLock);
+            return Path.Combine(Emulator.UserDirectoryPath, CacheLock);
         }
 
         private static byte[] GetSHA1Checksum(string fileName)

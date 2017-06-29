@@ -41,6 +41,12 @@ namespace Emul8.Bootstrap
 
         [Name("robot-tests"), Description("List of files with Robot Framework test suites"), DefaultValue(new string[0])]
         public string[] RobotTests { get; set; }
+
+        [Name("exclude"), Description("Exclude listed projects from scan results.")]
+        public string[] Exclude { get; set; }
+
+        [Name("solution-name"), Description("Name of the solution to generate"), DefaultValue("Emul8")]
+        public string SolutionName { get; set; }
         
         [PositionalArgument(0), DefaultValue(Operation.None)]
         public Operation Action { get; set; }

@@ -11,13 +11,19 @@
     <AssemblyName>CLI</AssemblyName>
     <StartupObject>Emul8.CLI.Program</StartupObject>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <PropertiesLocation>$(SolutionDir)\properties.csproj</PropertiesLocation>
+    <LogoLocation>..\External\emul8-libraries\Graphics\logo.png</LogoLocation>
+    <OutputPathPrefix>bin</OutputPathPrefix>
   </PropertyGroup>
+  <Import Project="$(PropertiesLocation)" />
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>bin\Debug</OutputPath>
-    <DefineConstants>DEBUG;</DefineConstants>
+    <OutputPath>$(OutputPathPrefix)\Debug</OutputPath>
+    <!-- This is a hack to allow debugging in MonoDevelop -->
+    <OutputPath Condition="'$(BuildingFromBuildScript)' == ''">bin\Debug</OutputPath>
+    <DefineConstants>DEBUG;$(DefineConstants)</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <Externalconsole>true</Externalconsole>
@@ -25,12 +31,11 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>full</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>bin\Release</OutputPath>
+    <OutputPath>$(OutputPathPrefix)\Release</OutputPath>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <Externalconsole>true</Externalconsole>
   </PropertyGroup>
-  <Import Project="../target/properties.csproj" />
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="Mono.Posix" />
@@ -115,7 +120,7 @@
     <EmbeddedResource Include="Resources\RobotoMono-Regular.ttf">
       <LogicalName>RobotoMono-Regular.ttf</LogicalName>
     </EmbeddedResource>
-    <EmbeddedResource Include="..\External\emul8-libraries\Graphics\logo.png">
+    <EmbeddedResource Include="$(LogoLocation)">
       <Link>Resources\logo.png</Link>
       <LogicalName>logo.png</LogicalName>
     </EmbeddedResource>

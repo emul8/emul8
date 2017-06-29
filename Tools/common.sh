@@ -30,3 +30,6 @@ function get_path {
     fi
 }
 
+function add_property {
+    sed -i.bak "s#</PropertyGroup>#  <$2>$3</$2>\n</PropertyGroup>#" $1
+}

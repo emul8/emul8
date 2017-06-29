@@ -8,7 +8,7 @@
 using System.Reflection;
 using System.Runtime.CompilerServices;
 
-[assembly: AssemblyTitle("Emul8 CLI")]
+[assembly: AssemblyTitle("Emul8 Framework CLI")]
 #if (DEBUG)
 [assembly: AssemblyConfiguration("Debug")]
 #else

@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="CompileTranslationLib;Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
-  <Import Project="../../target/properties.csproj" Condition="Exists('../../target/properties.csproj')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
@@ -10,16 +9,22 @@
     <OutputType>Library</OutputType>
     <AssemblyName>cores-ppc</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <PropertiesLocation>$(SolutionDir)\properties.csproj</PropertiesLocation>
+    <OutputPathPrefix>bin</OutputPathPrefix>
   </PropertyGroup>
+  <Import Project="$(PropertiesLocation)" />
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
-    <OutputPath>bin\Debug</OutputPath>
+    <OutputPath>$(OutputPathPrefix)\Debug</OutputPath>
+    <!-- This is a hack to allow debugging in MonoDevelop -->
+    <OutputPath Condition="'$(BuildingFromBuildScript)' == ''">bin\Debug</OutputPath>
+    <DefineConstants>DEBUG;$(DefineConstants)</DefineConstants>
     <WarningLevel>4</WarningLevel>
     <Optimize>false</Optimize>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <OutputPath>bin\Release</OutputPath>
+    <OutputPath>$(OutputPathPrefix)\Release</OutputPath>
     <WarningLevel>4</WarningLevel>
     <Optimize>true</Optimize>
   </PropertyGroup>

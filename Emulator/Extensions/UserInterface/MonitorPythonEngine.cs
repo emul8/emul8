@@ -29,21 +29,22 @@ namespace Emul8.UserInterface
         public MonitorPythonEngine(Monitor monitor)
         {
             string emul8Path;
-            if(!Misc.TryGetEmul8Directory(out emul8Path) && !Misc.TryGetEmul8Directory(Directory.GetCurrentDirectory(), out emul8Path))
+            string rootFilePath;
+            if(!Misc.TryGetEmul8Directory(out emul8Path) && !Misc.TryGetEmul8Directory(Directory.GetCurrentDirectory(), out emul8Path, out rootFilePath))
             {
                 throw new RecoverableException("Could not find emul8 root directory.");
-            }
-            var monitorPath = Path.Combine(emul8Path, MonitorPyPath);
-            if(!File.Exists(monitorPath))
-            {
-                throw new RecoverableException("Could not load scripts from monitor.py library.");
             }
 
             var imports = Engine.CreateScriptSourceFromString(Aggregate(Imports));
             imports.Execute(Scope);
-            var script = Engine.CreateScriptSourceFromFile(monitorPath); // standard lib
-            var compiled_script = script.Compile();
-            compiled_script.Execute(Scope);
+
+            var monitorPath = Path.Combine(emul8Path, MonitorPyPath);
+            if(File.Exists(monitorPath))
+            {
+                var script = Engine.CreateScriptSourceFromFile(monitorPath); // standard lib
+                script.Compile().Execute(Scope);
+                Logging.Logger.Log(Logging.LogLevel.Info, "Loaded monitor commands from: {0}", monitorPath);
+            }
 
             Scope.SetVariable("self", monitor);
             Scope.SetVariable("monitor", monitor);

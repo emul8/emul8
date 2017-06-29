@@ -453,21 +453,32 @@ namespace Emul8.Utilities
 
         public static bool TryGetEmul8Directory(out string directory)
         {
-            return TryGetEmul8Directory(AppDomain.CurrentDomain.BaseDirectory, out directory);
+            string rootFileLocation;
+            return TryGetEmul8Directory(AppDomain.CurrentDomain.BaseDirectory, out directory, out rootFileLocation);
         }
 
-        public static bool TryGetEmul8Directory(string baseDirectory, out string directory)
+        public static bool TryGetEmul8Directory(out string directory, out string rootFileLocation)
+        {
+            return TryGetEmul8Directory(AppDomain.CurrentDomain.BaseDirectory, out directory, out rootFileLocation);
+        }
+
+        public static bool TryGetEmul8Directory(string baseDirectory, out string directory, out string rootFileLocation)
         {
             directory = null;
+            rootFileLocation = null;
             var currentDirectory = new DirectoryInfo(baseDirectory);
             while(currentDirectory != null)
             {
-                string[] indicatorFiles = Directory.GetFiles(currentDirectory.FullName, ".emul8root");
-                if(indicatorFiles.Length == 1 &&
-                    File.ReadAllText(Path.Combine(currentDirectory.FullName, indicatorFiles[0])).Contains("5344ec2a-1539-4017-9ae5-a27c279bd454"))
+                var indicatorFiles = Directory.GetFiles(currentDirectory.FullName, ".emul8root");
+                if(indicatorFiles.Length == 1)
                 {
-                    directory = currentDirectory.FullName;
-                    return true;
+                    var content = File.ReadAllLines(Path.Combine(currentDirectory.FullName, indicatorFiles[0]));
+                    if(content.Length == 2 && content[0] == "5344ec2a-1539-4017-9ae5-a27c279bd454")
+                    {
+                        directory = Path.Combine(currentDirectory.FullName, content[1]);
+                        rootFileLocation = currentDirectory.FullName;
+                        return true;
+                    }
                 }
                 currentDirectory = currentDirectory.Parent;
             }
@@ -496,13 +507,6 @@ namespace Emul8.Utilities
             }
             return String.Format(@this, args);
 
-        }
-
-        public static string GetUserDirectory()
-        {
-            var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Personal), UserDirectory);
-            Directory.CreateDirectory(path);
-            return path;
         }
 
         private static string CopyToFile(Stream libraryStream)
@@ -746,8 +750,6 @@ namespace Emul8.Utilities
 
         private static string LastBitmapName = "";
         private static Bitmap LastBitmap;
-
-        private const string UserDirectory = ".emul8";
 
         private const BindingFlags DefaultBindingFlags = BindingFlags.Public | BindingFlags.NonPublic |
                 BindingFlags.Instance | BindingFlags.DeclaredOnly;

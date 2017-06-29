@@ -10,14 +10,18 @@
     <RootNamespace>Emul8.Disassembler.LLVM</RootNamespace>
     <AssemblyName>LLVMDisassembler</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <PropertiesLocation>$(SolutionDir)\properties.csproj</PropertiesLocation>
+    <OutputPathPrefix>bin</OutputPathPrefix>
   </PropertyGroup>
+  <Import Project="$(PropertiesLocation)" />
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <!-- This is a little hack - MonoDevelop does not set proper OutputPath when building Emul8.sln -->
-    <OutputPath Condition="'$(OutputPath)' == ''">..\..\output\Debug</OutputPath>
-    <DefineConstants>DEBUG;</DefineConstants>
+    <OutputPath>$(OutputPathPrefix)\Debug</OutputPath>
+    <!-- This is a hack to allow debugging in MonoDevelop -->
+    <OutputPath Condition="'$(BuildingFromBuildScript)' == ''">bin\Debug</OutputPath>
+    <DefineConstants>DEBUG;$(DefineConstants)</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <ConsolePause>false</ConsolePause>
@@ -25,13 +29,11 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>full</DebugType>
     <Optimize>true</Optimize>
-    <!-- This is a little hack - MonoDevelop does not set proper OutputPath when building Emul8.sln -->
-    <OutputPath Condition="'$(OutputPath)' == ''">..\..\output\Release</OutputPath>
+    <OutputPath>$(OutputPathPrefix)\Release</OutputPath>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <ConsolePause>false</ConsolePause>
   </PropertyGroup>
-  <Import Project="../../target/properties.csproj" />
   <ItemGroup>
     <Reference Include="System" />
   </ItemGroup>

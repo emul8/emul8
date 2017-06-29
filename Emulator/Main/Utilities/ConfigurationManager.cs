@@ -16,16 +16,21 @@ namespace Emul8.Utilities
 {
     public sealed class ConfigurationManager
     {
-        public static ConfigurationManager Instance { get; private set; }
-
         static ConfigurationManager()
         {
-            Instance = new ConfigurationManager();
+            Initialize(Path.Combine(Emulator.UserDirectoryPath, "config"));
         }
 
-        private ConfigurationManager()
+        public static ConfigurationManager Instance { get; private set; }
+
+        public static void Initialize(string configFile)
         {
-            Config = new ConfigSource();
+            Instance = new ConfigurationManager(configFile);
+        }
+
+        private ConfigurationManager(string configFile)
+        {
+            Config = new ConfigSource(configFile);
         }
 
         public T Get<T>(string group, string name, T defaultValue)
@@ -115,12 +120,17 @@ namespace Emul8.Utilities
         }
 
         private readonly Dictionary<Tuple<string, string>, object> cachedValues = new Dictionary<Tuple<string, string>, object>();
-    
+
         private readonly ConfigSource Config;
     }
 
     public class ConfigSource
     {
+        public ConfigSource(string filePath)
+        {
+            FileName = filePath;
+        }
+
         public IConfigSource Source
         {
             get
@@ -147,24 +157,10 @@ namespace Emul8.Utilities
                 source.AutoSave = true;
                 return source;
             }
+
         }
 
-        public string FileName
-        {
-            get
-            {
-                string emul8Dir;
-                if(Misc.TryGetEmul8Directory(out emul8Dir))
-                {
-                    var localConfig = Path.Combine(emul8Dir, "emul8.config");
-                    if(File.Exists(localConfig))
-                    {
-                        return localConfig;
-                    }
-                }
-                return Path.Combine(Misc.GetUserDirectory(), "config");
-            }
-        }
+        public string FileName { get; private set; }
 
         private IniConfigSource source;
     }

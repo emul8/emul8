@@ -8,6 +8,7 @@
     <RootNamespace>Emul8.Launcher</RootNamespace>
     <AssemblyName>Emul8-Launcher</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <PropertiesLocation>$(SolutionDir)\properties.csproj</PropertiesLocation>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
     <DebugSymbols>true</DebugSymbols>
@@ -29,7 +30,7 @@
     <Externalconsole>true</Externalconsole>
     <PlatformTarget>x86</PlatformTarget>
   </PropertyGroup>
-  <Import Project="..\..\..\target\properties.csproj"/>
+  <Import Project="$(PropertiesLocation)"/>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="Mono.Cecil">

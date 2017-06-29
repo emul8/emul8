@@ -9,7 +9,7 @@ using Antmicro.OptionsParser;
 
 namespace Emul8.CLI
 {
-    internal class Options : IValidatedOptions
+    public class Options : IValidatedOptions
     {
         [Name('p', "plain"), DefaultValue(false), Description("Remove steering codes (e.g., colours) from output.")]
         public bool Plain { get; set; }
@@ -20,15 +20,21 @@ namespace Emul8.CLI
         [Name('e', "execute"), Description("Execute command on startup (this option is exclusive with -s and startup script passed as an argument).")]
         public string Execute { get; set; }
 
-        [Name('x', "noX11"), DefaultValue(false), Description("Do not use X11. (requires -P)")]
-        public bool XlessMode { get; set; }
+        [Name("disable-xwt"), DefaultValue(false), Description("Disable XWT GUI support. (requires -P)")]
+        public bool DisableXwt { get; set; }
 
         [Name("script"), PositionalArgument(0)]
         public string ScriptPath { get; set; }
 
+        [Name("hide-monitor"), DefaultValue(false), Description("Do not show monitor window.")]
+        public bool HideMonitor { get; set; }
+
+        [Name("hide-log"), DefaultValue(false), Description("Do not show log messages in a console.")]
+        public bool HideLog { get; set; }
+
         public bool Validate(out string error)
         {
-            if(XlessMode && Port == -1)
+            if(DisableXwt && Port == -1)
             {
                 error = "X11 support can be disabled only in socket mode";
                 return false;

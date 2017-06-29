@@ -141,10 +141,16 @@ namespace Emul8.Core
         {
             get
             {
-                var assembly = Assembly.GetExecutingAssembly();
-                var name = ((AssemblyTitleAttribute)assembly.GetCustomAttributes(typeof(AssemblyTitleAttribute), false)[0]).Title;
-                var version = assembly.GetName().Version;
-                var gitVersion = ((AssemblyInformationalVersionAttribute)assembly.GetCustomAttributes(typeof(AssemblyInformationalVersionAttribute), false)[0]).InformationalVersion;
+                var entryAssembly = Assembly.GetEntryAssembly();
+                var emulatorAssembly = Assembly.GetExecutingAssembly();
+
+                var assemblyTitleAttributes = entryAssembly.GetCustomAttributes(typeof(AssemblyTitleAttribute), false);
+                var name = (assemblyTitleAttributes.Length > 0)
+                    ? ((AssemblyTitleAttribute)assemblyTitleAttributes[0]).Title
+                    : entryAssembly.GetName().Name;
+
+                var version = entryAssembly.GetName().Version;
+                var gitVersion = ((AssemblyInformationalVersionAttribute)emulatorAssembly.GetCustomAttributes(typeof(AssemblyInformationalVersionAttribute), false)[0]).InformationalVersion;
                 return string.Format("{0}, version {1} ({2})", name, version, gitVersion);
             }
         }

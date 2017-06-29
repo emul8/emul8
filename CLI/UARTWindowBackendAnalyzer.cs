@@ -32,27 +32,21 @@ namespace Emul8.CLI
         // this constructor is needed by the monitor; do not remove it
         public UARTWindowBackendAnalyzer()
         {
-#if EMUL8_PLATFORM_WINDOWS
             preferredTerminal = ConfigurationManager.Instance.Get("general", "terminal", TerminalTypes.Termsharp);
+#if EMUL8_PLATFORM_WINDOWS
             if(preferredTerminal != TerminalTypes.Termsharp)
             {
                 Logger.LogAs(this, LogLevel.Warning, "Only >>Termsharp<< terminal is available on Windows - forcing to use it.");
             }
-#else
-#if EMUL8_PLATFORM_LINUX
-            preferredTerminal = ConfigurationManager.Instance.Get("general", "terminal", TerminalTypes.XTerm);
-#else
-            preferredTerminal = ConfigurationManager.Instance.Get("general", "terminal", TerminalTypes.TerminalApp);
 #endif
             if(preferredTerminal == TerminalTypes.Termsharp)
             {
-#endif
                 ApplicationExtensions.InvokeInUIThreadAndWait(() => {
                     terminalWidget = new TerminalWidget(() => window.HasFocus);
                 });
                 IO = terminalWidget.IO;
-#if !EMUL8_PLATFORM_WINDOWS
             }
+#if !EMUL8_PLATFORM_WINDOWS
             else
             {
                 ptyUnixStream = new PtyUnixStream();

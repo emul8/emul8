@@ -32,7 +32,7 @@ namespace Emul8.Bootstrap
             }
 
             // generate solution file
-            File.WriteAllText(Path.Combine(directory, solutionName), Solution.ToString());
+            File.WriteAllText(Path.Combine(directory, string.Format("{0}.sln", Solution.Name)), Solution.ToString());
 
             // generate tests file
             var testsFilePath = Path.Combine(directory, testsFileName);
@@ -43,7 +43,6 @@ namespace Emul8.Bootstrap
         public Solution Solution { get; private set; }
         public IEnumerable<RobotTestSuite> RobotTests { get; private set; }
 
-        private const string solutionName = "Emul8.sln";
         private const string testsFileName = "tests.txt";
     }
 }

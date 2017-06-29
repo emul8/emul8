@@ -11,6 +11,7 @@ using System.Linq;
 using System.Collections.Generic;
 using System.IO;
 using Emul8.Exceptions;
+using Emul8.Utilities;
 
 namespace Emul8.UserInterface
 {
@@ -96,7 +97,16 @@ namespace Emul8.UserInterface
 
         public MonitorPath()
         {
-            DefaultPath = ".";
+            string rootDirectory;
+            string rootFileLocation;
+            if(Misc.TryGetEmul8Directory(out rootDirectory, out rootFileLocation))
+            {
+                defaultPath = new List<string> { rootFileLocation, rootDirectory };
+            }
+            else
+            {
+                DefaultPath = ".";
+            }
             Path = DefaultPath;
             workingDirectory.Push(Environment.CurrentDirectory);
         }
