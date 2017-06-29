@@ -13,11 +13,17 @@ using Emul8.Logging;
 using Emul8.UserInterface;
 using System.Collections.Concurrent;
 using Emul8.Utilities;
+using System.IO;
 
 namespace Emul8
 {
     public static class Emulator
     {
+        static Emulator()
+        {
+            UserDirectoryPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Personal), ".emul8");
+        }
+
         public static void Exit()
         {
             var beforeExit = BeforeExit;
@@ -55,6 +61,22 @@ namespace Emul8
                 userInterfaceProvider = value;
             }
         }
+
+        public static string UserDirectoryPath
+        {
+            get
+            {
+                return userDirectoryPath;
+            }
+
+            set
+            {
+                userDirectoryPath = value;
+                Directory.CreateDirectory(userDirectoryPath);
+            }
+        }
+
+        private static string userDirectoryPath;
 
         public static void ExecuteOnMainThread(Action what)
         {

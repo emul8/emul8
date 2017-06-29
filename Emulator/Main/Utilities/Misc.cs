@@ -501,13 +501,6 @@ namespace Emul8.Utilities
 
         }
 
-        public static string GetUserDirectory()
-        {
-            var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Personal), UserDirectory);
-            Directory.CreateDirectory(path);
-            return path;
-        }
-
         private static string CopyToFile(Stream libraryStream)
         {
             try
@@ -749,8 +742,6 @@ namespace Emul8.Utilities
 
         private static string LastBitmapName = "";
         private static Bitmap LastBitmap;
-
-        private const string UserDirectory = ".emul8";
 
         private const BindingFlags DefaultBindingFlags = BindingFlags.Public | BindingFlags.NonPublic |
                 BindingFlags.Instance | BindingFlags.DeclaredOnly;

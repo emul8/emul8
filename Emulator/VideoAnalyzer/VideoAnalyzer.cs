@@ -135,8 +135,7 @@ namespace Emul8.Extensions.Analyzers.Video
                 var snapshotButton = new Button("Take screenshot!");
                 snapshotButton.Clicked += (sender, e) =>
                 {
-                    var emul8HomeDir = Misc.GetUserDirectory();
-                    var screenshotDir = Path.Combine(emul8HomeDir, "screenshots");
+                    var screenshotDir = Path.Combine(Emulator.UserDirectoryPath, "screenshots");
                     Directory.CreateDirectory(screenshotDir);
                     var filename = Path.Combine(screenshotDir, string.Format("screenshot-{0:yyyy_M_d_HHmmss}.png", CustomDateTime.Now));
                     displayWidget.SaveCurrentFrameToFile(filename);

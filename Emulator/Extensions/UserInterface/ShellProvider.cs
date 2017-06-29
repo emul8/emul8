@@ -28,7 +28,7 @@ namespace Emul8.UserInterface
                 UseBuiltinSave = false,
                 ForceVirtualCursor = forceVCursor,
                 ClearScreen = clearScreen,
-                HistorySavePath = ConfigurationManager.Instance.Get("general", "history-path", Path.Combine(Misc.GetUserDirectory(), "history"))
+                HistorySavePath = ConfigurationManager.Instance.Get("general", "history-path", Path.Combine(Emulator.UserDirectoryPath, "history"))
             };
 
             var shell = new Shell(io, monitor, settings);
