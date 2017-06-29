@@ -6,6 +6,7 @@
 // Full license details are defined in the 'LICENSE' file.
 //
 using System.Threading;
+using Emul8.Logging;
 
 namespace Emul8.CLI
 {
@@ -13,6 +14,8 @@ namespace Emul8.CLI
     {
         public static void Main(string[] args)
         {
+            ConsoleBackend.Instance.WindowTitle = "Emul8";
+
             var thread = new Thread(() =>
             {
                 CommandLineInterface.Run(args);
