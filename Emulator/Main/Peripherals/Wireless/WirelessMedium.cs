@@ -22,7 +22,7 @@ namespace Emul8.Peripherals.Wireless
         }
     }
 
-    public sealed class WirelessMedium : SynchronizedExternalBase, IHasChildren<IMediumFunction>, IExternal, IConnectable<IRadio>
+    public sealed class WirelessMedium : SynchronizedExternalBase, IHasChildren<IMediumFunction>, IExternal, IConnectable<IRadio>, INetworkLogWireless
     {
         public WirelessMedium()
         {
@@ -70,6 +70,7 @@ namespace Emul8.Peripherals.Wireless
         }
 
         public event Action<IRadio, IRadio, byte[]> FrameTransmitted;
+        public event Action<byte[]> FrameProcessed;
 
         private void FrameSentHandler(IRadio sender, byte[] packet)
         {
@@ -88,6 +89,7 @@ namespace Emul8.Peripherals.Wireless
         private void NearestSyncHandler()
         {
             var frameTransmitted = FrameTransmitted;
+            var frameProcessed = FrameProcessed;
 
             lock(packetsToSend)
             {
@@ -95,6 +97,11 @@ namespace Emul8.Peripherals.Wireless
                 while(packetsToSend.Count > 0)
                 {
                     var packet = packetsToSend.Dequeue();
+
+                    if(frameProcessed != null)
+                    {
+                        frameProcessed(packet.Frame);
+                    }
 
                     var sender = packet.Sender;
                     var senderPosition = packet.SenderPosition;

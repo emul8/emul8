@@ -27,7 +27,7 @@ namespace Emul8.Tools.Network
         }
     }
 
-    public class Switch : SynchronizedExternalBase, IExternal, IHasOwnLife, IConnectable<IMACInterface>
+    public class Switch : SynchronizedExternalBase, IExternal, IHasOwnLife, IConnectable<IMACInterface>, INetworkLogSwitch
     {
         public void AttachTo(IMACInterface iface)
         {
@@ -38,7 +38,7 @@ namespace Emul8.Tools.Network
                     Interface = iface,
                     Delegate = (s, f) => ForwardToReceiver(f, iface)
                 };
-                
+
                 iface.Link.TransmitFromParentInterface += ifaceDescriptor.Delegate;
                 ifaces.Add(ifaceDescriptor);
             }
@@ -109,12 +109,23 @@ namespace Emul8.Tools.Network
             started = true;
         }
 
+        public event Action<IMACInterface, IMACInterface, byte[]> FrameTransmitted;
+        public event Action<byte[]> FrameProcessed;
+
         private void ForwardToReceiver(EthernetFrame frame, IMACInterface sender)
         {
+            var frameTransmitted = FrameTransmitted;
+            var frameProcessed = FrameProcessed;
+
             if(!frame.DestinationMAC.HasValue)
             {
                 this.Log(LogLevel.Warning, "Destination MAC not set, the frame has unsupported format.");
                 return;
+            }
+
+            if(frameProcessed != null)
+            {
+                frameProcessed(frame.Bytes.ToArray());
             }
 
             ExecuteOnNearestSync(() =>
@@ -133,6 +144,11 @@ namespace Emul8.Tools.Network
                     foreach(var iface in interestingIfaces)
                     {
                         iface.Interface.Link.ReceiveFrameOnInterface(frame);
+
+                        if(frameTransmitted != null)
+                        {
+                            frameTransmitted(sender, iface.Interface, frame.Bytes.ToArray());
+                        }
                     }
                 }
             });
