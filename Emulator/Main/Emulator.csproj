@@ -380,6 +380,9 @@
     <Compile Include="Utilities\SmartParser.cs" />
     <Compile Include="Utilities\Collections\LazyList.cs" />
     <Compile Include="Core\PseudorandomNumberGenerator.cs" />
+    <Compile Include="Core\INetworkLog.cs" />
+    <Compile Include="Core\INetworkLogSwitch.cs" />
+    <Compile Include="Core\INetworkLogWireless.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup />
