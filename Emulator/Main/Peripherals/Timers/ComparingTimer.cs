@@ -27,6 +27,7 @@ namespace Emul8.Peripherals.Timers
             initialEnabled = enabled;
             clockSource = machine.ObtainClockSource();
             clockSource.AddClockEntry(new ClockEntry(compare, ClockEntry.FrequencyToRatio(this, frequency), CompareReached, false, workMode: WorkMode.OneShot));
+            Enabled = enabled;
         }
 
         public bool Enabled
