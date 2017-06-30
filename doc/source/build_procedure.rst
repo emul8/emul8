@@ -46,6 +46,22 @@ The script supports the following options:
 
     Keep submodules intact (do not update them).
 
+.. option:: -s
+
+    Location of the main project file to use.
+
+.. option:: -e
+
+    List of project files to exclude from generated solution.
+
+.. option:: -S
+
+    Name of a generated solution (Emul8 by default).
+
+.. option:: -v
+
+    Verbose mode.
+
 .. option:: -h
 
     Print help information.
@@ -68,9 +84,17 @@ The second step is to run :program:`build.sh`, which supports the following opti
 
    Clean all directories including the translation libs so that Emul8 can be fully rebuilt (might take a bit longer).
 
-.. option:: -i
+.. option:: -p
 
-   Install an ``emul8`` script in the */usr/bin* directory which lets you run Emul8 from anywhere in the system.
+   Generate deb/rpm/arch packages.
+
+.. option:: -t
+
+    Path to the solution to build (`target/Emul8.sln` by default).
+
+.. options:: -o
+
+    Path to the output file where binaries are located (used by `-c` option; `output` by default).
 
 .. note::
 

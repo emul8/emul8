@@ -39,6 +39,19 @@ To run Emul8, use the :program:`run.sh` script, with the optional ``file`` param
 
    Instead of opening a Monitor window, listen on a specified port for commands.
 
+.. option:: --disable-xwt
+
+    Disable XWT GUI support (requires -P).
+    This is useful when running Emul8 on machines that does not provide X11 server.
+
+.. option:: --hide-monitor
+
+    Do not show a monitor window on startup.
+
+.. option:: --hide-log
+
+    Do not show log messages in a console.
+
 .. option:: -h
 
    Display usage & help information.
