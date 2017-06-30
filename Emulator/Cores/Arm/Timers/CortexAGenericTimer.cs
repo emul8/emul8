@@ -5,9 +5,7 @@
 // This file is part of the Emul8 project.
 // Full license details are defined in the 'LICENSE' file.
 //
-﻿using System;
 using Emul8.Core;
-using Emul8.Peripherals.Timers;
 using Emul8.Logging;
 using Emul8.Peripherals.IRQControllers;
 using Emul8.Core.Structure.Registers;
@@ -23,8 +21,7 @@ namespace Emul8.Peripherals.Timers
             irq.Connect(receiver, 0x01);
             physicalTimer1 = new CortexAGenericTimerUnit(machine, irq, genericTimerCompareValue);
             physicalTimer2 = new CortexAGenericTimerUnit(machine, irq, genericTimerCompareValue);
-            virtualTimer = new CortexAGenericTimerUnit(machine, irq, genericTimerCompareValue);
-            virtualTimer.Enabled = true;
+            virtualTimer = new CortexAGenericTimerUnit(machine, irq, genericTimerCompareValue, enabled: true);
         }
 
         public ulong ReadRegister(uint offset)
@@ -142,8 +139,8 @@ namespace Emul8.Peripherals.Timers
 
         private sealed class CortexAGenericTimerUnit : ComparingTimer
         {
-            public CortexAGenericTimerUnit(Machine machine, GPIO irq, long compareValue)
-                : base(machine, Frequency, compareValue, long.MaxValue)
+            public CortexAGenericTimerUnit(Machine machine, GPIO irq, long compareValue, bool enabled = false)
+                : base(machine, Frequency, compare: compareValue, enabled: enabled)
             {
                 controlRegister = new DoubleWordRegister(this);
                 controlRegister.DefineFlagField(0, writeCallback: OnEnabled);

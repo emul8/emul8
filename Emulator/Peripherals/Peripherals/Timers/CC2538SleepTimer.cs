@@ -13,10 +13,9 @@ namespace Emul8.Peripherals.Timers
 {
     public sealed class CC2538SleepTimer : ComparingTimer, IDoubleWordPeripheral, IKnownSize
     {
-        public CC2538SleepTimer(Machine machine) : base(machine, 32768, uint.MaxValue, uint.MaxValue, true)
+        public CC2538SleepTimer(Machine machine) : base(machine, 32768, compare: uint.MaxValue, limit: uint.MaxValue, enabled: true)
         {
             IRQ = new GPIO();
-            Enabled = true;
         }
 
         public uint ReadDoubleWord(long offset)
