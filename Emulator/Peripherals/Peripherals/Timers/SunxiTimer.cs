@@ -24,7 +24,6 @@ namespace Emul8.Peripherals.Timers
                 int j = i;
                 timers[i] = new SunxiTimerUnit(machine, this);
                 timers[i].LimitReached += () => OnTimerLimitReached(j);
-                timers[i].EventEnabled = true;
             }
             timerInterruptEnabled = new IFlagRegisterField[NumberOfTimerUnits];
             timerInterruptStatus = new IFlagRegisterField[NumberOfTimerUnits];
@@ -212,7 +211,7 @@ namespace Emul8.Peripherals.Timers
 
         private sealed class SunxiTimerUnit : LimitTimer
         {
-            public SunxiTimerUnit(Machine machine, SunxiTimer parent) : base(machine, 24000000, direction: Emul8.Time.Direction.Descending, enabled: false)
+            public SunxiTimerUnit(Machine machine, SunxiTimer parent) : base(machine, 24000000, direction: Emul8.Time.Direction.Descending, enabled: false, eventEnabled: true)
             {
                 timerGroup = parent;
                 controlRegister = new DoubleWordRegister(this, 0x04);

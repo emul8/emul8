@@ -23,7 +23,7 @@ namespace Emul8.Peripherals.IRQControllers
         public LAPIC(Machine machine)
         {
             // frequency guessed from driver and zephyr code
-            localTimer = new LimitTimer(machine, 32000000, direction: Direction.Descending, workMode: WorkMode.OneShot);
+            localTimer = new LimitTimer(machine, 32000000, direction: Direction.Descending, workMode: WorkMode.OneShot, eventEnabled: true, divider: 2);
             localTimer.LimitReached += () =>
             {
                 if(localTimerMasked.Value || !lapicEnabled.Value)
@@ -107,8 +107,6 @@ namespace Emul8.Peripherals.IRQControllers
         public void Reset()
         {
             localTimer.Reset();
-            localTimer.EventEnabled = true;
-            localTimer.Divider = 2;
             registers.Reset();
             interrupts = new IRQState[availableVectors];
             activeIrqs.Clear();

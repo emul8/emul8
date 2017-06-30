@@ -28,9 +28,7 @@ namespace Emul8.Peripherals.IRQControllers
         {
             priorities = new byte[IRQCount];
             activeIRQs = new Stack<int>();
-            systick = new LimitTimer(machine, systickFrequency, limit: uint.MaxValue, direction: Direction.Descending, enabled: false);
-            systick.EventEnabled = false;
-            systick.AutoUpdate = true;
+            systick = new LimitTimer(machine, systickFrequency, limit: uint.MaxValue, direction: Direction.Descending, enabled: false, autoUpdate: true);
             irqs = new IRQState[IRQCount];
             IRQ = new GPIO();
             systick.LimitReached += () => 
@@ -233,6 +231,8 @@ namespace Emul8.Peripherals.IRQControllers
             }
             activeIRQs.Clear();
             systick.Reset();
+            systick.EventEnabled = false;
+            systick.AutoUpdate = true;
             IRQ.Unset();
         }
 

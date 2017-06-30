@@ -16,7 +16,7 @@ namespace Emul8.Peripherals.Timers
     // NOTE: this timer is not yet ready for multicore operation
     public sealed class CortexAGlobalTimer : ComparingTimer, IDoubleWordPeripheral, IKnownSize
     {
-        public CortexAGlobalTimer(Machine machine, long frequency) : base(machine, frequency, long.MaxValue, long.MaxValue)
+        public CortexAGlobalTimer(Machine machine, long frequency) : base(machine, frequency)
         {
             sysbus = machine.SystemBus;
             IRQ = new GPIO();

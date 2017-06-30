@@ -16,14 +16,15 @@ namespace Emul8.Peripherals.Timers
 {
     public class ComparingTimer : ITimer, IPeripheral
     {
-        public ComparingTimer(Machine machine, long frequency, long compare, long limit)
+        public ComparingTimer(Machine machine, long frequency, long compare = long.MaxValue, long limit = long.MaxValue, bool enabled = false)
         {
             if(compare > limit || compare < 0)
             {
                 throw new ConstructionException(string.Format(CompareHigherThanLimitMessage, compare, limit));
             }
-            this.limit = limit;
+            initialLimit = limit;
             initialCompare = compare;
+            initialEnabled = enabled;
             clockSource = machine.ObtainClockSource();
             clockSource.AddClockEntry(new ClockEntry(compare, ClockEntry.FrequencyToRatio(this, frequency), CompareReached, false, workMode: WorkMode.OneShot));
         }
@@ -75,16 +76,16 @@ namespace Emul8.Peripherals.Timers
             }
             set
             {
-                if(value > limit || value < 0)
+                if(value > initialLimit || value < 0)
                 {
-                    throw new InvalidOperationException(CompareHigherThanLimitMessage.FormatWith(value, limit));
+                    throw new InvalidOperationException(CompareHigherThanLimitMessage.FormatWith(value, initialLimit));
                 }
                 clockSource.ExchangeClockEntryWith(CompareReached, entry =>
                 {
                     compareValue = value;
                     // here we temporary convert to ulong since negative value will require a ClockEntry to overflow,
                     // which will occur later than reaching
-                    var nextEventIn = (long)Math.Min((ulong)(compareValue - valueAccumulatedSoFar), (ulong)(limit - valueAccumulatedSoFar));
+                    var nextEventIn = (long)Math.Min((ulong)(compareValue - valueAccumulatedSoFar), (ulong)(initialLimit - valueAccumulatedSoFar));
                     valueAccumulatedSoFar += entry.Value;
                     return entry.With(period: nextEventIn - entry.Value, value: 0);
                 });
@@ -97,7 +98,7 @@ namespace Emul8.Peripherals.Timers
             {
                 valueAccumulatedSoFar = 0;
                 compareValue = initialCompare;
-                return entry.With(value: 0, enabled: false, period: initialCompare);
+                return entry.With(value: 0, enabled: initialEnabled, period: initialCompare);
             });
         }
 
@@ -110,7 +111,7 @@ namespace Emul8.Peripherals.Timers
             // since we use OneShot, timer's value is already 0 and it is disabled now
             // first we add old limit to accumulated value:
             valueAccumulatedSoFar += clockSource.GetClockEntry(CompareReached).Period;
-            if(valueAccumulatedSoFar >= limit && compareValue != limit)
+            if(valueAccumulatedSoFar >= initialLimit && compareValue != initialLimit)
             {
                 // compare value wasn't actually reached, the timer reached its limit
                 // we don't trigger an event in such case
@@ -120,8 +121,8 @@ namespace Emul8.Peripherals.Timers
             }
             // real compare event - then we reenable the timer with the next event marked by limit
             // which will probably be soon corrected by software
-            clockSource.ExchangeClockEntryWith(CompareReached, entry => entry.With(period: limit - valueAccumulatedSoFar, enabled: true));
-            if(valueAccumulatedSoFar >= limit)
+            clockSource.ExchangeClockEntryWith(CompareReached, entry => entry.With(period: initialLimit - valueAccumulatedSoFar, enabled: true));
+            if(valueAccumulatedSoFar >= initialLimit)
             {
                 valueAccumulatedSoFar = 0;
             }
@@ -131,8 +132,9 @@ namespace Emul8.Peripherals.Timers
         private long valueAccumulatedSoFar;
         private long compareValue;
         private readonly IClockSource clockSource;
-        private readonly long limit;
+        private readonly long initialLimit;
         private readonly long initialCompare;
+        private readonly bool initialEnabled;
 
         private const string CompareHigherThanLimitMessage = "Compare value ({0}) cannot be higher than limit ({1}) nor negative.";
     }

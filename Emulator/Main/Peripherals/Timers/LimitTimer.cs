@@ -14,7 +14,8 @@ namespace Emul8.Peripherals.Timers
 {
     public class LimitTimer : ITimer, IPeripheral
     {
-        public LimitTimer(Machine machine, long frequency, long limit = int.MaxValue, Direction direction = Direction.Descending, bool enabled = false, WorkMode workMode = WorkMode.Periodic)
+        public LimitTimer(Machine machine, long frequency, long limit = int.MaxValue, Direction direction = Direction.Descending,
+            bool enabled = false, WorkMode workMode = WorkMode.Periodic, bool eventEnabled = false, bool autoUpdate = false, int divider = 1)
         {
             if(limit == 0)
             {
@@ -28,6 +29,9 @@ namespace Emul8.Peripherals.Timers
             initialDirection = direction;
             initialEnabled = enabled;
             initialWorkMode = workMode;
+            initialEventEnabled = eventEnabled;
+            initialAutoUpdate = autoUpdate;
+            initialDivider = divider;
             InternalReset();
         }
 
@@ -243,14 +247,15 @@ namespace Emul8.Peripherals.Timers
         {
             frequency = initialFrequency;
 
-            var clockEntry = new ClockEntry(initialLimit, ClockEntry.FrequencyToRatio(this, frequency), OnLimitReached, initialEnabled, initialDirection, initialWorkMode) { Value = initialDirection == Direction.Ascending ? 0 : initialLimit };
+            var clockEntry = new ClockEntry(initialLimit, ClockEntry.FrequencyToRatio(this, frequency), OnLimitReached, initialEnabled, initialDirection, initialWorkMode) 
+                { Value = initialDirection == Direction.Ascending ? 0 : initialLimit };
             clockSource.ExchangeClockEntryWith(OnLimitReached, x => clockEntry, () => clockEntry);
             divider = 1;
-            EventEnabled = false;
+            EventEnabled = initialEventEnabled;
+            AutoUpdate = initialAutoUpdate;
         }
 
-        private bool eventEnabled;
-        private bool rawInterrupt;
+
         private readonly long initialFrequency;
         private readonly WorkMode initialWorkMode;
         private readonly long initialLimit;
@@ -258,7 +263,12 @@ namespace Emul8.Peripherals.Timers
         private readonly bool initialEnabled;
         private readonly IClockSource clockSource;
         private readonly object irqSync;
+        private readonly bool initialEventEnabled;
+        private readonly bool initialAutoUpdate;
+        private readonly int initialDivider;
 
+        private bool eventEnabled;
+        private bool rawInterrupt;
         private long frequency;
         private int divider;
     }
