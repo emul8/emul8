@@ -82,13 +82,11 @@ After bootstrapping the configuration (i.e., when an *Emul8.sln* file is created
 
    ./build.sh
 
-with optional flags::
+Build scripts is configurable with additional flags, most useful of which are presented below::
 
    -v          verbose mode
-   -d          debug mode
+   -d          build in debug configuration
    -c          clean instead of building
-   -i          install (create a symbolic link in the */usr/local/bin directory*)
-               so that Emul8 is available system-wide as *emul8*
    -p          create deb/rpm/arch packages
 
 Running Emul8
@@ -98,17 +96,15 @@ In order to run Emul8 use::
 
    ./run.sh [file]
 
-with optional flags::
+where ``[file]`` is an optional argument - path to a script that should be loaded on startup.
 
-   -d            debug mode
+Run scripts is configurable with additional flags, most useful of which are presented below::
+
+   -d            debug mode (requires prior build in debug configuration)
    -e COMMAND    execute command on startup (does not allow the [file] argument)
    -p            remove steering codes (e.g., colours) from output
    -P PORT       listen on a port for monitor commands instead of opening a window
    -h            help & usage
-
-where ``[file]`` is an optional argument - path to a script that should be loaded on startup.
-
-If you installed Emul8 with ``./build.sh -i``, you can use the system-wide command ``emul8`` with the same options.
 
 Documentation
 -------------
