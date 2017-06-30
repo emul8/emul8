@@ -18,16 +18,16 @@ then
     master_ref=`git rev-parse master`
     if [ $master_ref != $cur_ref ]
     then
-        echo "The libraries repository is not on the local master branch. This situation should be handled manually."
+        echo "The Emul8 libraries repository is not on the local master branch. This situation should be handled manually."
         exit
     fi
     popd >/dev/null
     if [ $top_ref == $cur_ref ]
     then
-        echo "Required libraries already downloaded. To repeat the process remove External/.emul8_libs_fetched file."
+        echo "Required Emul8 libraries already downloaded. To repeat the process remove External/.emul8_libs_fetched file."
         exit
     fi
-    echo "Required libraries are available in a new version. The libraries will be redownloaded..."
+    echo "Required Emul8 libraries are available in a new version. The libraries will be redownloaded..."
 fi
 
 rm -rf $DIR Lib Tools ../Emulator/LLVMDisassembler/Resources/
