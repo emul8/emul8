@@ -9,25 +9,28 @@ using System;
 using Emul8.Core;
 using Emul8.Time;
 using Emul8.Exceptions;
-using Emul8.Logging;
 using Emul8.Utilities;
 
 namespace Emul8.Peripherals.Timers
 {
     public class ComparingTimer : ITimer, IPeripheral
     {
-        public ComparingTimer(Machine machine, long frequency, long compare = long.MaxValue, long limit = long.MaxValue, bool enabled = false)
+        public ComparingTimer(Machine machine, long frequency, long limit = long.MaxValue, Direction direction = Direction.Ascending,
+            bool enabled = false, WorkMode workMode = WorkMode.OneShot, long compare = long.MaxValue)
         {
             if(compare > limit || compare < 0)
             {
                 throw new ConstructionException(string.Format(CompareHigherThanLimitMessage, compare, limit));
             }
+            clockSource = machine.ObtainClockSource();
+
+            initialDirection = direction;
+            initialFrequency = frequency;
             initialLimit = limit;
             initialCompare = compare;
             initialEnabled = enabled;
-            clockSource = machine.ObtainClockSource();
-            clockSource.AddClockEntry(new ClockEntry(compare, ClockEntry.FrequencyToRatio(this, frequency), CompareReached, false, workMode: WorkMode.OneShot));
-            Enabled = enabled;
+            initialWorkMode = workMode;
+            InternalReset();
         }
 
         public bool Enabled
@@ -95,12 +98,7 @@ namespace Emul8.Peripherals.Timers
 
         public virtual void Reset()
         {
-            clockSource.ExchangeClockEntryWith(CompareReached, entry =>  
-            {
-                valueAccumulatedSoFar = 0;
-                compareValue = initialCompare;
-                return entry.With(value: 0, enabled: initialEnabled, period: initialCompare);
-            });
+            InternalReset();
         }
 
         protected virtual void OnCompare()
@@ -129,11 +127,24 @@ namespace Emul8.Peripherals.Timers
             }
             OnCompare();
         }
-            
+
+        private void InternalReset()
+        {
+            var clockEntry = new ClockEntry(initialCompare, ClockEntry.FrequencyToRatio(this, initialFrequency), CompareReached, initialEnabled, initialDirection, initialWorkMode)
+                { Value = initialDirection == Direction.Ascending ? 0 : initialLimit };
+            clockSource.ExchangeClockEntryWith(CompareReached, entry => clockEntry, () => clockEntry);
+            valueAccumulatedSoFar = 0;
+            compareValue = initialCompare;
+        }
+
         private long valueAccumulatedSoFar;
         private long compareValue;
+
+        private readonly Direction initialDirection;
+        private readonly long initialFrequency;
         private readonly IClockSource clockSource;
         private readonly long initialLimit;
+        private readonly WorkMode initialWorkMode;
         private readonly long initialCompare;
         private readonly bool initialEnabled;
 
