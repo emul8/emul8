@@ -10,7 +10,7 @@ namespace Emul8.Core
 {
     public interface INetworkLog<T> : IExternal
     {
-        event Action<T, T, byte[]> FrameTransmitted;
+        event Action<IExternal, T, T, byte[]> FrameTransmitted;
         event Action<byte[]> FrameProcessed;
     }
 }
