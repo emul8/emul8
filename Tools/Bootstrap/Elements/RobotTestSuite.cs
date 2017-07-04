@@ -25,7 +25,7 @@ namespace Emul8.Bootstrap.Elements
             using(var reader = File.OpenText(path))
             {
                 var firstLine = reader.ReadLine();
-                IsExcluded = Regex.IsMatch(firstLine, @"#\s*[Ee]mul8:\s*[Ii]gnore\s+[Tt]est");
+                IsExcluded = Regex.IsMatch(firstLine, @"#\s*[Ii]gnore\s+[Tt]est");
             }
         }
 
