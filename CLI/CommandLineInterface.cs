@@ -97,12 +97,23 @@ namespace Emul8.CLI
             }
             else
             {
-                var terminal = new UARTWindowBackendAnalyzer();
+                UARTWindowBackendAnalyzer terminal = null;
+                IOProvider io;
+                if(options.HideMonitor)
+                {
+                    io = new IOProvider(new DummyIOSource());
+                }
+                else
+                {
+                    terminal = new UARTWindowBackendAnalyzer();
+                    io = terminal.IO;
+                }
+
                 // forcing vcursor is necessary, because calibrating will never end if the window is not shown
-                shell = ShellProvider.GenerateShell(terminal.IO, monitor, forceVCursor: options.HideMonitor);
+                shell = ShellProvider.GenerateShell(io, monitor, forceVCursor: options.HideMonitor);
                 monitor.Quitted += shell.Stop;
 
-                if(!options.HideMonitor)
+                if(terminal != null)
                 {
                     try
                     {
@@ -131,6 +142,30 @@ namespace Emul8.CLI
             }
 
             return shell;
+        }
+
+        private class DummyIOSource : IPassiveIOSource
+        {
+            public void CancelRead()
+            {
+            }
+
+            public void Dispose()
+            {
+            }
+
+            public void Flush()
+            {
+            }
+
+            public int Read()
+            {
+                return 0;
+            }
+
+            public void Write(byte b)
+            {
+            }
         }
     }
 }
