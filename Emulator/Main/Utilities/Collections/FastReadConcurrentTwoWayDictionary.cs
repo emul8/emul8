@@ -70,6 +70,7 @@ namespace Emul8.Utilities.Collections
                 Lefts = lefts.Keys.ToArray();
                 Rights = rights.Keys.ToArray();
 
+                OnItemRemoved(left, right);
                 return true;
             }
         }
