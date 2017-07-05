@@ -131,7 +131,7 @@ namespace Emul8.Peripherals.Wireless
 
                         this.NoisyLog("Packet {0} -> {1} delivered, size {2}.", senderName, receiverName, packet.Frame.Length);
                         receiver.ReceiveFrame(packet.Frame.ToArray());
-                        //todo: log frameTransmitted when there is no receiver
+
                         if(frameTransmitted != null)
                         {
                             frameTransmitted(this, sender, receiver, packet.Frame);
