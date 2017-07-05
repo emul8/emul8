@@ -31,7 +31,7 @@ Emulator/Cores/zip/
 doc/*/build
 
 #version info
-Emulator/Main/AssemblyVersionInfo.cs
+Emulator/Main/Properties/AssemblyInfo.cs
 
 #nuget
 packages
