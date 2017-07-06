@@ -12,7 +12,7 @@ namespace Emul8.Peripherals.Network
 {
     public class NetworkLink
     {
-        public NetworkLink(INetworkInterface parent)
+        public NetworkLink(IMACInterface parent)
         {
             this.Parent = parent;
         }
@@ -72,7 +72,7 @@ namespace Emul8.Peripherals.Network
             get{ return TransmitFromParentInterface != null; }
         }
 
-        public INetworkInterface Parent { get; private set; }
+        public IMACInterface Parent { get; private set; }
     }
 }
 

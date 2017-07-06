@@ -9,10 +9,11 @@ using System;
 using Emul8.Peripherals.Network;
 using System.Collections.Generic;
 using Emul8.Network;
+using Emul8.Core.Structure;
 
 namespace Emul8.Peripherals.USB
 {
-    public class USBEthernetControlModelDevice : USBEthernetControlModelDevicesSubclass, IUSBPeripheral, INetworkInterface
+    public class USBEthernetControlModelDevice : USBEthernetControlModelDevicesSubclass, IUSBPeripheral, IMACInterface
     {
         public event Action <uint> SendInterrupt
         {
@@ -168,6 +169,7 @@ namespace Emul8.Peripherals.USB
 
     #region INetworkInterface implementation
         public NetworkLink Link { get; private set; }
+        public MACAddress MAC { get; set; }
 
         public void ReceiveFrame(EthernetFrame frame)//when data is send to us
         {
