@@ -7,12 +7,15 @@
 //
 
 using Emul8.Core.Structure;
+using Emul8.Network;
 
 namespace Emul8.Peripherals.Network
 {
     public interface IMACInterface : INetworkInterface
     {
         MACAddress MAC { get; set; }
+        NetworkLink Link { get; }
+        void ReceiveFrame(EthernetFrame frame);
     }
 }
 

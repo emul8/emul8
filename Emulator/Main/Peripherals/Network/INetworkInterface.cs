@@ -11,11 +11,8 @@ using Emul8.UserInterface;
 
 namespace Emul8.Peripherals.Network
 {
-    [Icon("network")]
-    public interface INetworkInterface : IEmulationElement, IAnalyzable
+    public interface INetworkInterface : IAnalyzable
 	{
-        NetworkLink Link{get;}
-        void ReceiveFrame(EthernetFrame frame);
 	}
 }
 

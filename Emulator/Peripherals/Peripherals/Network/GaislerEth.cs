@@ -14,7 +14,7 @@ using Emul8.Network;
 
 namespace Emul8.Peripherals.Network
 {
-    public class GaislerEth : NetworkWithPHY, IDoubleWordPeripheral, IGaislerAPB, IMACInterface, IKnownSize, INetworkInterface
+    public class GaislerEth : NetworkWithPHY, IDoubleWordPeripheral, IGaislerAPB, IMACInterface, IKnownSize
     {
         public GaislerEth(Machine machine) : base(machine)
         {

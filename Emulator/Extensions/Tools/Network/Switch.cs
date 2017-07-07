@@ -109,8 +109,8 @@ namespace Emul8.Tools.Network
             started = true;
         }
 
-        public event Action<IMACInterface, IMACInterface, byte[]> FrameTransmitted;
-        public event Action<byte[]> FrameProcessed;
+        public event Action<IExternal, IMACInterface, IMACInterface, byte[]> FrameTransmitted;
+        public event Action<IExternal, IMACInterface, byte[]> FrameProcessed;
 
         private void ForwardToReceiver(EthernetFrame frame, IMACInterface sender)
         {
@@ -125,7 +125,7 @@ namespace Emul8.Tools.Network
 
             if(frameProcessed != null)
             {
-                frameProcessed(frame.Bytes.ToArray());
+                frameProcessed(this, sender, frame.Bytes.ToArray());
             }
 
             ExecuteOnNearestSync(() =>
@@ -147,7 +147,7 @@ namespace Emul8.Tools.Network
 
                         if(frameTransmitted != null)
                         {
-                            frameTransmitted(sender, iface.Interface, frame.Bytes.ToArray());
+                            frameTransmitted(this, sender, iface.Interface, frame.Bytes.ToArray());
                         }
                     }
                 }

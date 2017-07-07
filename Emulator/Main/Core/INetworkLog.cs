@@ -8,10 +8,10 @@ using System;
 
 namespace Emul8.Core
 {
-    public interface INetworkLog<T> : IExternal
+    public interface INetworkLog<out T> : IExternal
     {
-        event Action<T, T, byte[]> FrameTransmitted;
-        event Action<byte[]> FrameProcessed;
+        event Action<IExternal, T, T, byte[]> FrameTransmitted;
+        event Action<IExternal, T, byte[]> FrameProcessed;
     }
 }
 

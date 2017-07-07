@@ -79,18 +79,22 @@ namespace Emul8.UserInterface.Commands
                     SetCurrentMachine(machine);
                 }
                 break;
-            case "set":
-                try
-                {
-                    SetCurrentMachine(EmulationManager.Instance.CurrentEmulation[name.Value]);
-                }
-                catch(KeyNotFoundException)
-                {
+            case "set":                   
+                Machine machineToSet;               
+                if(!EmulationManager.Instance.CurrentEmulation.TryGetMachineByName(name.Value, out machineToSet))                  
+                {                  
                     writer.WriteError(string.Format("Machine {0} not found.", name.Value));
-                }
+                    break;                 
+                } 
+                SetCurrentMachine(machineToSet);
                 break;
             case "rem":
-                var machineToRemove = EmulationManager.Instance.CurrentEmulation[name.Value];
+                Machine machineToRemove;
+                if (!EmulationManager.Instance.CurrentEmulation.TryGetMachineByName(name.Value, out machineToRemove)) 
+                {                    
+                    writer.WriteError(string.Format("Machine {0} not found.", name.Value));
+                    break;
+                }
                 EmulationManager.Instance.CurrentEmulation.RemoveMachine(name.Value);
                 if(GetCurrentMachine() == machineToRemove)
                 {

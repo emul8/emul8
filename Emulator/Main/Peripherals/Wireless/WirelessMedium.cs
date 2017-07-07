@@ -69,8 +69,8 @@ namespace Emul8.Peripherals.Wireless
             return null;
         }
 
-        public event Action<IRadio, IRadio, byte[]> FrameTransmitted;
-        public event Action<byte[]> FrameProcessed;
+        public event Action<IExternal, IRadio, IRadio, byte[]> FrameTransmitted;
+        public event Action<IExternal, IRadio, byte[]> FrameProcessed;
 
         private void FrameSentHandler(IRadio sender, byte[] packet)
         {
@@ -98,16 +98,16 @@ namespace Emul8.Peripherals.Wireless
                 {
                     var packet = packetsToSend.Dequeue();
 
-                    if(frameProcessed != null)
-                    {
-                        frameProcessed(packet.Frame);
-                    }
-
                     var sender = packet.Sender;
                     var senderPosition = packet.SenderPosition;
                     var senderName = sender.ToString();
                     var currentEmulation = EmulationManager.Instance.CurrentEmulation;
                     currentEmulation.TryGetEmulationElementName(sender, out senderName);
+
+                    if(frameProcessed != null)
+                    {
+                        frameProcessed(this, sender, packet.Frame);
+                    }
 
                     if(!mediumFunction.CanTransmit(packet.SenderPosition))
                     {
@@ -131,9 +131,10 @@ namespace Emul8.Peripherals.Wireless
 
                         this.NoisyLog("Packet {0} -> {1} delivered, size {2}.", senderName, receiverName, packet.Frame.Length);
                         receiver.ReceiveFrame(packet.Frame.ToArray());
+
                         if(frameTransmitted != null)
                         {
-                            frameTransmitted(sender, receiver, packet.Frame);
+                            frameTransmitted(this, sender, receiver, packet.Frame);
                         }
                     }
                 }
