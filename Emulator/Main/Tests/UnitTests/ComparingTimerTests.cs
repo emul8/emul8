@@ -19,7 +19,7 @@ namespace Emul8.UnitTests
         public void ShouldThrowOnCompareHigherThanLimit()
         {
             var machine = new Machine();
-            var timer = new ComparingTimer(machine, 10, 5, compare: 20);
+            var timer = new ComparingTimer(machine, 10, 20, compare: 5);
             Assert.Throws<InvalidOperationException>(() => timer.Compare = 30);
         }
 
@@ -27,7 +27,7 @@ namespace Emul8.UnitTests
         public void ShouldThrowOnNegativeCompare()
         {
             var machine = new Machine();
-            var timer = new ComparingTimer(machine, 10, 5, compare: 20);
+            var timer = new ComparingTimer(machine, 10, 20, compare: 5);
             Assert.Throws<InvalidOperationException>(() => timer.Compare = -2);
         }
     }
