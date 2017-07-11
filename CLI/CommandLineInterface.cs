@@ -51,10 +51,10 @@ namespace Emul8.CLI
 
                     if(options.Port == -1)
                     {
-                        EmulationManager.Instance.CurrentEmulation.BackendManager.SetPreferredAnalyzer(typeof(UARTBackend), typeof(UARTWindowBackendAnalyzer));
+                        EmulationManager.Instance.CurrentEmulation.BackendManager.SetPreferredAnalyzer(typeof(UARTBackend), typeof(ConsoleWindowBackendAnalyzer));
                         EmulationManager.Instance.EmulationChanged += () =>
                         {
-                            EmulationManager.Instance.CurrentEmulation.BackendManager.SetPreferredAnalyzer(typeof(UARTBackend), typeof(UARTWindowBackendAnalyzer));
+                            EmulationManager.Instance.CurrentEmulation.BackendManager.SetPreferredAnalyzer(typeof(UARTBackend), typeof(ConsoleWindowBackendAnalyzer));
                         };
                     }
 
@@ -97,7 +97,7 @@ namespace Emul8.CLI
             }
             else
             {
-                UARTWindowBackendAnalyzer terminal = null;
+                ConsoleWindowBackendAnalyzer terminal = null;
                 IOProvider io;
                 if(options.HideMonitor)
                 {
@@ -105,7 +105,7 @@ namespace Emul8.CLI
                 }
                 else
                 {
-                    terminal = new UARTWindowBackendAnalyzer();
+                    terminal = new ConsoleWindowBackendAnalyzer();
                     io = terminal.IO;
                 }
 
@@ -117,6 +117,7 @@ namespace Emul8.CLI
                 {
                     try
                     {
+                        terminal.Quitted += Emulator.Exit;
                         terminal.Show();
                     }
                     catch(InvalidOperationException ex)

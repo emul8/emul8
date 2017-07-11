@@ -51,7 +51,7 @@
     <Compile Include="CommandLineInterface.cs" />
     <Compile Include="CrashHandler.cs" />
     <Compile Include="Options.cs" />
-    <Compile Include="UARTWindowBackendAnalyzer.cs" />
+    <Compile Include="ConsoleWindowBackendAnalyzer.cs" />
     <Compile Include="TerminalIOSource.cs" />
     <Compile Include="TerminalWidget.cs" />
     <Compile Include="XwtProvider\ApplicationExtensions.cs" />

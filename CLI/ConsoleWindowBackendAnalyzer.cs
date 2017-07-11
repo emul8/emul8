@@ -12,25 +12,18 @@ using Emul8.Logging;
 using Emul8.Utilities;
 using System.Collections.Generic;
 using System.Linq;
-using System.IO;
 using System.Diagnostics;
-using Emul8.Exceptions;
 using System.ComponentModel;
 using AntShell.Terminal;
 using System.Threading;
-#if !EMUL8_PLATFORM_WINDOWS
-using Mono.Unix.Native;
-#endif
-using TermSharp.Vt100;
 using Xwt;
 using Emul8.Core;
 
 namespace Emul8.CLI
 {
-    public class UARTWindowBackendAnalyzer : IAnalyzableBackendAnalyzer<UARTBackend>
+    public class ConsoleWindowBackendAnalyzer : IAnalyzableBackendAnalyzer<UARTBackend>
     {
-        // this constructor is needed by the monitor; do not remove it
-        public UARTWindowBackendAnalyzer()
+        public ConsoleWindowBackendAnalyzer()
         {
             preferredTerminal = ConfigurationManager.Instance.Get("general", "terminal", TerminalTypes.Termsharp);
 #if EMUL8_PLATFORM_WINDOWS
@@ -81,6 +74,7 @@ namespace Emul8.CLI
                     window.Content = terminalWidget;
                     terminalWidget.Initialized += mre.Set;
                     window.Show();
+                    window.Closed += (sender, e) => OnClose();
                     if(NextWindowLocation != default(Point))
                     {
                         window.Location = NextWindowLocation;
@@ -177,6 +171,17 @@ namespace Emul8.CLI
 
         public IOProvider IO { get; private set; }
 
+        public event Action Quitted;
+
+        private void OnClose()
+        {
+            var q = Quitted;
+            if(q != null)
+            {
+                q();
+            }
+        }
+
         private static Tuple<int, int> GetNextWindowPosition()
         {
             lock(StartingPosition)
@@ -241,6 +246,7 @@ namespace Emul8.CLI
                 {
                     LogError("Putty", arguments, proc.ExitCode);
                 }
+                OnClose();
             };
             return RunProcess(ref p);
         }
@@ -292,12 +298,13 @@ namespace Emul8.CLI
             };
             p.EnableRaisingEvents = true;
             p.Exited += (sender, e) => 
-            { 
+            {
                 var proc = sender as Process;
                 if (proc.ExitCode != 0 && proc.ExitCode != 15)
                 {
                     LogError("Xterm", command, proc.ExitCode);
                 }
+                OnClose();
             };
             return RunProcess(ref p);
         }
@@ -331,8 +338,8 @@ namespace Emul8.CLI
                 {
                     LogError("Terminal.app", arguments, proc.ExitCode);
                 }
+                OnClose();
             };
-
             return RunProcess(ref p);
         }
 #endif
