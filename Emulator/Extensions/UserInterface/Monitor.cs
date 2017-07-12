@@ -549,7 +549,7 @@ namespace Emul8.UserInterface
         {
             Token oldOrigin;
             variables.TryGetValue(OriginVariable, out oldOrigin);
-            SetVariable(OriginVariable, new PathToken("@" + Path.GetDirectoryName(filename)), variables);
+            SetVariable(OriginVariable, new PathToken("@" + Path.GetDirectoryName(filename).Replace(" ", @"\ ")), variables);
             var lines = File.ReadAllLines(filename);
             Array.ForEach(lines, x => x.Replace("\r", "\n"));
             var processedLines = new List<string>(lines.Length);

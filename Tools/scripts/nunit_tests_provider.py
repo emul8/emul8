@@ -32,7 +32,7 @@ class NUnitTestSuite(object):
         # copying nunit console binaries seems to be necessary in order to use -domain:None switch; otherwise it is not needed
         copied_nunit_path = os.path.join(options.results_directory, 'nunit-console.exe')
         if not os.path.isfile(copied_nunit_path):
-            subprocess.call(['bash', '-c', 'cp -r {0}/* {1}'.format(os.path.dirname(NUnitTestSuite.nunit_path), options.results_directory)])
+            subprocess.call(['bash', '-c', 'cp -r \'{0}/\'* \'{1}\''.format(os.path.dirname(NUnitTestSuite.nunit_path), options.results_directory)])
 
         project_file = os.path.split(self.path)[1]
         output_file = project_file.replace('csproj', 'xml')

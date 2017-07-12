@@ -17,10 +17,10 @@ set -e
 
 if [ -z "$ROOT_PATH" -a -x "$(command -v realpath)" ]; then
     # this is to support running emul8 from external directory
-    ROOT_PATH="`dirname \`realpath $0\``"
+    ROOT_PATH="`dirname \"\`realpath "$0"\`\"`"
 fi
 
-. ${ROOT_PATH}/Tools/common.sh
+. "${ROOT_PATH}/Tools/common.sh"
 
 SOLUTION_NAME="Emul8"
 BATCH_MODE=false
@@ -114,56 +114,56 @@ else
 fi
 
 # Update references to Xwt
-TERMSHARP_PROJECT=${ROOT_PATH:=.}/External/termsharp/TermSharp.csproj
-if [ -e $TERMSHARP_PROJECT ]
+TERMSHARP_PROJECT="${ROOT_PATH:=.}/External/termsharp/TermSharp.csproj"
+if [ -e "$TERMSHARP_PROJECT" ]
 then
-    sed -i.bak 's/"xwt\\Xwt\\Xwt.csproj"/"..\\xwt\\Xwt\\Xwt.csproj"/'                        $TERMSHARP_PROJECT
-    rm $TERMSHARP_PROJECT.bak
+    sed -i.bak 's/"xwt\\Xwt\\Xwt.csproj"/"..\\xwt\\Xwt\\Xwt.csproj"/' "$TERMSHARP_PROJECT"
+    rm "$TERMSHARP_PROJECT.bak"
 fi
 
-${ROOT_PATH}/Tools/scripts/fetch_libraries.sh
+"${ROOT_PATH}/Tools/scripts/fetch_libraries.sh"
 
-BOOTSTRAPER_DIR=$ROOT_PATH/Tools/Bootstrap
-BOOTSTRAPER_BIN=$BOOTSTRAPER_DIR/bin/Release/Bootstrap.exe
+BOOTSTRAPER_DIR="$ROOT_PATH/Tools/Bootstrap"
+BOOTSTRAPER_BIN="$BOOTSTRAPER_DIR/bin/Release/Bootstrap.exe"
 
-CCTASK_DIR=$ROOT_PATH/External/cctask
+CCTASK_DIR="$ROOT_PATH/External/cctask"
 
 # We build bootstrap/cctask every time in order to have the newest versions at every bootstrapping.
 # We need to use get_path helper function in order to resolve paths to projects correctly both on linux and windows
-$CS_COMPILER `get_path $BOOTSTRAPER_DIR/Bootstrap.csproj` /p:Configuration=Release /nologo /verbosity:quiet || (echo "There was an error during Bootstrap compilation!" && exit 1)
-$CS_COMPILER `get_path $CCTASK_DIR/CCTask.sln`            /p:Configuration=Release /nologo /verbosity:quiet || (echo "There was an error during CCTask compilation!"    && exit 1)
+$CS_COMPILER "`get_path \"$BOOTSTRAPER_DIR/Bootstrap.csproj\"`" /p:Configuration=Release /nologo /verbosity:quiet || (echo "There was an error during Bootstrap compilation!" && exit 1)
+$CS_COMPILER "`get_path \"$CCTASK_DIR/CCTask.sln\"`"            /p:Configuration=Release /nologo /verbosity:quiet || (echo "There was an error during CCTask compilation!"    && exit 1)
 
-mkdir -p $OUTPUT_DIRECTORY
+mkdir -p "$OUTPUT_DIRECTORY"
 if $ON_OSX
 then
-  PROP_FILE=$ROOT_PATH/Emulator/Cores/osx-properties.csproj
+  PROP_FILE="$ROOT_PATH/Emulator/Cores/osx-properties.csproj"
 elif $ON_LINUX
 then
-  PROP_FILE=$ROOT_PATH/Emulator/Cores/linux-properties.csproj
+  PROP_FILE="$ROOT_PATH/Emulator/Cores/linux-properties.csproj"
 else
-  PROP_FILE=$ROOT_PATH/Emulator/Cores/windows-properties.csproj
+  PROP_FILE="$ROOT_PATH/Emulator/Cores/windows-properties.csproj"
 fi
-cp $PROP_FILE $OUTPUT_DIRECTORY/properties.csproj
+cp "$PROP_FILE" "$OUTPUT_DIRECTORY/properties.csproj"
 
-add_property $OUTPUT_DIRECTORY/properties.csproj OutputPathPrefix $PWD/output/bin
+add_property "$OUTPUT_DIRECTORY/properties.csproj" OutputPathPrefix "$PWD/output/bin"
 
-PARAMS+=( --directories `get_path .` --output-directory `get_path $OUTPUT_DIRECTORY` --binaries-directory `get_path $BINARIES_DIRECTORY` --solution-name "$SOLUTION_NAME")
-if [ ! -z $EXCLUDE ]
+PARAMS+=( --directories "`get_path .`" --output-directory "`get_path \"$OUTPUT_DIRECTORY\"`" --binaries-directory "`get_path \"$BINARIES_DIRECTORY\"`" --solution-name "$SOLUTION_NAME")
+if [ ! -z "$EXCLUDE" ]
 then
     PARAMS+=( --exclude "$EXCLUDE")
 fi
 
-if [ ! -z $SELECTED_PROJECT ]
+if [ ! -z "$SELECTED_PROJECT" ]
 then
-    PARAMS+=(--main-project=`get_path $SELECTED_PROJECT`)
+    PARAMS+=(--main-project="`get_path \"$SELECTED_PROJECT\"`")
 fi
 
 if $BATCH_MODE
 then
-    $LAUNCHER $BOOTSTRAPER_BIN GenerateAll --generate-entry-project ${PARAMS[@]}
+    $LAUNCHER "$BOOTSTRAPER_BIN" GenerateAll --generate-entry-project "${PARAMS[@]}"
 else
     set +e
-    $LAUNCHER $BOOTSTRAPER_BIN --interactive --generate-entry-project ${PARAMS[@]}
+    $LAUNCHER "$BOOTSTRAPER_BIN" --interactive --generate-entry-project "${PARAMS[@]}"
     result=$?
     set -e
     if ! $VERBOSE

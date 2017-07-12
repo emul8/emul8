@@ -10,15 +10,15 @@ set -e
 
 if [ -z "$ROOT_PATH" -a -x "$(command -v realpath)" ]; then
     # this is to support running emul8 from external directory
-    ROOT_PATH="`dirname \`realpath $0\``"
+    ROOT_PATH="`dirname \"\`realpath "$0"\`\"`"
 fi
 
-. ${ROOT_PATH}/Tools/common.sh
+. "${ROOT_PATH}/Tools/common.sh"
 
 VERSION=1.0
-TARGET=`get_path "$PWD/target/Emul8.sln"`
+TARGET="`get_path \"$PWD/target/Emul8.sln\"`"
 CONFIGURATION="Release"
-PARAMS=("")
+PARAMS=()
 
 CLEAN=false
 PACKAGES=false
@@ -49,29 +49,29 @@ while getopts ":cdvpt:o:" opt; do
   esac
 done
 
-if [ ! -f $TARGET ]
+if [ ! -f "$TARGET" ]
 then
     ./bootstrap.sh
 fi
 # this property should be set automatically by xbuild, but it's not...
-PARAMS+=(/p:SolutionDir=`dirname $TARGET`)
+PARAMS+=(/p:SolutionDir="`dirname \"$TARGET\"`")
 
 if $CLEAN
 then
     for conf in Debug Release
     do
-        $CS_COMPILER /t:Clean /p:Configuration=$conf $TARGET ${PARAMS[@]}
-        rm -fr ${OUTPUT:=`get_path $PWD/output`}/$conf
+        $CS_COMPILER /t:Clean /p:Configuration=$conf "$TARGET" "${PARAMS[@]}"
+        rm -fr "${OUTPUT:=`get_path \"$PWD/output\"`}/$conf"
     done
     exit 0
 fi
 
-pushd ${ROOT_PATH:=.}/Tools/scripts > /dev/null
+pushd "${ROOT_PATH:=.}/Tools/scripts" > /dev/null
 ./check_weak_implementations.sh
 popd > /dev/null
 
 # Build CCTask in Release configuration
-$CS_COMPILER /p:Configuration=Release `get_path $ROOT_PATH/External/cctask/CCTask.sln` > /dev/null
+$CS_COMPILER /p:Configuration=Release "`get_path \"$ROOT_PATH/External/cctask/CCTask.sln\"`" > /dev/null
 
 PARAMS+=(/p:BuildingFromBuildScript=true /p:Configuration=$CONFIGURATION)
 
@@ -79,7 +79,7 @@ retries=5
 while [ \( ${result_code:-134} -eq 134 \) -a \( $retries -ne 0 \) ]
 do
     set +e
-    $CS_COMPILER ${PARAMS[@]} $TARGET
+    $CS_COMPILER "${PARAMS[@]}" "$TARGET"
     result_code=$?
     set -e
     retries=$((retries-1))

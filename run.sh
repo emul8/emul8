@@ -5,10 +5,10 @@ set -u
 if [ -z "${ROOT_PATH:-}" -a -x "$(command -v realpath)" ]
 then
     # this is to support running emul8 from external directory
-    ROOT_PATH="`dirname \`realpath $0\``"
+    ROOT_PATH="`dirname \"\`realpath "$0"\`\"`"
 fi
 
-. ${ROOT_PATH}/Tools/common.sh
+. "${ROOT_PATH}/Tools/common.sh"
 
 PARAMS=()
 for ARG in "$@"
@@ -42,8 +42,8 @@ fi
 
 if $ON_WINDOWS
 then
-    ${BINARY_LOCATION:-$ROOT_PATH/output/bin}/${TARGET:-Release}/${BINARY_NAME:-CLI.exe} "${PARAMS[@]:-}"
+    "${BINARY_LOCATION:-$ROOT_PATH/output/bin}/${TARGET:-Release}/${BINARY_NAME:-CLI.exe}" "${PARAMS[@]:-}"
 else
-    $LAUNCHER ${BINARY_LOCATION:-$ROOT_PATH/output/bin}/${TARGET:-Release}/${BINARY_NAME:-CLI.exe} "${PARAMS[@]:-}"
+    $LAUNCHER "${BINARY_LOCATION:-$ROOT_PATH/output/bin}/${TARGET:-Release}/${BINARY_NAME:-CLI.exe}" "${PARAMS[@]:-}"
 fi
 

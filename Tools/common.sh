@@ -32,5 +32,5 @@ function get_path {
 
 function add_property {
     sed -i.bak "s#</PropertyGroup>#  <$2>$3</$2>"'\
-</PropertyGroup>#' $1
+</PropertyGroup>#' "$1"
 }
