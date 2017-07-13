@@ -20,6 +20,7 @@ namespace Emul8.Peripherals.X86
     {
         public Quark_PWM(Machine machine) : base(machine, NumberOfInternalTimers)
         {
+            IRQ = new GPIO();
             internalLock = new object();
             interruptStatus = new bool[NumberOfInternalTimers];
             timers = new LimitTimer[NumberOfInternalTimers];
@@ -49,6 +50,7 @@ namespace Emul8.Peripherals.X86
                 timers[i].Reset();
             }
             registers.Reset();
+            IRQ.Unset();
         }
 
         public uint ReadDoubleWord(long offset)
