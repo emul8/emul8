@@ -17,6 +17,7 @@ namespace Emul8.Peripherals
     {
         public STM32L_RTC(Machine machine) : base(machine, 1000, eventEnabled: true, autoUpdate: true) // this frequency is a blind guess
         {
+            IRQ = new GPIO();
             LimitReached += () =>
             {
                 if(wakeupTimerInterruptEnable.Value)
@@ -33,6 +34,7 @@ namespace Emul8.Peripherals
         {
             base.Reset();
             registers.Reset();
+            IRQ.Unset();
         }
 
         public uint ReadDoubleWord(long offset)
