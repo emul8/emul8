@@ -10,19 +10,30 @@ using Emul8.Peripherals.UART;
 using AntShell.Terminal;
 using Emul8.Utilities;
 using TermSharp;
-using System.Threading;
-using TermSharp.Vt100;
-using System.Text;
 using System.Collections.Generic;
-using System.IO;
 using TermSharp.Rows;
 
 namespace Emul8.CLI
 {
-    public class TerminalWidget : Widget
+    public partial class TerminalWidget : Widget
     {
         public TerminalWidget(Func<bool> focusProvider)
         {
+            var shortcutDictionary = new Dictionary<KeyEventArgs, Action>
+            {
+                {CreateKey(Key.C, ModifierKeys.Shift | ModifierKeys.Control), CopyMarkedField},
+                {CreateKey(Key.V, ModifierKeys.Shift | ModifierKeys.Control), PasteMarkedField},
+                {CreateKey(Key.Insert, ModifierKeys.Shift), PasteMarkedField},
+                {CreateKey(Key.PageUp, ModifierKeys.Shift), () => terminal.PageUp() },
+                {CreateKey(Key.PageDown, ModifierKeys.Shift), () => terminal.PageDown() },
+                {CreateKey(Key.Plus, ModifierKeys.Shift | ModifierKeys.Control), FontSizeUp},
+                {CreateKey(Key.Minus, ModifierKeys.Control), FontSizeDown},
+                {CreateKey(Key.NumPadAdd, ModifierKeys.Control), FontSizeUp},
+                {CreateKey(Key.NumPadSubtract, ModifierKeys.Control), FontSizeDown},
+                {CreateKey(Key.K0, ModifierKeys.Control), SetDefaultFontSize},
+                {CreateKey(Key.NumPad0, ModifierKeys.Control), SetDefaultFontSize}
+            };
+
             terminal = new Terminal(focusProvider);
             terminalInputOutputSource = new TerminalIOSource(terminal);
             IO = new IOProvider(terminalInputOutputSource);
@@ -82,17 +93,15 @@ namespace Emul8.CLI
                     modifiers &= ~(ModifierKeys.Command);
                 }
 
-                if(modifiers == ModifierKeys.Shift)
+                foreach(var entry in shortcutDictionary)
                 {
-                    if(a.Key == Key.PageUp)
+                    if(modifiers == entry.Key.Modifiers)
                     {
-                        terminal.PageUp();
-                        return;
-                    }
-                    if(a.Key == Key.PageDown)
-                    {
-                        terminal.PageDown();
-                        return;
+                        if(a.Key == entry.Key.Key)
+                        {
+                            entry.Value();
+                            return;
+                        }
                     }
                 }
                 encoder.Feed(a.Key, modifiers);
@@ -117,12 +126,12 @@ namespace Emul8.CLI
         }
 
         public bool ModifyLineEndings
-        { 
+        {
             get { return modifyLineEndings; }
             set
-            { 
-                modifyLineEndings = value; 
-                terminal.ContextMenu = CreatePopupMenu(); 
+            {
+                modifyLineEndings = value;
+                terminal.ContextMenu = CreatePopupMenu();
             }
         }
 
@@ -172,23 +181,14 @@ namespace Emul8.CLI
             var copyItem = new MenuItem("Copy");
             copyItem.Clicked += delegate
             {
-                Clipboard.SetText(terminal.CollectClipboardData().Text);
+                CopyMarkedField();
             };
             popup.Items.Add(copyItem);
 
             var pasteItem = new MenuItem("Paste");
             pasteItem.Clicked += delegate
             {
-                var text = Clipboard.GetText();
-                if(string.IsNullOrEmpty(text))
-                {
-                    return;
-                }
-                var textAsBytes = Encoding.UTF8.GetBytes(text);
-                foreach(var b in textAsBytes)
-                {
-                    terminalInputOutputSource.HandleInput(b);
-                }
+                PasteMarkedField();
             };
             popup.Items.Add(pasteItem);
 
@@ -203,15 +203,17 @@ namespace Emul8.CLI
             return popup;
         }
 
+        private KeyEventArgs CreateKey(Key key, ModifierKeys modifierKeys)
+        {
+            return new KeyEventArgs(key, modifierKeys, false, 0);
+        }
+
         private readonly Func<TerminalWidget, MenuItem[]> additionalMenuItemProvider;
-        private readonly Terminal terminal;
-        private readonly TerminalIOSource terminalInputOutputSource;
         private bool modifyLineEndings;
-        private bool firstWindow;
-
+        private bool firstWindow;   
         private static bool FirstWindowAlreadyShown;
-
+        private Terminal terminal;
+        private TerminalIOSource terminalInputOutputSource;
         private const int MinimalBottomMargin = 2;
     }
 }
-
