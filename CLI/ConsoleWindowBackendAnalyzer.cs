@@ -34,7 +34,8 @@ namespace Emul8.CLI
 #endif
             if(preferredTerminal == TerminalTypes.Termsharp)
             {
-                ApplicationExtensions.InvokeInUIThreadAndWait(() => {
+                ApplicationExtensions.InvokeInUIThreadAndWait(() =>
+                {
                     terminalWidget = new TerminalWidget(() => window.HasFocus);
                 });
                 IO = terminalWidget.IO;
