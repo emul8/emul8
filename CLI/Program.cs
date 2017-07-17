@@ -25,13 +25,17 @@ namespace Emul8.CLI
             {
                 var options = new Options();
                 var optionsParser = new OptionsParser();
-                if(!optionsParser.Parse(options, args))
+                try
                 {
-                    return;
+                    if(optionsParser.Parse(options, args))
+                    {
+                        CommandLineInterface.Run(options);
+                    }
                 }
-
-                CommandLineInterface.Run(options);
-                Emulator.FinishExecutionAsMainThread();
+                finally
+                {
+                    Emulator.FinishExecutionAsMainThread();
+                }
             });
             thread.Start();
             Emulator.ExecuteAsMainThread();
