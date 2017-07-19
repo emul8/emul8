@@ -98,8 +98,18 @@ namespace Emul8.HostInterfaces.Network
 
         public NetworkLink Link { get; private set; }
 
-        [field: Transient]
-        public MACAddress MAC { get; set; }
+        public MACAddress MAC 
+        { 
+            get 
+            { 
+                return macAddress; 
+            } 
+
+            set 
+            { 
+                macAddress = value; 
+            } 
+        }
 
         public string InterfaceName 
         {
@@ -180,6 +190,10 @@ namespace Emul8.HostInterfaces.Network
 
         [Transient]
         private NetworkInterface networkInterface;
+
+        [Transient]
+        // we need to have this field explicitly to put [Transient] attribute on it
+        private MACAddress macAddress;
 
         private readonly string originalInterfaceNameOrPath;
 
