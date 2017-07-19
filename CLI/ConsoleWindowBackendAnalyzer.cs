@@ -18,6 +18,10 @@ using AntShell.Terminal;
 using System.Threading;
 using Xwt;
 using Emul8.Core;
+#if EMUL8_PLATFORM_OSX
+using System.IO;
+using Mono.Unix.Native;
+#endif
 
 namespace Emul8.CLI
 {
