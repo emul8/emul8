@@ -75,6 +75,8 @@
     <Compile Include="Mocks\MockPeripheralWithDependency.cs" />
     <Compile Include="Mocks\MockIrqSenderWithTwoInterrupts.cs" />
     <Compile Include="Mocks\AmbiguousRegister.cs" />
+    <Compile Include="Mocks\EmptyInterestingType.cs" />
+    <Compile Include="Mocks\MockRegister.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System" />
