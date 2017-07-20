@@ -16,20 +16,9 @@ namespace Emul8.UserInterface.Tokenizer
         public PathToken(string value) : base(value)
         {
             Value = value.TrimStart('@').Replace(@"\ ", " ");
-            fullPaths = new[] { value };
         }
 
         public string Value { get; private set; }
-
-        public void SetPossiblePrefixes(IEnumerable<string> prefixes)
-        {
-            fullPaths = prefixes.Select(x => Path.Combine(x, Value)).ToArray();
-        }
-
-        public IEnumerable<string> GetPossiblePaths()
-        {
-            return fullPaths;
-        }
 
         public override object GetObjectValue()
         {
@@ -40,8 +29,6 @@ namespace Emul8.UserInterface.Tokenizer
         {
             return string.Format("[PathToken: Value={0}]", Value);
         }
-
-        private string[] fullPaths;
     }
 }
 
