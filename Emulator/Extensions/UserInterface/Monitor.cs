@@ -305,10 +305,6 @@ namespace Emul8.UserInterface
                 Logger.Log(LogLevel.Warning, messages.ToString());
                 return null;
             }
-            foreach(var pathToken in result.Tokens.Where(x => x is PathToken).Cast<PathToken>())
-            {
-                pathToken.SetPossiblePrefixes(monitorPath.PathElements);
-            }
             return result;
         }
 
@@ -356,18 +352,12 @@ namespace Emul8.UserInterface
                 var pathToken = token as PathToken;
                 if(pathToken != null)
                 {
-                    var fileFound = false;
-                    //try to find file in all monitor paths
-                    foreach(var fileName in pathToken.GetPossiblePaths())
+                    string fileName;
+                    if(TryGetFilenameFromAvailablePaths(pathToken.Value, out fileName))
                     {
-                        if(File.Exists(fileName) || Directory.Exists(fileName))
-                        {
-                            fileFound = true;
-                            resultToken = new PathToken(fileName);
-                            break;
-                        }
+                        resultToken = new PathToken(fileName);
                     }
-                    if(!fileFound)
+                    else
                     {
                         Uri uri;
                         string filename;
@@ -548,6 +538,10 @@ namespace Emul8.UserInterface
         public bool TryExecuteScript(string filename)
         {
             Token oldOrigin;
+            if(!TryGetFilenameFromAvailablePaths(filename, out filename))
+            {
+                return false;
+            }
             variables.TryGetValue(OriginVariable, out oldOrigin);
             SetVariable(OriginVariable, new PathToken("@" + Path.GetDirectoryName(filename).Replace(" ", @"\ ")), variables);
             var lines = File.ReadAllLines(filename);
@@ -599,6 +593,22 @@ namespace Emul8.UserInterface
                 SetVariable(OriginVariable, oldOrigin, variables);
             }
             return success;
+        }
+
+        private bool TryGetFilenameFromAvailablePaths(string fileName, out string fullPath)
+        {
+            fullPath = String.Empty;
+            //Try to find the given file, then the file with path prefix
+            foreach(var pathElement in monitorPath.PathElements.Prepend(String.Empty))
+            {
+                var currentPath = Path.Combine(pathElement, fileName);
+                if(File.Exists(currentPath) || Directory.Exists(currentPath))
+                {
+                    fullPath = Path.GetFullPath(currentPath);
+                    return true;
+                }
+            }
+            return false;
         }
 
         private void PrintExceptionDetails(Exception e, ICommandInteraction writer, int tab = 0)
