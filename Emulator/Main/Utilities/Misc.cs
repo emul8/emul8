@@ -389,6 +389,55 @@ namespace Emul8.Utilities
             }
         }
 
+        /// <summary>Adds elements to the end of an IEnumerable.</summary>
+        /// <typeparam name="T">Type of enumerable to return.</typeparam>
+        /// <returns>IEnumerable containing all the input elements, followed by the
+        /// specified additional elements.</returns>
+        public static IEnumerable<T> Append<T>(this IEnumerable<T> source, params T[] element)
+        {
+            if(source == null)
+            {
+                throw new ArgumentNullException("source");
+            }
+            return ConcatIterator(element, source, false);
+        }
+
+        /// <summary>Adds elements to the start of an IEnumerable.</summary>
+        /// <typeparam name="T">Type of enumerable to return.</typeparam>
+        /// <returns>IEnumerable containing the specified additional elements, followed by
+        /// all the input elements.</returns>
+        public static IEnumerable<T> Prepend<T>(this IEnumerable<T> tail, params T[] head)
+        {
+            if(tail == null)
+            {
+                throw new ArgumentNullException("tail");
+            }
+            return ConcatIterator(head, tail, true);
+        }
+
+        private static IEnumerable<T> ConcatIterator<T>(T[] extraElements,
+            IEnumerable<T> source, bool insertAtStart)
+        {
+            if(insertAtStart)
+            {
+                foreach(var e in extraElements)
+                {
+                    yield return e;
+                }
+            }
+            foreach(var e in source)
+            {
+                yield return e;
+            }
+            if(!insertAtStart)
+            {
+                foreach(var e in extraElements)
+                {
+                    yield return e;
+                }
+            }
+        }
+
         public static byte HiByte(this UInt16 value)
         {
             return (byte)((value >> 8) & 0xFF);
