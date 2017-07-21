@@ -468,7 +468,7 @@ namespace Emul8.Peripherals.Network
                     {
                         sentFifo.Enqueue((byte)whichPacket);
                     }
-                    var frame = new EthernetFrame(indata);
+                    var frame = EthernetFrame.CreateEthernetFrameWithCRC(indata);
                     Link.TransmitFrameFromInterface(frame);
                 }
                 Update();
@@ -555,7 +555,7 @@ namespace Emul8.Peripherals.Network
             lock(lockObj)
             {
                 this.NoisyLog("Received frame on MAC {0}. Frame destination MAC is {1}", this.MAC.ToString(), frame.DestinationMAC);
-                var size = frame.Length;
+                var size = frame.Bytes.Length;
                 var isEven = (size & 1) == 0;
                 if((receiveControl & ReceiveEnabled) == 0 || (receiveControl & SoftwareReset) != 0)
                 {
@@ -622,7 +622,11 @@ namespace Emul8.Peripherals.Network
                 }
                 if(withCRC)
                 {
-                    this.Log(LogLevel.Warning, "CRC not implemented.");
+                    if(!EthernetFrame.CheckCRC(frame.Bytes))
+                    {
+                        this.Log(LogLevel.Info, "Invalid CRC, packet discarded");
+                        return;
+                    }
                 }
                 if(!isEven)
                 {

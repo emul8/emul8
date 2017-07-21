@@ -242,7 +242,17 @@ namespace Emul8.Peripherals.Network
 
                     if(Link.IsConnected)
                     {
-                        var frame = new EthernetFrame(packet.ToArray());
+                        EthernetFrame frame;
+
+                        if(!txBD.NoCRC)
+                        {
+                            frame = EthernetFrame.CreateEthernetFrameWithCRC(packet.ToArray());
+                        }
+                        else
+                        {
+                            frame = EthernetFrame.CreateEthernetFrameWithoutCRC(packet.ToArray());
+                        }
+
                         this.Log(LogLevel.Noisy, "Sending packet length {0}", packet.ToArray().Length);
                         Link.TransmitFrameFromInterface(frame);
                     }
@@ -319,12 +329,19 @@ namespace Emul8.Peripherals.Network
         {
             lock(sync)
             {
-                this.Log(LogLevel.Noisy, "Received packet len {0}", frame.Length);
+                this.Log(LogLevel.Noisy, "Received packet len {0}", frame.Bytes.Length);
                 if((registers.Control & (1u << 2)) == 0)
                 {
                     this.Log(LogLevel.Debug, "Receiver not enabled, dropping frame.");
                     return;
                 }
+
+                if(!registers.IgnoreFCS && !EthernetFrame.CheckCRC(frame.Bytes))
+                {
+                    this.Log(LogLevel.Info, "Invalid CRC, packet discarded");
+                    return;
+                }
+
                 bool interrupt = false;
                 rxBufferDescriptor rxBD = new rxBufferDescriptor(machine.SystemBus);
                 rxBD.Fetch(registers.RxQueueBaseAddr);
@@ -334,7 +351,7 @@ namespace Emul8.Peripherals.Network
                     rxBD.Ownership = true;
                     rxBD.StartOfFrame = true;
                     rxBD.EndOfFrame = true;
-                    rxBD.Length = (ushort)frame.Length;
+                    rxBD.Length = (ushort)frame.Bytes.Length;
                     machine.SystemBus.WriteBytes(frame.Bytes, rxBD.BufferAddress);
                     rxBD.WriteBack();
                     if(rxBD.Wrap)
@@ -390,7 +407,8 @@ namespace Emul8.Peripherals.Network
             public uint SpecificAddress1Top = 0x302;
             public readonly uint ModuleId = 0x00020118;
             //module_id = 0x2(GEM), revision = 0x118
-        }
+            public bool IgnoreFCS => (Config & 1u << 26) != 0;
+    }
 
         private enum Offset : uint
         {
@@ -433,8 +451,10 @@ namespace Emul8.Peripherals.Network
             public bool Wrap;
             public bool Last;
             public ushort Length;
+            public bool NoCRC;
             
             private uint ramAddr;
+            private const uint noCrc = 0x10000;
             //location of this BD in ram
             private SystemBus sbus;
 
@@ -449,6 +469,7 @@ namespace Emul8.Peripherals.Network
                 Wrap = (Word1 & 1u << 30) != 0;
                 Last = (Word1 & 1u << 15) != 0;
                 Length = (ushort)(Word1 & 0x3FFFu);
+                NoCRC = (Word1 & 1u << 16) != 0;
                 
             }
 
@@ -483,7 +504,7 @@ namespace Emul8.Peripherals.Network
             public bool Ownership;
             public bool StartOfFrame;
             public bool EndOfFrame;
-            
+
             public ushort Length;
             
             private uint ramAddr;

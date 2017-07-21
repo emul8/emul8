@@ -11,6 +11,7 @@ using Emul8.Core.Structure;
 using Emul8.Logging;
 using Emul8.Peripherals.Bus;
 using Emul8.Network;
+using System.Linq;
 
 namespace Emul8.Peripherals.Network
 {
@@ -216,13 +217,23 @@ namespace Emul8.Peripherals.Network
                 //if receiving is disabled discard packet
                 return;
             }
+
             var rd = new receiveDescriptor(machine.SystemBus);
+
+            if(!EthernetFrame.CheckCRC(frame.Bytes))
+            {
+                rd.CRCError = true;
+                this.Log(LogLevel.Info, "Invalid CRC, packet discarded");
+                return;
+            }
+
             rd.Fetch(receiveDescriptorBase | receiveDescriptorOffset);
             if(!rd.Enable)
             {
                 //if receive descritptor disabled discard packet
                 return;
             }
+
             machine.SystemBus.WriteBytes(frame.Bytes, (long)rd.PacketAddress);
             registers.Status = 1u << 2;
             if(rd.Wrap)
@@ -246,7 +257,7 @@ namespace Emul8.Peripherals.Network
                 this.IRQ.Set();
                 this.IRQ.Unset();
             }
-            rd.Length = (uint)frame.Length;
+            rd.Length = (uint)frame.Bytes.Length;
             rd.Enable = false;
             rd.Wrap = false;
             rd.WriteBack();
@@ -262,11 +273,12 @@ namespace Emul8.Peripherals.Network
                 return; //if decriptor is disabled there is nothing to send (just return)
             }
 
-            var packet = new EthernetFrame(machine.SystemBus.ReadBytes((long)td.PacketAddress, (int)td.Length));
+            var packetBytes = machine.SystemBus.ReadBytes((long)td.PacketAddress, (int)td.Length);
+            var packet = EthernetFrame.CreateEthernetFrameWithCRC(packetBytes);
 
             if(Link.IsConnected)
             {
-                this.Log(LogLevel.Info, "Sending packet length {0}", packet.Length);
+                this.Log(LogLevel.Info, "Sending packet length {0}", packet.Bytes.Length);
                 this.Log(LogLevel.Info, "Packet address = 0x{0:X}", td.PacketAddress);
                 Link.TransmitFrameFromInterface(packet);
             }

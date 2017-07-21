@@ -108,7 +108,7 @@ namespace Emul8.Peripherals.Network
             var bank1Map = new Dictionary<long, ByteRegister>
             {
                 // ERXFCON
-                { 0x18, new ByteRegister(this, 0xA1) },
+                { 0x18, new ByteRegister(this, 0xA1).WithFlag(5, out crcEnabled, name: "CRCEN") },
 
                 // EPKTCNT
                 { 0x19, new ByteRegister(this).WithValueField(0, 8, FieldMode.Read, valueProviderCallback: _ => (uint)waitingPacketCount) }
@@ -463,12 +463,18 @@ namespace Emul8.Peripherals.Network
             // first check whether the packet fits into buffer
             var receiveBufferSize = receiveBufferEnd - receiveBufferStart + 1;
             var freeSpace = receiveBufferSize - ((receiveBufferSize + currentReceiveWritePointer - receiveReadPointer) % receiveBufferSize);
-            var packetPlusHeadersLength = data.Length + 2 + 4 + 4; // next packet pointer and receive status vector plus CRC (which is not transmitted by TAP)
+            var packetPlusHeadersLength = data.Length + 2 + 4; // next packet pointer and receive status vector
             packetPlusHeadersLength += packetPlusHeadersLength % 2; // padding byte
             if(freeSpace < packetPlusHeadersLength)
             {
                 this.Log(LogLevel.Warning, "No free space for packet. Packet length (+ headers): {0}B, free space: {1}B.",
                          Misc.NormalizeBinary(packetPlusHeadersLength), Misc.NormalizeBinary(freeSpace));
+                return false;
+            }
+
+            if(!EthernetFrame.CheckCRC(data) && crcEnabled.Value)
+            {
+                this.Log(LogLevel.Info, "Invalid CRC, packet discarded");
                 return false;
             }
 
@@ -479,7 +485,7 @@ namespace Emul8.Peripherals.Network
             }
             var packetWithHeader = new byte[packetPlusHeadersLength];
             BitConverter.GetBytes((ushort)nextReceiveWritePointer).CopyTo(packetWithHeader, 0);
-            BitConverter.GetBytes((ushort)data.Length + 4).CopyTo(packetWithHeader, 2); // we add 4 bytes because of CRC
+            BitConverter.GetBytes((ushort)data.Length).CopyTo(packetWithHeader, 2); 
             BitConverter.GetBytes((ushort)(1 << 7)).CopyTo(packetWithHeader, 4);
             data.CopyTo(packetWithHeader, 6);
 
@@ -502,7 +508,7 @@ namespace Emul8.Peripherals.Network
             var packetSize = transmitBufferEnd - transmitBufferStart; // -1 for the per packet control byte, but transmitBufferEnd points to the last byte of the packet
             var data = new byte[packetSize];
             Array.Copy(ethernetBuffer, transmitBufferStart + 1, data, 0, packetSize);
-            var frame = new EthernetFrame(data);
+            var frame = EthernetFrame.CreateEthernetFrameWithCRC(data);
             // status vector is not implemented yet
             this.Log(LogLevel.Debug, "Sending frame {0}.", frame);
             Link.TransmitFrameFromInterface(frame);
@@ -554,6 +560,7 @@ namespace Emul8.Peripherals.Network
         private IFlagRegisterField ethernetReceiveEnabled;
         private IFlagRegisterField autoIncrement;
         private int waitingPacketCount;
+        private IFlagRegisterField crcEnabled;
 
         private readonly WordRegisterCollection phyRegisters;
         private readonly ByteRegisterCollection[] registers;

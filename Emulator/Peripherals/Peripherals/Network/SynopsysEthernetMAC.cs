@@ -12,8 +12,6 @@ using Emul8.Core.Structure;
 using Emul8.Logging;
 using Emul8.Utilities;
 using System.Collections.Generic;
-using System.Threading;
-using System.Net;
 using Emul8.Network;
 
 namespace Emul8.Peripherals.Network
@@ -92,6 +90,8 @@ namespace Emul8.Peripherals.Network
             {
             case Registers.MACConfiguration:
                 macConfiguration = value;
+                crcStrippingForTypeFrames = (macConfiguration & 1u << 25) != 0;
+                automaticPadCRCStripping = (macConfiguration & 1u << 7) != 0;
                 break;
             case Registers.MACFrameFilter:
                 macFrameFilter = value;
@@ -220,7 +220,7 @@ namespace Emul8.Peripherals.Network
                     this.Log(LogLevel.Error, "Dropping - no packets sent.");
                     return;
                 }
-                if(frame.Length < 14)
+                if(frame.Bytes.Length < 14)
                 {
                     this.Log(LogLevel.Error, "DROPPING - packet too short.");
                     return;
@@ -250,6 +250,17 @@ namespace Emul8.Peripherals.Network
                 }
                 var written = 0;
                 var first = true;
+                var bytes = frame.Bytes;
+
+                if(!EthernetFrame.CheckCRC(bytes))
+                {
+                    if(!(crcStrippingForTypeFrames && bytes.Length > 1536) || !(automaticPadCRCStripping && bytes.Length < 1500))
+                    {
+                        this.Log(LogLevel.Info, "Invalid CRC, packet discarded");
+                        return;
+                    }
+                }
+
                 var receiveDescriptor = new RxDescriptor(machine.SystemBus);
                 receiveDescriptor.Fetch(dmaReceiveDescriptorListAddress);
                 if(receiveDescriptor.IsUsed)
@@ -268,29 +279,28 @@ namespace Emul8.Peripherals.Network
                     receiveDescriptor.IsUsed = true;
                     receiveDescriptor.IsFirst = first;
                     first = false;
-                    var howManyBytes = Math.Min(receiveDescriptor.Buffer1Length, frame.Length - written);
+                    var howManyBytes = Math.Min(receiveDescriptor.Buffer1Length, frame.Bytes.Length - written);
                     var toWriteArray = new byte[howManyBytes];
-                    var bytes = frame.Bytes;
+
                     Array.Copy(bytes, written, toWriteArray, 0, howManyBytes);
                     machine.SystemBus.WriteBytes(toWriteArray, receiveDescriptor.Address1);
                     written += howManyBytes;
                     //write second buffer
-                    if(frame.Length - written > 0 && !receiveDescriptor.IsNextDescriptorChained)
+                    if(frame.Bytes.Length - written > 0 && !receiveDescriptor.IsNextDescriptorChained)
                     {
-                        howManyBytes = Math.Min(receiveDescriptor.Buffer2Length, frame.Length - written);
+                        howManyBytes = Math.Min(receiveDescriptor.Buffer2Length, frame.Bytes.Length - written);
                         toWriteArray = new byte[howManyBytes];
                         Array.Copy(bytes, written, toWriteArray, 0, howManyBytes);
                         machine.SystemBus.WriteBytes(toWriteArray, receiveDescriptor.Address2);
                         written += howManyBytes;
                     }
-                    if(frame.Length - written <= 0)
+                    if(frame.Bytes.Length - written <= 0)
                     {
                         receiveDescriptor.IsLast = true;
-                        this.NoisyLog("Setting descriptor length to {0}", (uint)frame.Length + 4);
-                        receiveDescriptor.FrameLength = (uint)frame.Length + 4;
-                        //with CRC
+                        this.NoisyLog("Setting descriptor length to {0}", (uint)frame.Bytes.Length);
+                        receiveDescriptor.FrameLength = (uint)frame.Bytes.Length;
                     }
-                    this.NoisyLog("Writing descriptor at 0x{6:X}, first={0}, last={1}, written {2} of {3}. next_chained={4}, endofring={5}", receiveDescriptor.IsFirst, receiveDescriptor.IsLast, written, frame.Length, receiveDescriptor.IsNextDescriptorChained, receiveDescriptor.IsEndOfRing, dmaReceiveDescriptorListAddress);
+                    this.NoisyLog("Writing descriptor at 0x{6:X}, first={0}, last={1}, written {2} of {3}. next_chained={4}, endofring={5}", receiveDescriptor.IsFirst, receiveDescriptor.IsLast, written, frame.Bytes.Length, receiveDescriptor.IsNextDescriptorChained, receiveDescriptor.IsEndOfRing, dmaReceiveDescriptorListAddress);
                     receiveDescriptor.WriteBack();
                     if(!receiveDescriptor.IsNextDescriptorChained)
                     {
@@ -304,7 +314,7 @@ namespace Emul8.Peripherals.Network
                     {
                         dmaReceiveDescriptorListAddress = receiveDescriptor.Address2;
                     }
-                    if(frame.Length - written <= 0)
+                    if(frame.Bytes.Length - written <= 0)
                     {
                         if((dmaInterruptEnable & (ReceiveStatus)) != 0)// receive interrupt
                         {
@@ -319,10 +329,10 @@ namespace Emul8.Peripherals.Network
                     }
                     receiveDescriptor.Fetch(dmaReceiveDescriptorListAddress);
                 }
-                this.DebugLog("Packet of length {0} delivered.", frame.Length);
-                if(written < frame.Length)
+                this.DebugLog("Packet of length {0} delivered.", frame.Bytes.Length);
+                if(written < frame.Bytes.Length)
                 {
-                    this.Log(LogLevel.Error, "Delivered only {0} from {1} bytes!", written, frame.Length);
+                    this.Log(LogLevel.Error, "Delivered only {0} from {1} bytes!", written, frame.Bytes.Length);
                 }
             }
         }
@@ -363,7 +373,7 @@ namespace Emul8.Peripherals.Network
                     this.Log(LogLevel.Noisy, "Sending frame of {0} bytes.", packetData.Count);
                     if(Link.IsConnected)
                     {
-                        var frame = new EthernetFrame(packetData.ToArray());
+                        var frame = EthernetFrame.CreateEthernetFrameWithoutCRC(packetData.ToArray());
 
                         if(transmitDescriptor.ChecksumInstertionControl > 0)
                         {
@@ -382,7 +392,9 @@ namespace Emul8.Peripherals.Network
                         this.Log(LogLevel.Debug, Misc.DumpPacket(frame, true, machine));
 
                         packetSent = true;
-                        Link.TransmitFrameFromInterface(frame);
+                        //We recreate the EthernetFrame because the CRC should be appended after creating inner checksums.
+                        var frameWithCrc = EthernetFrame.CreateEthernetFrameWithCRC(frame.Bytes);
+                        Link.TransmitFrameFromInterface(frameWithCrc);
                     }
                 }
                 transmitDescriptor.Fetch(dmaTransmitDescriptorListAddress);
@@ -409,6 +421,8 @@ namespace Emul8.Peripherals.Network
             }
         }
 
+        private bool automaticPadCRCStripping;
+        private bool crcStrippingForTypeFrames;
         private bool packetSent;
         private uint macConfiguration;
         private uint macFrameFilter;
