@@ -60,7 +60,6 @@ namespace Emul8.Peripherals.Network
 
         public NetworkLink Link { get; private set; }
 
-        #region Bank reads
         private ushort ReadBank0(long offset)
         {
             ushort value = 0;
@@ -189,9 +188,7 @@ namespace Emul8.Peripherals.Network
             }
             return value;
         }
-        #endregion 
 
-        #region Bank writes
         private void WriteBank0(long offset, ushort value)
         {
             switch((Bank0Register)offset)
@@ -333,10 +330,7 @@ namespace Emul8.Peripherals.Network
             }
             memoryBuffer[n].Data[p] = value;
         }
-        #endregion 
-
-        #region Interface reads
-      
+              
         public ushort ReadWord(long offset)
         {
             lock(lockObj)
@@ -370,10 +364,6 @@ namespace Emul8.Peripherals.Network
                 return value;
             }
         }
-
-        #endregion
-
-        #region Interface writes
 
         public void WriteWord(long offset, ushort value)
         {
@@ -415,10 +405,6 @@ namespace Emul8.Peripherals.Network
                 return;
             }
         }
-
-        #endregion
-       
-        #region szajs
        
         public long Size
         {
@@ -642,9 +628,7 @@ namespace Emul8.Peripherals.Network
                 Update();
             }
         }
-        #endregion
 
-        #region Types
         private enum Bank
         {
             Bank0 = 0x0,
@@ -733,9 +717,6 @@ namespace Emul8.Peripherals.Network
             public byte[] Data = new byte[MaxPacketSize];
         }
 
-        #endregion
-
-        #region Data
         // Bank select register
         private Bank currentBank;
         // Bank 0 registers
@@ -761,9 +742,6 @@ namespace Emul8.Peripherals.Network
 
         private readonly Machine machine;
 
-        #endregion
-
-        #region Consts
         private const byte NumberOfPackets = 4;
         private const ushort MaxPacketSize = 2048;
         private const ushort ControlAutorelease = 0x0800;
@@ -784,7 +762,5 @@ namespace Emul8.Peripherals.Network
         private const byte EthernetProtocolInterrupt = 0x20;
         private const byte PHYInterrupt = 0x80;
         private const byte WritableInterrupts = 0xDE;
-
-        #endregion
     }
 }
