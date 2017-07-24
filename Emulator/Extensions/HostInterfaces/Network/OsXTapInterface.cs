@@ -128,9 +128,9 @@ namespace Emul8.HostInterfaces.Network
                 {
                     if(await deviceFile.ReadAsync(buffer, 0, buffer.Length, cts.Token) > 0)
                     {
-                        var frame = new EthernetFrame(buffer, true);
+                        var frame = EthernetFrame.CreateEthernetFrameWithCRC(buffer);
                         Link.TransmitFrameFromInterface(frame);
-                        this.NoisyLog("Frame of length {0} received from host.", frame.Length);
+                        this.NoisyLog("Frame of length {0} received from host.", frame.Bytes.Length);
                     }
                 }
                 catch(IOException)
