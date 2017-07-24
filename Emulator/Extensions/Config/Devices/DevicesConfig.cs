@@ -265,12 +265,12 @@ namespace Emul8.Config.Devices
                         {
                             foreach(var irqEntry in sourceIrqs)
                             {
-                                InitializeGPIO(sourcePeripheral, gpioReceiver, irqEntry.ToDynamic(), defaultConnector);
+                                InitializeGPIO(sourcePeripheral, device.Name, gpioReceiver, irqEntry.ToDynamic(), defaultConnector);
                             }
                         }
                         else
                         {
-                            InitializeGPIO(sourcePeripheral, gpioReceiver, ((JsonArray)sourceIrqs).ToDynamic(), defaultConnector);
+                            InitializeGPIO(sourcePeripheral, device.Name, gpioReceiver, ((JsonArray)sourceIrqs).ToDynamic(), defaultConnector);
                         }
                     }
                     catch(ArgumentException)
@@ -336,12 +336,12 @@ namespace Emul8.Config.Devices
                         {
                             foreach(var irqEntry in controllerIrqs)
                             {
-                                InitializeGPIO(device.Peripheral, receiver, irqEntry.ToDynamic(), defaultConnector);
+                                InitializeGPIO(device.Peripheral, device.Name, receiver, irqEntry.ToDynamic(), defaultConnector);
                             }
                         }
                         else
                         {
-                            InitializeGPIO(device.Peripheral, receiver, ((JsonArray)controllerIrqs).ToDynamic(), defaultConnector);
+                            InitializeGPIO(device.Peripheral, device.Name, receiver, ((JsonArray)controllerIrqs).ToDynamic(), defaultConnector);
                         }
                     }
                     catch(ArgumentException)
@@ -353,7 +353,7 @@ namespace Emul8.Config.Devices
         }
 
         //[source,dest] or [dest] with non-null defaultConnector
-        void InitializeGPIO(IPeripheral device, IGPIOReceiver receiver, IList<int> irqEntry, PropertyInfo defaultConnector)
+        void InitializeGPIO(IPeripheral device, string deviceName, IGPIOReceiver receiver, IList<int> irqEntry, PropertyInfo defaultConnector)
         {
             var periByNumber = device as INumberedGPIOOutput;
             if(irqEntry.Count == 2 && periByNumber != null)
@@ -365,8 +365,7 @@ namespace Emul8.Config.Devices
                 var gpioField = defaultConnector.GetValue(device, null) as GPIO;
                 if(gpioField == null)
                 {
-                    defaultConnector.SetValue(device, new GPIO(), null);
-                    gpioField = defaultConnector.GetValue(device, null) as GPIO;
+                    FailDevice(deviceName);
                 }
                 gpioField.Connect(receiver, irqEntry[0]);
             }
@@ -376,7 +375,7 @@ namespace Emul8.Config.Devices
             }
         }
 
-        void InitializeGPIO(IPeripheral device, IGPIOReceiver receiver, IList<object> irqEntry, PropertyInfo defaultConnector)
+        void InitializeGPIO(IPeripheral device, string deviceName, IGPIOReceiver receiver, IList<object> irqEntry, PropertyInfo defaultConnector)
         {
             if(!(irqEntry[0] is string && irqEntry[1] is int))
             {
@@ -391,8 +390,7 @@ namespace Emul8.Config.Devices
             var gpio = connector.GetValue(device, null) as GPIO;
             if(gpio == null)
             {
-                connector.SetValue(device, new GPIO(), null);
-                gpio = connector.GetValue(device, null) as GPIO;
+                FailDevice(deviceName);
             }
             gpio.Connect(receiver, (int)irqEntry[1]);
 
