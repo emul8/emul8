@@ -77,7 +77,7 @@ namespace Emul8.HostInterfaces.Network
             var handle = GCHandle.Alloc(frame.Bytes, GCHandleType.Pinned);
             try
             {
-                var result = LibC.WriteData(stream.Handle, handle.AddrOfPinnedObject(), frame.Length);
+                var result = LibC.WriteData(stream.Handle, handle.AddrOfPinnedObject(), frame.Bytes.Length);
                 if(result == 0)
                 {
                     this.Log(LogLevel.Error,
@@ -238,7 +238,7 @@ namespace Emul8.HostInterfaces.Network
                 {
                     continue;
                 }
-                var ethernetFrame = new EthernetFrame(buffer, true);
+                var ethernetFrame = EthernetFrame.CreateEthernetFrameWithCRC(buffer);
                 Link.TransmitFrameFromInterface(ethernetFrame);
             }
         }

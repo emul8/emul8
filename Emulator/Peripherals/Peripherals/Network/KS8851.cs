@@ -210,7 +210,8 @@ namespace Emul8.Peripherals.Network
                 this.DebugLog("Packet received, LEN {7} {0:x} {1:x} {2:x} {3:x} (...) {4:x} {5:x} {6:x}", request[0], request[1], request[2], request[3], request[currentLength - 5], request[currentLength - 4], request[currentLength - 3], currentLength);
                 var frame = new byte[currentLength];
                 Array.Copy(request, 0, frame, 0, currentLength);
-                var ethernetFrame = new EthernetFrame(frame);
+                //TODO: CRC handling
+                var ethernetFrame = EthernetFrame.CreateEthernetFrameWithoutCRC(frame);
                 Link.TransmitFrameFromInterface(ethernetFrame);
                 mode = Mode.Standard;
                 currentLength = 4;

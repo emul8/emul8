@@ -9,23 +9,53 @@ using System.Linq;
 using Emul8.Core.Structure;
 using System.Net;
 using PacketDotNet;
-using Emul8.Peripherals.Network;
+using PacketDotNet.Utils;
+using System;
+using System.Collections.Generic;
 
 namespace Emul8.Network
 {
     public class EthernetFrame
     {
-        public EthernetFrame(byte[] data, bool externalSource = false)
+        public static EthernetFrame CreateEthernetFrameWithCRC(byte[] data)
         {
-            packet = Packet.ParsePacket(LinkLayers.Ethernet, data);
-            IsFromHost = externalSource;
+            return new EthernetFrame(data, ComputeCRC(data).ToArray());
+        }
+
+        public static EthernetFrame CreateEthernetFrameWithoutCRC(byte[] data)
+        {
+            return new EthernetFrame(data);
+        }
+
+        public static bool CheckCRC(byte[] data)
+        {
+            return CompareCRC(GetCRCFromPacket(data), CalculateCRCFromPayload(data));
+        }
+
+        public void FillWithChecksums(EtherType[] supportedEtherTypes, IPProtocolType[] supportedIpProtocolTypes)
+        {
+            var packetNetIpProtocols = supportedIpProtocolTypes.Select(x => (PacketDotNet.IPProtocolType)x).ToArray();
+            var packetNetEtherTypes = supportedEtherTypes.Select(x => (EthernetPacketType)x).ToArray();
+            packet.RecursivelyUpdateCalculatedValues(packetNetEtherTypes, packetNetIpProtocols);
+        }
+
+        public override string ToString()
+        {
+            return packet.ToString();
         }
 
         public byte[] Bytes
         {
             get
             {
-                return packet.Bytes.ToArray();
+                if(crcPresent)
+                {
+                    return packet.Bytes.Concat(crc).ToArray();
+                }
+                else
+                {
+                    return packet.Bytes.ToArray();
+                }
             }
         }
 
@@ -35,11 +65,6 @@ namespace Emul8.Network
             {
                 return packet.BytesHighPerformance.Length;
             }
-        }
-
-        public override string ToString()
-        {
-            return packet.ToString();
         }
 
         public MACAddress? SourceMAC
@@ -78,19 +103,40 @@ namespace Emul8.Network
             }
         }
 
-        public void FillWithChecksums(EtherType[] supportedEtherTypes, IPProtocolType[] supportedIpProtocolTypes)
+        private EthernetFrame(byte[] data, byte[] crc = null)
         {
-            var packetNetIpProtocols = supportedIpProtocolTypes.Select(x => (PacketDotNet.IPProtocolType)x).ToArray();
-            var packetNetEtherTypes = supportedEtherTypes.Select(x => (EthernetPacketType)x).ToArray();
-            packet.RecursivelyUpdateCalculatedValues(packetNetEtherTypes, packetNetIpProtocols);
+            crcPresent = crc != null;
+            if(crcPresent)
+            {
+                this.crc = crc;
+            }
+            packet = Packet.ParsePacket(LinkLayers.Ethernet, data);
         }
 
-        public bool IsFromHost
-        { 
-            get;
-            private set; 
+        private static IEnumerable<byte> ComputeCRC(byte[] data, int? lenght = null)
+        {
+            var computedCRC = lenght.HasValue? Crc32.Compute(data, 0, lenght.Value) : Crc32.Compute(data);
+            var result = BitConverter.GetBytes(computedCRC);
+            return result.Reverse();
+        }
+
+        private static IEnumerable<byte> CalculateCRCFromPayload(byte[] data)
+        {
+            return ComputeCRC(data, data.Length - 4);
+        }
+
+        private static IEnumerable<byte> GetCRCFromPacket(byte[] data)
+        {
+            return data.Skip(data.Length - 4);
+        }
+
+        private static bool CompareCRC(IEnumerable<byte> receivedCrc, IEnumerable<byte> computedCrc)
+        {
+            return receivedCrc.SequenceEqual(computedCrc);
         }
 
         private readonly Packet packet;
+        private bool crcPresent;
+        private IEnumerable<byte> crc;
     }
 }

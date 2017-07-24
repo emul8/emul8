@@ -733,11 +733,11 @@ namespace Emul8.Utilities
             }
             if(isSend)
             {
-                builder.AppendLine(String.Format("Sending packet from {0}, length: {1}", machName, packet.Length));
+                builder.AppendLine(String.Format("Sending packet from {0}, length: {1}", machName, packet.Bytes.Length));
             }
             else
             {
-                builder.AppendLine(String.Format("Receiving packet on {0}, length: {1}", machName, packet.Length));
+                builder.AppendLine(String.Format("Receiving packet on {0}, length: {1}", machName, packet.Bytes.Length));
             }
             builder.Append(packet.ToString());
             return builder.ToString();

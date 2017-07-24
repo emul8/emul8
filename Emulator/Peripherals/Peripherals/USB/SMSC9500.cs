@@ -319,7 +319,7 @@ namespace Emul8.Peripherals.USB
 
             }
 
-            var frame = new EthernetFrame(packetToSend);
+            var frame = EthernetFrame.CreateEthernetFrameWithCRC(packetToSend);
             Link.TransmitFrameFromInterface(frame);
         }
 
@@ -354,10 +354,8 @@ namespace Emul8.Peripherals.USB
 
                     EthernetFrame receivedFrame = rxPacketQueue.Dequeue();
 
-
-
                     //byte frameBytes []= rxFifo.Dequeue();
-                    var size = receivedFrame.Length;
+                    var size = receivedFrame.Bytes.Length;
                     uint packetSize;
                     //  var packetSize = Math.Max(64, size & ~1); //64 is the minimal length
                     packetSize = (uint)size;
@@ -371,7 +369,6 @@ namespace Emul8.Peripherals.USB
                         //Maybe we should react to overruns. Now we just drop.
                         return null;
                     }
-
 
                     byte[] currentBuffer = new byte[(uint)packetSize];
                     currentBuffer[2] = (byte)((packetSize - 6) & 0xff);
@@ -462,6 +459,13 @@ namespace Emul8.Peripherals.USB
                 {
                     return;
                 }
+
+                if(!EthernetFrame.CheckCRC(frame.Bytes))
+                {
+                    this.Log(LogLevel.Info, "Invalid CRC, packet discarded");
+                    return;
+                }
+
                 rxPacketQueue.Enqueue(frame);
             }
         }
