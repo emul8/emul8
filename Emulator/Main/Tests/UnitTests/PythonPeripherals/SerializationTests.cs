@@ -5,15 +5,13 @@
 // This file is part of the Emul8 project.
 // Full license details are defined in the 'LICENSE' file.
 //
-using System;
-using NUnit.Framework;
+using System.IO;
 using Antmicro.Migrant;
 using Emul8.Core;
-using Emul8.Peripherals.Bus;
 using Emul8.Peripherals.Python;
-using System.IO;
-using IronPython.Runtime;
 using Emul8.Utilities;
+using IronPython.Runtime;
+using NUnit.Framework;
 
 namespace UnitTests.PythonPeripherals
 {
@@ -30,7 +28,7 @@ if request.isInit:
 if request.isRead:
 	request.value = num + len(str)
 ";
-            var pyDev = PythonPeripheral.FromString(source, 100, true);
+            var pyDev = new PythonPeripheral(100, true, script: source);
             var copy = Serializer.DeepClone(pyDev);
             Assert.AreEqual(9, copy.ReadByte(0));
         }
@@ -48,7 +46,7 @@ if request.isRead:
 	if request.offset == 4:
 		request.value = len(some_dict['kitty'])
 ";
-            var pyDev = PythonPeripheral.FromString(source, 100, true);
+            var pyDev = new PythonPeripheral(100, true, script: source);
             var serializer = new Serializer();
             serializer.ForObject<PythonDictionary>().SetSurrogate(x => new PythonDictionarySurrogate(x));
             serializer.ForSurrogate<PythonDictionarySurrogate>().SetObject(x => x.Restore());
@@ -69,7 +67,7 @@ import time
 if request.isRead:
 	request.value = time.localtime().tm_hour
 ";
-            var pyDev = PythonPeripheral.FromString(source, 100, true);
+            var pyDev = new PythonPeripheral(100, true, script: source);
             var copy = Serializer.DeepClone(pyDev);
             Assert.AreEqual(CustomDateTime.Now.Hour, copy.ReadDoubleWord(0), 1);
         }
@@ -84,7 +82,7 @@ if request.isInit:
 if request.isRead:
     request.value = num + len(str)
 ";
-            var pyDev = PythonPeripheral.FromString(source, 100, true);
+            var pyDev = new PythonPeripheral(100, true, script: source);
             var sysbus = machine.SystemBus;
             sysbus.Register(pyDev, new Emul8.Peripherals.Bus.BusRangeRegistration(0x100, 0x10));
 
