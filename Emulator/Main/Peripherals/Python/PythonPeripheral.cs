@@ -9,32 +9,64 @@
 using System;
 using System.IO;
 using Emul8.Core;
-using Emul8.Peripherals.Bus;
-using Microsoft.Scripting.Hosting;
-using Microsoft.Scripting;
-using Emul8.Logging;
-using Emul8.Peripherals.Python;
-using IronPython.Runtime;
 using Emul8.Exceptions;
+using Emul8.Logging;
+using Emul8.Peripherals.Bus;
 using Emul8.UserInterface;
+using IronPython.Runtime;
+using Microsoft.Scripting;
 
 namespace Emul8.Peripherals.Python
 {
+    public static class PythonPeripheralExtensions
+    {
+        public static void PyDevFromFile(this Machine @this, string path, long address, int size, bool initable = false, string name = null, long offset = 0)
+        {
+            var pyDev = new PythonPeripheral(size, initable, filename: path);
+            @this.SystemBus.Register(pyDev, new BusPointRegistration(address, offset));
+            if(!string.IsNullOrEmpty(name))
+            {
+                @this.SetLocalName(pyDev, name);
+            }
+        }
+
+        public static void PyDevFromString(this Machine @this, string script, long address, int size, bool initable = false, string name = null, long offset = 0)
+        {
+            var pyDev = new PythonPeripheral(size, initable, script: script);
+            @this.SystemBus.Register(pyDev, new BusPointRegistration(address, offset));
+            if(!string.IsNullOrEmpty(name))
+            {
+                @this.SetLocalName(pyDev, name);
+            }
+        }
+    }
+
     [Icon("python")]
     public class PythonPeripheral : IBytePeripheral, IWordPeripheral, IDoubleWordPeripheral, IKnownSize, IAbsoluteAddressAware
     {
-        public static PythonPeripheral FromFile(string path, int size, bool initable = false)
+        public PythonPeripheral(int size, bool initable = false, string script = null, string filename = null) 
         {
-            if(!File.Exists(path))
-            {
-                throw new ConstructionException(string.Format("Could not find source file for the script: {0}.", path));
-            }
-            return CreatePeripheral(x => x.CreateScriptSourceFromFile(path), size, initable);
-        }
+            this.size = size;
+            this.initable = initable;
+            this.script = script;
+            this.filename = filename;
 
-        public static PythonPeripheral FromString(string script, int size, bool initable = false)
-        {
-            return CreatePeripheral(x => x.CreateScriptSourceFromString(script), size, initable);
+            if((this.script == null && this.filename == null) || (this.script != null && this.filename != null))
+            {
+                throw new ConstructionException("Parameters `script` and `filename` cannot be both set or both unset.");
+            }
+            if(this.script != null)
+            {
+                this.pythonRunner = new PeripheralPythonEngine(this, x => x.CreateScriptSourceFromString(this.script));
+            }
+            else if(this.filename != null)
+            {
+                if(!File.Exists(this.filename))
+                {
+                    throw new ConstructionException(string.Format("Could not find source file for the script: {0}.", this.filename));
+                }
+                this.pythonRunner = new PeripheralPythonEngine(this, x => x.CreateScriptSourceFromFile(this.filename));
+            }
         }
 
         public void SetAbsoluteAddress(long address)
@@ -115,19 +147,6 @@ namespace Emul8.Peripherals.Python
             }
         }
 
-        private static PythonPeripheral CreatePeripheral(Func<ScriptEngine, ScriptSource> source, int size, bool initable)
-        {
-            var peripheral = new PythonPeripheral(size, initable, source);
-            return peripheral;
-        }
-
-        private PythonPeripheral(int size, bool initable, Func<ScriptEngine, ScriptSource> source)
-        {
-            this.initable = initable;
-            this.size = size;
-            this.pythonRunner = new PeripheralPythonEngine(this, source);
-        }
-
         private void Init()
         {
             if(initable)
@@ -176,36 +195,12 @@ namespace Emul8.Peripherals.Python
             }
         }
 
-        private readonly PeripheralPythonEngine pythonRunner;
-
         private bool inited;
 
+        private readonly PeripheralPythonEngine pythonRunner;
         private readonly bool initable;
         private readonly int size;
+        private readonly string script;
+        private readonly string filename;
     }
-
-    public static class PythonPeripheralExtensions
-    {
-        public static void PyDevFromFile(this Machine @this, string path, long address, int size, bool initable = false, string name = null, long offset = 0)
-        {
-            var pyDev = PythonPeripheral.FromFile(path, size, initable);
-            @this.SystemBus.Register(pyDev, new BusPointRegistration(address, offset));
-            if(!string.IsNullOrEmpty(name))
-            {
-                @this.SetLocalName(pyDev, name);
-            }
-        }
-
-        public static void PyDevFromString(this Machine @this, string script, long address, int size, bool initable = false, string name = null, long offset = 0)
-        {
-            var pyDev = PythonPeripheral.FromString(script, size, initable);
-            @this.SystemBus.Register(pyDev, new BusPointRegistration(address, offset));
-            if(!string.IsNullOrEmpty(name))
-            {
-                @this.SetLocalName(pyDev, name);
-            }
-        }
-    }
-
 }
-
