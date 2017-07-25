@@ -9,6 +9,7 @@ using Xwt;
 using Emul8.Peripherals.UART;
 using AntShell.Terminal;
 using Emul8.Utilities;
+using Emul8.Logging;
 using TermSharp;
 using System.Collections.Generic;
 using TermSharp.Rows;
@@ -59,11 +60,15 @@ namespace Emul8.CLI
             // here we try to load the robot font; unfortunately it is loaded even if there is
             // no such font available; because of that we have to check whether it is in fact
             // the font wanted
-            var robotoFont = Xwt.Drawing.Font.FromName("Roboto Mono").WithSize(10);
-            if(robotoFont.Family.Contains("Roboto Mono"))
+            var fontFace = ConfigurationManager.Instance.Get("termsharp", "font-face", "Roboto Mono");
+            var fontSize = ConfigurationManager.Instance.Get("termsharp", "font-size", (int)PredefinedFontSize, x => x >= MinFontSize);
+            var font = Xwt.Drawing.Font.FromName(fontFace);
+            if(!font.Family.Contains(fontFace))
             {
-                terminal.CurrentFont = robotoFont;
+                Logger.Log(LogLevel.Warning, "Cannot load '{0}' font form config file", fontFace);
+                font = terminal.CurrentFont;
             }
+            terminal.CurrentFont = font.WithSize(fontSize);
 #endif
             if(!FirstWindowAlreadyShown)
             {
@@ -215,5 +220,7 @@ namespace Emul8.CLI
         private Terminal terminal;
         private TerminalIOSource terminalInputOutputSource;
         private const int MinimalBottomMargin = 2;
+        private const double PredefinedFontSize = 10.0;
+        private const double MinFontSize = 1.0;
     }
 }
