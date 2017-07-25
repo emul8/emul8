@@ -34,7 +34,7 @@ namespace Emul8.Utilities
             Config = new ConfigSource(configFile);
         }
 
-        public T Get<T>(string group, string name, T defaultValue)
+        public T Get<T>(string group, string name, T defaultValue, Func<T, bool> validation = null)
         {
             T result;
             if(!TryFindInCache(group, name, out result))
@@ -67,6 +67,10 @@ namespace Emul8.Utilities
                     throw new ConfigurationException("Unsupported type: " + typeof(T));
                 }
                 AddToCache(group, name, result);
+            }
+            if(validation != null && !validation(result))
+            {
+                throw new ConfigurationException(String.Format("Value '{0}' is not valid for entry in section {1}->{2}.", result.ToString(), group, name));
             }
             return result;
         }
