@@ -1,4 +1,4 @@
-﻿//
+﻿﻿//
 // Copyright (c) Antmicro
 //
 // This file is part of the Emul8 project.
@@ -29,21 +29,22 @@ namespace Emul8.CLI
             {
                 return baseResult;
             }
-            imageHeightInLines = (int)Math.Ceiling(image.Height / LineHeight);
-            ceiledImageHeight = imageHeightInLines * LineHeight;
-            ShellProvider.NumberOfDummyLines = imageHeightInLines;
+            targetImageHeight = PreferedHeightInLines * LineHeight;
+            ShellProvider.NumberOfDummyLines = PreferedHeightInLines;
             return baseResult;
         }
 
         public override void Draw(Context ctx, Rectangle selectedArea, SelectionDirection selectionDirection, TermSharp.SelectionMode selectionMode)
         {
+            var scale = targetImageHeight / image.Height;
+            ctx.Scale(scale, scale);
             ctx.DrawImage(image, new Point());
-            ctx.Translate(0, -ceiledImageHeight);
+            ctx.Translate(0, -targetImageHeight);
             base.Draw(ctx, selectedArea, selectionDirection, selectionMode);
         }
 
-        private int imageHeightInLines;
-        private double ceiledImageHeight;
+        private double targetImageHeight;
         private readonly Image image;
+        private const int PreferedHeightInLines = 3;
     }
 }
