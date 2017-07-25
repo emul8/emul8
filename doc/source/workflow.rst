@@ -141,11 +141,11 @@ Firstly, two external interfaces are created: a network switch (named "switch") 
     On Linux, if such an interface is not available, a prompt window will pop-up, requesting the user to provide a password (provided the user is a valid sudoer).
     On OS X the command works in a different way.
     Instead of the host interface name it expects a file representing character device, e.g. ``/dev/tap0``.
-    Those files are, however, normally owned by root and therefore not accessible when Emul8 is not run by the root user.
+    Those files are, however, normally owned by root and therefore not accessible when Emul8 is not ran by the root user.
     It is recommended to create a new character device file (using ``mknod``) and change its ownership to the normal user.
     When no path is given to the command (e.g. ``tap0``), the path stored in the Emul8`s config file (section ``tap``, name ``tap-device-path``) is applied.
-    The default value of this configuration entry is the home directory.
-    So, if user create a character device file in its home directory and name it ``tap0``, he can use the command as in the example above.
+    The default value of this configuration entry points to the home directory.
+    So, if the user creates a character device file in its home directory and names it ``tap0``, he can use the command as in the example above.
 
 Please note that after the creation of these interfaces they are available as emulation objects, so they are accessed without double quotes in subsequent commands.
 
