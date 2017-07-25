@@ -11,6 +11,7 @@ using System;
 using Emul8.Logging;
 using System.Collections.Generic;
 using System.Linq;
+using Emul8.Exceptions;
 
 namespace Emul8.Utilities
 {
@@ -56,14 +57,14 @@ namespace Emul8.Utilities
                     var value = Get<string>(group, name, defaultValue.ToString());
                     if(!Enum.IsDefined(typeof(T), value))
                     {
-                        throw new ArgumentException(String.Format("Could not apply value {0} for type {1}. Verify your configuration file {5} in section {2}->{3}. Available options are: {4}.", 
+                        throw new ConfigurationException(String.Format("Could not apply value '{0}' for type {1}. Verify your configuration file {5} in section {2}->{3}. Available options are: {4}.",
                                     value, typeof(T).Name, group, name, Enum.GetNames(typeof(T)).Aggregate((x, y) => x + ", " + y), Config.FileName));
                     }
                     result = (T)Enum.Parse(typeof(T), value);
                 }
                 else
                 {
-                    throw new ArgumentException("Unsupported type: " + typeof(T));
+                    throw new ConfigurationException("Unsupported type: " + typeof(T));
                 }
                 AddToCache(group, name, result);
             }

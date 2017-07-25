@@ -382,6 +382,7 @@
     <Compile Include="Core\INetworkLog.cs" />
     <Compile Include="Core\INetworkLogSwitch.cs" />
     <Compile Include="Core\INetworkLogWireless.cs" />
+    <Compile Include="Exceptions\ConfigurationException.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup />
