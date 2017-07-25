@@ -4,11 +4,8 @@
 // This file is part of the Emul8 project.
 // Full license details are defined in the 'LICENSE' file.
 //
-using System;
-using System.Linq;
 using Emul8.UserInterface;
 using TermSharp;
-using TermSharp.Misc;
 using TermSharp.Rows;
 using Xwt;
 using Xwt.Drawing;
