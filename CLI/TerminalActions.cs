@@ -1,4 +1,4 @@
-﻿//
+﻿﻿//
 // Copyright (c) Antmicro
 //
 // This file is part of the Emul8 project.
@@ -45,7 +45,7 @@ namespace Emul8.CLI
 
         private void SetDefaultFontSize()
         {
-            var newSize = 10.0;
+            var newSize = defaultFontSize;
             terminal.CurrentFont = terminal.CurrentFont.WithSize(newSize);
         }
     }

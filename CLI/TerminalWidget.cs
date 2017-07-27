@@ -62,14 +62,14 @@ namespace Emul8.CLI
             // no such font available; because of that we have to check whether it is in fact
             // the font wanted
             var fontFace = ConfigurationManager.Instance.Get("termsharp", "font-face", "Roboto Mono");
-            var fontSize = ConfigurationManager.Instance.Get("termsharp", "font-size", (int)PredefinedFontSize, x => x >= MinFontSize);
+            defaultFontSize = ConfigurationManager.Instance.Get("termsharp", "font-size", (int)PredefinedFontSize, x => x >= MinFontSize);
             var font = Xwt.Drawing.Font.FromName(fontFace);
             if(!font.Family.Contains(fontFace))
             {
                 Logger.Log(LogLevel.Warning, "Cannot load '{0}' font form config file", fontFace);
                 font = terminal.CurrentFont;
             }
-            terminal.CurrentFont = font.WithSize(fontSize);
+            terminal.CurrentFont = font.WithSize(defaultFontSize);
 #endif
             if(!FirstWindowAlreadyShown)
             {
@@ -208,6 +208,7 @@ namespace Emul8.CLI
         private bool modifyLineEndings;
         private bool firstWindow;
         private static bool FirstWindowAlreadyShown;
+        private double defaultFontSize;
         private Terminal terminal;
         private TerminalIOSource terminalInputOutputSource;
         private const int MinimalBottomMargin = 2;
