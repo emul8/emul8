@@ -1,4 +1,4 @@
-﻿//
+﻿﻿//
 // Copyright (c) Antmicro
 //
 // This file is part of the Emul8 project.
@@ -35,6 +35,7 @@ namespace Emul8.CLI
                 {CreateKey(Key.NumPad0, ModifierKeys.Control), SetDefaultFontSize}
             };
 
+            modifyLineEndings = ConfigurationManager.Instance.Get("termsharp", "append-CR-to-LF", false);
             terminal = new Terminal(focusProvider);
             terminalInputOutputSource = new TerminalIOSource(terminal);
             IO = new IOProvider(terminalInputOutputSource);
@@ -42,7 +43,7 @@ namespace Emul8.CLI
             {
                 // we do not check if previous byte was '\r', because it should not cause any problem to 
                 // send it twice
-                if(ModifyLineEndings && b == '\n')
+                if(modifyLineEndings && b == '\n')
                 {
                     IO.Write((byte)'\r');
                 }
@@ -119,25 +120,9 @@ namespace Emul8.CLI
             backend.BindAnalyzer(IO);
         }
 
-        public TerminalWidget(UARTBackend backend, Func<bool> focusProvider, Func<TerminalWidget, MenuItem[]> menuItemProvider) : this(backend, focusProvider)
-        {
-            additionalMenuItemProvider = menuItemProvider;
-            terminal.ContextMenu = CreatePopupMenu();
-        }
-
         public void Clear()
         {
             terminal.Clear();
-        }
-
-        public bool ModifyLineEndings
-        {
-            get { return modifyLineEndings; }
-            set
-            {
-                modifyLineEndings = value;
-                terminal.ContextMenu = CreatePopupMenu();
-            }
         }
 
         public event Action Initialized
@@ -197,13 +182,14 @@ namespace Emul8.CLI
             };
             popup.Items.Add(pasteItem);
 
-            if(additionalMenuItemProvider != null)
+            var lineEndingsItem = new MenuItem(lineEndingsDictionary[!modifyLineEndings]);
+            lineEndingsItem.Clicked += delegate
             {
-                foreach(var item in additionalMenuItemProvider(this))
-                {
-                    popup.Items.Add(item);
-                }
-            }
+                modifyLineEndings = !modifyLineEndings;
+                lineEndingsItem.Label = lineEndingsDictionary[!modifyLineEndings];
+                ConfigurationManager.Instance.Set("termsharp", "append-CR-to-LF", modifyLineEndings);
+            };
+            popup.Items.Add(lineEndingsItem);
 
             return popup;
         }
@@ -213,9 +199,14 @@ namespace Emul8.CLI
             return new KeyEventArgs(key, modifierKeys, false, 0);
         }
 
-        private readonly Func<TerminalWidget, MenuItem[]> additionalMenuItemProvider;
+        private Dictionary<bool, string> lineEndingsDictionary = new Dictionary<bool, string>
+        {
+            {true, "Append '\\r' to line ending"},
+            {false, "Do not append '\\r' to line ending"}
+        };
+
         private bool modifyLineEndings;
-        private bool firstWindow;   
+        private bool firstWindow;
         private static bool FirstWindowAlreadyShown;
         private Terminal terminal;
         private TerminalIOSource terminalInputOutputSource;

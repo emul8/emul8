@@ -63,6 +63,16 @@ namespace Emul8.CLI
             }
         }
 
+        public void DetachConsoleWindow()
+        {
+            if(Backend != null)
+            {
+                ((UARTBackend)Backend).UnbindAnalyzer(IO);
+                Backend = null;
+            }
+            Hide();
+        }
+
         public void Show()
         {
 #if !EMUL8_PLATFORM_WINDOWS
@@ -79,7 +89,11 @@ namespace Emul8.CLI
                     window.Content = terminalWidget;
                     terminalWidget.Initialized += mre.Set;
                     window.Show();
-                    window.Closed += (sender, e) => OnClose();
+                    window.Closed += (sender, e) => 
+                    { 
+                        DetachConsoleWindow(); 
+                        OnClose(); 
+                    };
                     if(NextWindowLocation != default(Point))
                     {
                         window.Location = NextWindowLocation;
