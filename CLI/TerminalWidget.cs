@@ -105,12 +105,6 @@ namespace Emul8.CLI
             backend.BindAnalyzer(IO);
         }
 
-        public TerminalWidget(UARTBackend backend, Func<bool> focusProvider, Func<TerminalWidget, MenuItem[]> menuItemProvider) : this(backend, focusProvider)
-        {
-            additionalMenuItemProvider = menuItemProvider;
-            terminal.ContextMenu = CreatePopupMenu();
-        }
-
         public void Clear()
         {
             terminal.Clear();
