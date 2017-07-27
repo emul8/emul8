@@ -10,11 +10,8 @@ using Emul8.Peripherals.UART;
 using AntShell.Terminal;
 using Emul8.Utilities;
 using TermSharp;
-using System.Threading;
-using TermSharp.Vt100;
 using System.Text;
 using System.Collections.Generic;
-using System.IO;
 using TermSharp.Rows;
 
 namespace Emul8.CLI
@@ -23,6 +20,7 @@ namespace Emul8.CLI
     {
         public TerminalWidget(Func<bool> focusProvider)
         {
+            modifyLineEndings = ConfigurationManager.Instance.Get("termsharp", "append-CR-to-LF", false);
             terminal = new Terminal(focusProvider);
             terminalInputOutputSource = new TerminalIOSource(terminal);
             IO = new IOProvider(terminalInputOutputSource);
@@ -30,7 +28,7 @@ namespace Emul8.CLI
             {
                 // we do not check if previous byte was '\r', because it should not cause any problem to 
                 // send it twice
-                if(ModifyLineEndings && b == '\n')
+                if(modifyLineEndings && b == '\n')
                 {
                     IO.Write((byte)'\r');
                 }
@@ -110,16 +108,6 @@ namespace Emul8.CLI
             terminal.Clear();
         }
 
-        public bool ModifyLineEndings
-        { 
-            get { return modifyLineEndings; }
-            set
-            { 
-                modifyLineEndings = value; 
-                terminal.ContextMenu = CreatePopupMenu(); 
-            }
-        }
-
         public event Action Initialized
         {
             add
@@ -186,22 +174,29 @@ namespace Emul8.CLI
             };
             popup.Items.Add(pasteItem);
 
-            if(additionalMenuItemProvider != null)
+            var lineEndingsItem = new MenuItem(lineEndingsDictionary[!modifyLineEndings]);
+            lineEndingsItem.Clicked += delegate
             {
-                foreach(var item in additionalMenuItemProvider(this))
-                {
-                    popup.Items.Add(item);
-                }
-            }
+                modifyLineEndings = !modifyLineEndings;
+                lineEndingsItem.Label = lineEndingsDictionary[!modifyLineEndings];
+                ConfigurationManager.Instance.Set("termsharp", "append-CR-to-LF", modifyLineEndings);
+            };
+            popup.Items.Add(lineEndingsItem);
 
             return popup;
         }
 
-        private readonly Func<TerminalWidget, MenuItem[]> additionalMenuItemProvider;
-        private readonly Terminal terminal;
-        private readonly TerminalIOSource terminalInputOutputSource;
+        private Dictionary<bool, string> lineEndingsDictionary = new Dictionary<bool, string>
+        {
+            {true, "Append '\\r' to line ending"},
+            {false, "Do not append '\\r' to line ending"}
+        };
+
         private bool modifyLineEndings;
         private bool firstWindow;
+
+        private readonly Terminal terminal;
+        private readonly TerminalIOSource terminalInputOutputSource;
 
         private static bool FirstWindowAlreadyShown;
 
