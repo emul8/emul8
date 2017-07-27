@@ -7,6 +7,7 @@
 //
 using System;
 using Emul8.Utilities.Collections;
+using System.Collections.Generic;
 using AntShell.Terminal;
 using System.Threading.Tasks;
 using Antmicro.Migrant;
@@ -19,6 +20,7 @@ namespace Emul8.Peripherals.UART
         public UARTBackend()
         {
             history = new CircularBuffer<byte>(BUFFER_SIZE);
+            actionsDictionary = new Dictionary<IOProvider, Action<byte>>();
         }
 
         public void Attach(IUART uart)
@@ -54,10 +56,19 @@ namespace Emul8.Peripherals.UART
                     mre.Set();
                     RepeatHistory();
                     UART.CharReceived += writeAction;
+                    actionsDictionary.Add(io, writeAction);
                 }
             });
             mre.Wait();
         }
+
+        public void UnbindAnalyzer(IOProvider io)
+        {
+            lock(lockObject)
+            {
+                UART.CharReceived -= actionsDictionary[io];
+                actionsDictionary.Remove(io);
+            }
         }
 
         public IUART UART { get; private set; }
@@ -82,6 +93,7 @@ namespace Emul8.Peripherals.UART
 
         [Transient]
         private IOProvider io;
+        private Dictionary<IOProvider, Action<byte>> actionsDictionary;
         private readonly CircularBuffer<byte> history;
         private object lockObject= new object();
 
