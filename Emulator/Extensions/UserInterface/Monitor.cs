@@ -793,6 +793,10 @@ namespace Emul8.UserInterface
 
         private static string StripPrefix(string path, string prefix)
         {
+            if(String.IsNullOrEmpty(prefix))
+            {
+                return path;
+            }
             return path.StartsWith(prefix, StringComparison.Ordinal) ? path.Substring(prefix.Length + (prefix.EndsWith(Path.DirectorySeparatorChar) ? 0 : 1)) : path;
         }
 
