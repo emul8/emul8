@@ -40,33 +40,40 @@ namespace Emul8.Utilities
             if(!TryFindInCache(group, name, out result))
             {
                 var config = VerifyValue(group, name, defaultValue);
-                if(typeof(T) == typeof(int))
+                try
                 {
-                    result = (T)(object)config.GetInt(name);
-                }
-                else if(typeof(T) == typeof(string))
-                {
-                    result = (T)(object)config.GetString(name);
-                }
-                else if(typeof(T) == typeof(bool))
-                {
-                    result = (T)(object)config.GetBoolean(name);
-                }
-                else if(typeof(T).IsEnum)
-                {
-                    var value = Get<string>(group, name, defaultValue.ToString());
-                    if(!Enum.IsDefined(typeof(T), value))
+                    if(typeof(T) == typeof(int))
                     {
-                        throw new ConfigurationException(String.Format("Could not apply value '{0}' for type {1}. Verify your configuration file {5} in section {2}->{3}. Available options are: {4}.",
-                                    value, typeof(T).Name, group, name, Enum.GetNames(typeof(T)).Aggregate((x, y) => x + ", " + y), Config.FileName));
+                        result = (T)(object)config.GetInt(name);
                     }
-                    result = (T)Enum.Parse(typeof(T), value);
+                    else if(typeof(T) == typeof(string))
+                    {
+                        result = (T)(object)config.GetString(name);
+                    }
+                    else if(typeof(T) == typeof(bool))
+                    {
+                        result = (T)(object)config.GetBoolean(name);
+                    }
+                    else if(typeof(T).IsEnum)
+                    {
+                        var value = Get<string>(group, name, defaultValue.ToString());
+                        if(!Enum.IsDefined(typeof(T), value))
+                        {
+                            throw new ConfigurationException(String.Format("Could not apply value '{0}' for type {1}. Verify your configuration file {5} in section {2}->{3}. Available options are: {4}.",
+                                        value, typeof(T).Name, group, name, Enum.GetNames(typeof(T)).Aggregate((x, y) => x + ", " + y), Config.FileName));
+                        }
+                        result = (T)Enum.Parse(typeof(T), value);
+                    }
+                    else
+                    {
+                        throw new ConfigurationException("Unsupported type: " + typeof(T));
+                    }
+                    AddToCache(group, name, result);
                 }
-                else
+                catch(FormatException)
                 {
-                    throw new ConfigurationException("Unsupported type: " + typeof(T));
+                    throw new ConfigurationException(String.Format("Field {0}->{1} is not of type {2}.", group, name, typeof(T).Name));
                 }
-                AddToCache(group, name, result);
             }
             if(validation != null && !validation(result))
             {
