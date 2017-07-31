@@ -32,7 +32,7 @@ namespace Emul8.Hooks
         [PostDeserialization]
         private void InnerInit()
         {
-            Scope.SetVariable("machine", Machine);
+            Scope.SetVariable(Machine.MachineKeyword, Machine);
             Scope.SetVariable("self", Machine);
             Source = new Lazy<ScriptSource>(() => Engine.CreateScriptSourceFromString(Script));
         }

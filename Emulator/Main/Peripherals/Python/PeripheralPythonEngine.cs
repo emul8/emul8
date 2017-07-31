@@ -35,7 +35,7 @@ namespace Emul8.Peripherals.Python
             "size",
             "logger",
             "LogLevel",
-            "machine"
+            Machine.MachineKeyword
         };
 
         private void InitScope(ScriptSource script)
@@ -77,7 +77,7 @@ namespace Emul8.Peripherals.Python
         public void SetSysbusAndMachine(SystemBus bus)
         {
             Scope.SetVariable("sysbus", bus);
-            Scope.SetVariable("machine", bus.Machine);
+            Scope.SetVariable(Machine.MachineKeyword, bus.Machine);
         }
 
         [Transient]

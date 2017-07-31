@@ -41,7 +41,7 @@ namespace Emul8.Hooks
         [PostDeserialization]
         private void InnerInit()
         {
-            Scope.SetVariable("machine", Machine);
+            Scope.SetVariable(Machine.MachineKeyword, Machine);
             Scope.SetVariable("cpu", CPU);
             Scope.SetVariable("self", CPU);
             Source = new Lazy<ScriptSource>(() => Engine.CreateScriptSourceFromString(Script));

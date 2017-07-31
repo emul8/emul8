@@ -195,7 +195,7 @@ namespace Emul8.UserInterface
 
         private void InitCommands()
         {
-            Bind("machine", () => Machine);
+            Bind(Machine.MachineKeyword, () => Machine);
             BindStatic("connector", () => emulationManager.CurrentEmulation.Connector);
             BindStatic("emulation", () => Emulation);
             BindStatic("plugins", () => TypeManager.Instance.PluginManager);

@@ -53,7 +53,7 @@ namespace Emul8.Hooks
         {
             Scope.SetVariable("self", Peripheral);
             Scope.SetVariable("sysbus", Sysbus);
-            Scope.SetVariable("machine", Sysbus.Machine);
+            Scope.SetVariable(Machine.MachineKeyword, Sysbus.Machine);
 
             ReadSource = new Lazy<ScriptSource>(() => Engine.CreateScriptSourceFromString(ReadScript));
             WriteSource = new Lazy<ScriptSource>(() => Engine.CreateScriptSourceFromString(WriteScript));

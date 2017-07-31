@@ -41,7 +41,7 @@ namespace Emul8.UserInterface
         {
             public ExecutorPythonEngine(Machine machine, string script)
             {
-                Scope.SetVariable("machine", machine);
+                Scope.SetVariable(Machine.MachineKeyword, machine);
                 Scope.SetVariable("self", machine);
 
                 source = new Lazy<ScriptSource>(() => Engine.CreateScriptSourceFromString(script));

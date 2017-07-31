@@ -191,7 +191,7 @@ namespace Emul8.Core
                 var counter = 0;
                 do
                 {
-                    name = string.Format("{0}-{1}", platform != null ? platform.Name : NamePrefix, counter);
+                    name = string.Format("{0}-{1}", platform != null ? platform.Name : Machine.MachineKeyword, counter);
                     counter++;
                 }
                 while(machs.Exists(name) || (reserved != null && reserved.Contains(name)));
@@ -579,7 +579,6 @@ namespace Emul8.Core
         private readonly FastReadConcurrentTwoWayDictionary<string, Machine> machs;
 
         private const int NameCacheSize = 100;
-        private const string NamePrefix = "machine";
 
         private class PausedState : IDisposable
         {

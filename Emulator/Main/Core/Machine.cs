@@ -736,6 +736,7 @@ namespace Emul8.Core
         public const char PathSeparator = '.';
         public const string SystemBusName = "sysbus";
         public const string UnnamedPeripheral = "[no-name]";
+        public const string MachineKeyword = "machine";
 
         private void InnerUnregisterFromParent(IPeripheral peripheral)
         {
