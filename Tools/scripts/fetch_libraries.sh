@@ -35,7 +35,7 @@ git clone $REMOTE "$DIR"
 ln -s "$DIR/Lib" "$ROOT_PATH/../../External/Lib"
 ln -s "$DIR/Tools" "$ROOT_PATH/../../External/Tools"
 pushd "$ROOT_PATH/../../Emulator/LLVMDisassembler/Resources" >/dev/null
-ln -s "../../../External/$DIR/llvm/*" .
+ln -s "$DIR/llvm/"* .
 popd >/dev/null
 
 touch "$GUARD"
