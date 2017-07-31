@@ -4,10 +4,6 @@ mkdir -p $DIR/{bin,licenses}
 #copy the main content
 cp -r $BASE/output/$TARGET/*.{dll,exe,dll.config} $DIR/bin
 cp -r $BASE/{scripts,platforms,.emul8root} $DIR
-cp $BASE/RobotFrontend/*robot $DIR/bin
-
-sed -i.bak 's/cwd=${DIRECTORY}/cwd=${CURDIR}/g' $DIR/bin/*robot
-rm $DIR/bin/*robot.bak
 
 #copy the licenses
 #some files already include the library name

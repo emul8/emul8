@@ -6,6 +6,8 @@ set -u
 #change dir to script location
 cd "${0%/*}"
 
+MONOVERSION = "5.0"
+
 TARGET="Release"
 BASE=../..
 
@@ -104,7 +106,7 @@ GENERAL_FLAGS=(\
 
 ### create debian package
 fpm -s dir -t deb\
-    -d 'mono-complete >= 4.6' -d gtk-sharp2 -d screen -d gksu\
+    -d "mono-complete >= $MONOVERSION" -d gtk-sharp2 -d screen -d gksu\
     --deb-no-default-config-files\
     "${GENERAL_FLAGS[@]}" >/dev/null
 
@@ -116,7 +118,7 @@ mv $deb $OUTPUT/deb
 
 ### create rpm package
 fpm -s dir -t rpm\
-    -d 'mono-complete >= 4.6' -d gtk-sharp2 -d screen -d beesu\
+    -d 'mono-complete >= $MONOVERSION' -d gtk-sharp2 -d screen -d beesu\
     --rpm-dist $RPM_MIN_DIST\
     --rpm-auto-add-directories\
     "${GENERAL_FLAGS[@]}" >/dev/null
