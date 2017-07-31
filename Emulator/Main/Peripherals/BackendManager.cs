@@ -41,7 +41,7 @@ namespace Emul8.Peripherals
                 return new string[0];
             }
 
-            return analyzers[backend.GetType()].Where(x => x.Item2).Select(x => (IAnalyzableBackendAnalyzer)Activator.CreateInstance(x.Item1)).Select(y => y.GetType().FullName);
+            return analyzers[backend.GetType()].Where(x => x.Item2).Select(x => x.Item1.FullName);
         }
 
         public void SetPreferredAnalyzer(Type backendType, Type analyzerType)
