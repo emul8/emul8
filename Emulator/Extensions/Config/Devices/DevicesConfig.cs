@@ -53,7 +53,7 @@ namespace Emul8.Config.Devices
                 }
                 if(e.InnerException != null)
                 {
-                    msg.Append(String.Format("{1}. ", e.InnerException.GetType().Name, e.InnerException.Message));
+                    msg.Append(String.Format("{0}. ", e.InnerException.Message));
                 }
                 if(!(e is RecoverableException))
                 {
@@ -66,7 +66,7 @@ namespace Emul8.Config.Devices
         private static Type GetDeviceTypeFromName(string typeName)
         {
             var extendedTypeName = typeName.StartsWith(DefaultNamespace, StringComparison.Ordinal) ? typeName : DefaultNamespace + typeName;
-            
+
             var manager = TypeManager.Instance;
             return manager.TryGetTypeByName(typeName) ?? manager.TryGetTypeByName(extendedTypeName);
         }
@@ -142,7 +142,7 @@ namespace Emul8.Config.Devices
                 FailDevice(info.Name, TYPE_NODE);
             }
             var typeName = (string)devContent[TYPE_NODE];
-            
+
             var devType = GetDeviceTypeFromName(typeName);
             if(devType == null)
             {
@@ -210,7 +210,7 @@ namespace Emul8.Config.Devices
         }
 
         private void InitializeGPIOsFrom(DeviceInfo device)
-        {           
+        {
             foreach(var nodeName in device.IrqsFrom.Keys)
             {
                 var gpioReceiver = device.Peripheral as IGPIOReceiver;
@@ -223,7 +223,7 @@ namespace Emul8.Config.Devices
                 if(irqs == null)
                 {
                     FailDevice(device.Name, nodeName);
-                }               
+                }
 
                 foreach(var source in irqs.Keys)
                 {
@@ -251,7 +251,7 @@ namespace Emul8.Config.Devices
                     }
 
                     var props = sourcePeripheral.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance);
-                    var connectors = props 
+                    var connectors = props
                         .Where(x => typeof(GPIO).IsAssignableFrom(x.PropertyType)).ToArray();
                     PropertyInfo defaultConnector = null;
                     if(connectors.Count() == 1)
@@ -291,14 +291,14 @@ namespace Emul8.Config.Devices
                     FailDevice(device.Name, nodeName);
                 }
                 var props = device.Peripheral.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance);
-                var connectors = props 
+                var connectors = props
                 .Where(x => typeof(GPIO).IsAssignableFrom(x.PropertyType)).ToArray();
                 PropertyInfo defaultConnector = null;
                 if(connectors.Count() == 1)
                 {
                     defaultConnector = connectors.First();
                 }
-                
+
                 foreach(var controller in irqs.Keys)
                 {
                     var controllerIrqs = irqs[controller] as List<dynamic>;
@@ -314,9 +314,9 @@ namespace Emul8.Config.Devices
                     }
 
                     IGPIOReceiver receiver;
-               
+
                     var fromList = deviceList.SingleOrDefault(x => x.Name == controllerElements[0]);
-               
+
                     if(fromList != null && fromList.Peripheral is IGPIOReceiver)
                     {
                         receiver = (IGPIOReceiver)fromList.Peripheral;
@@ -329,7 +329,7 @@ namespace Emul8.Config.Devices
                     {
                         receiver = ((ILocalGPIOReceiver)receiver).GetLocalReceiver(int.Parse(controllerElements[1]));
                     }
-               
+
                     try
                     {
                         if(controllerIrqs.All(x => x is JsonArray))
@@ -495,7 +495,7 @@ namespace Emul8.Config.Devices
                                 parents.Add(conn, candidate);
                             }
                         }
-                    
+
                         var canBeRegistered = parents.All(x => machine.IsRegistered(x.Value));
                         if(canBeRegistered)
                         {
@@ -606,7 +606,7 @@ namespace Emul8.Config.Devices
                     foreach(var iface in ifaceCandidates)
                     {
                         var iRegPoint = iface.GetGenericArguments()[1];
-                        Type objType; 
+                        Type objType;
                         if(formalType != null && iRegPoint.IsAssignableFrom(formalType))
                         {
                             objType = formalType;
@@ -627,7 +627,7 @@ namespace Emul8.Config.Devices
                         regPoint = (IRegistrationPoint)regPointObject;
                         foundIface = iface;
                         break;
-                        //is a construable type 
+                        //is a construable type
                     }
                     if(foundIface == null)
                     {
@@ -640,7 +640,7 @@ namespace Emul8.Config.Devices
                             device.Peripheral,
                             regPoint
                         }
-                        );                      
+                        );
                     }
                 }
             }
@@ -653,7 +653,7 @@ namespace Emul8.Config.Devices
             {
                 return true;
             }
-            
+
             return false;
         }
 
@@ -726,7 +726,7 @@ namespace Emul8.Config.Devices
                     sortedParams.Add(ctorParam.Name, ctorParam.DefaultValue);
                 }
             }
-            var paramsArray = sortedParams.Values.ToArray();    
+            var paramsArray = sortedParams.Values.ToArray();
             try
             {
                 constructedObject = Dynamic.InvokeConstructor(devType, paramsArray);
@@ -757,7 +757,7 @@ namespace Emul8.Config.Devices
                     return parameters[1];
                 }
             }
-            return Dynamic.InvokeConvert(value, type, true);            
+            return Dynamic.InvokeConvert(value, type, true);
         }
 
         private dynamic GenerateObject(IDictionary<string, dynamic> value, Type type)
@@ -782,7 +782,7 @@ namespace Emul8.Config.Devices
             {
                 innerType = type.GetElementType();
             }
-               
+
             var list = isArray ? Dynamic.InvokeConstructor(typeof(List<>).MakeGenericType(innerType)) : Dynamic.InvokeConstructor(type);
             foreach(var item in value)
             {
@@ -813,13 +813,13 @@ namespace Emul8.Config.Devices
                 {
                     continue;
                 }
-                
+
                 // every argument in ctor must either be present in 'parameters' or set to default
                 foreach(var param in ctorParams)
                 {
                     if(!parameters.Contains(param.Name))
                     {
-                        
+
                         if(!param.IsOptional && param.ParameterType != typeof(Machine))
                         {
                             unusableFound = true;
@@ -836,7 +836,7 @@ namespace Emul8.Config.Devices
         }
 
         private readonly Machine machine;
-		
+
         private const string TYPE_NODE = "_type";
         private const string IRQ_NODE = "_irq";
         private const string GPIO_NODE = "_gpio";
