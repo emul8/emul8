@@ -666,8 +666,11 @@ namespace Emul8.Config.Devices
                 instance = null;
                 return false;
             }
-            instance = Dynamic.InvokeGet(InvokeContext.CreateStatic(type), desiredProperty.Name);
-            // instance = desiredProperty.GetGetMethod().Invoke(null, Type.EmptyTypes);
+            // We have to use reflection-based approach because of a bug in Mono 5.2:
+            // https://bugzilla.xamarin.com/show_bug.cgi?id=58455
+            //
+            //instance = Dynamic.InvokeGet(InvokeContext.CreateStatic(type), desiredProperty.Name);
+            instance = desiredProperty.GetGetMethod().Invoke(null, Type.EmptyTypes);
             return true;
         }
 
