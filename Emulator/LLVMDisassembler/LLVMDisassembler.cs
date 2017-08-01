@@ -67,7 +67,7 @@ namespace Emul8.Disassembler.LLVM
         private static readonly Dictionary<string, string> SupportedArchitectures = new Dictionary<string, string>
         {
             { "arm",    "armv7a"    },
-            { "arm-m",  "armv7a"    },
+            { "arm-m",  "thumb"     },
             { "mips",   "mipsel"    },
             { "i386",   "i386"      }
         };
