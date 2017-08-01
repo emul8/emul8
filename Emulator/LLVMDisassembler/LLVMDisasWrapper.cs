@@ -105,6 +105,13 @@ namespace Emul8.Disassembler.LLVM
                 strBldr.AppendFormat("{0:x2} ", data[position + i]);
             }
 
+            //This is a sane minimal length, based on some different binaries for quark.
+            //X86 instructions do not have the upper limit of lenght, so we have to approximate.
+            for (var j = i; j < 7; ++j)
+            {
+                strBldr.Append("   ");
+            }
+
             return i == bytes;
         }
 
