@@ -6,18 +6,18 @@ Emul8 runs in the portable *mono* framework. It was specifically tested on Mac a
 Prerequisites (Mac)
 -------------------
 
-The installation procedure on Mac is fairly straightforward, as you can use `an official 4.2.3 Mono release <http://download.mono-project.com/archive/4.2.3/macos-10-x86/MonoFramework-MDK-4.2.3.4.macos10.xamarin.x86.pkg>`_.
+The installation procedure on Mac is fairly straightforward, as you can use `an official Mono release <https://download.mono-project.com/archive/mdk-latest-stable.pkg>`_.
 
-If not already present, install `homebrew <http://brew.sh/>`_ and then:: 
+If not already present, install `homebrew <http://brew.sh/>`_ and then::
 
    brew install binutils gnu-sed coreutils homebrew/versions/gcc49 dialog
 
-Some less frequently used features (*tun* networking, advanced logger etc.) will not yet work on a Mac, but Emul8 can easily be used without them. 
+Some less frequently used features (*tun* networking, advanced logger etc.) will not yet work on a Mac, but Emul8 can easily be used without them.
 
 Prerequisites (Linux)
 ---------------------
 
-In order to run the Emul8 framework, *mono* 4.6 or newer is required. To get it, begin with the following commands::
+In order to run the Emul8 framework, *mono* 5.0 or newer is required. To get it, begin with the following commands::
 
    sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF
    echo "deb http://download.mono-project.com/repo/debian wheezy main" | sudo tee /etc/apt/sources.list.d/mono-xamarin.list

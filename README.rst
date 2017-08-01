@@ -23,7 +23,7 @@ Installation
 Prerequisites (Mac)
 +++++++++++++++++++
 
-The installation procedure on Mac is fairly straightforward, as you can use `an official 4.2.3 Mono release <http://download.mono-project.com/archive/4.2.3/macos-10-x86/MonoFramework-MDK-4.2.3.4.macos10.xamarin.x86.pkg>`_.
+The installation procedure on Mac is fairly straightforward, as you can use `an official Mono release <https://download.mono-project.com/archive/mdk-latest-stable.pkg>`_.
 
 If not already present, install `homebrew <http://brew.sh/>`_ and then::
 
@@ -42,7 +42,7 @@ The package names for prerequisites are given for Ubuntu 14.04 (please adjust th
 
 .. note::
 
-   Emul8 requires mono version 4.6 or newer.
+   Emul8 requires mono version 5.0 or newer.
 
 If you want to modify or extend the source code of Emul8, it is recommended to install the *MonoDevelop* IDE.
 
