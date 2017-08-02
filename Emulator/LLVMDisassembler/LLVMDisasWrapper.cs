@@ -8,6 +8,7 @@
 using System;
 using System.Runtime.InteropServices;
 using System.Text;
+using Emul8.Exceptions;
 
 namespace Emul8.Disassembler.LLVM
 {
@@ -19,16 +20,23 @@ namespace Emul8.Disassembler.LLVM
             {
                 if (!_llvm_initialized)
                 {
-                    LLVMInitializeARMDisassembler();
-                    LLVMInitializeARMTargetMC();
-                    LLVMInitializeARMTargetInfo();
-                    LLVMInitializeMipsDisassembler();
-                    LLVMInitializeMipsTargetMC();
-                    LLVMInitializeMipsTargetInfo();
-                    LLVMInitializeX86Disassembler();
-                    LLVMInitializeX86TargetMC();
-                    LLVMInitializeX86TargetInfo();
-                    _llvm_initialized = true;
+                    try
+                    {
+                        LLVMInitializeARMDisassembler();
+                        LLVMInitializeARMTargetMC();
+                        LLVMInitializeARMTargetInfo();
+                        LLVMInitializeMipsDisassembler();
+                        LLVMInitializeMipsTargetMC();
+                        LLVMInitializeMipsTargetInfo();
+                        LLVMInitializeX86Disassembler();
+                        LLVMInitializeX86TargetMC();
+                        LLVMInitializeX86TargetInfo();
+                        _llvm_initialized = true;
+                    }
+                    catch (DllNotFoundException e)
+                    {
+                        throw new RecoverableException("Could not find libLLVM.so. Please check in current output directory.");
+                    }
                 }
             }
             context = LLVMCreateDisasmCPU(triple, cpu, IntPtr.Zero, 0, new LLVMOpInfoCallback(OpInfoCallback), new LLVMSymbolLookupCallback(SymbolLoopbackCallback));
