@@ -53,14 +53,16 @@ namespace Emul8.CLI
             terminal.Cursor.Enabled = true;
             terminal.ContextMenu = CreatePopupMenu();
 
-#if EMUL8_PLATFORM_WINDOWS
+            // We set the default font as a fall-back option.
             terminal.CurrentFont = Xwt.Drawing.Font.SystemMonospaceFont;
-#else
+#if EMUL8_PLATFORM_LINUX
+            // Here we try to load the robot font; unfortunately it doesn't work on OSX and Windows. Moreover, on some versions of
+            // OSX it passes with no error (and no effect), on the others - it hangs. That's why we try to set the font and then
+            // we check if we succeeded.
             var fontFile = typeof(TerminalWidget).Assembly.FromResourceToTemporaryFile("RobotoMono-Regular.ttf");
             Xwt.Drawing.Font.RegisterFontFromFile(fontFile);
-            // here we try to load the robot font; unfortunately it is loaded even if there is
-            // no such font available; because of that we have to check whether it is in fact
-            // the font wanted
+
+#endif
             var fontFace = ConfigurationManager.Instance.Get("termsharp", "font-face", "Roboto Mono");
             defaultFontSize = ConfigurationManager.Instance.Get("termsharp", "font-size", (int)PredefinedFontSize, x => x >= MinFontSize);
             var font = Xwt.Drawing.Font.FromName(fontFace);
@@ -70,7 +72,7 @@ namespace Emul8.CLI
                 font = terminal.CurrentFont;
             }
             terminal.CurrentFont = font.WithSize(defaultFontSize);
-#endif
+
             if(!FirstWindowAlreadyShown)
             {
                 terminal.AppendRow(new LogoRow());
