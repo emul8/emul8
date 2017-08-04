@@ -68,7 +68,7 @@ namespace Emul8.CLI
             var font = Xwt.Drawing.Font.FromName(fontFace);
             if(!font.Family.Contains(fontFace))
             {
-                Logger.Log(LogLevel.Warning, "Cannot load '{0}' font form config file", fontFace);
+                Logger.Log(LogLevel.Warning, "The font '{0}' defined in the config file cannot be loaded.", fontFace);
                 font = terminal.CurrentFont;
             }
             terminal.CurrentFont = font.WithSize(defaultFontSize);
