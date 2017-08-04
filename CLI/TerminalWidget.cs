@@ -1,4 +1,4 @@
-﻿﻿//
+﻿//
 // Copyright (c) Antmicro
 //
 // This file is part of the Emul8 project.
@@ -214,7 +214,13 @@ namespace Emul8.CLI
         private Terminal terminal;
         private TerminalIOSource terminalInputOutputSource;
         private const int MinimalBottomMargin = 2;
+
+#if EMUL8_PLATFORM_OSX
+        // Default font size on OSX is slightly larger than on generic Linux system.
+        private const double PredefinedFontSize = 12.0;
+#else
         private const double PredefinedFontSize = 10.0;
+#endif
         private const double MinFontSize = 1.0;
     }
 }
