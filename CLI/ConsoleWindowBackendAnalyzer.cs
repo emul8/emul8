@@ -125,8 +125,9 @@ namespace Emul8.CLI
                 //Try preferred terminal first, than any other. If all fail, throw.
                 if(!windowCreators.OrderByDescending(x => x.Key == preferredTerminal).Any(x => x.Value(commandString, out process)))
                 {
-                    throw new NotSupportedException(String.Format("Could not start terminal. Possible config values: {0}",
-                        windowCreators.Keys.Select(x => x.ToString()).Aggregate((x, y) => x + ", " + y)));
+                    throw new NotSupportedException(String.Format("Could not start terminal. Possible config values: {0}.",
+                        windowCreators.Keys.Select(x => x.ToString())
+                            .Prepend(TerminalTypes.Termsharp.ToString()).Aggregate((x, y) => x + ", " + y)));
                 }
 
                 Thread.Sleep(1000);
@@ -242,6 +243,7 @@ namespace Emul8.CLI
                 {
                     LogError("gnome-terminal", arguments, proc.ExitCode);
                 }
+                // We do not call OnClose here, because gnome-terminal closes immediately after spawning new window.
             };
             return RunProcess(ref p);
         }
@@ -357,7 +359,11 @@ namespace Emul8.CLI
                 {
                     LogError("Terminal.app", arguments, proc.ExitCode);
                 }
-                OnClose();
+                // We do not call OnClose here, because the closing routine of "open" is counterintuitive.
+                // In current setup it closes automatically like gnome-terminal. We may add -W or -Wn, but
+                // then Exited event never gets called on window close, the user must close the app from the
+                // Dock. This will either force the user to kill all terminals (-W) or it will create multiple
+                // terminal icons (-Wn) that will stay there unless manually closed. Both options are bad.
             };
             return RunProcess(ref p);
         }
