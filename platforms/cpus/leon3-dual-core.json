@@ -41,9 +41,9 @@
     		}
   	},
 
-  	"APBControler":
+  	"APBController":
   	{
-	    	"_type":"Bus.GaislerAPBControler",
+	    	"_type":"Bus.GaislerAPBController",
     		"_connection":
 	    	{
 			"sysbus":
