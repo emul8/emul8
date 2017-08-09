@@ -1517,7 +1517,7 @@ namespace Emul8.Peripherals.USB
         #region EHCI controller configuration
         private const uint hciVersion = 0x0100;//hci version (16 bit BCD)
         public const uint opBase = 0x20;  //operational registers base addr
-        private const uint nCC = 0; //number of companion controlers
+        private const uint nCC = 0; //number of companion controllers
         private const uint nPCC = 0; //number of ports per companion controller
         #endregion
         public bool outBool = false;

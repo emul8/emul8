@@ -33,7 +33,7 @@ namespace Emul8.Disassembler.LLVM
                         LLVMInitializeX86TargetInfo();
                         _llvm_initialized = true;
                     }
-                    catch (DllNotFoundException e)
+                    catch (DllNotFoundException)
                     {
                         throw new RecoverableException("Could not find libLLVM.so. Please check in current output directory.");
                     }
