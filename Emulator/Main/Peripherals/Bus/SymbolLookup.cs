@@ -43,11 +43,11 @@ namespace Emul8.Core
             var symtab = (SymbolTable<uint>)symtabSection;
             var thumb = elf.Machine == ELFSharp.ELF.Machine.ARM;
 
-            var elfSymbols = symtab.Entries.Where(x => !armSpecificSymbolNames.Contains(x.Name)).Where(x => !excludedSymbolTypes.Contains(x.Type)).Select(x => new Symbol(x, thumb));
+            var elfSymbols = symtab.Entries.Where(x => !armSpecificSymbolNames.Contains(x.Name)).Where(x => !excludedSymbolTypes.Contains(x.Type))
+                                   .Where(x => x.PointedSectionIndex != (uint)SpecialSectionIndex.Undefined).Select(x => new Symbol(x, thumb));
             InsertSymbols(elfSymbols);
             EntryPoint = elf.EntryPoint;
             var segments = elf.Segments.Where(x => x.Type == ELFSharp.ELF.Segments.SegmentType.Load);
-
             foreach(var segment in segments)
             {
                 var loadAddress = useVirtualAddress ? segment.Address : segment.PhysicalAddress;
