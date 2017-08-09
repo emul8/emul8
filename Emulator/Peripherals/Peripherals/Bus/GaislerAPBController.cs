@@ -17,9 +17,9 @@ using System.Net;
 namespace Emul8.Peripherals.Bus
 {
     [AllowedTranslations(AllowedTranslation.ByteToDoubleWord)]
-    public class GaislerAPBControler : IDoubleWordPeripheral, IGaislerAHB
+    public class GaislerAPBController : IDoubleWordPeripheral, IGaislerAHB
     {
-        public GaislerAPBControler(Machine machine)
+        public GaislerAPBController(Machine machine)
         {
             this.machine = machine;
             Reset();

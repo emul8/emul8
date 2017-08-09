@@ -224,7 +224,7 @@ namespace Emul8.Peripherals.USB
             OpticalDevice = 0x07,
             MediumChangerDevice = 0x08,
             CommunicationsDevice = 0x09,
-            StorageArrayControlerDevice = 0x0C,
+            StorageArrayControllerDevice = 0x0C,
             EnclosureServicesDevice = 0x0D,
             SimplifiedDirectAccessDevice = 0x0E,
             OpticalCardReaderDevice = 0x0F,

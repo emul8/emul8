@@ -46,7 +46,7 @@
     <Compile Include="Peripherals\UART\GaislerUART.cs" />
     <Compile Include="Peripherals\Bus\GaislerAHBPlugAndPlayInfo.cs" />
     <Compile Include="Peripherals\Bus\GaislerAHBPlugAndPlayRecord.cs" />
-    <Compile Include="Peripherals\Bus\GaislerAPBControler.cs" />
+    <Compile Include="Peripherals\Bus\GaislerAPBController.cs" />
     <Compile Include="Peripherals\Bus\IGaislerAHB.cs" />
     <Compile Include="Peripherals\Bus\GaislerAPBPlugAndPlayRecord.cs" />
     <Compile Include="Peripherals\Bus\IGaislerAPB.cs" />

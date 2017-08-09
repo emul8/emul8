@@ -27,7 +27,7 @@ namespace Emul8.Disassembler.LLVM
 
         private static int CortexMDisassembler(ulong pc, IntPtr memory, ulong size, uint flags, IntPtr output, ulong outputSize, DisassemblyProvider provider)
         {
-            switch (pc)
+            switch(pc)
             {
             case 0xFFFFFFF0:
             case 0xFFFFFFF1:
