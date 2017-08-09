@@ -154,7 +154,13 @@ namespace Emul8.Peripherals.CPU
             this.Log(LogLevel.Warning, "Unknown CP15 64-bit write - op1={0}, crm={1}", op1, crm);
         }
 
-    	[Export]
+        protected virtual UInt32 BeforePCWrite(UInt32 value)
+        {
+            SetThumb((int)(value & 0x1));
+            return value & ~(uint)0x1;
+        }
+
+        [Export]
     	private uint DoSemihosting() {
             var uart = semihostingUart;
             //this.Log(LogLevel.Error, "Semihosing, r0={0:X}, r1={1:X} ({2:X})", this.GetRegisterUnsafe(0), this.GetRegisterUnsafe(1), this.TranslateAddress(this.GetRegisterUnsafe(1)));
@@ -191,12 +197,6 @@ namespace Emul8.Peripherals.CPU
         private uint IsWfiAsNop()
         {
             return WfiAsNop ? 1u : 0u;
-        }
-         
-        private UInt32 BeforePCWrite(UInt32 value)
-        {
-            SetThumb((int)(value & 0x1));
-            return value & ~(uint)0x1;
         }
 
         private SemihostingUart semihostingUart = null;

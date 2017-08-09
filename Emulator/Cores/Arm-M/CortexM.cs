@@ -97,6 +97,12 @@ namespace Emul8.Peripherals.CPU
             // do nothing
         }
 
+        protected override UInt32 BeforePCWrite(UInt32 value)
+        {
+            pcNotInitialized = false;
+            return base.BeforePCWrite(value);
+        }
+
         private void InitPCAndSP()
         {
             if(!vtorInitialized && machine.SystemBus.LowestLoadedAddress.HasValue)
@@ -118,7 +124,7 @@ namespace Emul8.Peripherals.CPU
                     this.Log(LogLevel.Error, "PC does not lay in memory or PC and SP are equal to zero. CPU was halted.");
                     IsHalted = true;
                 }
-                this.Log(LogLevel.Info, "Setting initial values: PC = 0x{0:X}, SP = 0x{1:X}", pc, sp);
+                this.Log(LogLevel.Info, "Setting initial values: PC = 0x{0:X}, SP = 0x{1:X}.", pc, sp);
                 PC = pc;
                 SP = sp;
             }
