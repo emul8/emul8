@@ -25,10 +25,10 @@ namespace Emul8.Peripherals.CPU
     [GPIO(NumberOfInputs = 2)]
     public partial class Arm : TranslationCPU, ICPUWithHooks, IPeripheralRegister<SemihostingUart, NullRegistrationPoint>
     {
-        public Arm(string cpuType, Machine machine, Endianess endianness = Endianess.LittleEndian): base(cpuType, machine, endianness)
+        public Arm(string cpuType, Machine machine, Endianess endianness = Endianess.LittleEndian) : base(cpuType, machine, endianness)
         {
         }
-            
+
         public void Register(SemihostingUart peripheral, NullRegistrationPoint registrationPoint)
         {
             if(semihostingUart != null)
@@ -142,7 +142,7 @@ namespace Emul8.Peripherals.CPU
             uint op1, crm;
             crm = instruction & 0xf;
             op1 = (instruction >> 4) & 0xf;
-            this.Log(LogLevel.Warning, "Unknown CP15 64-bit read - op1={0}, crm={1} - returning 0x0",op1, crm);
+            this.Log(LogLevel.Warning, "Unknown CP15 64-bit read - op1={0}, crm={1} - returning 0x0", op1, crm);
             return 0;
         }
 
@@ -161,37 +161,40 @@ namespace Emul8.Peripherals.CPU
         }
 
         [Export]
-    	private uint DoSemihosting() {
+        private uint DoSemihosting()
+        {
             var uart = semihostingUart;
             //this.Log(LogLevel.Error, "Semihosing, r0={0:X}, r1={1:X} ({2:X})", this.GetRegisterUnsafe(0), this.GetRegisterUnsafe(1), this.TranslateAddress(this.GetRegisterUnsafe(1)));
 
-    	    uint operation = R[0];
-    	    uint r1 = R[1];
-    	    uint result = 0;
-    	    switch (operation) {
-    	    	case 7: // SYS_READC
-    		    if (uart == null) break;
-    	            result = uart.SemihostingGetByte();
-    		    break;
-    	        case 3: // SYS_WRITEC
-    	    	case 4: // SYS_WRITE0
-    		    if (uart == null) break;
-    		    string s = "";
-    		    uint addr = this.TranslateAddress(r1);
-    		    do {
-    		    	var c = this.Bus.ReadByte(addr++);
-    			if (c == 0) break;
-    			s = s + Convert.ToChar(c);
-    			if ((operation) == 3) break; // SYS_WRITEC
-    		    } while (true);
-    	            uart.SemihostingWriteString(s);
-    		    break;
-    		default:
-    		    this.Log(LogLevel.Debug, "Unknown semihosting operation: 0x{0:X}", operation);
-    		    break;
-    	     }
-    	     return result;
-    	}
+            uint operation = R[0];
+            uint r1 = R[1];
+            uint result = 0;
+            switch(operation)
+            {
+            case 7: // SYS_READC
+                if(uart == null) break;
+                result = uart.SemihostingGetByte();
+                break;
+            case 3: // SYS_WRITEC
+            case 4: // SYS_WRITE0
+                if(uart == null) break;
+                string s = "";
+                uint addr = this.TranslateAddress(r1);
+                do
+                {
+                    var c = this.Bus.ReadByte(addr++);
+                    if(c == 0) break;
+                    s = s + Convert.ToChar(c);
+                    if((operation) == 3) break; // SYS_WRITEC
+                } while(true);
+                uart.SemihostingWriteString(s);
+                break;
+            default:
+                this.Log(LogLevel.Debug, "Unknown semihosting operation: 0x{0:X}", operation);
+                break;
+            }
+            return result;
+        }
 
         [Export]
         private uint IsWfiAsNop()
@@ -202,7 +205,7 @@ namespace Emul8.Peripherals.CPU
         private SemihostingUart semihostingUart = null;
 
         // 649:  Field '...' is never assigned to, and will always have its default value null
-        #pragma warning disable 649
+#pragma warning disable 649
 
         [Import]
         private ActionUInt32 TlibSetCpuId;
@@ -213,7 +216,6 @@ namespace Emul8.Peripherals.CPU
         [Import]
         private ActionInt32 SetThumb;
 
-        #pragma warning restore 649
+#pragma warning restore 649
     }
 }
-
