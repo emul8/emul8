@@ -15,12 +15,14 @@
 
 set -e
 
-if [ -z "$ROOT_PATH" -a -x "$(command -v realpath)" ]; then
+CURRENT_PATH="`dirname \"\`realpath $0\`\"`"
+
+if [ -z "$ROOT_PATH" ]; then
     # this is to support running emul8 from external directory
-    ROOT_PATH="`dirname \"\`realpath "$0"\`\"`"
+    export ROOT_PATH="$CURRENT_PATH"
 fi
 
-. "${ROOT_PATH}/Tools/common.sh"
+. "${CURRENT_PATH}/Tools/common.sh"
 
 SOLUTION_NAME="Emul8"
 BATCH_MODE=false
@@ -114,19 +116,19 @@ else
 fi
 
 # Update references to Xwt
-TERMSHARP_PROJECT="${ROOT_PATH:=.}/External/termsharp/TermSharp.csproj"
+TERMSHARP_PROJECT="${CURRENT_PATH:=.}/External/termsharp/TermSharp.csproj"
 if [ -e "$TERMSHARP_PROJECT" ]
 then
     sed -i.bak 's/"xwt\\Xwt\\Xwt.csproj"/"..\\xwt\\Xwt\\Xwt.csproj"/' "$TERMSHARP_PROJECT"
     rm "$TERMSHARP_PROJECT.bak"
 fi
 
-"${ROOT_PATH}/Tools/scripts/fetch_libraries.sh"
+"${CURRENT_PATH}/Tools/scripts/fetch_libraries.sh"
 
-BOOTSTRAPER_DIR="$ROOT_PATH/Tools/Bootstrap"
+BOOTSTRAPER_DIR="$CURRENT_PATH/Tools/Bootstrap"
 BOOTSTRAPER_BIN="$BOOTSTRAPER_DIR/bin/Release/Bootstrap.exe"
 
-CCTASK_DIR="$ROOT_PATH/External/cctask"
+CCTASK_DIR="$CURRENT_PATH/External/cctask"
 
 # We build bootstrap/cctask every time in order to have the newest versions at every bootstrapping.
 # We need to use get_path helper function in order to resolve paths to projects correctly both on linux and windows
@@ -136,16 +138,16 @@ $CS_COMPILER "`get_path \"$CCTASK_DIR/CCTask.sln\"`"            /p:Configuration
 mkdir -p "$OUTPUT_DIRECTORY"
 if $ON_OSX
 then
-  PROP_FILE="$ROOT_PATH/Emulator/Cores/osx-properties.csproj"
+  PROP_FILE="$CURRENT_PATH/Emulator/Cores/osx-properties.csproj"
 elif $ON_LINUX
 then
-  PROP_FILE="$ROOT_PATH/Emulator/Cores/linux-properties.csproj"
+  PROP_FILE="$CURRENT_PATH/Emulator/Cores/linux-properties.csproj"
 else
-  PROP_FILE="$ROOT_PATH/Emulator/Cores/windows-properties.csproj"
+  PROP_FILE="$CURRENT_PATH/Emulator/Cores/windows-properties.csproj"
 fi
 cp "$PROP_FILE" "$OUTPUT_DIRECTORY/properties.csproj"
 
-add_property "$OUTPUT_DIRECTORY/properties.csproj" OutputPathPrefix "$PWD/output/bin"
+add_property "$OUTPUT_DIRECTORY/properties.csproj" OutputPathPrefix "$OUTPUT_DIRECTORY/bin"
 
 PARAMS+=( --directories "`get_path .`" --output-directory "`get_path \"$OUTPUT_DIRECTORY\"`" --binaries-directory "`get_path \"$BINARIES_DIRECTORY\"`" --solution-name "$SOLUTION_NAME")
 if [ ! -z "$EXCLUDE" ]

@@ -4,9 +4,9 @@ set -e
 set -u
 
 REMOTE=https://github.com/antmicro/emul8-libraries.git
-ROOT_PATH="`dirname \"\`realpath "$0"\`\"`"
-GUARD=`realpath --relative-to="$PWD" "$ROOT_PATH/../../External/.emul8_libs_fetched"`
-EMUL8_LIBRARIES_DIR="$ROOT_PATH/../../External/emul8-libraries"
+CURRENT_PATH="`dirname \"\`realpath "$0"\`\"`"
+GUARD=`realpath --relative-to="$ROOT_PATH" "$CURRENT_PATH/../../External/.emul8_libs_fetched"`
+EMUL8_LIBRARIES_DIR="$CURRENT_PATH/../../External/emul8-libraries"
 
 if [ -e "$GUARD" ]
 then
@@ -28,20 +28,21 @@ then
     echo "Required Emul8 libraries are available in a new version. The libraries will be redownloaded..."
 fi
 
-rm -rf "$EMUL8_LIBRARIES_DIR" "$ROOT_PATH"/../../External/{Lib,Tools} "$ROOT_PATH/../../Emulator/LLVMDisassembler/Resources/"
+rm -rf "$EMUL8_LIBRARIES_DIR" "$CURRENT_PATH"/../../External/{Lib,Tools} "$CURRENT_PATH/../../Emulator/LLVMDisassembler/Resources/"
 
 git clone $REMOTE "`realpath --relative-to="$PWD" "$EMUL8_LIBRARIES_DIR"`"
 
-ln -s "$EMUL8_LIBRARIES_DIR/Lib" "$ROOT_PATH/../../External/Lib"
-ln -s "$EMUL8_LIBRARIES_DIR/Tools" "$ROOT_PATH/../../External/Tools"
+ln -s "$EMUL8_LIBRARIES_DIR/Lib" "$CURRENT_PATH/../../External/Lib"
+ln -s "$EMUL8_LIBRARIES_DIR/Tools" "$CURRENT_PATH/../../External/Tools"
 
-mkdir -p "$ROOT_PATH/../../Emulator/LLVMDisassembler/Resources/"
-pushd "$ROOT_PATH/../../Emulator/LLVMDisassembler/Resources" >/dev/null
+mkdir -p "$CURRENT_PATH/../../Emulator/LLVMDisassembler/Resources/"
+pushd "$CURRENT_PATH/../../Emulator/LLVMDisassembler/Resources" >/dev/null
 LLVM_BINARIES_DIR=`realpath --relative-to="$PWD" "$EMUL8_LIBRARIES_DIR/llvm"`
 for f in `ls "$LLVM_BINARIES_DIR"`
 do
     ln -s "$LLVM_BINARIES_DIR/$f"
 done
+
 popd >/dev/null
 
 touch "$GUARD"
