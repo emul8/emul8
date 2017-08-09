@@ -16,9 +16,9 @@ namespace Emul8.Disassembler.LLVM
     {
         public LLVMDisasWrapper(string cpu, string triple)
         {
-            lock (_init_locker)
+            lock(_init_locker)
             {
-                if (!_llvm_initialized)
+                if(!_llvm_initialized)
                 {
                     try
                     {
@@ -33,21 +33,21 @@ namespace Emul8.Disassembler.LLVM
                         LLVMInitializeX86TargetInfo();
                         _llvm_initialized = true;
                     }
-                    catch (DllNotFoundException)
+                    catch(DllNotFoundException)
                     {
                         throw new RecoverableException("Could not find libLLVM.so. Please check in current output directory.");
                     }
                 }
             }
             context = LLVMCreateDisasmCPU(triple, cpu, IntPtr.Zero, 0, new LLVMOpInfoCallback(OpInfoCallback), new LLVMSymbolLookupCallback(SymbolLoopbackCallback));
-            if (context == IntPtr.Zero)
+            if(context == IntPtr.Zero)
             {
                 throw new ArgumentOutOfRangeException("cpu", "CPU or triple name not detected by LLVM. Disassembling will not be possible.");
             }
             isThumb = triple.Contains("thumb");
 
 
-            switch (triple)
+            switch(triple)
             {
             case "i386":
                 HexFormatter = FormatHexForx86;
@@ -62,7 +62,7 @@ namespace Emul8.Disassembler.LLVM
             }
         }
 
-        public int Disassemble(IntPtr data, UInt64 sz, UInt64 pc, IntPtr buf, UInt32 bufSz) 
+        public int Disassemble(IntPtr data, UInt64 sz, UInt64 pc, IntPtr buf, UInt32 bufSz)
         {
             var sofar = 0;
             var strBuf = Marshal.AllocHGlobal(1024);
@@ -71,10 +71,10 @@ namespace Emul8.Disassembler.LLVM
             var dataBytes = new byte[sz];
             Marshal.Copy(data, dataBytes, 0, dataBytes.Length);
 
-            while (sofar < (int)sz)
+            while(sofar < (int)sz)
             {
                 var bytes = LLVMDisasmInstruction(context, data, sz, pc & 0xFFFFFFFF, strBuf, 1024);
-                if (bytes == 0)
+                if(bytes == 0)
                 {
                     strBldr.AppendFormat("0x{0:x8}:  ", pc).AppendLine("No valid instruction, disassembling stopped.");
                     break;
@@ -82,7 +82,7 @@ namespace Emul8.Disassembler.LLVM
                 else
                 {
                     strBldr.AppendFormat("0x{0:x8}:  ", pc);
-                    if (!HexFormatter(strBldr, bytes, sofar, dataBytes))
+                    if(!HexFormatter(strBldr, bytes, sofar, dataBytes))
                     {
                         strBldr.AppendLine("Disassembly error detected. The rest of the output will be truncated.");
                         break;
@@ -98,7 +98,7 @@ namespace Emul8.Disassembler.LLVM
             Marshal.FreeHGlobal(strBuf);
             var sstr = Encoding.ASCII.GetBytes(strBldr.ToString());
             Marshal.Copy(sstr, 0, buf, (int)Math.Min(bufSz, sstr.Length));
-            Marshal.Copy(new [] { 0 }, 0, buf + (int)Math.Min(bufSz - 1, sstr.Length), 1);
+            Marshal.Copy(new[] { 0 }, 0, buf + (int)Math.Min(bufSz - 1, sstr.Length), 1);
 
             return sofar;
         }
@@ -108,14 +108,14 @@ namespace Emul8.Disassembler.LLVM
         private bool FormatHexForx86(StringBuilder strBldr, int bytes, int position, byte[] data)
         {
             int i;
-            for (i = 0; i < bytes && position + i < data.Length; i++)
+            for(i = 0; i < bytes && position + i < data.Length; i++)
             {
                 strBldr.AppendFormat("{0:x2} ", data[position + i]);
             }
 
             //This is a sane minimal length, based on some different binaries for quark.
             //X86 instructions do not have the upper limit of lenght, so we have to approximate.
-            for (var j = i; j < 7; ++j)
+            for(var j = i; j < 7; ++j)
             {
                 strBldr.Append("   ");
             }
@@ -125,13 +125,13 @@ namespace Emul8.Disassembler.LLVM
 
         private bool FormatHexForARM(StringBuilder strBldr, int bytes, int position, byte[] data)
         {
-            if (isThumb)
+            if(isThumb)
             {
-                if (bytes == 4 && position + 3 < data.Length)
+                if(bytes == 4 && position + 3 < data.Length)
                 {
                     strBldr.AppendFormat("{0:x2}{1:x2} {2:x2}{3:x2}", data[position + 1], data[position], data[position + 3], data[position + 2]);
                 }
-                else if (bytes == 2 && position + 1 < data.Length)
+                else if(bytes == 2 && position + 1 < data.Length)
                 {
                     strBldr.AppendFormat("{0:x2}{1:x2}     ", data[position + 1], data[position]);
                 }
@@ -142,7 +142,7 @@ namespace Emul8.Disassembler.LLVM
             }
             else
             {
-                for (int i = bytes - 1; i >= 0; i--)
+                for(int i = bytes - 1; i >= 0; i--)
                 {
                     strBldr.AppendFormat("{0:x2}", data[position + i]);
                 }
@@ -157,7 +157,7 @@ namespace Emul8.Disassembler.LLVM
 
         public void Dispose()
         {
-            if (context != IntPtr.Zero)
+            if(context != IntPtr.Zero)
             {
                 LLVMDisasmDispose(context);
             }
@@ -165,7 +165,7 @@ namespace Emul8.Disassembler.LLVM
 
         #endregion
 
-        private static int OpInfoCallback(IntPtr disInfo, UInt64 pc, UInt64 offset, UInt64 size, int tagType, IntPtr tagBuf) 
+        private static int OpInfoCallback(IntPtr disInfo, UInt64 pc, UInt64 offset, UInt64 size, int tagType, IntPtr tagBuf)
         {
             var OpInfo = new LLVMOpInfo1(tagBuf);
             OpInfo.AddSymbol.Present = 0;
@@ -174,7 +174,7 @@ namespace Emul8.Disassembler.LLVM
             return 0;
         }
 
-        private static IntPtr SymbolLoopbackCallback(IntPtr sisInfo, UInt64 refVal, ref IntPtr refType, UInt64 refPC, IntPtr refName) 
+        private static IntPtr SymbolLoopbackCallback(IntPtr sisInfo, UInt64 refVal, ref IntPtr refType, UInt64 refPC, IntPtr refName)
         {
             refType = LLVMDisassembler_ReferenceType_InOut_None;
             return IntPtr.Zero;
@@ -266,7 +266,7 @@ namespace Emul8.Disassembler.LLVM
             public UInt64 Present
             {
                 get { return MarshalExtensions.ReadUInt64(Ptr, 0); }
-                set { MarshalExtensions.WriteUInt64(Ptr, 0, value);   }
+                set { MarshalExtensions.WriteUInt64(Ptr, 0, value); }
             }
 
             public IntPtr Name
@@ -310,4 +310,3 @@ namespace Emul8.Disassembler.LLVM
         }
     }
 }
-

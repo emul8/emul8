@@ -13,12 +13,12 @@ using Emul8.Peripherals.CPU.Disassembler;
 
 namespace Emul8.Disassembler.LLVM
 {
-    [DisassemblerAttribute("LLVM", new[] {"arm", "arm-m", "mips", "i386"})]
+    [DisassemblerAttribute("LLVM", new[] { "arm", "arm-m", "mips", "i386" })]
     public class LLVMDisassembler : IAutoLoadType, IDisassembler
     {
-        public LLVMDisassembler(IDisassemblable cpu) 
+        public LLVMDisassembler(IDisassemblable cpu)
         {
-            if (!SupportedArchitectures.ContainsKey(cpu.Architecture))
+            if(!SupportedArchitectures.ContainsKey(cpu.Architecture))
             {
                 throw new ArgumentOutOfRangeException("cpu");
             }
@@ -35,13 +35,13 @@ namespace Emul8.Disassembler.LLVM
         private int LLVMDisassemble(ulong pc, IntPtr memory, ulong size, uint flags, IntPtr output, ulong outputSize)
         {
             var triple = SupportedArchitectures[cpu.Architecture];
-            if (triple == "armv7a" && flags > 0)
+            if(triple == "armv7a" && flags > 0)
             {
                 triple = "thumb";
             }
 
             var key = string.Format("{0} {1}", triple, cpu.Model);
-            if (!cache.ContainsKey(key))
+            if(!cache.ContainsKey(key))
             {
                 string model;
                 switch(cpu.Model)
