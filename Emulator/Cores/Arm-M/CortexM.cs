@@ -99,6 +99,11 @@ namespace Emul8.Peripherals.CPU
 
         protected override UInt32 BeforePCWrite(UInt32 value)
         {
+            if(value % 2 == 0)
+            {
+                this.Log(LogLevel.Warning, "Patching PC 0x{0:X} for Thumb mode.", value);
+                value += 1;
+            }
             pcNotInitialized = false;
             return base.BeforePCWrite(value);
         }
