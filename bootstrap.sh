@@ -17,10 +17,7 @@ set -e
 
 CURRENT_PATH="`dirname \"\`realpath $0\`\"`"
 
-if [ -z "$ROOT_PATH" ]; then
-    # this is to support running emul8 from external directory
-    export ROOT_PATH="$CURRENT_PATH"
-fi
+export ROOT_PATH="${ROOT_PATH:-$CURRENT_PATH}"
 
 . "${CURRENT_PATH}/Tools/common.sh"
 
