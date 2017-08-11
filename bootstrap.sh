@@ -14,6 +14,7 @@
 # * other projects
 
 set -e
+set -u
 
 CURRENT_PATH="`dirname \"\`realpath $0\`\"`"
 
@@ -24,6 +25,7 @@ export ROOT_PATH="${ROOT_PATH:-$CURRENT_PATH}"
 SOLUTION_NAME="Emul8"
 BATCH_MODE=false
 KEEP_SUBMODULES=false
+SELECTED_PROJECT=""
 OUTPUT_DIRECTORY="target"
 BINARIES_DIRECTORY="bin"
 VERBOSE=false
