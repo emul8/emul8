@@ -42,8 +42,8 @@ fi
 
 if $ON_WINDOWS
 then
-    "${BINARY_LOCATION:-$ROOT_PATH/output/bin}/${TARGET:-Release}/${BINARY_NAME:-CLI.exe}" "${PARAMS[@]:-}"
+    "${BINARY_LOCATION:-$ROOT_PATH/target/bin}/${TARGET:-Release}/${BINARY_NAME:-CLI.exe}" "${PARAMS[@]:-}"
 else
-    $LAUNCHER "${BINARY_LOCATION:-$ROOT_PATH/output/bin}/${TARGET:-Release}/${BINARY_NAME:-CLI.exe}" "${PARAMS[@]:-}"
+    $LAUNCHER "${BINARY_LOCATION:-$ROOT_PATH/target/bin}/${TARGET:-Release}/${BINARY_NAME:-CLI.exe}" "${PARAMS[@]:-}"
 fi
 
