@@ -14,6 +14,7 @@ using Antmicro.Migrant;
 
 namespace Emul8.Peripherals.UART
 {
+    [AllowedTranslations(AllowedTranslation.ByteToDoubleWord)]
     public class CadenceUart : IDoubleWordPeripheral, IUART
     {
         public CadenceUart(Machine machine)
