@@ -114,14 +114,6 @@ else
     echo "Not updating submodules!"
 fi
 
-# Update references to Xwt
-TERMSHARP_PROJECT="${CURRENT_PATH:=.}/External/termsharp/TermSharp.csproj"
-if [ -e "$TERMSHARP_PROJECT" ]
-then
-    sed -i.bak 's/"xwt\\Xwt\\Xwt.csproj"/"..\\xwt\\Xwt\\Xwt.csproj"/' "$TERMSHARP_PROJECT"
-    rm "$TERMSHARP_PROJECT.bak"
-fi
-
 "${CURRENT_PATH}/Tools/scripts/fetch_libraries.sh"
 
 BOOTSTRAPER_DIR="$CURRENT_PATH/Tools/Bootstrap"

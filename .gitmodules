@@ -25,6 +25,3 @@
 [submodule "Emulator/Cores/tlib"]
 	path = Emulator/Cores/tlib
 	url = https://github.com/emul8/tlib.git
-[submodule "External/termsharp"]
-	path = External/termsharp
-	url = https://github.com/antmicro/TermSharp.git

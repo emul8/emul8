@@ -109,10 +109,6 @@
       <Project>{CC6D2193-B747-42F0-8F80-6569ED04338D}</Project>
       <Name>LaunchAttributes</Name>
     </ProjectReference>
-    <ProjectReference Include="..\External\termsharp\TermSharp.csproj">
-      <Project>{25FAECC1-55F0-4608-88BD-4207A7F993B0}</Project>
-      <Name>Terminal</Name>
-    </ProjectReference>
     <ProjectReference Include="..\External\xwt\Xwt\Xwt.csproj">
       <Project>{92494904-35FA-4DC9-BDE9-3A3E87AC49D3}</Project>
       <Name>Xwt</Name>
