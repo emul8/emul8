@@ -92,7 +92,7 @@ namespace Emul8.CLI
             Shell shell = null;
             if(options.Port >= 0)
             {
-                var io = new IOProvider(new SocketIOSource(options.Port));
+                var io = new IOProvider { Backend = new SocketIOSource(options.Port) };
                 shell = ShellProvider.GenerateShell(io, monitor, true, false);
             }
             else
@@ -101,7 +101,7 @@ namespace Emul8.CLI
                 IOProvider io;
                 if(options.HideMonitor)
                 {
-                    io = new IOProvider(new DummyIOSource());
+                    io = new IOProvider { Backend = new DummyIOSource() };
                 }
                 else
                 {

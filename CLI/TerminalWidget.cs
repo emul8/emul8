@@ -38,10 +38,10 @@ namespace Emul8.CLI
             modifyLineEndings = ConfigurationManager.Instance.Get("termsharp", "append-CR-to-LF", false);
             terminal = new Terminal(focusProvider);
             terminalInputOutputSource = new TerminalIOSource(terminal);
-            IO = new IOProvider(terminalInputOutputSource);
+            IO = new IOProvider { Backend = terminalInputOutputSource };
             IO.BeforeWrite += b =>
             {
-                // we do not check if previous byte was '\r', because it should not cause any problem to 
+                // we do not check if previous byte was '\r', because it should not cause any problem to
                 // send it twice
                 if(modifyLineEndings && b == '\n')
                 {

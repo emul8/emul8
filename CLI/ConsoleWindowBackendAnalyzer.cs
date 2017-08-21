@@ -48,7 +48,7 @@ namespace Emul8.CLI
             else
             {
                 ptyUnixStream = new PtyUnixStream();
-                IO = new IOProvider(new StreamIOSource(ptyUnixStream));
+                IO = new IOProvider { Backend =new StreamIOSource(ptyUnixStream) };
             }
 #endif
         }
@@ -89,10 +89,10 @@ namespace Emul8.CLI
                     window.Content = terminalWidget;
                     terminalWidget.Initialized += mre.Set;
                     window.Show();
-                    window.Closed += (sender, e) => 
-                    { 
-                        DetachConsoleWindow(); 
-                        OnClose(); 
+                    window.Closed += (sender, e) =>
+                    {
+                        DetachConsoleWindow();
+                        OnClose();
                     };
                     if(NextWindowLocation != default(Point))
                     {
@@ -229,14 +229,14 @@ namespace Emul8.CLI
             var position = GetNextWindowPosition();
 
             var arguments = string.Format("--tab -e \"{3}\" --title '{0}' --geometry=+{1}+{2}", Name, position.Item1, position.Item2, command);
-            p.StartInfo = new ProcessStartInfo("gnome-terminal", arguments) 
-            { 
+            p.StartInfo = new ProcessStartInfo("gnome-terminal", arguments)
+            {
                 UseShellExecute = false,
                 RedirectStandardError = true,
                 RedirectStandardOutput = true,
                 RedirectStandardInput = true
             };
-            p.Exited += (sender, e) => 
+            p.Exited += (sender, e) =>
             {
                 var proc = sender as Process;
                 if (proc.ExitCode != 0)
@@ -253,14 +253,14 @@ namespace Emul8.CLI
             p = new Process();
             p.EnableRaisingEvents = true;
             var arguments = string.Format("{0} -serial -title '{0}'", Name);
-            p.StartInfo = new ProcessStartInfo("putty", arguments) 
+            p.StartInfo = new ProcessStartInfo("putty", arguments)
             {
                 UseShellExecute = false,
                 RedirectStandardError = true,
                 RedirectStandardOutput = true,
                 RedirectStandardInput = true
             };
-            p.Exited += (sender, e) => 
+            p.Exited += (sender, e) =>
             {
                 var proc = sender as Process;
                 if (proc.ExitCode != 0)
@@ -296,7 +296,7 @@ namespace Emul8.CLI
                         @"Shift Ctrl <KeyPress> KP_Add:ignore()\\n" +
                         @"Shift <KeyPress> KP_Subtract:ignore()\\n" +
                         @"Ctrl <KeyPress> KP_Subtract:smaller-vt-font()\\n" +
-                        @"Ctrl <KeyPress> KP_Add:larger-vt-font() \\n"; 
+                        @"Ctrl <KeyPress> KP_Add:larger-vt-font() \\n";
             var scrollKeys = @"XTerm.VT100.scrollbar.translations: #override \\n"+
                                 @"<Btn5Down>: StartScroll(Forward) \\n"+
                                 @"<Btn1Down>: StartScroll(Continuous) MoveThumb() NotifyThumb() \\n"+
@@ -307,10 +307,10 @@ namespace Emul8.CLI
                                 @"<BtnUp>: NotifyScroll(Proportional) EndScroll()";
             var fonts = "DejaVu Sans Mono, Ubuntu Sans Mono, Droid Sans Mono";
 
-            var command = string.Format(@"-T '{0}' -sb -rightbar -xrm '*Scrollbar.thickness: 10' -xrm '*Scrollbar.background: #CCCCCC' -geometry +{1}+{2}  -xrm '*Scrollbar.foreground: #444444' -xrm 'XTerm.vt100.background: black' -xrm 'XTerm.vt100.foreground: white' -fa '{3}' -fs 10 -xrm '{4}' -xrm '{5}' -xrm '{6}' -e {7}", 
+            var command = string.Format(@"-T '{0}' -sb -rightbar -xrm '*Scrollbar.thickness: 10' -xrm '*Scrollbar.background: #CCCCCC' -geometry +{1}+{2}  -xrm '*Scrollbar.foreground: #444444' -xrm 'XTerm.vt100.background: black' -xrm 'XTerm.vt100.foreground: white' -fa '{3}' -fs 10 -xrm '{4}' -xrm '{5}' -xrm '{6}' -e {7}",
                 Name, position.Item1, position.Item2, fonts, keys, minFaceSize, scrollKeys, cmd);
 
-            p.StartInfo = new ProcessStartInfo("xterm", command) 
+            p.StartInfo = new ProcessStartInfo("xterm", command)
             {
                 UseShellExecute = false,
                 RedirectStandardError = true,
@@ -318,7 +318,7 @@ namespace Emul8.CLI
                 RedirectStandardInput = true,
             };
             p.EnableRaisingEvents = true;
-            p.Exited += (sender, e) => 
+            p.Exited += (sender, e) =>
             {
                 var proc = sender as Process;
                 if (proc.ExitCode != 0 && proc.ExitCode != 15)
@@ -345,14 +345,14 @@ namespace Emul8.CLI
             Syscall.chmod(script, FilePermissions.S_IXUSR | FilePermissions.S_IRUSR | FilePermissions.S_IWUSR);
 
             var arguments = string.Format("{0} {1}", "-a /Applications/Utilities/Terminal.app", script);
-            p.StartInfo = new ProcessStartInfo("open", arguments) 
+            p.StartInfo = new ProcessStartInfo("open", arguments)
             {
                 UseShellExecute = false,
                 RedirectStandardError = true,
                 RedirectStandardOutput = true,
                 RedirectStandardInput = true
             };
-            p.Exited += (sender, e) => 
+            p.Exited += (sender, e) =>
             {
                 var proc = sender as Process;
                 if (proc.ExitCode != 0)
