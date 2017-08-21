@@ -1,4 +1,4 @@
-﻿﻿//
+﻿﻿﻿//
 // Copyright (c) Antmicro
 //
 // This file is part of the Emul8 project.
@@ -51,37 +51,60 @@ namespace Emul8.Utilities
             if(input.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
             {
                 input = input.Substring(2);
-
-                if(!hexCache.TryGetValue(outputType, out parser))
-                {
-                    parser = GetParseMethodDelegate(outputType, new[] { typeof(string), typeof(NumberStyles), typeof(CultureInfo) });
-                    hexCache.Add(outputType, parser);
-                }
-
-                return parser.DynamicInvoke(input, NumberStyles.HexNumber, CultureInfo.InvariantCulture);
+                parser = GetFromCacheOrAdd(
+                    ref hexCache,
+                    () => { TryGetParseMethodDelegate(outputType, new[] { typeof(string), typeof(NumberStyles), typeof(CultureInfo) }, new object[] { NumberStyles.HexNumber, CultureInfo.InvariantCulture }, out Delegate _parser); return _parser; },
+                    outputType
+                );
             }
             else
             {
-                if(!cache.TryGetValue(outputType, out parser))
-                {
-                    parser = GetParseMethodDelegate(outputType, new[] { typeof(string), typeof(CultureInfo) });
-                    cache.Add(outputType, parser);
-                }
-
-                return parser.DynamicInvoke(input, CultureInfo.InvariantCulture);
+                parser = GetFromCacheOrAdd(
+                    ref cache,
+                    () => { Delegate _parser; var result = TryGetParseMethodDelegate(outputType, new[] { typeof(string) }, new object[0], out _parser) ||
+                            TryGetParseMethodDelegate(outputType, new[] { typeof(string), typeof(CultureInfo) }, new object[] { CultureInfo.InvariantCulture }, out _parser); return _parser; }, 
+                    outputType
+                );
             }
+            return parser.DynamicInvoke(input);
         }
 
-        private static Delegate GetParseMethodDelegate(Type type, Type[] parameters)
+        private Delegate GetFromCacheOrAdd(ref Dictionary<Type, Delegate> cacheDict, Func<Delegate> function, Type outputType)
+        {
+            if(!cacheDict.TryGetValue(outputType, out Delegate parser))
+            {
+                parser = function();
+                if(parser == null)
+                {
+                    throw new ArgumentException(string.Format("Type \"{0}\" does not have a \"Parse\" method with the requested parameters", outputType.Name));
+                }
+                cacheDict.Add(outputType, parser);
+            }
+            return parser;
+        }
+
+        private static bool TryGetParseMethodDelegate(Type type, Type[] parameters, object[] additionalParameters, out Delegate result)
         {
             var method = type.GetMethod("Parse", parameters);
             if(method == null)
             {
-                throw new ArgumentException(string.Format("Type \"{0}\" does not have a \"Parse\" method with the requested parameters", type.Name));
+                result = null;
+                return false;
             }
 
             var delegateType = Expression.GetDelegateType(parameters.Concat(new[] { method.ReturnType }).ToArray());
-            return method.CreateDelegate(delegateType);
+            var methodDelegate = method.CreateDelegate(delegateType);
+
+            if(additionalParameters.Length > 0)
+            {
+                result = (Func<string, object>)(i => methodDelegate.DynamicInvoke(new object[] { i }.Concat(additionalParameters).ToArray()));
+            }
+            else
+            {
+                result = (Func<string, object>)(i => methodDelegate.DynamicInvoke(i));
+            }
+
+            return true;
         }
 
         private SmartParser()
@@ -90,8 +113,8 @@ namespace Emul8.Utilities
             hexCache = new Dictionary<Type, Delegate>();
         }
 
-        private readonly Dictionary<Type, Delegate> cache;
-        private readonly Dictionary<Type, Delegate> hexCache;
+        private Dictionary<Type, Delegate> cache;
+        private Dictionary<Type, Delegate> hexCache;
     }
 }
 
