@@ -6,16 +6,15 @@
 // Full license details are defined in the 'LICENSE' file.
 //
 using System;
-using System.Linq;
-using System.Threading;
 using System.Collections.Concurrent;
+using System.Linq;
 using System.Linq.Expressions;
+using System.Text;
+using System.Threading;
 using Emul8.Backends.Terminals;
 using Emul8.Core;
-using Mono.Linq.Expressions;
-using Emul8.Logging;
 using Emul8.Utilities;
-using System.Text;
+using Mono.Linq.Expressions;
 
 namespace Emul8.Testing
 {
