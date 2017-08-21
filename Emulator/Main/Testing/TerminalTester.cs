@@ -89,16 +89,17 @@ namespace Emul8.Testing
             reportCollection = new ConcurrentQueue<Event>();
         }
 
-        public TerminalTester WaitUntilLine(Expression<Func<string, bool>> predicateExpression, out string lineContent, TimeSpan? timeout = null)
+        public TerminalTester WaitUntilLineExpr(Expression<Func<string, bool>> predicateExpression, out string lineContent, out TimeSpan virtualTimestamp, TimeSpan? timeout = null)
         {
             var predicate = predicateExpression.Compile();
             Line line = null;
+            TimeSpan time;
             WaitForEvent(x => 
             {
                 line = x as Line;
                 if(line != null && predicate(line.Content))
                 {
-                    LastEventVirtualTimestamp = x.VirtualTimestamp;
+                    time = x.VirtualTimestamp;
                     return EventResult.Success;
                 }
                 return EventResult.Continue;
@@ -106,13 +107,29 @@ namespace Emul8.Testing
                                      { Type = AssertionType.WaitUntilLine });
 
             lineContent = line.Content;
+            virtualTimestamp = time;
             return this;
         }
-        
-        public TerminalTester WaitUntilLine(Expression<Func<string, bool>> predicateExpression, TimeSpan? timeout = null)
+
+        public TerminalTester WaitUntilLineFunc(Func<string, bool> predicate, out string lineContent, out TimeSpan virtualTimestamp, TimeSpan? timeout = null)
         {
-            string fake;
-            return WaitUntilLine(predicateExpression, out fake, timeout);
+            Line line = null;
+            TimeSpan time;
+            WaitForEvent(x =>
+            {
+                line = x as Line;
+                if(line != null && predicate(line.Content))
+                {
+                    time = x.VirtualTimestamp;
+                    return EventResult.Success;
+                }
+                return EventResult.Continue;
+            }, timeout, new Assertion() { Type = AssertionType.WaitUntilLine }
+            );
+
+            lineContent = line.Content;
+            virtualTimestamp = time;
+            return this;
         }
         
         public TerminalTester NowPromptIs(string prompt)
@@ -127,11 +144,12 @@ namespace Emul8.Testing
             return this;
         }
         
-        public TerminalTester NextLine(Expression<Func<string, bool>> predicateExpression, TimeSpan? timeout = null)
+        public TerminalTester NextLine(Expression<Func<string, bool>> predicateExpression, out TimeSpan virtualTimestamp, TimeSpan? timeout = null)
         {
             var predicate = predicateExpression.Compile();
             var assertNotMet = false;
             var assertion = new Assertion(string.Format("NextLine({0})", predicateExpression.ToCSharpCode())) { Type = AssertionType.NextLine };
+            TimeSpan time;
             WaitForEvent(x =>
             {
                 var line = x as Line;
@@ -141,7 +159,7 @@ namespace Emul8.Testing
                 }
                 if(predicate(line.Content))
                 {
-                    LastEventVirtualTimestamp = x.VirtualTimestamp;
+                    time = x.VirtualTimestamp;
                     return EventResult.Success;
                 }
                 ThreadPool.QueueUserWorkItem(y =>
@@ -164,28 +182,32 @@ namespace Emul8.Testing
             throw new InvalidOperationException("Should not reach here.");
         }
         
-        public TerminalTester WaitForPrompt(TimeSpan? timeout = null)
+        public TerminalTester WaitForPrompt(out TimeSpan virtualTimestamp, TimeSpan? timeout = null)
         {
-            WaitForEvent(x => {
+            TimeSpan time;
+            WaitForEvent(x => 
+                {
                     if(x is Prompt)
                     {
-                        LastEventVirtualTimestamp = x.VirtualTimestamp;
+                        time = x.VirtualTimestamp;
                         return EventResult.Success;
                     }
                     return EventResult.Continue;
-                },
-                        timeout, new Assertion { Type = AssertionType.WaitForPrompt });
+                }, timeout, new Assertion { Type = AssertionType.WaitForPrompt });
+
+            virtualTimestamp = time;
             return this;
         }
 
-        public string ReadToPrompt(TimeSpan? timeout = null)
+        public string ReadToPrompt(out TimeSpan virtualTimestamp, TimeSpan? timeout = null)
         {
             var result = new StringBuilder();
+            TimeSpan time;
             WaitForEvent(x =>
                 {
                     if(x is Prompt)
                     {
-                        LastEventVirtualTimestamp = x.VirtualTimestamp;
+                        time = x.VirtualTimestamp;
                         return EventResult.Success;
                     }
                     var line = x as Line;
@@ -194,15 +216,17 @@ namespace Emul8.Testing
                         result.AppendLine(line.Content);
                     }
                     return EventResult.Continue;
-                },
-                timeout, new Assertion { Type = AssertionType.WaitForPrompt });
+                }, timeout, new Assertion { Type = AssertionType.WaitForPrompt });
+
+            virtualTimestamp = time;
             return result.ToString();
         }
         
-        public TerminalTester WriteLine(string line = "", bool doNotEatEvent = false)
+        public TerminalTester WriteLine(out TimeSpan virtualTimestamp, string line = "", bool doNotEatEvent = false)
         {
             terminal.WriteLineToTerminal(line);
             var assertion = new Assertion(string.Format("WriteLine({0})", line)) { Type = AssertionType.WriteLine };
+            TimeSpan time;
             if(!doNotEatEvent)
             {
                 WaitForEvent(x => 
@@ -210,13 +234,14 @@ namespace Emul8.Testing
                     var lineEvent = x as Line;
                     if(lineEvent == null)
                     {
-                        LastEventVirtualTimestamp = x.VirtualTimestamp;
+                        time = x.VirtualTimestamp;
                         return EventResult.Continue;
                     }
                     return lineEvent.Content.Contains(line) ? EventResult.Success : EventResult.Continue;
-                },
-                null, assertion);
+                }, null, assertion);
             }
+
+            virtualTimestamp = time;
             return this;
         }
         
@@ -249,8 +274,6 @@ namespace Emul8.Testing
             }
         }
 
-        public TimeSpan LastEventVirtualTimestamp { get; private set; }
-        
         private void WaitForEvent(Func<Event, EventResult> predicate, TimeSpan? timeout, Assertion assertion)
         {
             TimeSpan usedTimeout;
