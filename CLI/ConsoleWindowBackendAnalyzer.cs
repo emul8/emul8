@@ -8,20 +8,12 @@
 using System;
 using Emul8.Peripherals;
 using Emul8.Peripherals.UART;
-using Emul8.Logging;
 using Emul8.Utilities;
-using System.Collections.Generic;
 using System.Linq;
-using System.Diagnostics;
-using System.ComponentModel;
 using AntShell.Terminal;
-using System.Threading;
-using Xwt;
 using Emul8.Core;
-#if EMUL8_PLATFORM_OSX
-using System.IO;
-using Mono.Unix.Native;
-#endif
+using Emul8.Exceptions;
+using Emul8.Logging;
 
 namespace Emul8.CLI
 {
@@ -29,163 +21,67 @@ namespace Emul8.CLI
     {
         public ConsoleWindowBackendAnalyzer()
         {
-            preferredTerminal = ConfigurationManager.Instance.Get("general", "terminal", TerminalTypes.Termsharp);
-#if EMUL8_PLATFORM_WINDOWS
-            if(preferredTerminal != TerminalTypes.Termsharp)
-            {
-                Logger.LogAs(this, LogLevel.Warning, "Only >>Termsharp<< terminal is available on Windows - forcing to use it.");
-            }
-#endif
-            if(preferredTerminal == TerminalTypes.Termsharp)
-            {
-                ApplicationExtensions.InvokeInUIThreadAndWait(() =>
-                {
-                    terminalWidget = new TerminalWidget(() => window.HasFocus);
-                });
-                IO = terminalWidget.IO;
-            }
-#if !EMUL8_PLATFORM_WINDOWS
-            else
-            {
-                ptyUnixStream = new PtyUnixStream();
-                IO = new IOProvider { Backend =new StreamIOSource(ptyUnixStream) };
-            }
-#endif
+            IO = new IOProvider();
         }
 
         public void AttachTo(UARTBackend backend)
         {
             Backend = backend;
-            string uartName;
-            if(EmulationManager.Instance.CurrentEmulation.TryGetEmulationElementName(backend.UART, out uartName))
+            if(EmulationManager.Instance.CurrentEmulation.TryGetEmulationElementName(backend.UART, out var uartName))
             {
                 Name = uartName;
             }
         }
 
-        public void DetachConsoleWindow()
-        {
-            if(Backend != null)
-            {
-                ((UARTBackend)Backend).UnbindAnalyzer(IO);
-                Backend = null;
-            }
-            Hide();
-        }
-
         public void Show()
         {
-#if !EMUL8_PLATFORM_WINDOWS
-            if(terminalWidget != null)
-            {
-#endif
-                var mre = new ManualResetEventSlim();
-                ApplicationExtensions.InvokeInUIThread(() => {
-                    window = new Window();
-                    window.Title = Name;
-                    window.Width = 700;
-                    window.Height = 400;
-                    window.Padding = new WidgetSpacing();
-                    window.Content = terminalWidget;
-                    terminalWidget.Initialized += mre.Set;
-                    window.Show();
-                    window.Closed += (sender, e) =>
-                    {
-                        DetachConsoleWindow();
-                        OnClose();
-                    };
-                    if(NextWindowLocation != default(Point))
-                    {
-                        window.Location = NextWindowLocation;
-                        NextWindowLocation = NextWindowLocation.Offset(WindowOffset);
-                    }
-                    else
-                    {
-                        NextWindowLocation = window.Location.Offset(WindowOffset);
-                    }
-                });
-                mre.Wait();
-#if !EMUL8_PLATFORM_WINDOWS
-            }
-            else
-            {
-                var windowCreators = new Dictionary<TerminalTypes, CreateWindowDelegate>
-                {
-#if EMUL8_PLATFORM_LINUX
-                    {TerminalTypes.XTerm, CreateXtermWindow},
-                    {TerminalTypes.Putty, CreatePuttyWindow},
-                    {TerminalTypes.GnomeTerminal, CreateGnomeTerminalWindow},
-#endif
-#if EMUL8_PLATFORM_OSX
-                    {TerminalTypes.TerminalApp, CreateTerminalAppWindow}
-#endif
-                };
+            var availableProviders = TypeManager.Instance.AutoLoadedTypes.Where(x => !x.IsAbstract && typeof(IConsoleBackendAnalyzerProvider).IsAssignableFrom(x)).ToDictionary(x => GetProviderName(x), x => x);
+            var preferredProvider = ConfigurationManager.Instance.Get("general", "terminal", "XTerm");
 
-                var commandString = string.Format("screen {0}", ptyUnixStream.SlaveName);
-                //Try preferred terminal first, than any other. If all fail, throw.
-                if(!windowCreators.OrderByDescending(x => x.Key == preferredTerminal).Any(x => x.Value(commandString, out process)))
+            foreach(var providerName in availableProviders.Keys.OrderByDescending(x => x == preferredProvider))
+            {
+                var providerType = availableProviders[providerName];
+                if(providerType.GetConstructor(new Type[0]) == null)
                 {
-                    throw new NotSupportedException(String.Format("Could not start terminal. Possible config values: {0}.",
-                        windowCreators.Keys.Select(x => x.ToString())
-                            .Prepend(TerminalTypes.Termsharp.ToString()).Aggregate((x, y) => x + ", " + y)));
+                    Logger.Log(LogLevel.Warning, "There is no default public constructor for {0} console backend analyzer provider. Skipping it.", providerName);
+                    continue;
                 }
+                provider = (IConsoleBackendAnalyzerProvider)Activator.CreateInstance(availableProviders[providerName]);
+                provider.OnClose += OnClose;
+                if(!provider.TryOpen(Name, out IIOSource ioSource))
+                {
+                    Logger.Log(LogLevel.Warning, "Could not open {0} console backend analyzer provider. Trying the next one.", providerName);
+                    continue;
+                }
+                IO.Backend = ioSource;
+                if(Backend != null)
+                {
+                    ((UARTBackend)Backend).BindAnalyzer(IO);
+                }
+                return;
+            }
 
-                Thread.Sleep(1000);
-                // I know - this is ugly. But here's the problem:
-                // we start terminal process with embedded socat and it takes time
-                // how much? - you ask
-                // good question - we don't know it; sometimes more, sometimes less
-                // sometimes it causes a problem - socat is not ready yet when first data arrives
-                // what happens then? - you ask
-                // good question - we lost some input, Emul8 banner most probably
-                // how to solve it? - you ask
-                // good question - with no good answer though, i'm affraid
-                // that is why we sleep here for 1s hoping it's enough
-                //
-                // This will be finally changed to our own implementation of VirtualTerminalEmulator.
-            }
-#endif
-            if(Backend != null)
-            {
-                ((UARTBackend)Backend).BindAnalyzer(IO);
-            }
+            throw new InvalidOperationException($"Could not start any console backend analyzer. Tried: {(string.Join(", ", availableProviders.Keys))}.");
         }
 
         public void Hide()
         {
-            var w = window;
-            if(w != null)
-            {
-                ApplicationExtensions.InvokeInUIThreadAndWait(() =>
-                {
-                    w.Hide();
-                });
-                w = null;
-                return;
-            }
-
-            var p = process;
+            var p = provider;
             if(p == null)
             {
                 return;
             }
 
-            try
+            if(Backend != null)
             {
-                p.CloseMainWindow();
+                ((UARTBackend)Backend).UnbindAnalyzer(IO);
+                Backend = null;
             }
-            catch(InvalidOperationException e)
-            {
-                // do not report an exception if the problem has already exited
-                if(!e.Message.Contains("finished") && !e.Message.Contains("exited"))
-                {
-                    throw;
-                }
-            }
-            process = null;
+            p.Close();
+            provider = null;
         }
 
-        public string Name { get; set; }
+        public string Name { get; private set; }
 
         public IAnalyzableBackend Backend { get; private set; }
 
@@ -193,238 +89,22 @@ namespace Emul8.CLI
 
         public event Action Quitted;
 
+        private string GetProviderName(Type type)
+        {
+            var attribute = type.GetCustomAttributes(false).OfType<ConsoleBackendAnalyzerProviderAttribute>().SingleOrDefault();
+            if(attribute != null)
+            {
+                return attribute.Name;
+            }
+
+            return type.Name.EndsWith("Provider", StringComparison.Ordinal) ? type.Name.Substring(0, type.Name.Length - 8) : type.Name;
+        }
+
         private void OnClose()
         {
-            var q = Quitted;
-            if(q != null)
-            {
-                q();
-            }
+            Quitted?.Invoke();
         }
 
-        private static Tuple<int, int> GetNextWindowPosition()
-        {
-            lock(StartingPosition)
-            {
-                var result = StartingPosition;
-                var newWidth = StartingPosition.Item1 + WindowWidth;
-                var newHeight = StartingPosition.Item2;
-                if(newWidth > MaxWidth)
-                {
-                    newWidth = 10;
-                    newHeight += WindowHeight;
-                }
-                StartingPosition = Tuple.Create(newWidth, newHeight);
-                return result;
-            }
-        }
-
-        private static Tuple<int, int> StartingPosition = Tuple.Create(10, 10);
-
-#if EMUL8_PLATFORM_LINUX
-        private bool CreateGnomeTerminalWindow(string command, out Process p)
-        {
-            p = new Process();
-            p.EnableRaisingEvents = true;
-            var position = GetNextWindowPosition();
-
-            var arguments = string.Format("--tab -e \"{3}\" --title '{0}' --geometry=+{1}+{2}", Name, position.Item1, position.Item2, command);
-            p.StartInfo = new ProcessStartInfo("gnome-terminal", arguments)
-            {
-                UseShellExecute = false,
-                RedirectStandardError = true,
-                RedirectStandardOutput = true,
-                RedirectStandardInput = true
-            };
-            p.Exited += (sender, e) =>
-            {
-                var proc = sender as Process;
-                if (proc.ExitCode != 0)
-                {
-                    LogError("gnome-terminal", arguments, proc.ExitCode);
-                }
-                // We do not call OnClose here, because gnome-terminal closes immediately after spawning new window.
-            };
-            return RunProcess(ref p);
-        }
-
-        private bool CreatePuttyWindow(string arg, out Process p)
-        {
-            p = new Process();
-            p.EnableRaisingEvents = true;
-            var arguments = string.Format("{0} -serial -title '{0}'", Name);
-            p.StartInfo = new ProcessStartInfo("putty", arguments)
-            {
-                UseShellExecute = false,
-                RedirectStandardError = true,
-                RedirectStandardOutput = true,
-                RedirectStandardInput = true
-            };
-            p.Exited += (sender, e) =>
-            {
-                var proc = sender as Process;
-                if (proc.ExitCode != 0)
-                {
-                    LogError("Putty", arguments, proc.ExitCode);
-                }
-                OnClose();
-            };
-            return RunProcess(ref p);
-        }
-
-        private bool CreateXtermWindow(string cmd, out Process p)
-        {
-            p = new Process();
-            var position = GetNextWindowPosition();
-            var minFaceSize = @"XTerm.*.faceSize1: 6";
-            var keys = @"XTerm.VT100.translations: #override \\n" +
-                        // disable menu on CTRL click
-                        @"!Ctrl <Btn1Down>: ignore()\\n" +
-                        @"!Ctrl <Btn2Down>: ignore()\\n" +
-                        @"!Ctrl <Btn3Down>: ignore()\\n" +
-                        @"!Lock Ctrl <Btn1Down>: ignore()\\n" +
-                        @"!Lock Ctrl <Btn2Down>: ignore()\\n" +
-                        @"!Lock Ctrl <Btn3Down>: ignore()\\n" +
-                        @"!@Num_Lock Ctrl <Btn1Down>: ignore()\\n" +
-                        @"!@Num_Lock Ctrl <Btn2Down>: ignore()\\n" +
-                        @"!@Num_Lock Ctrl <Btn3Down>: ignore()\\n" +
-                        @"!Lock Ctrl @Num_Lock <Btn1Down>: ignore()\\n" +
-                        @"!Lock Ctrl @Num_Lock <Btn2Down>: ignore()\\n" +
-                        @"!Lock Ctrl @Num_Lock <Btn3Down>: ignore()\\n" +
-                        // change default font size change keys into CTRL +/-
-                        @"Shift~Ctrl <KeyPress> KP_Add:ignore()\\n" +
-                        @"Shift Ctrl <KeyPress> KP_Add:ignore()\\n" +
-                        @"Shift <KeyPress> KP_Subtract:ignore()\\n" +
-                        @"Ctrl <KeyPress> KP_Subtract:smaller-vt-font()\\n" +
-                        @"Ctrl <KeyPress> KP_Add:larger-vt-font() \\n";
-            var scrollKeys = @"XTerm.VT100.scrollbar.translations: #override \\n"+
-                                @"<Btn5Down>: StartScroll(Forward) \\n"+
-                                @"<Btn1Down>: StartScroll(Continuous) MoveThumb() NotifyThumb() \\n"+
-                                @"<Btn4Down>: StartScroll(Backward) \\n"+
-                                @"<Btn3Down>: StartScroll(Continuous) MoveThumb() NotifyThumb() \\n"+
-                                @"<Btn2Down>: ignore() \\n"+
-                                @"<Btn1Motion>: MoveThumb() NotifyThumb() \\n"+
-                                @"<BtnUp>: NotifyScroll(Proportional) EndScroll()";
-            var fonts = "DejaVu Sans Mono, Ubuntu Sans Mono, Droid Sans Mono";
-
-            var command = string.Format(@"-T '{0}' -sb -rightbar -xrm '*Scrollbar.thickness: 10' -xrm '*Scrollbar.background: #CCCCCC' -geometry +{1}+{2}  -xrm '*Scrollbar.foreground: #444444' -xrm 'XTerm.vt100.background: black' -xrm 'XTerm.vt100.foreground: white' -fa '{3}' -fs 10 -xrm '{4}' -xrm '{5}' -xrm '{6}' -e {7}",
-                Name, position.Item1, position.Item2, fonts, keys, minFaceSize, scrollKeys, cmd);
-
-            p.StartInfo = new ProcessStartInfo("xterm", command)
-            {
-                UseShellExecute = false,
-                RedirectStandardError = true,
-                RedirectStandardOutput = true,
-                RedirectStandardInput = true,
-            };
-            p.EnableRaisingEvents = true;
-            p.Exited += (sender, e) =>
-            {
-                var proc = sender as Process;
-                if (proc.ExitCode != 0 && proc.ExitCode != 15)
-                {
-                    LogError("Xterm", command, proc.ExitCode);
-                }
-                OnClose();
-            };
-            return RunProcess(ref p);
-        }
-#endif
-
-#if EMUL8_PLATFORM_OSX
-        private bool CreateTerminalAppWindow(string arg, out Process p)
-        {
-            var script = TemporaryFilesManager.Instance.GetTemporaryFile();
-            File.WriteAllLines(script, new [] {
-                "#!/bin/bash",
-                string.Format("/usr/bin/screen {0}", ptyUnixStream.SlaveName)
-            });
-
-            p = new Process();
-            p.EnableRaisingEvents = true;
-            Syscall.chmod(script, FilePermissions.S_IXUSR | FilePermissions.S_IRUSR | FilePermissions.S_IWUSR);
-
-            var arguments = string.Format("{0} {1}", "-a /Applications/Utilities/Terminal.app", script);
-            p.StartInfo = new ProcessStartInfo("open", arguments)
-            {
-                UseShellExecute = false,
-                RedirectStandardError = true,
-                RedirectStandardOutput = true,
-                RedirectStandardInput = true
-            };
-            p.Exited += (sender, e) =>
-            {
-                var proc = sender as Process;
-                if (proc.ExitCode != 0)
-                {
-                    LogError("Terminal.app", arguments, proc.ExitCode);
-                }
-                // We do not call OnClose here, because the closing routine of "open" is counterintuitive.
-                // In current setup it closes automatically like gnome-terminal. We may add -W or -Wn, but
-                // then Exited event never gets called on window close, the user must close the app from the
-                // Dock. This will either force the user to kill all terminals (-W) or it will create multiple
-                // terminal icons (-Wn) that will stay there unless manually closed. Both options are bad.
-            };
-            return RunProcess(ref p);
-        }
-#endif
-
-        private bool RunProcess(ref Process p)
-        {
-            try
-            {
-                p.Start();
-                return true;
-            }
-            catch(Win32Exception e)
-            {
-                if(e.NativeErrorCode == 2)
-                {
-                    Logger.LogAs(this, LogLevel.Warning, "Could not find binary: {0}", p.StartInfo.FileName);
-                }
-                else
-                {
-                    Logger.LogAs(this, LogLevel.Error, "There was an error when starting process: {0}", e.Message);
-                }
-                p = null;
-            }
-
-            return false;
-        }
-
-        private void LogError(string source, string arguments, int exitCode)
-        {
-            Logger.LogAs(this, LogLevel.Error, "There was an error while starting {2} with arguments: {0}. It exited with code: {1}. In order to use different terminal change preferences in configuration file.", arguments, exitCode, source);
-        }
-
-        private delegate bool CreateWindowDelegate(string command, out Process process);
-
-        private Process process;
-        private Xwt.Window window;
-        private TerminalWidget terminalWidget;
-
-        private readonly PtyUnixStream ptyUnixStream;
-        private readonly TerminalTypes preferredTerminal;
-
-        private static Point NextWindowLocation;
-        private static readonly Point WindowOffset = new Point(30, 50);
-
-        private const int WindowHeight = 500;
-        private const int WindowWidth = 670;
-        private const int MaxWidth = 1700;
-
-        private enum TerminalTypes
-        {
-#if EMUL8_PLATFORM_LINUX
-            Putty,
-            XTerm,
-            GnomeTerminal,
-#endif
-#if EMUL8_PLATFORM_OSX
-            TerminalApp,
-#endif
-            Termsharp
-        }
+        private IConsoleBackendAnalyzerProvider provider;
     }
 }
-
