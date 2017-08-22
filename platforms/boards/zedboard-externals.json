@@ -33,9 +33,13 @@
     "_connection":
     {
     	"sysbus.GPIO":
-        	{
-                	"address":61
-                }
+      {
+        "address":61
+      }
+    },
+    "_irqFrom":
+    {
+      "sysbus.GPIO": [[61,0]]
     }
  },
   "led1":
@@ -44,9 +48,13 @@
     "_connection":
     {
     	"sysbus.GPIO":
-        	{
-                	"address":62
-                }
+      {
+        "address":62
+      }
+    },
+    "_irqFrom":
+    {
+      "sysbus.GPIO": [[62,0]]
     }
  },
   "led2":
@@ -55,9 +63,13 @@
     "_connection":
     {
     	"sysbus.GPIO":
-        	{
-                	"address":63
-                }
+      {
+        "address":63
+      }
+    },
+    "_irqFrom":
+    {
+      "sysbus.GPIO": [[63,0]]
     }
  },
   "led3":
@@ -66,9 +78,13 @@
     "_connection":
     {
     	"sysbus.GPIO":
-        	{
-                	"address":64
-                }
+      {
+        "address":64
+      }
+    },
+    "_irqFrom":
+    {
+      "sysbus.GPIO": [[64,0]]
     }
  },
   "led4":
@@ -77,9 +93,13 @@
     "_connection":
     {
     	"sysbus.GPIO":
-        	{
-                	"address":65
-                }
+      {
+        "address":65
+      }
+    },
+    "_irqFrom":
+    {
+      "sysbus.GPIO": [[65,0]]
     }
  },
   "led5":
@@ -88,9 +108,13 @@
     "_connection":
     {
     	"sysbus.GPIO":
-        	{
-                	"address":66
-                }
+      {
+        "address":66
+      }
+    },
+    "_irqFrom":
+    {
+      "sysbus.GPIO": [[66,0]]
     }
  },
   "led6":
@@ -99,9 +123,13 @@
     "_connection":
     {
     	"sysbus.GPIO":
-        	{
-                	"address":67
-                }
+      {
+        "address":67
+      }
+    },
+    "_irqFrom":
+    {
+      "sysbus.GPIO": [[67,0]]
     }
  },
   "led7":
@@ -110,9 +138,13 @@
     "_connection":
     {
     	"sysbus.GPIO":
-        	{
-                	"address":68
-                }
+      {
+        "address":68
+      }
+    },
+    "_irqFrom":
+    {
+      "sysbus.GPIO": [[68,0]]
     }
  }
 }
