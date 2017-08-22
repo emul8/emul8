@@ -6,7 +6,7 @@ Emulation time unit
 
 *Emulation time unit* is a time unit widely used in emulator.
 Its value is 0.000001s, i.e. one microsecond.
-In other words, timer producing clock event every *emulation time unit* has frequency of 1GHz.
+In other words, timer producing clock event every *emulation time unit* has frequency of 1MHz.
 
 Deterministic execution
 -----------------------
