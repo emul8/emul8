@@ -22,7 +22,7 @@ To resolve that problem, in Emul8 it is possible to change the source that is dr
 
 The clock source drives all the timers in a given machine and can be changed at will.
 
-To set the clock source of a given machine, use ```SetClockSource``:
+To set the clock source of a given machine, use ``SetClockSource``:
 
 .. code-block:: bash
 
