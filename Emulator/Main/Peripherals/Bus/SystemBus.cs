@@ -1461,9 +1461,9 @@ namespace Emul8.Peripherals.Bus
         private readonly List<BinaryFingerprint> binaryFingerprints;
         private readonly Machine machine;
         private const string NonExistingRead = "Read{1} from non existing peripheral at 0x{0:X}.";
-        private const string NonExistingWrite = "Write{2} to non existing peripheral at 0x{0:X}, value 0x{1:X}";
+        private const string NonExistingWrite = "Write{2} to non existing peripheral at 0x{0:X}, value 0x{1:X}.";
         private const string IOExceptionMessage = "I/O error while loading ELF: {0}.";
-        private const string CantFindCpuIdMessage = "Can't verify current CPU in the given context";
+        private const string CantFindCpuIdMessage = "Can't verify current CPU in the given context.";
         private const bool Overlap = true;
         // TODO
 
