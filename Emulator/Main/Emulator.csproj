@@ -194,7 +194,6 @@
     <Compile Include="Peripherals\Input\PS2ScanCodeTranslator.cs" />
     <Compile Include="Core\IManagedThread.cs" />
     <Compile Include="Testing\TerminalTester.cs" />
-    <Compile Include="Peripherals\Bus\SVDDummyDevice.cs" />
     <Compile Include="Peripherals\Bus\Wrappers\ReadHookWrapper.cs" />
     <Compile Include="Peripherals\Bus\Wrappers\ReadLoggingWrapper.cs" />
     <Compile Include="Peripherals\Bus\Wrappers\HookWrapper.cs" />
@@ -385,6 +384,7 @@
     <Compile Include="Core\INetworkLogSwitch.cs" />
     <Compile Include="Core\INetworkLogWireless.cs" />
     <Compile Include="Exceptions\ConfigurationException.cs" />
+    <Compile Include="Peripherals\Bus\SVDParser.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup />

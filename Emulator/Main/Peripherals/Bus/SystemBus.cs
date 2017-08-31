@@ -741,7 +741,7 @@ namespace Emul8.Peripherals.Bus
 
         public void ApplySVD(string path)
         {
-            var svdDevice = new SVDDummyDevice(path, this);
+            var svdDevice = new SVDParser(path, this);
             svdDevices.Add(svdDevice);
         }
 
@@ -1263,7 +1263,7 @@ namespace Emul8.Peripherals.Bus
             peripherals = new PeripheralCollection(this);
             mappingsForPeripheral = new Dictionary<IBusPeripheral, List<MappedSegmentWrapper>>();
             tags = new Dictionary<Range, TagEntry>();
-            svdDevices = new List<SVDDummyDevice>();
+            svdDevices = new List<SVDParser>();
             pausingTags = new HashSet<string>();
         }
 
@@ -1396,7 +1396,7 @@ namespace Emul8.Peripherals.Bus
                 uint value;
                 foreach(var svdDevice in svdDevices)
                 {
-                    if(svdDevice.ReadAccess(address, out value))
+                    if(svdDevice.TryReadAccess(address, out value, type))
                     {
                         return value;
                     }
@@ -1424,7 +1424,7 @@ namespace Emul8.Peripherals.Bus
             }
             foreach(var svdDevice in svdDevices)
             {
-                if(svdDevice.WriteAccess(address, value, type))
+                if(svdDevice.TryWriteAccess(address, value, type))
                 {
                     return;
                 }
@@ -1456,14 +1456,14 @@ namespace Emul8.Peripherals.Bus
         private ThreadLocal<int> cachedCpuId;
         private object cpuSync;
         private Dictionary<Range, TagEntry> tags;
-        private List<SVDDummyDevice> svdDevices;
+        private List<SVDParser> svdDevices;
         private HashSet<string> pausingTags;
         private readonly List<BinaryFingerprint> binaryFingerprints;
         private readonly Machine machine;
         private const string NonExistingRead = "Read{1} from non existing peripheral at 0x{0:X}.";
-        private const string NonExistingWrite = "Write{2} to non existing peripheral at 0x{0:X}, value 0x{1:X}";
+        private const string NonExistingWrite = "Write{2} to non existing peripheral at 0x{0:X}, value 0x{1:X}.";
         private const string IOExceptionMessage = "I/O error while loading ELF: {0}.";
-        private const string CantFindCpuIdMessage = "Can't verify current CPU in the given context";
+        private const string CantFindCpuIdMessage = "Can't verify current CPU in the given context.";
         private const bool Overlap = true;
         // TODO
 
