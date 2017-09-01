@@ -61,8 +61,12 @@ namespace Emul8.Utilities
             {
                 parser = GetFromCacheOrAdd(
                     ref cache,
-                    () => { Delegate _parser; var result = TryGetParseMethodDelegate(outputType, new[] { typeof(string) }, new object[0], out _parser) ||
-                            TryGetParseMethodDelegate(outputType, new[] { typeof(string), typeof(CultureInfo) }, new object[] { CultureInfo.InvariantCulture }, out _parser); return _parser; }, 
+                    () =>
+                    {
+                        Delegate _parser;
+                        var result = TryGetParseMethodDelegate(outputType, new[] { typeof(string), typeof(CultureInfo) }, new object[] { CultureInfo.InvariantCulture }, out _parser) ||
+                            TryGetParseMethodDelegate(outputType, new[] { typeof(string) }, new object[0], out _parser); return _parser;
+                    },
                     outputType
                 );
             }
