@@ -5,10 +5,8 @@
 // This file is part of the Emul8 project.
 // Full license details are defined in the 'LICENSE' file.
 //
-using System;
 using Emul8.Core;
 using Emul8.Exceptions;
-using Microsoft.CSharp;
 using System.CodeDom.Compiler;
 using System.Linq;
 using System.Collections.Generic;
@@ -21,7 +19,7 @@ namespace Emul8.Utilities
     {
         public string Compile(string sourcePath, IEnumerable<string> referencedLibraries = null)
         {
-            using(var provider = new CSharpCodeProvider(new Dictionary<string, string> { { "CompilerVersion", "v4.0" } }))
+            using(var provider = CodeDomProvider.CreateProvider("CSharp"))
             {
                 var outputFileName = TemporaryFilesManager.Instance.GetTemporaryFile();
                 var parameters = new CompilerParameters { GenerateInMemory = false, GenerateExecutable = false, OutputAssembly = outputFileName };
@@ -30,6 +28,9 @@ namespace Emul8.Utilities
                 parameters.ReferencedAssemblies.Add("System.Core.dll");
                 parameters.ReferencedAssemblies.Add(Assembly.GetAssembly(typeof(Machine)).Location); // Core
                 parameters.ReferencedAssemblies.Add(Assembly.GetAssembly(typeof(Serializer)).Location); // Migrant
+#if EMUL8_PLATFORM_LINUX
+                parameters.CompilerOptions = "/langversion:experimental";
+#endif
                 if(referencedLibraries != null)
                 {
                     foreach(var lib in referencedLibraries)
