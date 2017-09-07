@@ -14,20 +14,20 @@ namespace Emul8.Core
         public PseudorandomNumberGenerator()
         {
             instanceSeed = new Random().Next();
-            generator = new Random(instanceSeed);
-
-            Logger.Log(LogLevel.Info, "Pseudorandom Number Generator was created with seed: {0}", instanceSeed);
+            locker = new object();
         }
 
         public void ResetSeed(int newSeed)
         {
-            if(wasSeedUsed)
+            lock(locker)
             {
-                Logger.Log(LogLevel.Warning, "Pseudorandom Number Generator seed has changed since last usage from: {0} to: {1}", instanceSeed, newSeed);
+                if(generator != null)
+                {
+                    Logger.Log(LogLevel.Warning, "Pseudorandom Number Generator has already been used with seed {0}. Next time it will use a new one {1}. It won't be possible to repeat this exact execution.", instanceSeed, newSeed);
+                    generator = null;
+                }
+                instanceSeed = newSeed;
             }
-            instanceSeed = newSeed;
-            generator = new Random(instanceSeed);
-            wasSeedUsed = false;
         }
 
         public int GetCurrentSeed()
@@ -37,37 +37,46 @@ namespace Emul8.Core
 
         public double NextDouble()
         {
-            wasSeedUsed = true;
-            return generator.NextDouble();
+            return GetOrCreateGenerator().NextDouble();
         }
 
         public int Next()
         {
-            wasSeedUsed = true;
-            return generator.Next();
+            return GetOrCreateGenerator().Next();
         }
 
         public int Next(int maxValue)
         {
-            wasSeedUsed = true;
-            return generator.Next(maxValue);
+            return GetOrCreateGenerator().Next(maxValue);
         }
 
         public int Next(int minValue, int maxValue)
         {
-            wasSeedUsed = true;
-            return generator.Next(minValue, maxValue);
+            return GetOrCreateGenerator().Next(minValue, maxValue);
         }
 
         public void NextBytes(byte[] buffer)
         {
-            wasSeedUsed = true;
-            generator.NextBytes(buffer);
+            GetOrCreateGenerator().NextBytes(buffer);
         }
 
-        private bool wasSeedUsed;
+        private Random GetOrCreateGenerator()
+        {
+            lock(locker)
+            {
+                if(generator == null)
+                {
+                    generator = new Random(instanceSeed);
+                    Logger.Log(LogLevel.Info, "Pseudorandom Number Generator was created with seed: {0}", instanceSeed);
+                }
+                return generator;
+            }
+        }
+
         private int instanceSeed;
         private Random generator;
+
+        private readonly object locker;
     }
 }
 
