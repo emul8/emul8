@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿//
+﻿﻿﻿﻿﻿﻿//
 // Copyright (c) Antmicro
 //
 // This file is part of the Emul8 project.
@@ -69,7 +69,7 @@ namespace Emul8.Utilities
                     () =>
                     {
                         if(!TryGetParseMethodDelegate(outputType, new[] { typeof(string), typeof(CultureInfo) }, new object[] { CultureInfo.InvariantCulture }, out Delegate result)
-                          || !TryGetParseMethodDelegate(outputType, new[] { typeof(string) }, new object[0], out result))
+                          && !TryGetParseMethodDelegate(outputType, new[] { typeof(string) }, new object[0], out result))
                         {
                             result = null;
                         }
