@@ -31,6 +31,7 @@ function get_path {
 }
 
 function add_property {
-    sed -i.bak "s#</PropertyGroup>#  <$2>$3</$2>"'\
+    sanitized_path=$(sed 's:\\:/:g' <<< `get_path "$3"`)
+    sed -i.bak "s#</PropertyGroup>#  <$2>$sanitized_path</$2>"'\
 </PropertyGroup>#' "$1"
 }
