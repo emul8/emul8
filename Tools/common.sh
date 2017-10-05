@@ -24,7 +24,7 @@ fi
 function get_path {
     if $ON_WINDOWS
     then
-        echo -n "`cygpath -aw $1`"
+        echo -n "`cygpath -aw "$1"`"
     else
         echo -n "$1"
     fi

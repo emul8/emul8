@@ -16,7 +16,7 @@
 set -e
 set -u
 
-CURRENT_PATH="`dirname \"\`realpath $0\`\"`"
+CURRENT_PATH="`dirname \"\`realpath "$0"\`\"`"
 
 export ROOT_PATH="${ROOT_PATH:-$CURRENT_PATH}"
 
