@@ -831,10 +831,15 @@ namespace Emul8.UserInterface
                 if(!String.IsNullOrWhiteSpace(lastElement))
                 {
                     //these functions will fail on empty input
-                    directory = Path.GetDirectoryName(lastElement) ?? "/";
+                    directory = Path.GetDirectoryName(lastElement) ?? lastElement;
                     file = Path.GetFileName(lastElement);
                 }
-                if(lastElement.StartsWith(Path.DirectorySeparatorChar))
+#if PLATFORM_WINDOWS
+                var rootIndicator = "^[a-zA-Z]:/";
+#else
+                var rootIndicator = "^/";
+#endif
+                if(Regex.Match(lastElement, rootIndicator).Success)
                 {
                     try
                     {
