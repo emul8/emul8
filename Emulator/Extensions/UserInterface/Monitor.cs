@@ -783,7 +783,19 @@ namespace Emul8.UserInterface
                                      .Select(x => allButLast + "@" + StripPrefix(x, prefix).Replace(" ", @"\ "));
                 var dirs = Directory.GetDirectories(directoryPath, lastElement + '*', SearchOption.TopDirectoryOnly)
                                     .Select(x => allButLast + "@" + (StripPrefix(x, prefix) + '/').Replace(" ", @"\ "));
-                return files.Concat(dirs);
+
+                var result = new List<string>();
+                //We change "\" characters to "/", unless they were followed by the space character, in which case they treated as escape char.
+                foreach(var file in files.Concat(dirs))
+                {
+                    var sanitizedFile = file.Replace("\\", "/");
+                    if(sanitizedFile.Contains("/ "))
+                    {
+                        sanitizedFile = sanitizedFile.Replace("/ ", "\\ ");
+                    }
+                    result.Add(sanitizedFile);
+                }
+                return result;
             }
             catch(UnauthorizedAccessException)
             {
