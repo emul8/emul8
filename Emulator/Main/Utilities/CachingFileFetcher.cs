@@ -76,92 +76,94 @@ namespace Emul8.Utilities
                     Monitor.Exit(concurrentLock);
                     return true;
                 }
-                client = new WebClient();
-                fileName = TemporaryFilesManager.Instance.GetTemporaryFile();
-                try
+                using(client = new WebClient())
                 {
-                    var attempts = 0;
-                    var success = false;
-                    do
+                    fileName = TemporaryFilesManager.Instance.GetTemporaryFile();
+                    try
                     {
-                        var downloadProgressHandler = EmulationManager.Instance.ProgressMonitor.Start(GenerateProgressMessage(uri), false, true);
-                        Logger.LogAs(this, LogLevel.Info, "Downloading {0}.", uri);
-                        var now = CustomDateTime.Now;
-                        var bytesDownloaded = 0L;
-                        client.DownloadProgressChanged += (sender, e) =>
+                        var attempts = 0;
+                        var success = false;
+                        do
                         {
-                            var newNow = CustomDateTime.Now;
-
-                            var period = newNow - now;
-                            if(period > progressUpdateThreshold)
+                            var downloadProgressHandler = EmulationManager.Instance.ProgressMonitor.Start(GenerateProgressMessage(uri), false, true);
+                            Logger.LogAs(this, LogLevel.Info, "Downloading {0}.", uri);
+                            var now = CustomDateTime.Now;
+                            var bytesDownloaded = 0L;
+                            client.DownloadProgressChanged += (sender, e) =>
                             {
-                                downloadProgressHandler.UpdateProgress(e.ProgressPercentage,
-                                    GenerateProgressMessage(uri,
-                                        e.BytesReceived, e.TotalBytesToReceive, e.ProgressPercentage, 1.0 * (e.BytesReceived - bytesDownloaded) / period.TotalSeconds));
+                                var newNow = CustomDateTime.Now;
 
-                                now = newNow;
-                                bytesDownloaded = e.BytesReceived;
-                            }
-                        };
-                        var wasCancelled = false;
-                        Exception exception = null;
-                        var resetEvent = new ManualResetEvent(false);
-                        client.DownloadFileCompleted += delegate(object sender, AsyncCompletedEventArgs e)
-                        {
-                            exception = e.Error;
-                            if(e.Cancelled)
+                                var period = newNow - now;
+                                if (period > progressUpdateThreshold)
+                                {
+                                    downloadProgressHandler.UpdateProgress(e.ProgressPercentage,
+                                        GenerateProgressMessage(uri,
+                                            e.BytesReceived, e.TotalBytesToReceive, e.ProgressPercentage, 1.0 * (e.BytesReceived - bytesDownloaded) / period.TotalSeconds));
+
+                                    now = newNow;
+                                    bytesDownloaded = e.BytesReceived;
+                                }
+                            };
+                            var wasCancelled = false;
+                            Exception exception = null;
+                            var resetEvent = new ManualResetEvent(false);
+                            client.DownloadFileCompleted += delegate (object sender, AsyncCompletedEventArgs e)
                             {
-                                wasCancelled = true;
-                            }
-                            resetEvent.Set();
+                                exception = e.Error;
+                                if (e.Cancelled)
+                                {
+                                    wasCancelled = true;
+                                }
+                                resetEvent.Set();
+                                downloadProgressHandler.Finish();
+                            };
+                            client.DownloadFileAsync(uri, fileName);
+                            resetEvent.WaitOne();
                             downloadProgressHandler.Finish();
-                        };
-                        client.DownloadFileAsync(uri, fileName);
-                        resetEvent.WaitOne();
-                        downloadProgressHandler.Finish();
 
-                        if(wasCancelled)
-                        {
-                            Logger.LogAs(this, LogLevel.Info, "Download cancelled.");
-                            File.Delete(fileName);
-                            return false;
-                        }
-                        if(exception != null)
-                        {
-                            var webException = exception as WebException;
-                            File.Delete(fileName);
-                            Logger.LogAs(this, LogLevel.Error, "Failed to download from {0}, reason: {1}.", uri, webException != null ? ResolveWebException(webException) : exception.Message);
-                            return false;
-                        }
-                        Logger.LogAs(this, LogLevel.Info, "Download done.");
-                        if(uri.ToString().EndsWith(".gz", StringComparison.InvariantCulture))
-                        {
-                            var decompressionProgressHandler = EmulationManager.Instance.ProgressMonitor.Start(string.Format("Decompressing {0}", uri), false, false);
-                            Logger.LogAs(this, LogLevel.Info, "Decompressing {0}.", uri);
-                            var decompressedFile = TemporaryFilesManager.Instance.GetTemporaryFile();
-                            using(var gzipStream = new GZipStream(File.OpenRead(fileName), CompressionMode.Decompress))
-                            using(var outputStream = File.OpenWrite(decompressedFile))
+                            if (wasCancelled)
                             {
-                                gzipStream.CopyTo(outputStream);
+                                Logger.LogAs(this, LogLevel.Info, "Download cancelled.");
+                                File.Delete(fileName);
+                                return false;
                             }
-                            fileName = decompressedFile;
-                            Logger.LogAs(this, LogLevel.Info, "Decompression done");
-                            decompressionProgressHandler.Finish();
+                            if (exception != null)
+                            {
+                                var webException = exception as WebException;
+                                File.Delete(fileName);
+                                Logger.LogAs(this, LogLevel.Error, "Failed to download from {0}, reason: {1}.", uri, webException != null ? ResolveWebException(webException) : exception.Message);
+                                return false;
+                            }
+                            Logger.LogAs(this, LogLevel.Info, "Download done.");
+                            if (uri.ToString().EndsWith(".gz", StringComparison.InvariantCulture))
+                            {
+                                var decompressionProgressHandler = EmulationManager.Instance.ProgressMonitor.Start(string.Format("Decompressing {0}", uri), false, false);
+                                Logger.LogAs(this, LogLevel.Info, "Decompressing {0}.", uri);
+                                var decompressedFile = TemporaryFilesManager.Instance.GetTemporaryFile();
+                                using (var gzipStream = new GZipStream(File.OpenRead(fileName), CompressionMode.Decompress))
+                                using (var outputStream = File.OpenWrite(decompressedFile))
+                                {
+                                    gzipStream.CopyTo(outputStream);
+                                }
+                                fileName = decompressedFile;
+                                Logger.LogAs(this, LogLevel.Info, "Decompression done");
+                                decompressionProgressHandler.Finish();
+                            }
                         }
+                        while (!(success = UpdateInCache(uri, fileName)) && attempts++ < 2);
+                        if (!success)
+                        {
+                            Logger.LogAs(this, LogLevel.Error, "Download failed {0} times, wrong checksum or size, aborting.", attempts);
+                            File.Delete(fileName);
+                            return false;
+                        }
+                        fetchedFiles.Add(fileName, uri);
+                        return true;
                     }
-                    while(!(success = UpdateInCache(uri, fileName)) && attempts++ < 2);
-                    if(!success)
+                    finally
                     {
-                        Logger.LogAs(this, LogLevel.Error, "Download failed {0} times, wrong checksum or size, aborting.", attempts);
-                        File.Delete(fileName);
-                        return false;
+                        Monitor.Exit(concurrentLock);
                     }
-                    fetchedFiles.Add(fileName, uri);
-                    return true;
-                }
-                finally
-                {
-                    Monitor.Exit(concurrentLock);
                 }
             }
         }
