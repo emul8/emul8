@@ -64,7 +64,7 @@ namespace Emul8.Utilities
                 Logger.LogAs(this, LogLevel.Error, "Cannot perform concurrent downloads, aborting...");
                 return false;
             }
-#if EMUL8_PLATFORM_WINDOWS
+#if PLATFORM_WINDOWS
             using(var locker = new WindowsFileLocker(GetCacheIndexLockLocation()))
 #else
             using(var locker = new PosixFileLocker(GetCacheIndexLockLocation()))

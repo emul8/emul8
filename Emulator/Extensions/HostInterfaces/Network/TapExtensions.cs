@@ -19,9 +19,9 @@ namespace Emul8.HostInterfaces.Network
         public static IMACInterface CreateAndGetTap(this Emulation emulation, string hostInterfaceName, string name, bool persistent = false)
         {
             ITapInterface result;
-#if EMUL8_PLATFORM_WINDOWS
+#if PLATFORM_WINDOWS
             throw new RecoverableException("TAP is not available on Windows");
-#elif EMUL8_PLATFORM_OSX
+#elif PLATFORM_OSX
             if(persistent)
             {
                 throw new RecoverableException("Persitent TAP is not available on OS X.");

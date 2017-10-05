@@ -18,7 +18,7 @@ using AntShell.Terminal;
 using System.Threading;
 using Xwt;
 using Emul8.Core;
-#if EMUL8_PLATFORM_OSX
+#if PLATFORM_OSX
 using System.IO;
 using Mono.Unix.Native;
 #endif
@@ -30,7 +30,7 @@ namespace Emul8.CLI
         public ConsoleWindowBackendAnalyzer()
         {
             preferredTerminal = ConfigurationManager.Instance.Get("general", "terminal", TerminalTypes.Termsharp);
-#if EMUL8_PLATFORM_WINDOWS
+#if PLATFORM_WINDOWS
             if(preferredTerminal != TerminalTypes.Termsharp)
             {
                 Logger.LogAs(this, LogLevel.Warning, "Only >>Termsharp<< terminal is available on Windows - forcing to use it.");
@@ -44,7 +44,7 @@ namespace Emul8.CLI
                 });
                 IO = terminalWidget.IO;
             }
-#if !EMUL8_PLATFORM_WINDOWS
+#if !PLATFORM_WINDOWS
             else
             {
                 ptyUnixStream = new PtyUnixStream();
@@ -75,7 +75,7 @@ namespace Emul8.CLI
 
         public void Show()
         {
-#if !EMUL8_PLATFORM_WINDOWS
+#if !PLATFORM_WINDOWS
             if(terminalWidget != null)
             {
 #endif
@@ -105,18 +105,18 @@ namespace Emul8.CLI
                     }
                 });
                 mre.Wait();
-#if !EMUL8_PLATFORM_WINDOWS
+#if !PLATFORM_WINDOWS
             }
             else
             {
                 var windowCreators = new Dictionary<TerminalTypes, CreateWindowDelegate>
                 {
-#if EMUL8_PLATFORM_LINUX
+#if PLATFORM_LINUX
                     {TerminalTypes.XTerm, CreateXtermWindow},
                     {TerminalTypes.Putty, CreatePuttyWindow},
                     {TerminalTypes.GnomeTerminal, CreateGnomeTerminalWindow},
 #endif
-#if EMUL8_PLATFORM_OSX
+#if PLATFORM_OSX
                     {TerminalTypes.TerminalApp, CreateTerminalAppWindow}
 #endif
                 };
@@ -221,7 +221,7 @@ namespace Emul8.CLI
 
         private static Tuple<int, int> StartingPosition = Tuple.Create(10, 10);
 
-#if EMUL8_PLATFORM_LINUX
+#if PLATFORM_LINUX
         private bool CreateGnomeTerminalWindow(string command, out Process p)
         {
             p = new Process();
@@ -331,7 +331,7 @@ namespace Emul8.CLI
         }
 #endif
 
-#if EMUL8_PLATFORM_OSX
+#if PLATFORM_OSX
         private bool CreateTerminalAppWindow(string arg, out Process p)
         {
             var script = TemporaryFilesManager.Instance.GetTemporaryFile();
@@ -403,7 +403,9 @@ namespace Emul8.CLI
         private Xwt.Window window;
         private TerminalWidget terminalWidget;
 
+#if !PLATFORM_WINDOWS
         private readonly PtyUnixStream ptyUnixStream;
+#endif
         private readonly TerminalTypes preferredTerminal;
 
         private static Point NextWindowLocation;
@@ -415,12 +417,12 @@ namespace Emul8.CLI
 
         private enum TerminalTypes
         {
-#if EMUL8_PLATFORM_LINUX
+#if PLATFORM_LINUX
             Putty,
             XTerm,
             GnomeTerminal,
 #endif
-#if EMUL8_PLATFORM_OSX
+#if PLATFORM_OSX
             TerminalApp,
 #endif
             Termsharp

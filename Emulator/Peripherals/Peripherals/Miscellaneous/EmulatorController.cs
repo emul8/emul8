@@ -19,7 +19,7 @@ using Emul8.Core;
 using Emul8.Logging;
 using Emul8.Peripherals.Bus;
 using Emul8.Utilities;
-#if !EMUL8_PLATFORM_WINDOWS
+#if !PLATFORM_WINDOWS
 using Mono.Unix;
 using Mono.Unix.Native;
 #endif
@@ -122,7 +122,7 @@ namespace Emul8.Peripherals.Miscellaneous
         {
             switch((Register)offset)
             {
-#if !EMUL8_PLATFORM_WINDOWS
+#if !PLATFORM_WINDOWS
             case Register.ReceiveFileFromEmulator:
                 return HandleReceiveFile();
 #endif
@@ -266,7 +266,7 @@ namespace Emul8.Peripherals.Miscellaneous
                 break;
             }
         }
-#if !EMUL8_PLATFORM_WINDOWS
+#if !PLATFORM_WINDOWS
         private uint HandleReceiveFile()
         {
             var transferFileName = GetCurrentStringRegister();
