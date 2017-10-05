@@ -187,40 +187,40 @@ namespace Emul8.Disassembler.LLVM
         private static bool _llvm_initialized = false;
         private static readonly object _init_locker = new object();
 
-        [DllImport("LLVM")]
+        [DllImport("libLLVM")]
         private static extern int LLVMDisasmInstruction(IntPtr dc, IntPtr bytes, UInt64 bytesSize, UInt64 PC, IntPtr outString, UInt32 outStringSize);
 
-        [DllImport("LLVM")]
+        [DllImport("libLLVM")]
         private static extern IntPtr LLVMCreateDisasmCPU(string tripleName, string cpu, IntPtr disInfo, int tagType, LLVMOpInfoCallback getOpInfo, LLVMSymbolLookupCallback symbolLookUp);
 
-        [DllImport("LLVM")]
+        [DllImport("libLLVM")]
         private static extern void LLVMDisasmDispose(IntPtr disasm);
 
-        [DllImport("LLVM")]
+        [DllImport("libLLVM")]
         private static extern void LLVMInitializeARMDisassembler();
 
-        [DllImport("LLVM")]
+        [DllImport("libLLVM")]
         private static extern void LLVMInitializeARMTargetMC();
 
-        [DllImport("LLVM")]
+        [DllImport("libLLVM")]
         private static extern void LLVMInitializeARMTargetInfo();
 
-        [DllImport("LLVM")]
+        [DllImport("libLLVM")]
         private static extern void LLVMInitializeMipsDisassembler();
 
-        [DllImport("LLVM")]
+        [DllImport("libLLVM")]
         private static extern void LLVMInitializeMipsTargetMC();
 
-        [DllImport("LLVM")]
+        [DllImport("libLLVM")]
         private static extern void LLVMInitializeMipsTargetInfo();
 
-        [DllImport("LLVM")]
+        [DllImport("libLLVM")]
         private static extern void LLVMInitializeX86Disassembler();
 
-        [DllImport("LLVM")]
+        [DllImport("libLLVM")]
         private static extern void LLVMInitializeX86TargetMC();
 
-        [DllImport("LLVM")]
+        [DllImport("libLLVM")]
         private static extern void LLVMInitializeX86TargetInfo();
 
         private static readonly ulong LLVMDisassembler_VariantKind_None = 0;
