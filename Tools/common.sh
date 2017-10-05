@@ -30,7 +30,7 @@ function get_path {
     fi
 }
 
-function add_property {
+function add_path_property {
     sanitized_path=$(sed 's:\\:/:g' <<< `get_path "$3"`)
     sed -i.bak "s#</PropertyGroup>#  <$2>$sanitized_path</$2>"'\
 </PropertyGroup>#' "$1"

@@ -146,7 +146,7 @@ else
 fi
 cp "$PROP_FILE" "$OUTPUT_DIRECTORY/properties.csproj"
 
-add_property "$OUTPUT_DIRECTORY/properties.csproj" OutputPathPrefix "$OUTPUT_DIRECTORY/bin"
+add_path_property "$OUTPUT_DIRECTORY/properties.csproj" OutputPathPrefix "$OUTPUT_DIRECTORY/bin"
 
 PARAMS+=( --directories "`get_path .`" --output-directory "`get_path \"$OUTPUT_DIRECTORY\"`" --binaries-directory "`get_path \"$BINARIES_DIRECTORY\"`" --solution-name "$SOLUTION_NAME")
 if [ ! -z "$EXCLUDE" ]
