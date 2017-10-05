@@ -19,8 +19,6 @@ showAnalyzer sysbus.uart Emul8.Analyzers.LoggingUartAnalyzer
 ### network setup ###
 
 emulation CreateSwitch "switch"
-emulation CreateTap "tap0" "tap"
-connector Connect host.tap switch
 connector Connect eth switch
 
 ### set parameters ###

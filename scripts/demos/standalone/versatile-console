@@ -14,8 +14,6 @@ sysbus Redirect 0xC0000000 0x0 0x10000000
 showAnalyzer sysbus.uart0
 
 emulation CreateSwitch "switch"
-emulation CreateTap "tap0" "tap"
-connector Connect host.tap switch
 connector Connect smc91x switch
 
 machine CFIFlashFromFile @http://emul8.org/emul8_files/binaries/flash_versatile.img-s_8388608-a6f8e77e2f49daa86b77c3365f30299c3180690b 0x34000000 "flash"
