@@ -16,7 +16,18 @@ namespace Emul8.Logging
     {
         public static ConsoleBackend Instance { get; private set; }
 
-        public string WindowTitle { get; set; }
+        public string WindowTitle
+        {
+            get
+            {
+                return Console.Title;
+            }
+            set
+            {
+                Console.Title = value;
+            }
+        }
+
         public bool ColoringEnabled { get; set; }
         public bool LogThreadId { get; set; }
         public bool ReportRepeatingLines { get; set; }
@@ -103,7 +114,6 @@ namespace Emul8.Logging
             ColoringEnabled = true;
             syncObject = new object();
             isRedirected = Console.IsOutputRedirected;
-            Console.Title = WindowTitle;
         }
 
         public override void Dispose()
