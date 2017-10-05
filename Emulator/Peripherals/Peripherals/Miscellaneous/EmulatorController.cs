@@ -339,7 +339,11 @@ namespace Emul8.Peripherals.Miscellaneous
             {
                 if(state == State.ReceivePermisions)
                 {
+#if !PLATFORM_WINDOWS
                     Syscall.chmod(transferStream.Name, (FilePermissions)value);
+#else
+                    this.Log(LogLevel.Warning, "Setting file permissions in not supported in Windows.");
+#endif
                     state = State.Usual;
                     return;
                 }
