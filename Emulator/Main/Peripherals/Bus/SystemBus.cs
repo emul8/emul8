@@ -428,7 +428,10 @@ namespace Emul8.Peripherals.Bus
 
         public void LoadSymbolsFrom(string fileName, bool useVirtualAddress = false)
         {
-            Lookup.LoadELF(GetELFFromFile(fileName), useVirtualAddress);
+            using (var elf = GetELFFromFile(fileName))
+            {
+                Lookup.LoadELF(elf, useVirtualAddress);
+            }
         }
 
         public void AddSymbol(Range address, string name, bool isThumb = false)
@@ -450,27 +453,29 @@ namespace Emul8.Peripherals.Bus
             {
                 cpu = (IControllableCPU)GetCPUs().FirstOrDefault();
             }
-            var elf = GetELFFromFile(fileName);
-            var segmentsToLoad = elf.Segments.Where(x => x.Type == SegmentType.Load);
-            foreach(var s in segmentsToLoad)
+            using (var elf = GetELFFromFile(fileName))
             {
-                var contents = s.GetContents();
-                var loadAddress = useVirtualAddress ? s.Address : s.PhysicalAddress;
-                this.Log(LogLevel.Info,
-                    "Loading segment of {0} bytes length at 0x{1:X}.",
-                    s.Size,
-                    loadAddress
-                );
-                this.WriteBytes(contents, loadAddress, allowLoadsOnlyToMemory);
-                UpdateLowestLoadedAddress(loadAddress);
-                this.DebugLog("Segment loaded.");
+                var segmentsToLoad = elf.Segments.Where(x => x.Type == SegmentType.Load);
+                foreach (var s in segmentsToLoad)
+                {
+                    var contents = s.GetContents();
+                    var loadAddress = useVirtualAddress ? s.Address : s.PhysicalAddress;
+                    this.Log(LogLevel.Info,
+                        "Loading segment of {0} bytes length at 0x{1:X}.",
+                        s.Size,
+                        loadAddress
+                    );
+                    this.WriteBytes(contents, loadAddress, allowLoadsOnlyToMemory);
+                    UpdateLowestLoadedAddress(loadAddress);
+                    this.DebugLog("Segment loaded.");
+                }
+                Lookup.LoadELF(elf, useVirtualAddress);
+                if (cpu != null)
+                {
+                    cpu.InitFromElf(elf);
+                }
+                AddFingerprint(fileName);
             }
-            Lookup.LoadELF(elf, useVirtualAddress);
-            if(cpu != null)
-            {
-                cpu.InitFromElf(elf);
-            }
-            AddFingerprint(fileName);
         }
 
         public void LoadUImage(string fileName, IControllableCPU cpu = null)
