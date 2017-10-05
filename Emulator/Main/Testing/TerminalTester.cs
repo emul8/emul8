@@ -93,7 +93,7 @@ namespace Emul8.Testing
         {
             var predicate = predicateExpression.Compile();
             Line line = null;
-            TimeSpan time;
+            var time = TimeSpan.Zero;
             WaitForEvent(x => 
             {
                 line = x as Line;
@@ -114,7 +114,7 @@ namespace Emul8.Testing
         public TerminalTester WaitUntilLineFunc(Func<string, bool> predicate, out string lineContent, out TimeSpan virtualTimestamp, TimeSpan? timeout = null)
         {
             Line line = null;
-            TimeSpan time;
+            var time = TimeSpan.Zero;
             WaitForEvent(x =>
             {
                 line = x as Line;
@@ -172,6 +172,7 @@ namespace Emul8.Testing
             }, timeout, assertion);
             if(!assertNotMet)
             {
+                virtualTimestamp = TimeSpan.Zero;
                 return this;
             }
             lock(reportEndingLock)
@@ -184,7 +185,7 @@ namespace Emul8.Testing
         
         public TerminalTester WaitForPrompt(out TimeSpan virtualTimestamp, TimeSpan? timeout = null)
         {
-            TimeSpan time;
+            var time = TimeSpan.Zero;
             WaitForEvent(x => 
                 {
                     if(x is Prompt)
@@ -202,7 +203,7 @@ namespace Emul8.Testing
         public string ReadToPrompt(out TimeSpan virtualTimestamp, TimeSpan? timeout = null)
         {
             var result = new StringBuilder();
-            TimeSpan time;
+            var time = TimeSpan.Zero;
             WaitForEvent(x =>
                 {
                     if(x is Prompt)
@@ -226,7 +227,7 @@ namespace Emul8.Testing
         {
             terminal.WriteLineToTerminal(line);
             var assertion = new Assertion(string.Format("WriteLine({0})", line)) { Type = AssertionType.WriteLine };
-            TimeSpan time;
+            var time = TimeSpan.Zero;
             if(!doNotEatEvent)
             {
                 WaitForEvent(x => 
