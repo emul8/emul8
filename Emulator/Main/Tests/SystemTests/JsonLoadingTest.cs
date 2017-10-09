@@ -22,8 +22,10 @@ namespace Emul8.SystemTests
         [Test, TestCaseSource("GetJsons")]
         public void LoadAllJsons(string json)
         {
-            var machine = new Machine();
-            new DevicesConfig(ReadFileContents(json), machine);
+            using(var machine = new Machine())
+            {
+                new DevicesConfig(ReadFileContents(json), machine);
+            }
         }
 
         private string ReadFileContents(string filename)
