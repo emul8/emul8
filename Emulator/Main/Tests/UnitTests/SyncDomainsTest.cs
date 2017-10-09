@@ -310,33 +310,38 @@ namespace Emul8.UnitTests
             });
                 
             var clockSource = clockSources[0];
-            var machine = machineFactory(clockSource);
-            var peripheralMock = (PeripheralMock)machine["sysbus.mock"];
-            machine.RecordTo(temporaryFile.Value, RecordingBehaviour.DomainExternal);
+            PeripheralMock peripheralMock;
+            Thread machineThread;
 
-            var machineThread = new Thread(machineThreadFunctionFactory(clockSource));
-            machineThread.Start();
-
-            var eventNo = 0;
-            while(!machineThread.Join(0))
+            using(var machine = machineFactory(clockSource))
             {
-                peripheralMock.Method(eventNo++);
-                peripheralMock.MethodTwoArgs(eventNo++, 0);
-                Thread.Sleep(random.Next(30));
+                peripheralMock = (PeripheralMock)machine["sysbus.mock"];
+                machine.RecordTo(temporaryFile.Value, RecordingBehaviour.DomainExternal);
+
+                machineThread = new Thread(machineThreadFunctionFactory(clockSource));
+                machineThread.Start();
+
+                var eventNo = 0;
+                while(!machineThread.Join(0))
+                {
+                    peripheralMock.Method(eventNo++);
+                    peripheralMock.MethodTwoArgs(eventNo++, 0);
+                    Thread.Sleep(random.Next(30));
+                }
             }
 
-            machine.Dispose();
-
             var recordedEvents = peripheralMock.Events;
-
             clockSource = clockSources[1];
-            machine = machineFactory(clockSource);
-            peripheralMock = (PeripheralMock)machine["sysbus.mock"];
-            machine.PlayFrom(temporaryFile.Value);
 
-            machineThread = new Thread(machineThreadFunctionFactory(clockSource));
-            machineThread.Start();
-            machineThread.Join();
+            using(var machine = machineFactory(clockSource))
+            {
+                peripheralMock = (PeripheralMock)machine["sysbus.mock"];
+                machine.PlayFrom(temporaryFile.Value);
+
+                machineThread = new Thread(machineThreadFunctionFactory(clockSource));
+                machineThread.Start();
+                machineThread.Join();
+            }
 
             var playedEvents = peripheralMock.Events;
             CollectionAssert.AreEqual(recordedEvents, playedEvents);
