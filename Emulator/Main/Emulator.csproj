@@ -385,6 +385,7 @@
     <Compile Include="Core\INetworkLogWireless.cs" />
     <Compile Include="Exceptions\ConfigurationException.cs" />
     <Compile Include="Peripherals\Bus\SVDParser.cs" />
+    <Compile Include="Peripherals\SPI\SPILoopback.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup />
