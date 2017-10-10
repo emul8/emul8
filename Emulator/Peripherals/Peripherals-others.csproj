@@ -178,6 +178,7 @@
     <Compile Include="Peripherals\GPIOPort\Quark_PWM.cs" />
     <Compile Include="Peripherals\Wireless\CC2520.cs" />
     <Compile Include="Peripherals\Miscellaneous\CC2538_Cryptoprocessor.cs" />
+    <Compile Include="Peripherals\GPIOPort\EFR32_GPIOPort.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ProjectExtensions>
