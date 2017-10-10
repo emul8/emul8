@@ -68,6 +68,7 @@ namespace Emul8.Peripherals.UART
             lock(queue)
             {
                 queue.Clear();
+                QueueEmptied();
             }
         }
 
