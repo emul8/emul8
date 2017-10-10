@@ -19,7 +19,7 @@ namespace Emul8.Peripherals.UART
             queue = new Queue<byte>();
             Machine = machine;
         }
-            
+
         public void WriteChar(byte value)
         {
             Machine.ReportForeignEvent(value, WriteCharInner);
@@ -56,11 +56,7 @@ namespace Emul8.Peripherals.UART
 
         protected void TransmitCharacter(byte character)
         {
-            var charReceived = CharReceived;
-            if(charReceived != null)
-            {
-                charReceived(character);
-            }
+            CharReceived?.Invoke(character);
         }
 
         protected void ClearBuffer()
