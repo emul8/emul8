@@ -169,6 +169,7 @@
     <Compile Include="Time\BaseClockSource.cs" />
     <Compile Include="Time\Consts.cs" />
     <Compile Include="Peripherals\I2C\II2CPeripheral.cs" />
+    <Compile Include="Peripherals\I2C\I2CCommandManager.cs" />
     <Compile Include="Core\Structure\NumberRegistrationPoint.cs" />
     <Compile Include="Core\Structure\USBRegistrationPoint.cs" />
     <Compile Include="Peripherals\Bus\Wrappers\WriteLoggingWrapper.cs" />
