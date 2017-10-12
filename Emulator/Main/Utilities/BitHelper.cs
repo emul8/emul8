@@ -223,6 +223,11 @@ namespace Emul8.Utilities
             return ret;
         }
 
+        public static uint GetValueFromBitsArray(params bool[] array)
+        {
+            return GetValueFromBitsArray((IEnumerable<bool>)array);
+        }
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static uint CalculateMask(int width, int position)
         {
