@@ -20,9 +20,9 @@ namespace Emul8.UserInterface
     {
         public static Shell GenerateShell(IOProvider io, Monitor monitor, bool forceVCursor = false, bool clearScreen = true)
         {
-            var settings = new ShellSettings { 
+            var settings = new ShellSettings {
                 NormalPrompt = new Prompt("(monitor) ", ConsoleColor.DarkRed),
-                Banner = Enumerable.Repeat(Environment.NewLine, NumberOfDummyLines).Aggregate(String.Empty, (x, y) => x + y) + EmulationManager.Instance.VersionString,
+                BannerProvider = () => Enumerable.Repeat(Environment.NewLine, NumberOfDummyLines).Aggregate(String.Empty, (x, y) => x + y) + EmulationManager.Instance.VersionString,
                 UseBuiltinQuit = false,
                 UseBuiltinHelp = false,
                 UseBuiltinSave = false,
