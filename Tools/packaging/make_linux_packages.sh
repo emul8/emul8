@@ -6,7 +6,7 @@ set -u
 #change dir to script location
 cd "${0%/*}"
 
-MONOVERSION = "5.0"
+MONOVERSION="5.0"
 
 TARGET="Release"
 BASE=../..
