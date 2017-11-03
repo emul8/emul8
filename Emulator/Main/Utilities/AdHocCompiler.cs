@@ -28,7 +28,7 @@ namespace Emul8.Utilities
                 parameters.ReferencedAssemblies.Add("System.Core.dll");
                 parameters.ReferencedAssemblies.Add(Assembly.GetAssembly(typeof(Machine)).Location); // Core
                 parameters.ReferencedAssemblies.Add(Assembly.GetAssembly(typeof(Serializer)).Location); // Migrant
-#if EMUL8_PLATFORM_LINUX
+#if PLATFORM_LINUX
                 parameters.CompilerOptions = "/langversion:experimental";
 #endif
                 if(referencedLibraries != null)
@@ -38,7 +38,7 @@ namespace Emul8.Utilities
                         parameters.ReferencedAssemblies.Add(lib);
                     }
                 }
-                
+
                 var result = provider.CompileAssemblyFromFile(parameters, new[] { sourcePath });
                 if(result.Errors.HasErrors)
                 {

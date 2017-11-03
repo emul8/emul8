@@ -45,7 +45,7 @@ namespace Emul8.Utilities
 
         public static bool TryLoadLibrary(string path, out IntPtr address)
         {
-#if EMUL8_PLATFORM_WINDOWS
+#if PLATFORM_WINDOWS
             address = WindowsLoadLibrary(path);
 #else
             //HACK: returns 0 on first call, somehow
@@ -63,7 +63,7 @@ namespace Emul8.Utilities
         /// </param>
         public static void UnloadLibrary(IntPtr address)
         {
-#if EMUL8_PLATFORM_WINDOWS
+#if PLATFORM_WINDOWS
             var result = WindowsCloseLibrary(address);
             if (!result)
             {
@@ -124,7 +124,7 @@ namespace Emul8.Utilities
         /// </param>
         public static IntPtr GetSymbolAddress(IntPtr libraryAddress, string name)
         {
-#if EMUL8_PLATFORM_WINDOWS
+#if PLATFORM_WINDOWS
             var address = WindowsGetSymbolAddress(libraryAddress, name);
 #else
             var address = dlsym(libraryAddress, name);
@@ -139,7 +139,7 @@ namespace Emul8.Utilities
         private static void HandleError(string operation)
         {
             string message;
-#if EMUL8_PLATFORM_WINDOWS
+#if PLATFORM_WINDOWS
             message = new Win32Exception(Marshal.GetLastWin32Error()).Message;
 #else
             var messagePtr = dlerror();
@@ -155,7 +155,7 @@ namespace Emul8.Utilities
             throw new InvalidOperationException(string.Format("Error while {1} dynamic library: {0}", message, operation));
         }
 
-#if EMUL8_PLATFORM_WINDOWS
+#if PLATFORM_WINDOWS
         [DllImport("kernel32", SetLastError=true, CharSet = CharSet.Ansi, EntryPoint="LoadLibrary")]
         static extern IntPtr WindowsLoadLibrary([MarshalAs(UnmanagedType.LPStr)]string lpFileName);
 

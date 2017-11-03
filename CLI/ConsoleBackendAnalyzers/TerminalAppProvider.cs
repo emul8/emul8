@@ -4,7 +4,7 @@
 // This file is part of the Emul8 project.
 // Full license details are defined in the 'LICENSE' file.
 //
-#if EMUL8_PLATFORM_OSX
+#if PLATFORM_OSX
 using System.Diagnostics;
 using Emul8.Utilities;
 using System.IO;

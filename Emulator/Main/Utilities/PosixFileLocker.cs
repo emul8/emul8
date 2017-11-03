@@ -1,4 +1,4 @@
-#if !EMUL8_PLATFORM_WINDOWS
+#if !PLATFORM_WINDOWS
 //
 // Copyright (c) Antmicro
 // Copyright (c) Realtime Embedded

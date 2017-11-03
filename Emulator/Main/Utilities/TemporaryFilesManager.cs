@@ -88,7 +88,7 @@ namespace Emul8.Utilities
             }
             else
             {
-                id = string.Format("{0}:{1}", Process.GetCurrentProcess().Id, AppDomain.CurrentDomain.Id);
+                id = string.Format("{0}-{1}", Process.GetCurrentProcess().Id, AppDomain.CurrentDomain.Id);
             }
             otherEmulatorTempPrefix = Path.Combine(tempDirectory, tempDirPrefix);
             emulatorTemporaryPath = otherEmulatorTempPrefix + id;

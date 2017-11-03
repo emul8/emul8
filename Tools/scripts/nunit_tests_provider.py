@@ -1,6 +1,6 @@
-#!/usr/bin/python
 # pylint: disable=C0301,C0103,C0111
 from __future__ import print_function
+from sys import platform
 import os
 import subprocess
 import nunit_results_merger
@@ -22,7 +22,13 @@ class NUnitTestSuite(object):
     def prepare(self, options):
         NUnitTestSuite.instances_count += 1
         print("Building {0}".format(self.path))
-        result = subprocess.call(['xbuild', '/p:PropertiesLocation={0}'.format(options.properties_file), '/p:OutputPath={0}'.format(options.results_directory), '/nologo', '/verbosity:quiet', '/p:OutputDir=tests_output', '/p:Configuration={0}'.format(options.configuration), self.path])
+        if platform == "win32":
+            builder = 'MSBuild.exe'
+        else:
+            builder = 'xbuild'
+
+        result = subprocess.call([builder, '/p:PropertiesLocation={0}'.format(options.properties_file), '/p:OutputPath={0}'.format(options.results_directory), '/nologo', '/verbosity:quiet', '/p:OutputDir=tests_output', '/p:Configuration={0}'.format(options.configuration), self.path])
+
         if result != 0:
             print("Building project `{}` failed with error code: {}".format(self.path, result))
         return result
@@ -36,7 +42,10 @@ class NUnitTestSuite(object):
 
         project_file = os.path.split(self.path)[1]
         output_file = project_file.replace('csproj', 'xml')
-        args = ['mono', copied_nunit_path, '-domain:None', '-noshadow', '-nologo', '-labels', '-xml:{}'.format(output_file), project_file.replace("csproj", "dll")]
+        args = [copied_nunit_path, '-domain:None', '-noshadow', '-nologo', '-labels', '-xml:{}'.format(output_file), project_file.replace("csproj", "dll")]
+        if platform.startswith("linux") or platform == "darwin":
+            args.insert(0, 'mono')
+
         if options.port is not None:
             if options.suspend:
                 print('Waiting for a debugger at port: {}'.format(options.port))
@@ -65,3 +74,4 @@ class NUnitTestSuite(object):
             output = os.path.join(options.results_directory, 'nunit_output.xml')
             nunit_results_merger.merge(NUnitTestSuite.output_files, output)
             print('Output:  {}'.format(output))
+

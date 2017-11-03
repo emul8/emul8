@@ -4,11 +4,11 @@
 // This file is part of the Emul8 project.
 // Full license details are defined in the 'LICENSE' file.
 //
+#if PLATFORM_LINUX
 using System.Diagnostics;
 
 namespace Emul8.CLI
 {
-#if EMUL8_PLATFORM_LINUX
     [ConsoleBackendAnalyzerProvider("XTerm")]
     public class XTermProvider : ProcessBasedProvider
     {
@@ -70,5 +70,5 @@ namespace Emul8.CLI
             return p;
         }
     }
-#endif
 }
+#endif

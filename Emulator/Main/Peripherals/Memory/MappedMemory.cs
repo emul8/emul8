@@ -20,7 +20,7 @@ using System.Threading;
 using LZ4n;
 using Emul8.UserInterface;
 using Emul8.Core;
-#if EMUL8_PLATFORM_WINDOWS
+#if PLATFORM_WINDOWS
 using System.Reflection.Emit;
 using System.Reflection;
 #endif
@@ -30,7 +30,7 @@ namespace Emul8.Peripherals.Memory
     [Icon("memory")]
     public sealed class MappedMemory : IBytePeripheral, IWordPeripheral, IDoubleWordPeripheral, IMapped, IDisposable, IKnownSize, ISpeciallySerializable, IMemory, IMultibyteWritePeripheral
     {
-#if EMUL8_PLATFORM_WINDOWS
+#if PLATFORM_WINDOWS
         static MappedMemory()
         {
             var dynamicMethod = new DynamicMethod("Memset", MethodAttributes.Public | MethodAttributes.Static, CallingConventions.Standard,
@@ -454,7 +454,7 @@ namespace Emul8.Peripherals.Memory
             return Marshal.AllocHGlobal(SegmentSize + Alignment);
         }
 
-#if EMUL8_PLATFORM_WINDOWS
+#if PLATFORM_WINDOWS
         private static void MemSet(IntPtr pointer, byte value, int length)
         {                
             MemsetDelegate(pointer, value, length);

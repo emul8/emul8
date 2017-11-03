@@ -23,14 +23,14 @@ namespace Emul8.Launcher
         [Description("Do not output errors on console.")]
         public bool Quiet { get; set; }
 
-#if !EMUL8_PLATFORM_WINDOWS
+#if !PLATFORM_WINDOWS
         [Name("external-debugger-port"), Description("Listen for external debugger."), DefaultValue(-1)]
         public int DebuggerSocketPort { get; set; }
 #endif
 
         public bool Validate(out string error)
         {
-#if !EMUL8_PLATFORM_WINDOWS
+#if !PLATFORM_WINDOWS
             if(!Debug && DebuggerSocketPort != -1)
             {
                 error = "Debugger is not available in 'Release' mode";

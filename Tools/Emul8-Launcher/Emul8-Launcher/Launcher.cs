@@ -103,7 +103,7 @@ namespace Emul8.Launcher
                 Environment.Exit(1);
             }
 
-#if !EMUL8_PLATFORM_WINDOWS
+#if !PLATFORM_WINDOWS
 	    // it is not so easy to remotely debug on .NET, so we do not support it
             var monoOptions = options.Debug ? "--debug" : string.Empty;
 
@@ -122,7 +122,7 @@ namespace Emul8.Launcher
             }
 
             var process = new Process();
-#if EMUL8_PLATFORM_WINDOWS
+#if PLATFORM_WINDOWS
             process.StartInfo.FileName = selectedLaunchee.Path;
             process.StartInfo.Arguments = optionsToPass;
 #else

@@ -4,7 +4,7 @@
 // This file is part of the Emul8 project.
 // Full license details are defined in the 'LICENSE' file.
 //
-#if EMUL8_PLATFORM_LINUX
+#if PLATFORM_LINUX
 using System.Diagnostics;
 
 namespace Emul8.CLI

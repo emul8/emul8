@@ -5,6 +5,6 @@
   <CompilerPath>gcc</CompilerPath>
   <LinkerPath>gcc</LinkerPath>
   <CurrentPlatform>Windows</CurrentPlatform>
-  <DefineConstants>$(DefineConstants);EMUL8_PLATFORM_WINDOWS</DefineConstants>
+  <DefineConstants>$(DefineConstants);PLATFORM_WINDOWS</DefineConstants>
 </PropertyGroup>
 </Project>
