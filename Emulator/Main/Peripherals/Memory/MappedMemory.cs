@@ -275,15 +275,6 @@ namespace Emul8.Peripherals.Memory
             GC.SuppressFinalize(this);
         }
 
-        /// <summary>
-        /// This constructor is only to be used with serialization. Deserializer has to invoke Load method after such
-        /// construction.
-        /// </summary>
-        public MappedMemory()
-        {
-            emptyCtorUsed = true;
-        }
-
         public void Load(PrimitiveReader reader)
         {
             // checking magic
@@ -353,6 +344,15 @@ namespace Emul8.Peripherals.Memory
             this.NoisyLog(string.Format("{0} segments saved to stream, of which {1} had contents.", segments.Length, realSegmentsCount));
             globalStopwatch.Stop();
             this.NoisyLog("Memory serialization ended in {0}s.", Misc.NormalizeDecimal(globalStopwatch.Elapsed.TotalSeconds));
+        }
+
+        /// <summary>
+        /// This constructor is only to be used with serialization. Deserializer has to invoke Load method after such
+        /// construction.
+        /// </summary>
+        private MappedMemory()
+        {
+            emptyCtorUsed = true;
         }
 
         private void CheckAlignment(IntPtr segment)
